@@ -1198,6 +1198,7 @@ async function syncGCal(){
     mergeGCal(all);
     gcalOk=true;btn.className="gcbtn ok";txt.textContent=`Calendar · ${all.length}`;
     renderCal();renderWeek();updateBadges();
+    await autoSyncPublicaciones();
     toast(`✓ ${all.length} eventos sincronizados`);
     document.getElementById("sbag").textContent=[...agendas,...gcalEvents].filter(a=>!a.cancelado).length;
     if(!syncGCal._iv)syncGCal._iv=setInterval(syncGCal,5*60*1000);
@@ -1446,7 +1447,6 @@ async function scanMedios(){
 }
 
 async function fetchMedioNoticias(medio){
-  // Use RSS2JSON proxy to fetch RSS feeds without CORS issues
   const rssUrls={
     "La Voz del Pueblo":"https://www.lavozdelpueblo.com.ar/feed/",
     "LU24":"https://www.lu24.com.ar/feed/",
@@ -1457,49 +1457,55 @@ async function fetchMedioNoticias(medio){
   const rssUrl=rssUrls[medio.n];
   if(!rssUrl)return[];
   
-  // Use rss2json.com free API to convert RSS to JSON
-  const apiUrl=`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}&api_key=fkknjlmabzanmhe5tdczpjg7ezpzqtackcmjyrtn&count=20`;
+  // Try multiple proxies
+  const proxies=[
+    `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}&count=30`,
+    `https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}`,
+  ];
   
-  try{
-    const resp=await fetch(apiUrl);
-    if(!resp.ok)throw new Error("RSS fetch failed");
-    const data=await resp.json();
-    if(!data.items||data.status!=="ok")return[];
-    
-    const keywords=["pablo garate","garate","intendente","tres arroyos","municipio","municipalidad","gobierno local","gestión municipal"];
-    const results=[];
-    const cutoff=new Date(TODAY);cutoff.setDate(cutoff.getDate()-7);
-    
-    for(const item of data.items){
-      const text=((item.title||"")+" "+(item.description||"")+" "+(item.content||"")).toLowerCase();
-      const matchesKW=keywords.some(kw=>text.includes(kw));
-      if(!matchesKW)continue;
+  for(const apiUrl of proxies){
+    try{
+      const resp=await fetch(apiUrl,{signal:AbortSignal.timeout(8000)});
+      if(!resp.ok)continue;
+      const raw=await resp.json();
       
-      const fecha=item.pubDate?item.pubDate.split(" ")[0]:"";
-      const fechaD=new Date(item.pubDate||"");
-      if(fechaD<cutoff)continue;
+      let items=[];
+      if(raw.items&&raw.status==="ok"){
+        // rss2json format
+        items=raw.items;
+      } else if(raw.contents){
+        // allorigins format - parse XML
+        const parser=new DOMParser();
+        const xml=parser.parseFromString(raw.contents,"text/xml");
+        const entries=[...xml.querySelectorAll("item")];
+        items=entries.map(e=>({
+          title:e.querySelector("title")?.textContent||"",
+          link:e.querySelector("link")?.textContent||"",
+          pubDate:e.querySelector("pubDate")?.textContent||"",
+          description:e.querySelector("description")?.textContent||""
+        }));
+      }
       
-      const tit=item.title||"";
-      const tl=tit.toLowerCase();
-      const bl=(item.description||"").toLowerCase();
-      const tono=tl.includes("probl")||tl.includes("critic")||tl.includes("demand")||tl.includes("protest")||tl.includes("denuncia")||bl.includes("probl")||bl.includes("critic")?"negativo":
-                tl.includes("inaugur")||tl.includes("obras")||tl.includes("logro")||tl.includes("premi")||tl.includes("acuerdo")||tl.includes("benefi")?"positivo":"neutral";
+      if(!items.length)continue;
       
-      results.push({
-        titulo:tit.slice(0,200),
-        url:item.link||"",
-        fecha:fecha?new Date(item.pubDate).toISOString().split("T")[0]:isoToday,
-        resumen:(item.description||"").replace(/<[^>]*>/g,"").slice(0,120),
-        tono,
-        menciona_municipio:text.includes("municipio")||text.includes("municipalidad")||text.includes("tres arroyos"),
-        menciona_pablo:text.includes("pablo garate")||text.includes("garate")
-      });
-    }
-    return results;
-  }catch(e){
-    console.warn("RSS error para "+medio.n+":",e.message);
-    return[];
+      const keywords=["pablo garate","garate","intendente","tres arroyos","municipio","municipalidad"];
+      const results=[];
+      const cutoff=new Date(TODAY);cutoff.setDate(cutoff.getDate()-7);
+      
+      for(const item of items){
+        const text=((item.title||"")+" "+(item.description||"")).toLowerCase();
+        if(!keywords.some(kw=>text.includes(kw)))continue;
+        let fechaISO=isoToday;
+        try{const fd=new Date(item.pubDate||"");if(fd>cutoff&&!isNaN(fd))fechaISO=iso(fd);}catch(e){}
+        const tit=(item.title||"").replace(/<[^>]*>/g,"").trim();
+        const tl=tit.toLowerCase();
+        const tono=tl.includes("probl")||tl.includes("critic")||tl.includes("denuncia")||tl.includes("protest")?"negativo":tl.includes("inaugur")||tl.includes("obra")||tl.includes("logro")||tl.includes("benefi")?"positivo":"neutral";
+        results.push({titulo:tit.slice(0,200),url:item.link||"",fecha:fechaISO,resumen:(item.description||"").replace(/<[^>]*>/g,"").slice(0,120),tono,menciona_municipio:text.includes("municipio")||text.includes("municipalidad")||text.includes("tres arroyos"),menciona_pablo:text.includes("pablo garate")||text.includes("garate")});
+      }
+      if(results.length>0||items.length>0)return results;
+    }catch(e){console.warn("Proxy error:",e.message);}
   }
+  return[];
 }
 
 function renderNoticias(){
@@ -1602,8 +1608,4 @@ function sendAlert(nombre){
   const mytasks=tasks.filter(t=>t.responsable===m.nombre&&t.estado!=="Completo");
   const d=parseD(isoToday);
   const guardiaInfo=gi>=0?`\nRol hoy: ${gi===0?"titular":"soporte"} de guardia`:"";
-  mail(m.nombre,`🗓️ Resumen del día — ${DNF[d.getDay()]} ${d.getDate()} de ${MNF[d.getMonth()]}`,`Hola ${m.nombre},${guardiaInfo}${evs.length?"\n\n📅 EVENTOS:\n"+evs.map(e=>`  • ${e.hora||""}${e.hora?" — ":""}${e.descripcion}`).join("\n"):""}${ps.length?"\n\n📱 TUS PUBLICACIONES:\n"+ps.map(p=>{const ct=getCta(p.cuenta);return`  • ${ct?.label}: ${p.descripcion.slice(0,50)}`}).join("\n"):""}${mytasks.length?"\n\n📋 TAREAS PENDIENTES ("+mytasks.length+"):\n"+mytasks.slice(0,5).map(t=>`  • [${t.prioridad}] ${t.descripcion.slice(0,50)}`).join("\n"):""}\n\nPanel: https://equipodecomu.netlify.app\n\nSaludos,\nDpto. Comunicación — Municipalidad de Tres Arroyos`);
-}
-</script>
-</body>
-</html>
+  mail(m.nombre,`🗓️ Resumen del día — ${DNF[d.getDay()]} ${d.getDate()} de ${MNF[d.getMonth()]}`,`Hola ${m.nombre},${guardiaInfo}${evs.length?"\n\n📅 EVENTOS:\n"+evs.map(e=>`  • ${e.hora||""}${e.hora?" — ":""}${e.descripcion}`).join("\n"):""}${ps.length?"\n\n📱 TUS PUBLICACIONES:\n"+ps.map(p=>{const ct=getCta(p.cuenta);return`  • ${ct?.label}: ${p.descripcion.slice(0,50)}`}).join((
