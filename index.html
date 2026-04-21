@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+PANEL = '''<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -9,9 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;font-family:'Inter',sans-serif;background:#f0f2f5;color:#111827;font-size:13px;overflow:hidden}
-
-/* LOGIN */
+html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111827;font-size:13px;overflow:hidden}
 #login{position:fixed;inset:0;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);display:flex;align-items:center;justify-content:center;z-index:9999}
 .lbox{background:rgba(255,255,255,.07);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:40px 44px;width:min(400px,92vw);text-align:center}
 .llogo{width:56px;height:56px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:16px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:22px;color:#fff;margin:0 auto 16px}
@@ -19,36 +17,28 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:#f0f2f5;color:#1
 .lsub{font-size:12px;color:rgba(255,255,255,.4);margin-bottom:28px}
 .lfg{margin-bottom:13px;text-align:left}
 .lfg label{display:block;font-size:10px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}
-.lfg select,.lfg input{width:100%;padding:11px 13px;border-radius:9px;border:1.5px solid rgba(255,255,255,.12);background:rgba(255,255,255,.07);color:#fff;font-size:13px;font-family:'Inter',sans-serif;outline:none;transition:.2s}
+.lfg select,.lfg input{width:100%;padding:11px 13px;border-radius:9px;border:1.5px solid rgba(255,255,255,.12);background:rgba(255,255,255,.07);color:#fff;font-size:13px;font-family:Inter,sans-serif;outline:none}
 .lfg select option{background:#302b63}
-.lfg select:focus,.lfg input:focus{border-color:#667eea}
-.lfg input::placeholder{color:rgba(255,255,255,.25)}
-.lbtn{width:100%;padding:13px;border-radius:10px;background:linear-gradient(135deg,#667eea,#764ba2);border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:.2s;margin-top:4px}
-.lbtn:hover{opacity:.9}
+.lbtn{width:100%;padding:13px;border-radius:10px;background:linear-gradient(135deg,#667eea,#764ba2);border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;margin-top:4px}
 .lerr{color:#f87171;font-size:12px;margin-top:8px;min-height:18px;text-align:center}
-
-/* APP */
 #app{display:none;height:100vh;flex-direction:column;overflow:hidden}
 #app.on{display:flex}
-
-/* TOPBAR */
 .topbar{height:50px;background:#1a1a2e;display:flex;align-items:center;padding:0 14px;gap:6px;flex-shrink:0}
 .logo{display:flex;align-items:center;gap:7px;margin-right:6px;flex-shrink:0}
 .logo-b{width:28px;height:28px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:#fff}
-.logo-n{font-weight:700;font-size:12px;color:#fff;white-space:nowrap}
+.logo-n{font-weight:700;font-size:12px;color:#fff}
 .logo-s{font-size:9px;color:rgba(255,255,255,.3)}
 .ntabs{display:flex;gap:1px;overflow-x:auto}
-.ntab{padding:5px 10px;border-radius:5px;font-size:11px;font-weight:500;cursor:pointer;color:rgba(255,255,255,.45);border:none;background:transparent;font-family:'Inter',sans-serif;transition:.15s;white-space:nowrap;flex-shrink:0}
+.ntab{padding:5px 10px;border-radius:5px;font-size:11px;font-weight:500;cursor:pointer;color:rgba(255,255,255,.45);border:none;background:transparent;font-family:Inter,sans-serif;white-space:nowrap}
 .ntab:hover{color:#fff;background:rgba(255,255,255,.08)}
 .ntab.on{background:rgba(255,255,255,.14);color:#fff}
 .tr{margin-left:auto;display:flex;align-items:center;gap:7px;flex-shrink:0}
-.live{display:flex;align-items:center;gap:4px;padding:3px 8px;background:rgba(255,255,255,.06);border-radius:20px;border:1px solid rgba(255,255,255,.1);font-size:10px;color:rgba(255,255,255,.5);white-space:nowrap}
+.live{display:flex;align-items:center;gap:4px;padding:3px 8px;background:rgba(255,255,255,.06);border-radius:20px;border:1px solid rgba(255,255,255,.1);font-size:10px;color:rgba(255,255,255,.5)}
 .ldot{width:6px;height:6px;border-radius:50%;background:#6b7280;flex-shrink:0}
 .ldot.ok{background:#22c55e;animation:pulse 2s infinite}
 .ldot.err{background:#ef4444}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.gcbtn{display:flex;align-items:center;gap:4px;padding:4px 9px;border-radius:20px;font-size:10px;font-weight:500;cursor:pointer;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);transition:.15s;font-family:'Inter',sans-serif;white-space:nowrap}
-.gcbtn:hover{background:rgba(255,255,255,.12)}
+.gcbtn{display:flex;align-items:center;gap:4px;padding:4px 9px;border-radius:20px;font-size:10px;font-weight:500;cursor:pointer;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);font-family:Inter,sans-serif;white-space:nowrap}
 .gcbtn.ok{border-color:rgba(34,197,94,.4);color:#4ade80}
 .gcbtn.go{color:#fbbf24}
 .gcdot{width:5px;height:5px;border-radius:50%;background:#4b5563;flex-shrink:0}
@@ -58,47 +48,30 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:#f0f2f5;color:#1
 .upill{display:flex;align-items:center;gap:5px;padding:3px 9px 3px 4px;background:rgba(255,255,255,.07);border-radius:20px;border:1px solid rgba(255,255,255,.1)}
 .uav{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:9px;flex-shrink:0}
 .un{font-size:11px;color:rgba(255,255,255,.65);font-weight:500}
-.outbtn{padding:4px 8px;border-radius:6px;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.35);font-size:10px;cursor:pointer;font-family:'Inter',sans-serif}
-.outbtn:hover{color:#fff}
-
-/* BODY */
+.outbtn{padding:4px 8px;border-radius:6px;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.35);font-size:10px;cursor:pointer;font-family:Inter,sans-serif}
 .body{display:flex;flex:1;overflow:hidden;min-height:0}
-
-/* SIDEBAR */
-.sb{width:190px;flex-shrink:0;background:#fff;border-right:1px solid #e5e7eb;display:flex;flex-direction:column;overflow-y:auto}
+.sb{width:190px;flex-shrink:0;background:#fff;border-right:1px solid #e5e7eb;overflow-y:auto}
 .sb-sec{font-size:9px;font-weight:700;letter-spacing:.1em;color:#9ca3af;text-transform:uppercase;padding:10px 12px 3px}
-.sbi{display:flex;align-items:center;gap:7px;padding:6px 12px;cursor:pointer;color:#4b5563;font-size:11px;font-weight:500;transition:.12s;border:none;background:transparent;width:100%;text-align:left;font-family:'Inter',sans-serif}
-.sbi:hover{background:#f3f4f6;color:#111}
+.sbi{display:flex;align-items:center;gap:7px;padding:6px 12px;cursor:pointer;color:#4b5563;font-size:11px;font-weight:500;border:none;background:transparent;width:100%;text-align:left;font-family:Inter,sans-serif}
+.sbi:hover{background:#f3f4f6}
 .sbi.on{background:#ede9fe;color:#6d28d9;border-right:3px solid #6d28d9}
 .sbi svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
 .sbadge{margin-left:auto;font-size:9px;padding:1px 5px;border-radius:7px;background:#e5e7eb;color:#6b7280;font-weight:700}
 .sbadge.hot{background:#fee2e2;color:#dc2626}
-.sbadge.big{background:#dbeafe;color:#1e40af}
 .div{height:1px;background:#f3f4f6;margin:3px 0}
-.sbp{display:flex;align-items:center;gap:6px;padding:5px 12px;cursor:pointer;transition:.12s}
+.sbp{display:flex;align-items:center;gap:6px;padding:5px 12px;cursor:pointer}
 .sbp:hover{background:#f9fafb}
-.sbp.sel{background:#ede9fe}
-.av{border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
-
-/* CONTENT */
 .content{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;min-height:0}
-
-/* BUTTON */
-.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:7px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid #d1d5db;background:#fff;color:#374151;transition:.15s;font-family:'Inter',sans-serif;white-space:nowrap}
-.btn:hover{background:#f9fafb}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:7px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid #d1d5db;background:#fff;color:#374151;font-family:Inter,sans-serif;white-space:nowrap}
 .btn.p{background:#667eea;color:#fff;border-color:#667eea}
-.btn.p:hover{background:#5a6fd6}
 .btn.g{background:#16a34a;color:#fff;border-color:#16a34a}
-.btn.g:hover{background:#15803d}
+.btn.r{background:#dc2626;color:#fff;border-color:#dc2626}
 .btn.sm{padding:4px 9px;font-size:10px;border-radius:5px}
 .btn svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-
-/* PAGE HEADER */
 .ptop{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px;flex-shrink:0}
 .ptitle{font-size:17px;font-weight:700;color:#111827}
 .psub{font-size:11px;color:#6b7280;margin-top:2px}
 .acts{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-
 /* KANBAN */
 .kanban{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;align-items:flex-start}
 .kcol{flex:0 0 220px;border-radius:10px;overflow:hidden;background:#f9fafb;border:1px solid #e5e7eb}
@@ -106,60 +79,46 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:#f0f2f5;color:#1
 .khdr.p1{background:#fef2f2;border-bottom:2px solid #fca5a5}
 .khdr.p2{background:#fffbeb;border-bottom:2px solid #fde68a}
 .khdr.p3{background:#eff6ff;border-bottom:2px solid #bfdbfe}
-.khdr.p4{background:#f0fdf4;border-bottom:2px solid #86efac}
 .kt{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700}
-.p1 .kt{color:#dc2626}.p2 .kt{color:#d97706}.p3 .kt{color:#2563eb}.p4 .kt{color:#16a34a}
+.p1 .kt{color:#dc2626}.p2 .kt{color:#d97706}.p3 .kt{color:#2563eb}
 .kd{width:7px;height:7px;border-radius:50%}
-.p1 .kd{background:#ef4444}.p2 .kd{background:#f59e0b}.p3 .kd{background:#3b82f6}.p4 .kd{background:#22c55e}
+.p1 .kd{background:#ef4444}.p2 .kd{background:#f59e0b}.p3 .kd{background:#3b82f6}
 .kc{font-size:9px;padding:1px 6px;border-radius:8px;font-weight:700}
-.p1 .kc{background:#fca5a5;color:#7f1d1d}.p2 .kc{background:#fde68a;color:#78350f}.p3 .kc{background:#93c5fd;color:#1e3a8a}.p4 .kc{background:#86efac;color:#14532d}
+.p1 .kc{background:#fca5a5;color:#7f1d1d}.p2 .kc{background:#fde68a;color:#78350f}.p3 .kc{background:#93c5fd;color:#1e3a8a}
 .kbody{padding:6px;display:flex;flex-direction:column;gap:4px;overflow-y:auto;max-height:calc(100vh - 280px)}
-.kadd{padding:6px;border-radius:6px;border:1.5px dashed #d1d5db;background:transparent;color:#9ca3af;font-size:11px;cursor:pointer;width:100%;text-align:left;font-family:'Inter',sans-serif;transition:.15s}
+.kadd{padding:6px;border-radius:6px;border:1.5px dashed #d1d5db;background:transparent;color:#9ca3af;font-size:11px;cursor:pointer;width:100%;text-align:left;font-family:Inter,sans-serif}
 .kadd:hover{border-color:#667eea;color:#667eea}
-.tc{background:#fff;border-radius:7px;padding:8px 9px;cursor:pointer;transition:.15s;border:1px solid #e5e7eb;border-left:4px solid transparent;position:relative}
-.tc:hover{box-shadow:0 3px 10px rgba(0,0,0,.08);transform:translateY(-1px)}
-.tc.a0{border-left-color:#22c55e}.tc.a1{border-left-color:#f59e0b}.tc.a2{border-left-color:#ef4444}
-.tc.a2::after{content:"⚠ +14d";position:absolute;top:5px;right:5px;font-size:9px;background:#fee2e2;color:#dc2626;padding:1px 4px;border-radius:4px;font-weight:700}
+.tc{background:#fff;border-radius:7px;padding:8px 9px;cursor:pointer;border:1px solid #e5e7eb;border-left:4px solid #22c55e}
+.tc:hover{box-shadow:0 3px 10px rgba(0,0,0,.08)}
+.tc.a1{border-left-color:#f59e0b}
+.tc.a2{border-left-color:#ef4444}
 .tc-t{font-size:11px;font-weight:500;color:#111827;line-height:1.4;margin-bottom:5px}
 .tc-f{display:flex;align-items:center;justify-content:space-between;gap:4px}
 .tg{font-size:9px;padding:2px 5px;border-radius:4px;font-weight:500}
 .tga{background:#fee2e2;color:#dc2626}.tgm{background:#fffbeb;color:#d97706}.tgb{background:#f0fdf4;color:#16a34a}
-.tage{font-size:9px;color:#9ca3af}.tc.a1 .tage{color:#d97706;font-weight:600}.tc.a2 .tage{color:#dc2626;font-weight:600}
-
-/* MATERIAL */
-.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
-.mcard{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:13px;border-left:4px solid #22c55e}
-.mcard:hover{box-shadow:0 4px 14px rgba(0,0,0,.08)}
-.mct{font-size:13px;font-weight:600;color:#111827;margin-bottom:5px}
-.mcm{font-size:11px;color:#6b7280;margin-bottom:9px}
-.mca{display:flex;gap:6px;flex-wrap:wrap}
-
-/* WEEKLY AGENDA */
-.wshell{display:flex;flex-direction:column;background:#fff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;flex:1;min-height:0}
-.whdr{display:grid;grid-template-columns:48px repeat(7,1fr);border-bottom:2px solid #e5e7eb;background:#fff;flex-shrink:0}
+/* WEEKLY */
+.wshell{display:flex;flex-direction:column;background:#fff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;flex:1;min-height:400px}
+.whdr{display:grid;grid-template-columns:52px repeat(7,1fr);border-bottom:2px solid #e5e7eb;background:#fff;flex-shrink:0}
 .wgut{background:#f9fafb;border-right:1px solid #e5e7eb}
 .wdc{padding:6px 3px;text-align:center;border-right:1px solid #e5e7eb}
 .wdc:last-child{border-right:none}
 .wdc.wdt{background:#eff6ff}
-.wdc.wdw{background:#fffbeb}
+.wdc.wdw{background:#fafafa}
 .wdn{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af}
-.wnum{font-size:13px;font-weight:700;color:#111827;line-height:1.1;margin:2px 0 1px}
+.wnum{font-size:13px;font-weight:700;color:#111827}
 .wdc.wdt .wnum{display:inline-flex;width:22px;height:22px;background:#667eea;color:#fff;border-radius:50%;align-items:center;justify-content:center;font-size:12px}
-.wgav{display:flex;justify-content:center;gap:2px;flex-wrap:wrap;margin-top:2px}
-.gav{width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:6px;font-weight:700;border:1.5px solid #fff;box-shadow:0 1px 2px rgba(0,0,0,.2)}
-.wgt{font-size:8px;color:#9ca3af;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;padding:0 2px}
-.wscroll{overflow-y:auto;flex:1;min-height:0}
-.hrow{display:grid;grid-template-columns:48px repeat(7,1fr);min-height:52px;border-bottom:1px solid #f0f0f0}
-.hrow:last-child{border-bottom:none}
+.wgav{display:flex;justify-content:center;gap:2px;margin-top:2px;flex-wrap:wrap}
+.gav{width:15px;height:15px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:6px;font-weight:700;border:1.5px solid #fff;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.wgt{font-size:8px;color:#9ca3af;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px}
+.wscroll{overflow-y:auto;flex:1}
+.hrow{display:grid;grid-template-columns:52px repeat(7,1fr);border-bottom:1px solid #f0f0f0;min-height:50px}
 .hl{padding:3px 4px 0;font-size:9px;font-weight:600;color:#b0b0b0;text-align:right;border-right:1px solid #e5e7eb;background:#fafafa;white-space:nowrap}
-.hc{border-right:1px solid #f3f4f6;padding:2px;cursor:pointer;transition:.08s;min-height:52px;position:relative}
+.hc{border-right:1px solid #f3f4f6;padding:2px;cursor:pointer;position:relative;min-height:50px}
 .hc:last-child{border-right:none}
 .hc:hover{background:#f5f3ff}
-.hc.hct{background:rgba(102,126,234,.03)}
-.hc.hcw{background:rgba(251,191,36,.03)}
+.hc.hct{background:rgba(102,126,234,.04)}
 .ci{display:flex;flex-direction:column;gap:2px}
-.ev{border-radius:4px;padding:2px 5px;font-size:9px;cursor:pointer;line-height:1.3;word-break:break-word}
-.ev:hover{opacity:.8}
+.ev{border-radius:4px;padding:2px 5px;font-size:9px;cursor:pointer;line-height:1.3}
 .ev.ei{background:#dbeafe;border-left:3px solid #3b82f6;color:#1e40af}
 .ev.ep{background:#fce7f3;border-left:3px solid #ec4899;color:#9d174d}
 .ev.em{background:#dcfce7;border-left:3px solid #22c55e;color:#15803d}
@@ -172,84 +131,64 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:#f0f2f5;color:#1
 .ev.ewap{background:#f0fdf4;border-left:3px solid #25d366;color:#15803d}
 .ev-t{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ev-s{font-size:8px;opacity:.7;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.hadd{position:absolute;bottom:1px;right:1px;width:14px;height:14px;border-radius:50%;background:rgba(102,126,234,.15);border:none;color:#667eea;font-size:12px;line-height:1;cursor:pointer;display:none;align-items:center;justify-content:center}
+.hadd{position:absolute;bottom:2px;right:2px;width:14px;height:14px;border-radius:50%;background:rgba(102,126,234,.15);border:none;color:#667eea;font-size:12px;line-height:1;cursor:pointer;display:none;align-items:center;justify-content:center;font-family:Inter,sans-serif}
 .hc:hover .hadd{display:flex}
-.hadd:hover{background:#667eea;color:#fff}
 .wleg{display:flex;gap:8px;flex-wrap:wrap;padding:5px 10px;background:#fafafa;border-top:1px solid #f3f4f6;flex-shrink:0;font-size:9px;color:#6b7280}
 .leg{display:flex;align-items:center;gap:3px}
-.ld{width:7px;height:7px;border-radius:2px;flex-shrink:0}
-
-/* CALENDAR (same weekly shell) */
-
+.ld{width:7px;height:7px;border-radius:2px}
 /* TEAM */
 .tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px}
-.tmcard{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:13px;text-align:center;cursor:pointer;transition:.15s}
-.tmcard:hover{box-shadow:0 4px 14px rgba(0,0,0,.09);transform:translateY(-1px)}
-
+.tmcard{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:13px;text-align:center;cursor:pointer}
+.tmcard:hover{box-shadow:0 4px 14px rgba(0,0,0,.09)}
 /* GUARDIAS */
 .gwtbl{background:#fff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden}
 .gwh{display:grid;grid-template-columns:repeat(7,1fr);background:#f9fafb;border-bottom:1px solid #e5e7eb}
-.gwhi{padding:7px 4px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6b7280;text-align:center;border-right:1px solid #e5e7eb}
+.gwhi{padding:7px 4px;font-size:9px;font-weight:700;text-transform:uppercase;color:#6b7280;text-align:center;border-right:1px solid #e5e7eb}
 .gwhi:last-child{border-right:none}
 .gwb{display:grid;grid-template-columns:repeat(7,1fr)}
-.gwd{padding:8px 5px;border-right:1px solid #f3f4f6;border-bottom:1px solid #f3f4f6;text-align:center;min-height:85px}
+.gwd{padding:8px 5px;border-right:1px solid #f3f4f6;border-bottom:1px solid #f3f4f6;text-align:center;min-height:90px}
 .gwd:last-child{border-right:none}
 .gwd.gwt{background:#eff6ff}
 .gwd.gwwe{background:#fffbeb}
-.gwdate{font-size:11px;font-weight:600;margin-bottom:5px;color:#374151}
-.gwags{display:flex;flex-direction:column;gap:3px;align-items:center}
-.gwag{display:flex;align-items:center;gap:3px;font-size:10px;color:#374151}
-.gwevs{margin-top:4px;font-size:8px;color:#1e40af;line-height:1.5}
-.gwnb{margin-top:5px;width:100%;padding:3px;border-radius:4px;border:1px solid #e5e7eb;background:#fff;font-size:8px;color:#6b7280;cursor:pointer;font-family:'Inter',sans-serif;transition:.15s}
+.gwdate{font-size:11px;font-weight:600;margin-bottom:4px;color:#374151}
+.gwags{display:flex;flex-direction:column;gap:3px;align-items:center;margin-bottom:4px}
+.gwag{display:flex;align-items:center;gap:3px;font-size:9px}
+.gwevs{font-size:8px;color:#1e40af;line-height:1.5;margin-top:3px;text-align:left}
+.gwnb{margin-top:4px;width:100%;padding:3px;border-radius:4px;border:1px solid #e5e7eb;background:#fff;font-size:8px;color:#6b7280;cursor:pointer;font-family:Inter,sans-serif}
 .gwnb:hover{background:#667eea;color:#fff;border-color:#667eea}
-
-/* IDEAS */
-.igrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:10px}
-.icard{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:12px;transition:.15s}
-.icard:hover{box-shadow:0 4px 14px rgba(0,0,0,.08);border-color:#c4b5fd}
-
-/* METRICS */
+/* METRICAS */
 .metrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
 .met{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:12px}
-.met-ico{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;margin-bottom:8px}
-.met-v{font-size:20px;font-weight:700;color:#111827;line-height:1}
-.met-l{font-size:10px;color:#6b7280;margin-top:3px}
+.met-ico{font-size:18px;margin-bottom:6px}
+.met-v{font-size:20px;font-weight:700;color:#111827}
+.met-l{font-size:10px;color:#6b7280;margin-top:2px}
 .cgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .cbox{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:13px}
-.cbox-t{font-size:12px;font-weight:600;color:#111827;margin-bottom:10px}
+.cbox-t{font-size:12px;font-weight:600;margin-bottom:10px}
 .ch{position:relative;height:200px}
-.api-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:7px}
-.apiitem{display:flex;align-items:center;gap:7px;padding:7px 10px;background:#fff;border:1px solid #e5e7eb;border-radius:7px}
-.apidot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.apidot.pend{background:#f59e0b}
-.apidot.off{background:#e5e7eb}
-
 /* MEDIOS */
-.medio-sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px}
 .meds{background:#fff;border:1px solid #e5e7eb;border-radius:9px;padding:10px 11px;display:flex;align-items:center;gap:10px}
 .meds-logo{width:36px;height:36px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
 .meds-bar{height:3px;background:#f3f4f6;border-radius:2px;margin-top:5px}
-.meds-fill{height:100%;border-radius:2px;transition:.4s}
+.meds-fill{height:100%;border-radius:2px}
 .nrow{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid #f3f4f6;align-items:flex-start}
 .nrow:last-child{border-bottom:none}
-.nbadge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:5px;color:#fff;white-space:nowrap}
-.ntitle{font-size:12px;font-weight:600;color:#111827;margin-bottom:3px;line-height:1.4}
+.nbadge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:5px;color:#fff;white-space:nowrap;display:inline-block}
+.ntitle{font-size:12px;font-weight:600;color:#111827;margin-bottom:3px}
 .ntitle a{color:inherit;text-decoration:none}
 .ntitle a:hover{color:#667eea;text-decoration:underline}
-.nmeta{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:3px}
-.nresumen{font-size:10px;color:#6b7280;line-height:1.5}
 .pill{font-size:9px;padding:2px 6px;border-radius:8px;font-weight:500}
 .pill-pos{background:#dcfce7;color:#16a34a}
 .pill-neg{background:#fee2e2;color:#dc2626}
 .pill-neu{background:#f3f4f6;color:#6b7280}
 .pill-muni{background:#dbeafe;color:#1e40af}
 .pill-pablo{background:#ede9fe;color:#6d28d9}
-.scan-bar{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;font-size:11px;margin-bottom:10px}
-.scan-bar.scanning{background:#fffbeb;border:1px solid #fde68a;color:#92400e}
-.scan-bar.done{background:#f0fdf4;border:1px solid #86efac;color:#16a34a}
+.sbar{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;font-size:11px;margin-bottom:8px}
+.sbar.scan{background:#fffbeb;border:1px solid #fde68a;color:#92400e}
+.sbar.done{background:#f0fdf4;border:1px solid #86efac;color:#16a34a}
+.sbar.fail{background:#fef2f2;border:1px solid #fca5a5;color:#dc2626}
 .spin{width:13px;height:13px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
 @keyframes spin{to{transform:rotate(360deg)}}
-
 /* MODAL */
 .ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:500;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(3px)}
 .ov.open{display:flex}
@@ -257,65 +196,59 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:#f0f2f5;color:#1
 .mod-t{font-size:16px;font-weight:700;color:#111827;margin-bottom:16px}
 .fg{margin-bottom:11px}
 .fg label{display:block;font-size:9px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
-.fg input,.fg select,.fg textarea{width:100%;font-size:12px;padding:8px 10px;border-radius:7px;border:1.5px solid #e5e7eb;background:#fff;color:#111827;font-family:'Inter',sans-serif;outline:none;transition:.15s}
-.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:#667eea;box-shadow:0 0 0 3px rgba(102,126,234,.1)}
+.fg input,.fg select,.fg textarea{width:100%;font-size:12px;padding:8px 10px;border-radius:7px;border:1.5px solid #e5e7eb;background:#fff;color:#111827;font-family:Inter,sans-serif;outline:none}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:#667eea}
 .fg textarea{resize:vertical;min-height:60px}
 .fr{display:grid;grid-template-columns:1fr 1fr;gap:9px}
 .mft{display:flex;gap:7px;justify-content:flex-end;margin-top:14px;padding-top:12px;border-top:1px solid #f3f4f6}
 .cuentas{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:3px}
-.copt{display:flex;align-items:center;gap:6px;padding:7px 9px;border-radius:7px;border:1.5px solid #e5e7eb;cursor:pointer;transition:.15s;background:#fff}
+.copt{display:flex;align-items:center;gap:6px;padding:7px 9px;border-radius:7px;border:1.5px solid #e5e7eb;cursor:pointer;background:#fff}
 .copt:hover{border-color:#667eea;background:#f5f3ff}
 .copt.sel{border-color:#667eea;background:#ede9fe}
 .cdot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
 .clabel{font-size:11px;font-weight:500;color:#374151}
 .csub{font-size:9px;color:#9ca3af}
-
-/* INFO BANNER */
 .ibanner{background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:8px 12px;font-size:11px;color:#1e40af;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:7px}
-
-/* TOAST */
-.toast{position:fixed;bottom:16px;right:16px;padding:10px 15px;border-radius:9px;font-size:11px;font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,.15);z-index:9999;display:none;max-width:280px;line-height:1.5}
+.toast{position:fixed;bottom:16px;right:16px;padding:10px 15px;border-radius:9px;font-size:11px;font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,.15);z-index:9999;display:none;max-width:280px}
 .toast.show{display:block;animation:sup .2s ease}
 .toast.ok{background:#16a34a;color:#fff}
 .toast.warn{background:#d97706;color:#fff}
 .toast.err{background:#dc2626;color:#fff}
 @keyframes sup{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-
-select,input{font-family:'Inter',sans-serif}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.mcard{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:13px;border-left:4px solid #22c55e}
+.api-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:7px;margin-bottom:8px}
+.apiitem{display:flex;align-items:center;gap:7px;padding:7px 10px;background:#fff;border:1px solid #e5e7eb;border-radius:7px}
+.apidot{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:#f59e0b}
 </style>
 </head>
 <body>
-
-<!-- LOGIN -->
 <div id="login">
   <div class="lbox">
     <div class="llogo">TA</div>
     <div class="ltitle">Panel de Comunicación</div>
     <div class="lsub">Municipalidad de Tres Arroyos</div>
     <div class="lfg"><label>¿Quién sos?</label>
-      <select id="lu">
-        <option value="">Seleccioná tu nombre...</option>
+      <select id="lu"><option value="">— seleccioná —</option>
         <option>Santiago</option><option>Marianela</option><option>Debora</option>
         <option>Lina</option><option>Maiten</option><option>Yesi</option>
         <option>Guada</option><option>Nadia</option>
       </select>
     </div>
     <div class="lfg"><label>Contraseña</label>
-      <input type="password" id="lp" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()">
+      <input type="password" id="lp" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
     </div>
-    <button class="lbtn" onclick="login()">Ingresar</button>
+    <button class="lbtn" onclick="doLogin()">Ingresar</button>
     <div class="lerr" id="lerr"></div>
     <div style="color:rgba(255,255,255,.15);font-size:11px;margin-top:18px">Dpto. Comunicaciones · 2026</div>
   </div>
 </div>
 
-<!-- APP -->
 <div id="app">
-  <!-- TOPBAR -->
   <div class="topbar">
     <div class="logo">
       <div class="logo-b">TA</div>
-      <div><div class="logo-n">Comunicación</div><div class="logo-s">Municipalidad · Tres Arroyos</div></div>
+      <div><div class="logo-n">Comunicación</div><div class="logo-s">Muni · Tres Arroyos</div></div>
     </div>
     <div class="ntabs">
       <button class="ntab on" onclick="nav('tablero',this)">Tablero</button>
@@ -331,90 +264,55 @@ select,input{font-family:'Inter',sans-serif}
       <div class="live"><div class="ldot" id="ldot"></div><span id="ltxt">Conectando...</span></div>
       <button class="gcbtn" id="gcbtn" onclick="syncGCal()"><div class="gcdot" id="gcdot"></div><span id="gctxt">Sincronizar Calendar</span></button>
       <div class="upill"><div class="uav" id="uav"></div><span class="un" id="uname"></span></div>
-      <button class="outbtn" onclick="logout()">Salir</button>
+      <button class="outbtn" onclick="doLogout()">Salir</button>
     </div>
   </div>
 
   <div class="body">
-    <!-- SIDEBAR -->
     <aside class="sb">
       <div class="sb-sec">Panel</div>
-      <button class="sbi on" onclick="nav('tablero',null,this)">
-        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-        Tablero<span class="sbadge hot" id="sbt">0</span>
-      </button>
-      <button class="sbi" onclick="nav('material',null,this)">
-        <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-        Material<span class="sbadge" id="sbm">0</span>
-      </button>
-      <button class="sbi" onclick="nav('publicaciones',null,this)">
-        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-        Publicaciones
-      </button>
-      <button class="sbi" onclick="nav('calendario',null,this)">
-        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-        Calendario<span class="sbadge big" id="sbag">0</span>
-      </button>
+      <button class="sbi on" onclick="nav('tablero',null,this)"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Tablero<span class="sbadge hot" id="sbt">0</span></button>
+      <button class="sbi" onclick="nav('material',null,this)"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Material<span class="sbadge" id="sbm">0</span></button>
+      <button class="sbi" onclick="nav('publicaciones',null,this)"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>Publicaciones</button>
+      <button class="sbi" onclick="nav('calendario',null,this)"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Calendario<span class="sbadge big" id="sbag">0</span></button>
       <div class="div"></div>
       <div class="sb-sec">Equipo</div>
-      <button class="sbi" onclick="nav('guardias',null,this)">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-        Guardias
-      </button>
-      <button class="sbi" onclick="nav('equipo',null,this)">
-        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
-        Equipo
-      </button>
-      <button class="sbi" onclick="nav('metricas',null,this)">
-        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        Métricas redes
-      </button>
-      <button class="sbi" onclick="nav('medios',null,this)">
-        <svg viewBox="0 0 24 24"><path d="M4 22h16a2 2 0 002-2V4a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 01-2 2zm0 0a2 2 0 01-2-2v-9c0-1.1.9-2 2-2h2"/></svg>
-        Monitoreo medios
-      </button>
+      <button class="sbi" onclick="nav('guardias',null,this)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Guardias</button>
+      <button class="sbi" onclick="nav('equipo',null,this)"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>Equipo</button>
+      <button class="sbi" onclick="nav('metricas',null,this)"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Métricas redes</button>
+      <button class="sbi" onclick="nav('medios',null,this)"><svg viewBox="0 0 24 24"><path d="M4 22h16a2 2 0 002-2V4a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 01-2 2zm0 0a2 2 0 01-2-2v-9c0-1.1.9-2 2-2h2"/></svg>Monitoreo medios</button>
       <div class="div"></div>
       <div class="sb-sec">Filtrar persona</div>
       <div id="sbpersons"></div>
     </aside>
 
-    <!-- MAIN CONTENT -->
     <div class="content" id="main">
-
-      <!-- ══ TABLERO ══ -->
+      <!-- TABLERO -->
       <div id="p-tablero">
         <div class="ptop">
           <div><div class="ptitle">Tablero de tareas</div><div class="psub" id="tsub"></div></div>
           <div class="acts">
-            <select id="kfr" onchange="renderKanban()" style="font-size:11px;padding:5px 8px;border-radius:6px;border:1.5px solid #e5e7eb;background:#fff;font-family:'Inter',sans-serif;outline:none"><option value="">Todos</option></select>
-            <select id="kfp" onchange="renderKanban()" style="font-size:11px;padding:5px 8px;border-radius:6px;border:1.5px solid #e5e7eb;background:#fff;font-family:'Inter',sans-serif;outline:none"><option value="">Toda prioridad</option><option>Alta</option><option>Media</option><option>Baja</option></select>
+            <select id="kfr" onchange="renderKanban()" style="font-size:11px;padding:5px 8px;border-radius:6px;border:1.5px solid #e5e7eb;font-family:Inter,sans-serif;outline:none"><option value="">Todos</option></select>
+            <select id="kfp" onchange="renderKanban()" style="font-size:11px;padding:5px 8px;border-radius:6px;border:1.5px solid #e5e7eb;font-family:Inter,sans-serif;outline:none"><option value="">Toda prioridad</option><option>Alta</option><option>Media</option><option>Baja</option></select>
             <button class="btn p" onclick="openTaskMod()"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Nueva tarea</button>
           </div>
-        </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:10px;color:#6b7280">
-          <span>Urgencia:</span>
-          <span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:50%;background:#22c55e;display:inline-block"></span>0–7 días</span>
-          <span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:50%;background:#f59e0b;display:inline-block"></span>8–14 días</span>
-          <span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:50%;background:#ef4444;display:inline-block"></span>+14 días (envía mail)</span>
         </div>
         <div class="kanban" id="kanban"></div>
       </div>
 
-      <!-- ══ MATERIAL ══ -->
+      <!-- MATERIAL -->
       <div id="p-material" style="display:none">
-        <div class="ptop">
-          <div><div class="ptitle">Material disponible para publicar</div><div class="psub">Tareas listas — programalas en redes</div></div>
-        </div>
+        <div class="ptop"><div><div class="ptitle">Material disponible para publicar</div><div class="psub">Tareas listas — programalas en redes</div></div></div>
         <div class="mgrid" id="matgrid"></div>
       </div>
 
-      <!-- ══ PUBLICACIONES ══ -->
+      <!-- PUBLICACIONES -->
       <div id="p-publicaciones" style="display:none;flex-direction:column;gap:10px;height:100%">
         <div class="ptop">
           <div><div class="ptitle">Publicaciones</div><div class="psub" id="pubsub"></div></div>
           <div class="acts">
             <button class="btn sm" onclick="changePW(-1)">← Ant</button>
-            <span id="pwlbl" style="font-size:11px;color:#6b7280;min-width:130px;text-align:center;font-weight:500"></span>
+            <span id="pwlbl" style="font-size:11px;color:#6b7280;min-width:140px;text-align:center;font-weight:500"></span>
             <button class="btn sm" onclick="changePW(1)">Sig →</button>
             <button class="btn p" onclick="openPubMod()"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Nueva</button>
           </div>
@@ -423,8 +321,6 @@ select,input{font-family:'Inter',sans-serif}
           <div class="whdr" id="whdr"></div>
           <div class="wscroll" id="wscroll"></div>
           <div class="wleg">
-            <span class="leg"><span class="ld" style="background:#3b82f6"></span>Intendente</span>
-            <span class="leg"><span class="ld" style="background:#ec4899"></span>Prensa</span>
             <span class="leg"><span class="ld" style="background:#1877f2"></span>FB Munici</span>
             <span class="leg"><span class="ld" style="background:#e1306c"></span>IG Munici</span>
             <span class="leg"><span class="ld" style="background:#374151"></span>TK Munici</span>
@@ -432,17 +328,19 @@ select,input{font-family:'Inter',sans-serif}
             <span class="leg"><span class="ld" style="background:#c13584"></span>IG Pablo</span>
             <span class="leg"><span class="ld" style="background:#15803d"></span>TK Pablo</span>
             <span class="leg"><span class="ld" style="background:#25d366"></span>WA Pablo</span>
+            <span class="leg"><span class="ld" style="background:#3b82f6"></span>Intendente</span>
+            <span class="leg"><span class="ld" style="background:#ec4899"></span>Prensa</span>
           </div>
         </div>
       </div>
 
-      <!-- ══ CALENDARIO ══ -->
+      <!-- CALENDARIO -->
       <div id="p-calendario" style="display:none;flex-direction:column;gap:10px;height:100%">
         <div class="ptop">
-          <div><div class="ptitle">Calendario</div><div class="psub" id="calsub"></div></div>
+          <div><div class="ptitle">Calendario</div><div class="psub" id="calsub">Sin sincronización activa</div></div>
           <div class="acts">
             <button class="btn sm" onclick="changeCalW(-1)">← Ant</button>
-            <span id="callbl" style="font-size:12px;font-weight:600;color:#111827;min-width:160px;text-align:center"></span>
+            <span id="callbl" style="font-size:12px;font-weight:600;min-width:170px;text-align:center"></span>
             <button class="btn sm" onclick="changeCalW(1)">Sig →</button>
             <button class="btn sm" onclick="calWO=0;renderCal()">Hoy</button>
             <button class="btn p" onclick="openAgMod()"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Nuevo evento</button>
@@ -461,58 +359,44 @@ select,input{font-family:'Inter',sans-serif}
         </div>
       </div>
 
-      <!-- ══ GUARDIAS ══ -->
+      <!-- GUARDIAS -->
       <div id="p-guardias" style="display:none">
         <div class="ptop">
           <div><div class="ptitle">Guardias semanales</div><div class="psub">Santiago: gestión sin coberturas de campo</div></div>
           <div class="acts">
-            <select id="gwsel" onchange="renderGuardias()" style="font-size:11px;padding:5px 8px;border-radius:6px;border:1.5px solid #e5e7eb;background:#fff;font-family:'Inter',sans-serif;outline:none"></select>
+            <select id="gwsel" onchange="renderGuardias()" style="font-size:11px;padding:5px 8px;border-radius:6px;border:1.5px solid #e5e7eb;font-family:Inter,sans-serif;outline:none"></select>
             <button class="btn p" onclick="notifyWeek()">Notificar semana</button>
           </div>
         </div>
         <div id="gwcontent"></div>
       </div>
 
-      <!-- ══ EQUIPO ══ -->
+      <!-- EQUIPO -->
       <div id="p-equipo" style="display:none">
-        <div class="ptop"><div><div class="ptitle">Equipo y roles</div><div class="psub">Hacé clic para editar teléfono, correo y rol</div></div></div>
+        <div class="ptop"><div><div class="ptitle">Equipo</div><div class="psub">Clic para editar datos de contacto</div></div></div>
         <div class="tgrid" id="teamgrid"></div>
       </div>
 
-      <!-- ══ IDEAS ══ -->
-      <div id="p-ideas" style="display:none">
-        <div class="ptop">
-          <div><div class="ptitle">Ideas de contenido — Pablo Garate</div></div>
-          <button class="btn p" onclick="openIdeaMod()"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Nueva idea</button>
-        </div>
-        <div class="igrid" id="ideagrid"></div>
-      </div>
-
-      <!-- ══ MÉTRICAS ══ -->
+      <!-- METRICAS -->
       <div id="p-metricas" style="display:none">
         <div class="ptop">
           <div><div class="ptitle">Métricas de redes sociales</div><div class="psub">Municipalidad y Pablo Garate</div></div>
           <div class="acts">
-            <select id="mrange" onchange="renderMetricas()" style="font-size:11px;padding:5px 8px;border-radius:6px;border:1.5px solid #e5e7eb;background:#fff;font-family:'Inter',sans-serif;outline:none"><option value="7">7 días</option><option value="14">14 días</option><option value="30">30 días</option></select>
+            <select id="mrange" onchange="renderMetricas()" style="font-size:11px;padding:5px 8px;border-radius:6px;border:1.5px solid #e5e7eb;font-family:Inter,sans-serif;outline:none"><option value="7">7 días</option><option value="14">14 días</option><option value="30">30 días</option></select>
             <button class="btn p" onclick="openStatsMod()"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Cargar stats</button>
           </div>
         </div>
-        <!-- API Status -->
-        <div class="api-grid" style="margin-bottom:4px">
-          <div class="apiitem"><div class="apidot pend"></div><div><div style="font-size:11px;font-weight:500">Facebook Municipalidad</div><div style="font-size:9px;color:#9ca3af">facebook.com/municipalidaddetresarroyos</div></div><span style="font-size:9px;color:#9ca3af;margin-left:auto">Pendiente</span></div>
-          <div class="apiitem"><div class="apidot pend"></div><div><div style="font-size:11px;font-weight:500">Instagram Municipalidad</div><div style="font-size:9px;color:#9ca3af">instagram.com/municipalidadtresarroyos</div></div><span style="font-size:9px;color:#9ca3af;margin-left:auto">Pendiente</span></div>
-          <div class="apiitem"><div class="apidot pend"></div><div><div style="font-size:11px;font-weight:500">Facebook Pablo Garate</div><div style="font-size:9px;color:#9ca3af">facebook.com/GaratePablo</div></div><span style="font-size:9px;color:#9ca3af;margin-left:auto">Pendiente</span></div>
-          <div class="apiitem"><div class="apidot pend"></div><div><div style="font-size:11px;font-weight:500">Instagram Pablo Garate</div><div style="font-size:9px;color:#9ca3af">instagram.com/pablo.garate</div></div><span style="font-size:9px;color:#9ca3af;margin-left:auto">Pendiente</span></div>
-          <div class="apiitem"><div class="apidot off"></div><div><div style="font-size:11px;font-weight:500">YouTube Municipalidad</div><div style="font-size:9px;color:#9ca3af">youtube.com/@municipalidadtresarroyos</div></div><span style="font-size:9px;color:#9ca3af;margin-left:auto">Sin config</span></div>
+        <div class="api-grid">
+          <div class="apiitem"><div class="apidot"></div><div><div style="font-size:11px;font-weight:500">Facebook Municipalidad</div><div style="font-size:9px;color:#9ca3af">Pendiente aprobación</div></div></div>
+          <div class="apiitem"><div class="apidot"></div><div><div style="font-size:11px;font-weight:500">Instagram Municipalidad</div><div style="font-size:9px;color:#9ca3af">Pendiente aprobación</div></div></div>
+          <div class="apiitem"><div class="apidot"></div><div><div style="font-size:11px;font-weight:500">Facebook Pablo Garate</div><div style="font-size:9px;color:#9ca3af">Pendiente aprobación</div></div></div>
+          <div class="apiitem"><div class="apidot"></div><div><div style="font-size:11px;font-weight:500">Instagram Pablo Garate</div><div style="font-size:9px;color:#9ca3af">Pendiente aprobación</div></div></div>
         </div>
-        <!-- Account tabs -->
-        <div style="display:flex;gap:5px;flex-wrap:wrap" id="acctabs"></div>
-        <!-- Metric cards -->
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px" id="acctabs"></div>
         <div class="metrow" id="metcards"></div>
-        <!-- Charts -->
         <div class="cgrid">
           <div class="cbox"><div class="cbox-t">Alcance e impresiones</div><div class="ch"><canvas id="chartAlcance"></canvas></div></div>
-          <div class="cbox"><div class="cbox-t">Engagement (likes + comentarios)</div><div class="ch"><canvas id="chartEng"></canvas></div></div>
+          <div class="cbox"><div class="cbox-t">Engagement</div><div class="ch"><canvas id="chartEng"></canvas></div></div>
         </div>
         <div class="cgrid">
           <div class="cbox"><div class="cbox-t">Municipalidad vs Pablo Garate</div><div class="ch"><canvas id="chartRadar"></canvas></div></div>
@@ -520,43 +404,36 @@ select,input{font-family:'Inter',sans-serif}
         </div>
       </div>
 
-      <!-- ══ MEDIOS ══ -->
+      <!-- MEDIOS -->
       <div id="p-medios" style="display:none">
         <div class="ptop">
           <div><div class="ptitle">Monitoreo de medios</div><div class="psub">Noticias sobre el municipio y Pablo Garate</div></div>
           <div class="acts">
-            <select id="mfilter" onchange="renderNoticias()" style="font-size:11px;padding:5px 8px;border-radius:6px;border:1.5px solid #e5e7eb;background:#fff;font-family:'Inter',sans-serif;outline:none"><option value="">Todos los medios</option><option>La Voz del Pueblo</option><option>LU24</option><option>Diario 3</option><option>Via País</option><option>Onda Uno</option></select>
-            <select id="tfilter" onchange="renderNoticias()" style="font-size:11px;padding:5px 8px;border-radius:6px;border:1.5px solid #e5e7eb;background:#fff;font-family:'Inter',sans-serif;outline:none"><option value="">Todos los tonos</option><option value="positivo">Positivo</option><option value="neutral">Neutral</option><option value="negativo">Negativo</option></select>
+            <select id="mfilt" onchange="renderNoticias()" style="font-size:11px;padding:5px 8px;border-radius:6px;border:1.5px solid #e5e7eb;font-family:Inter,sans-serif;outline:none"><option value="">Todos los medios</option><option>La Voz del Pueblo</option><option>LU24</option><option>Diario 3</option><option>Via País</option><option>Onda Uno</option></select>
+            <select id="tfilt" onchange="renderNoticias()" style="font-size:11px;padding:5px 8px;border-radius:6px;border:1.5px solid #e5e7eb;font-family:Inter,sans-serif;outline:none"><option value="">Todos los tonos</option><option value="positivo">Positivo</option><option value="neutral">Neutral</option><option value="negativo">Negativo</option></select>
             <button class="btn g" id="scanbtn" onclick="scanMedios()"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>Escanear medios</button>
-            <button class="btn p" onclick="openNoticiaMod()"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Agregar noticia</button>
+            <button class="btn p" onclick="openNoticiaMod()"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>+ Agregar</button>
           </div>
         </div>
         <div id="scanstatus"></div>
-        <!-- Medio summary -->
-        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:13px">
-          <div style="font-size:12px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">Resumen semanal <span id="semlbl" style="font-size:10px;color:#9ca3af;font-weight:400"></span></div>
-          <div class="medio-sum" id="mediosum"></div>
+        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:13px;margin-bottom:10px">
+          <div style="font-size:12px;font-weight:600;margin-bottom:8px;display:flex;justify-content:space-between"><span>Resumen semanal</span><span id="semlbl" style="font-size:10px;color:#9ca3af;font-weight:400"></span></div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px" id="mediosum"></div>
         </div>
-        <!-- Charts -->
-        <div class="cgrid">
-          <div class="cbox"><div class="cbox-t">Noticias por medio (semana)</div><div class="ch"><canvas id="chartMedios"></canvas></div></div>
-          <div class="cbox"><div class="cbox-t">Tono de cobertura</div><div class="ch"><canvas id="chartTono"></canvas></div></div>
-        </div>
-        <!-- News list -->
         <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:13px">
-          <div style="font-size:12px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">Noticias encontradas <span id="ncount" style="font-size:10px;color:#9ca3af;font-weight:400"></span></div>
+          <div style="font-size:12px;font-weight:600;margin-bottom:8px;display:flex;justify-content:space-between"><span>Noticias</span><span id="ncount" style="font-size:10px;color:#9ca3af;font-weight:400"></span></div>
           <div id="nlist"></div>
         </div>
       </div>
+    </div>
+  </div>
+</div>
 
-    </div><!-- main -->
-  </div><!-- body -->
-</div><!-- app -->
-
-<!-- MODALES -->
+<!-- MODALS -->
 <div class="ov" id="modTask"><div class="mod">
   <div class="mod-t" id="taskmodt">Nueva tarea</div>
-  <div class="fg"><label>Descripción</label><textarea id="fdesc" rows="3" placeholder="¿Qué hay que hacer?"></textarea></div>
+  <input type="hidden" id="editTid">
+  <div class="fg"><label>Descripción</label><textarea id="fdesc" rows="3"></textarea></div>
   <div class="fr">
     <div class="fg"><label>Responsable</label><select id="fresp"><option value="">Sin asignar</option></select></div>
     <div class="fg"><label>Prioridad</label><select id="fprio"><option>Alta</option><option selected>Media</option><option>Baja</option></select></div>
@@ -565,60 +442,59 @@ select,input{font-family:'Inter',sans-serif}
     <div class="fg"><label>Estado</label><select id="fest"><option>Pendiente</option><option>En proceso</option><option>Listo s/publicar</option></select></div>
     <div class="fg"><label>Observaciones</label><input type="text" id="fobs"></div>
   </div>
-  <div class="mft"><button class="btn" onclick="closeMod('modTask')">Cancelar</button><button class="btn p" onclick="saveTask()">Guardar →</button></div>
+  <div class="mft"><button class="btn" onclick="closeMod('modTask')">Cancelar</button><button class="btn p" onclick="saveTask()">Guardar</button></div>
 </div></div>
 
 <div class="ov" id="modPub"><div class="mod">
   <div class="mod-t" id="pubmodt">Nueva publicación</div>
   <input type="hidden" id="pubeid">
-  <input type="hidden" id="pubtid">
   <div class="fr">
     <div class="fg"><label>Fecha</label><input type="date" id="pfecha"></div>
     <div class="fg"><label>Hora</label><input type="time" id="phora"></div>
   </div>
-  <div class="fg"><label>Descripción</label><textarea id="pdesc" rows="2" placeholder="¿Qué se publica?"></textarea></div>
-  <div class="fg"><label>Cuenta / Red social</label><div class="cuentas" id="cuentasgrid"></div></div>
+  <div class="fg"><label>Descripción</label><textarea id="pdesc" rows="2"></textarea></div>
+  <div class="fg"><label>Cuenta</label><div class="cuentas" id="cuentasgrid"></div></div>
   <div class="fr">
     <div class="fg"><label>Tipo</label><select id="ptipo"><option>Reel/Video</option><option>Foto</option><option>Carrusel</option><option>Historia</option><option>Gacetilla</option><option>Streaming</option><option>Pieza gráfica</option><option>Audio/WA</option></select></div>
     <div class="fg"><label>Responsable</label><select id="presp"><option value="">Sin asignar</option></select></div>
   </div>
   <div class="fr">
-    <div class="fg"><label>Colaboración con</label><select id="pcolab"><option value="">Sin colaboración</option></select></div>
+    <div class="fg"><label>Colaboración</label><select id="pcolab"><option value="">Sin colaboración</option></select></div>
     <div class="fg"><label>Estado</label><select id="pest"><option>Pendiente</option><option>En producción</option><option>Listo</option><option>Publicado</option></select></div>
   </div>
-  <div class="mft"><button class="btn" onclick="closeMod('modPub')">Cancelar</button><button class="btn p" onclick="savePub()">Guardar →</button></div>
+  <div class="mft"><button class="btn" onclick="closeMod('modPub')">Cancelar</button><button class="btn p" onclick="savePub()">Guardar</button></div>
 </div></div>
 
 <div class="ov" id="modAg"><div class="mod">
-  <div class="mod-t">Nuevo evento en la agenda</div>
+  <div class="mod-t">Nuevo evento</div>
   <div class="fr">
     <div class="fg"><label>Fecha</label><input type="date" id="agfecha"></div>
     <div class="fg"><label>Hora</label><input type="time" id="aghora"></div>
   </div>
-  <div class="fg"><label>Evento</label><input type="text" id="agdesc" placeholder="Nombre del evento"></div>
+  <div class="fg"><label>Descripción</label><input type="text" id="agdesc"></div>
   <div class="fg"><label>Lugar</label><input type="text" id="aglugar"></div>
   <div class="fr">
-    <div class="fg"><label>Tipo</label><select id="agtipo"><option value="intendente">Agenda Intendente</option><option value="prensa">Prensa / Medio</option><option value="municipal">Evento Municipal</option></select></div>
-    <div class="fg"><label>Responsable cobertura</label><select id="agresp"><option value="">Sin asignar</option></select></div>
+    <div class="fg"><label>Tipo</label><select id="agtipo"><option value="intendente">Agenda Intendente</option><option value="prensa">Prensa / Medio</option><option value="municipal">Municipal</option></select></div>
+    <div class="fg"><label>Responsable</label><select id="agresp"><option value="">Sin asignar</option></select></div>
   </div>
-  <div class="mft"><button class="btn" onclick="closeMod('modAg')">Cancelar</button><button class="btn p" onclick="saveAg()">Guardar →</button></div>
+  <div class="mft"><button class="btn" onclick="closeMod('modAg')">Cancelar</button><button class="btn p" onclick="saveAg()">Guardar</button></div>
 </div></div>
 
 <div class="ov" id="modEquipo"><div class="mod">
   <div class="mod-t" id="emtitle">Editar integrante</div>
   <input type="hidden" id="emid">
   <div class="fg"><label>Nombre</label><input type="text" id="emnombre" readonly style="background:#f9fafb"></div>
-  <div class="fg"><label>Correo electrónico</label><input type="email" id="ememail"></div>
+  <div class="fg"><label>Correo</label><input type="email" id="ememail"></div>
   <div class="fg"><label>WhatsApp (con código país)</label><input type="tel" id="emtel" placeholder="5492983000000"></div>
-  <div class="fg"><label>Rol</label><select id="emrol"><option>Jefe/a de área</option><option>Responsable de equipo</option><option>Comunicador/a</option><option>Diseñador/a</option><option>Editor/a de video</option><option>Community Manager</option></select></div>
-  <div class="fg"><label>¿Hace coberturas?</label><select id="emcob"><option value="1">Sí</option><option value="0">No — solo gestión</option></select></div>
+  <div class="fg"><label>Rol</label><select id="emrol"><option>Jefe/a de área</option><option>Responsable de equipo</option><option>Comunicador/a</option><option>Diseñador/a</option><option>Editor/a de video</option></select></div>
+  <div class="fg"><label>¿Hace coberturas?</label><select id="emcob"><option value="1">Sí</option><option value="0">No</option></select></div>
   <div class="mft"><button class="btn" onclick="closeMod('modEquipo')">Cancelar</button><button class="btn p" onclick="saveMember()">Guardar</button></div>
 </div></div>
 
 <div class="ov" id="modProgram"><div class="mod">
   <div class="mod-t">Programar publicación</div>
   <input type="hidden" id="progtid">
-  <div id="progdesc" style="background:#f0fdf4;border:1px solid #86efac;border-radius:7px;padding:9px 11px;font-size:11px;color:#166534;margin-bottom:12px"></div>
+  <div id="proginfo" style="background:#f0fdf4;border:1px solid #86efac;border-radius:7px;padding:9px 11px;font-size:11px;color:#166534;margin-bottom:12px"></div>
   <div class="fr">
     <div class="fg"><label>Fecha</label><input type="date" id="progfecha"></div>
     <div class="fg"><label>Hora</label><input type="time" id="proghora"></div>
@@ -628,65 +504,50 @@ select,input{font-family:'Inter',sans-serif}
     <div class="fg"><label>Tipo</label><select id="progtipo"><option>Reel/Video</option><option>Foto</option><option>Carrusel</option><option>Gacetilla</option><option>Pieza gráfica</option></select></div>
     <div class="fg"><label>Responsable</label><select id="progresp"><option value="">Sin asignar</option></select></div>
   </div>
-  <div class="fg"><label>Colaboración</label><select id="progcolab"><option value="">Sin colaboración</option></select></div>
-  <div class="mft"><button class="btn" onclick="closeMod('modProgram')">Cancelar</button><button class="btn p" onclick="saveProgram()">Programar →</button></div>
+  <div class="mft"><button class="btn" onclick="closeMod('modProgram')">Cancelar</button><button class="btn p" onclick="saveProgram()">Programar</button></div>
 </div></div>
 
 <div class="ov" id="modStats"><div class="mod">
   <div class="mod-t">Cargar estadísticas</div>
   <div class="fr">
     <div class="fg"><label>Fecha</label><input type="date" id="sfecha"></div>
-    <div class="fg"><label>Cuenta</label>
-      <select id="scuenta">
-        <option value="Municipalidad|Facebook">Facebook Municipalidad</option>
-        <option value="Municipalidad|Instagram">Instagram Municipalidad</option>
-        <option value="Municipalidad|YouTube">YouTube Municipalidad</option>
-        <option value="Pablo Garate|Facebook">Facebook Pablo Garate</option>
-        <option value="Pablo Garate|Instagram">Instagram Pablo Garate</option>
-      </select>
-    </div>
+    <div class="fg"><label>Cuenta</label><select id="scuenta"><option value="Municipalidad|Facebook">FB Municipalidad</option><option value="Municipalidad|Instagram">IG Municipalidad</option><option value="Municipalidad|YouTube">YT Municipalidad</option><option value="Pablo Garate|Facebook">FB Pablo Garate</option><option value="Pablo Garate|Instagram">IG Pablo Garate</option></select></div>
   </div>
-  <div class="fr"><div class="fg"><label>Alcance</label><input type="number" id="salcance" placeholder="0" min="0"></div><div class="fg"><label>Impresiones</label><input type="number" id="simpres" placeholder="0" min="0"></div></div>
-  <div class="fr"><div class="fg"><label>Likes</label><input type="number" id="slikes" placeholder="0" min="0"></div><div class="fg"><label>Comentarios</label><input type="number" id="scoments" placeholder="0" min="0"></div></div>
-  <div class="fr"><div class="fg"><label>Compartidos</label><input type="number" id="sshares" placeholder="0" min="0"></div><div class="fg"><label>Reproducciones</label><input type="number" id="sviews" placeholder="0" min="0"></div></div>
-  <div class="fr"><div class="fg"><label>Nuevos seguidores</label><input type="number" id="snew" placeholder="0" min="0"></div><div class="fg"><label>Total seguidores</label><input type="number" id="stotal" placeholder="0" min="0"></div></div>
+  <div class="fr"><div class="fg"><label>Alcance</label><input type="number" id="salcance" min="0"></div><div class="fg"><label>Impresiones</label><input type="number" id="simpres" min="0"></div></div>
+  <div class="fr"><div class="fg"><label>Likes</label><input type="number" id="slikes" min="0"></div><div class="fg"><label>Comentarios</label><input type="number" id="scoments" min="0"></div></div>
+  <div class="fr"><div class="fg"><label>Compartidos</label><input type="number" id="sshares" min="0"></div><div class="fg"><label>Reproducciones</label><input type="number" id="sviews" min="0"></div></div>
+  <div class="fr"><div class="fg"><label>Nuevos seguidores</label><input type="number" id="snew" min="0"></div><div class="fg"><label>Total seguidores</label><input type="number" id="stotal" min="0"></div></div>
   <div class="mft"><button class="btn" onclick="closeMod('modStats')">Cancelar</button><button class="btn p" onclick="saveStats()">Guardar</button></div>
 </div></div>
 
 <div class="ov" id="modNoticia"><div class="mod">
-  <div class="mod-t">Agregar noticia manualmente</div>
-  <div class="fg"><label>Título</label><input type="text" id="ntit" placeholder="Título de la noticia"></div>
+  <div class="mod-t">Agregar noticia</div>
+  <div class="fg"><label>Título</label><input type="text" id="ntit"></div>
   <div class="fr">
     <div class="fg"><label>Medio</label><select id="nmedio"><option>La Voz del Pueblo</option><option>LU24</option><option>Diario 3</option><option>Via País</option><option>Onda Uno</option></select></div>
     <div class="fg"><label>Fecha</label><input type="date" id="nfecha"></div>
   </div>
-  <div class="fg"><label>URL de la noticia</label><input type="url" id="nurl" placeholder="https://..."></div>
-  <div class="fg"><label>Resumen</label><textarea id="nresumen" rows="2" placeholder="Breve resumen..."></textarea></div>
+  <div class="fg"><label>URL</label><input type="url" id="nurl" placeholder="https://..."></div>
+  <div class="fg"><label>Resumen</label><textarea id="nresumen" rows="2"></textarea></div>
   <div class="fr">
     <div class="fg"><label>Tono</label><select id="ntono"><option value="neutral">Neutral</option><option value="positivo">Positivo</option><option value="negativo">Negativo</option></select></div>
-    <div class="fg"><label>Menciona</label><select id="nmenciona"><option value="ambos">Municipio y Pablo</option><option value="municipio">Solo Municipio</option><option value="pablo">Solo Pablo Garate</option></select></div>
+    <div class="fg"><label>Menciona</label><select id="nmenc"><option value="ambos">Municipio y Pablo</option><option value="muni">Solo Municipio</option><option value="pablo">Solo Pablo</option></select></div>
   </div>
   <div class="mft"><button class="btn" onclick="closeMod('modNoticia')">Cancelar</button><button class="btn p" onclick="saveNoticia()">Guardar</button></div>
 </div></div>
+
 <div class="toast" id="toast"></div>
-
 <script>
-// ═══════════════════════════════════════════════════════════════
-// CONFIG
-// ═══════════════════════════════════════════════════════════════
-const SB_URL = "https://kvbwurvvgfarmiqtvlsc.supabase.co";
-const SB_KEY = "sb_publishable_XYkrltbXO7qOj4Tz48PoJg_uh8m-zmr";
-const GCAL_ID = "642f04e4333c91e3c67f35a779bd775a7c4cc6d05700da68376b0ff313ea9f0b@group.calendar.google.com";
-const GCAL_KEY = "AIzaSyAoWTmpOToooLj-xuQCb_hEuVNyYVg5tFk";
-const PASS = "prensa2026";
-
-// Guardia rotation
-const WD = {1:["Marianela","Yesi"],2:["Debora","Maiten"],3:["Yesi","Debora"],4:["Maiten","Lina"],5:["Lina","Marianela"]};
-const WE = [["Nadia","Lina"],["Debora","Yesi"],["Maiten","Marianela"]];
-const START = new Date(2026,3,20); // April 20 2026
-
-// Social accounts
-const CUENTAS = [
+// ═══ CONFIG ═══
+const SB_URL="https://kvbwurvvgfarmiqtvlsc.supabase.co";
+const SB_KEY="sb_publishable_XYkrltbXO7qOj4Tz48PoJg_uh8m-zmr";
+const GCAL_ID="642f04e4333c91e3c67f35a779bd775a7c4cc6d05700da68376b0ff313ea9f0b@group.calendar.google.com";
+const GCAL_KEY="AIzaSyAoWTmpOToooLj-xuQCb_hEuVNyYVg5tFk";
+const PASS="prensa2026";
+const START=new Date(2026,3,20);
+const WD={1:["Marianela","Yesi"],2:["Debora","Maiten"],3:["Yesi","Debora"],4:["Maiten","Lina"],5:["Lina","Marianela"]};
+const WE=[["Nadia","Lina"],["Debora","Yesi"],["Maiten","Marianela"]];
+const CUENTAS=[
   {id:"fb-m",label:"Facebook",sub:"Municipalidad",dot:"#1877f2",cls:"efbm"},
   {id:"ig-m",label:"Instagram",sub:"Municipalidad",dot:"#e1306c",cls:"eigm"},
   {id:"tk-m",label:"TikTok",sub:"Municipalidad",dot:"#374151",cls:"etkm"},
@@ -695,83 +556,76 @@ const CUENTAS = [
   {id:"tk-p",label:"TikTok",sub:"Pablo Garate",dot:"#15803d",cls:"etkp"},
   {id:"wa-p",label:"WhatsApp",sub:"Pablo Garate",dot:"#25d366",cls:"ewap"},
 ];
-
-const MEDIOS = [
-  {n:"La Voz del Pueblo",url:"https://www.lavozdelpueblo.com.ar/",c:"#1d4e7a",s:"LVP"},
-  {n:"LU24",url:"https://www.lu24.com.ar/",c:"#7c2d12",s:"LU24"},
-  {n:"Diario 3",url:"https://www.diario3.com.ar/",c:"#065f46",s:"D3"},
-  {n:"Via País",url:"https://viapais.com.ar/tres-arroyos/",c:"#5b21b6",s:"VP"},
-  {n:"Onda Uno",url:"https://ondauno.com.ar/",c:"#92400e",s:"O1"},
+const MEDIOS=[
+  {n:"La Voz del Pueblo",c:"#1d4e7a",s:"LVP"},
+  {n:"LU24",c:"#7c2d12",s:"LU24"},
+  {n:"Diario 3",c:"#065f46",s:"D3"},
+  {n:"Via País",c:"#5b21b6",s:"VP"},
+  {n:"Onda Uno",c:"#92400e",s:"O1"},
 ];
-
-const DN = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
-const DNF = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
-const MNS = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
-const MNF = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
-const HOURS = [6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22];
-const ACC_CLR = {"Municipalidad-Facebook":"#1877f2","Municipalidad-Instagram":"#e1306c","Municipalidad-YouTube":"#ef4444","Pablo Garate-Facebook":"#0f5ca8","Pablo Garate-Instagram":"#c13584"};
+const MNS=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+const MNF=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+const DNF=["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
+const HOURS=[6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22];
+const ACC_CLR={"Municipalidad-Facebook":"#1877f2","Municipalidad-Instagram":"#e1306c","Municipalidad-YouTube":"#ef4444","Pablo Garate-Facebook":"#0f5ca8","Pablo Garate-Instagram":"#c13584"};
 
 // State
-let db, cu, fp="", pwO=0, calWO=0, editTid=null, gcalOk=false, mCharts={}, mAccTab="todas";
-let gcalEvents=[]; // Google Calendar events stored in memory only
-let teams=[], tasks=[], agendas=[], pubs=[], stats=[], noticias=[], ideas=[
-  {id:1,t:"MARATÓN 24",d:"Video breve 24hs de Pablo Garate: muni, reunión, escuela, boxeo",c:"SOMOS",ok:true},
-  {id:2,t:"¿SABÍAS POR QUÉ?",d:"Videos sobre nombres de barrios, monumentos históricos",c:"MUNICIPALIDAD",ok:true},
-  {id:3,t:"WRAPPED TRIMESTRAL",d:"Un Wrapped tipo Spotify con lo que hicimos en el trimestre",c:"SOMOS",ok:true},
-  {id:4,t:"5 TIPS PARA GOBERNAR",d:"Reel breve: Pablo, 5 tips/principios para gobernar",c:"SOMOS PABLO",ok:true},
-  {id:5,t:"5 HITOS DE GESTIÓN",d:"Pablo: 5 obras/hitos más importantes — 30 segundos",c:"MUNICIPALIDAD",ok:true},
-  {id:6,t:"HIMNO DE TRES ARROYOS",d:"PH explicando el Himno — significado con su bandera",c:"MUNICIPALIDAD",ok:true},
-  {id:7,t:"ULTIMATE TEAM",d:"Mundial — cómo sería su Ultimate con los 3 mundiales ganados",c:"SOMOS PABLO",ok:true},
-  {id:8,t:"PING PONG LOCAL",d:"Más local que humano",c:"SOMOS",ok:true},
-  {id:9,t:"VOZ JOVEN",d:"Convocar en redes a encuentro en Cresta con la juventud",c:"",ok:false},
-  {id:10,t:"HUMAN STORIES",d:"Historias foto — milanesa con puré en Costa Sud",c:"NINGUNA",ok:false},
-];
+const TODAY=new Date();TODAY.setHours(0,0,0,0);
+const isoToday=iso(TODAY);
+// Week offset = current week from START
+const _wd=Math.max(0,Math.floor((TODAY-START)/(7*86400000)));
+let db,cu,fp="",gcalOk=false,mCharts={},mAccTab="todas";
+let pwO=_wd,calWO=_wd;
+let gcalEvs=[]; // Google Calendar events in memory ONLY
+let teams=[],tasks=[],agendas=[],pubs=[],stats=[],noticias=[];
 
-// Today
-const TODAY = new Date(); TODAY.setHours(0,0,0,0);
-const isoToday = iso(TODAY);
-let nid = 9000;
-// Set initial week offset to current week
-const _wdiff = Math.max(0, Math.floor((TODAY - START) / (7 * 86400000)));
-pwO = _wdiff;
-calWO = _wdiff;
-
-// ═══════════════════════════════════════════════════════════════
-// UTILS
-// ═══════════════════════════════════════════════════════════════
+// ═══ UTILS ═══
 function iso(d){return d.toISOString().split("T")[0]}
 function addD(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r}
 function parseD(s){return new Date(s+"T00:00:00")}
 function dayAge(c){if(!c)return 0;return Math.floor((TODAY-parseD(c))/86400000)}
-function ageCls(c,e){if(e==="Completo")return"";const a=dayAge(c);return a<=7?"a0":a<=14?"a1":"a2"}
-function ageLabel(c){const a=dayAge(c);return a===0?"Hoy":a===1?"Ayer":`${a}d`}
+function ageCls(c){const a=dayAge(c);return a<=7?"":"a1"+(a>14?"2":"")}
 function ini(n){return(n||"?").slice(0,2).toUpperCase()}
 function gm(n){return teams.find(m=>m.nombre===(n||"").trim())}
-function mkAv(m,sz=22){const s=`border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;width:${sz}px;height:${sz}px;font-size:${Math.floor(sz*.42)}px`;return m?`<div style="${s};background:${m.color};color:${m.color_texto}">${ini(m.nombre)}</div>`:`<div style="${s};background:#e5e7eb;color:#9ca3af">?</div>`}
+function av(m,sz=20){if(!m)return`<div style="width:${sz}px;height:${sz}px;border-radius:50%;background:#e5e7eb;flex-shrink:0"></div>`;return`<div style="width:${sz}px;height:${sz}px;border-radius:50%;background:${m.color};color:${m.color_texto};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:${Math.floor(sz*.42)}px;flex-shrink:0">${ini(m.nombre)}</div>`}
 function getCta(id){return CUENTAS.find(c=>c.id===id)}
-function getGuardia(ds){const d=parseD(ds),dow=d.getDay();if(dow>=1&&dow<=5)return WD[dow]||[];const diff=Math.floor((d-START)/(7*86400000));return WE[((diff%3)+3)%3]||[]}
-function toast(m,t="ok"){const el=document.getElementById("toast");el.textContent=m;el.className=`toast show ${t}`;clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove("show"),4500)}
+function getGuardia(ds){
+  const d=parseD(ds),dow=d.getDay();
+  if(dow>=1&&dow<=5)return WD[dow]||[];
+  const diff=Math.floor((d-START)/(7*86400000));
+  return WE[((diff%3)+3)%3]||[];
+}
+function toast(m,t="ok"){
+  const el=document.getElementById("toast");
+  el.textContent=m;el.className=`toast show ${t}`;
+  clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove("show"),4500);
+}
 function closeMod(id){document.getElementById(id).classList.remove("open")}
 function matchH(h,hr){
-  if(!h||h===""||h===null||h==="null")return hr===8;
-  const str=String(h).trim().replace(/"/g,"");
-  if(!str||str==="null"||str==="undefined")return hr===8;
-  const n=parseInt(str.split(":")[0]);
+  if(!h||h===null||h===""||h==="null")return hr===8;
+  const n=parseInt(String(h).split(":")[0]);
   return !isNaN(n)&&n===hr;
 }
 function fmtN(n){if(!n)return"0";if(n>=1000000)return(n/1000000).toFixed(1)+"M";if(n>=1000)return(n/1000).toFixed(1)+"K";return String(n)}
-
-// Mail - no blank tabs
 function mail(nombre,sub,body){
-  const m=gm(nombre);if(!m||!m.email)return toast(`⚠ ${nombre} sin correo`,"warn");
-  const a=document.createElement("a");a.href=`mailto:${m.email}?subject=${encodeURIComponent(sub)}&body=${encodeURIComponent(body)}`;a.style.display="none";document.body.appendChild(a);a.click();setTimeout(()=>document.body.removeChild(a),300);
-  toast(`✓ Mail enviado a ${m.nombre}`);
+  const m=gm(nombre);if(!m?.email)return toast(`${nombre} sin correo`,"warn");
+  const a=document.createElement("a");a.href=`mailto:${m.email}?subject=${encodeURIComponent(sub)}&body=${encodeURIComponent(body)}`;a.style.display="none";document.body.appendChild(a);a.click();setTimeout(()=>a.remove(),300);
+  toast(`✓ Mail → ${m.nombre}`);
+}
+function popSelects(){
+  ["fresp","agresp","presp","pcolab","progresp"].forEach(id=>{
+    const s=document.getElementById(id);if(!s)return;
+    const v=s.value;while(s.options.length>1)s.remove(1);
+    const list=id==="agresp"?teams.filter(m=>m.cobertura):teams;
+    list.forEach(m=>s.appendChild(new Option(m.nombre,m.nombre)));
+    s.value=v;
+  });
+  const kfr=document.getElementById("kfr");
+  if(kfr){const v=kfr.value;while(kfr.options.length>1)kfr.remove(1);teams.forEach(m=>kfr.appendChild(new Option(m.nombre,m.nombre)));kfr.value=v;}
 }
 
-// ═══════════════════════════════════════════════════════════════
-// LOGIN
-// ═══════════════════════════════════════════════════════════════
-function login(){
+// ═══ LOGIN ═══
+function doLogin(){
   const u=document.getElementById("lu").value,p=document.getElementById("lp").value;
   const e=document.getElementById("lerr");
   if(!u){e.textContent="Seleccioná tu nombre";return}
@@ -780,40 +634,39 @@ function login(){
   document.getElementById("login").style.display="none";
   document.getElementById("app").classList.add("on");
   const m=gm(u)||{color:"#667eea",color_texto:"#fff"};
-  const av=document.getElementById("uav");av.style.background=m.color||"#667eea";av.style.color=m.color_texto||"#fff";av.textContent=ini(u);
+  const uav=document.getElementById("uav");
+  uav.style.background=m.color;uav.style.color=m.color_texto;uav.textContent=ini(u);
   document.getElementById("uname").textContent=u;
   initApp();
 }
-function logout(){document.getElementById("login").style.display="flex";document.getElementById("app").classList.remove("on");document.getElementById("lp").value="";cu=null;}
+function doLogout(){
+  document.getElementById("login").style.display="flex";
+  document.getElementById("app").classList.remove("on");
+  document.getElementById("lp").value="";cu=null;
+}
 
-// ═══════════════════════════════════════════════════════════════
-// SUPABASE
-// ═══════════════════════════════════════════════════════════════
+// ═══ SUPABASE ═══
 async function initApp(){
   try{
     db=supabase.createClient(SB_URL,SB_KEY);
     await loadAll();
-    setupRealtime();
     setLive(true);
     popSelects();
     renderAll();
+    setupRealtime();
     setTimeout(syncGCal,1500);
-    setTimeout(scheduleDailyAlert,500);
   }catch(e){
     setLive(false);
-    toast("Error de conexión: "+e.message,"err");
-    console.error("initApp error:",e);
+    toast("Error DB: "+e.message,"err");
+    console.error("initApp:",e);
   }
 }
-
 function setLive(ok){
   document.getElementById("ldot").className="ldot"+(ok?" ok":" err");
   document.getElementById("ltxt").textContent=ok?"En vivo":"Sin conexión";
 }
-
 async function loadAll(){
-  // Load core tables
-  const [t,ta,ag,pu]=await Promise.all([
+  const[t,ta,ag,pu]=await Promise.all([
     db.from("usuarios").select("*").order("nombre"),
     db.from("tareas").select("*").order("created_at"),
     db.from("agenda").select("*").order("fecha"),
@@ -823,101 +676,61 @@ async function loadAll(){
   if(ta.data)tasks=ta.data;
   if(ag.data)agendas=ag.data;
   if(pu.data)pubs=pu.data;
-  // Load optional tables safely
-  try{const st=await db.from("stats_redes").select("*").order("fecha,cuenta");if(st.data)stats=st.data;}catch(e){console.warn("stats_redes:",e.message);}
-  try{const nt=await db.from("noticias_medios").select("*").order("created_at",{ascending:false});if(nt.data)noticias=nt.data;}catch(e){console.warn("noticias_medios:",e.message);}
+  // Optional tables
+  try{const r=await db.from("stats_redes").select("*").order("fecha,cuenta");if(r.data)stats=r.data;}catch(e){}
+  try{const r=await db.from("noticias_medios").select("*").order("created_at",{ascending:false});if(r.data)noticias=r.data;}catch(e){}
 }
-
 function setupRealtime(){
   db.channel("rt")
     .on("postgres_changes",{event:"*",schema:"public",table:"tareas"},async()=>{const r=await db.from("tareas").select("*").order("created_at");if(r.data)tasks=r.data;renderKanban();renderMaterial();updateBadges();renderPersons();})
     .on("postgres_changes",{event:"*",schema:"public",table:"publicaciones"},async()=>{const r=await db.from("publicaciones").select("*").order("fecha,hora");if(r.data)pubs=r.data;renderWeek();renderCal();})
-    .on("postgres_changes",{event:"*",schema:"public",table:"agenda"},async()=>{const r=await db.from("agenda").select("*").order("fecha");if(r.data)agendas=r.data;renderWeek();renderCal();updateBadges();})
+    .on("postgres_changes",{event:"*",schema:"public",table:"agenda"},async()=>{const r=await db.from("agenda").select("*").order("fecha");if(r.data)agendas=r.data;renderCal();updateBadges();})
     .on("postgres_changes",{event:"*",schema:"public",table:"usuarios"},async()=>{const r=await db.from("usuarios").select("*").order("nombre");if(r.data)teams=r.data;renderTeam();popSelects();renderPersons();})
-    .on("postgres_changes",{event:"*",schema:"public",table:"stats_redes"},async()=>{try{const r=await db.from("stats_redes").select("*").order("fecha,cuenta");if(r.data)stats=r.data;renderMetricas();}catch(e){console.warn("rt stats:",e)}})
-    .on("postgres_changes",{event:"*",schema:"public",table:"noticias_medios"},async()=>{try{const r=await db.from("noticias_medios").select("*").order("created_at",{ascending:false});if(r.data)noticias=r.data;renderNoticias();renderMedioSum();}catch(e){console.warn("rt noticias:",e)}})
     .subscribe();
 }
-
 function renderAll(){
-  popSelects();
-  updateBadges();
-  renderPersons();
-  renderKanban();
-  renderMaterial();
-  renderWeek();
-  renderCal();
-  renderTeam();
-  renderIdeas();
-  renderMetricas();
-  renderNoticias();
-  renderMedioSum();
+  updateBadges();renderPersons();renderKanban();renderMaterial();renderWeek();renderCal();renderTeam();initGuardias();renderMetricas();renderNoticias();renderMedioSum();
 }
-
 function updateBadges(){
-  const p=tasks.filter(t=>t.estado==="Pendiente"||t.estado==="En proceso").length;
+  const p=tasks.filter(t=>t.estado!=="Completo").length;
   const m=tasks.filter(t=>t.estado==="Listo s/publicar").length;
-  const a=agendas.filter(a=>!a.cancelado).length;
+  const a=[...agendas,...gcalEvs].filter(a=>!a.cancelado).length;
   document.getElementById("sbt").textContent=p;
-  document.getElementById("sbt").className="sbadge"+(p>0?" hot":"");
+  document.getElementById("sbt").className="sbadge"+(p>5?" hot":"");
   document.getElementById("sbm").textContent=m;
   document.getElementById("sbag").textContent=a;
-  document.getElementById("tsub").textContent=`${tasks.filter(t=>t.estado!=="Completo").length} activas · ${tasks.filter(t=>!t.responsable&&t.estado!=="Completo").length} sin asignar`;
+  document.getElementById("tsub").textContent=`${tasks.filter(t=>t.estado!=="Completo").length} activas`;
 }
 
-// ═══════════════════════════════════════════════════════════════
-// NAVIGATION
-// ═══════════════════════════════════════════════════════════════
-const PAGES=["tablero","material","publicaciones","calendario","guardias","equipo","ideas","metricas","medios"];
-function nav(id,tabBtn,sbBtn){
-  PAGES.forEach(p=>{
-    const el=document.getElementById("p-"+p);
-    if(el){el.style.display=p===id?(["publicaciones","calendario"].includes(p)?"flex":"block"):"none";}
-  });
-  document.querySelectorAll(".ntab").forEach(b=>b.classList.remove("on"));
-  document.querySelectorAll(".sbi").forEach(b=>b.classList.remove("on"));
-  if(tabBtn)tabBtn.classList.add("on");
-  if(sbBtn)sbBtn.classList.add("on");
-  // Sync
-  const tabs=document.querySelectorAll(".ntab");
-  const sbis=document.querySelectorAll(".sbi");
+// ═══ NAVIGATION ═══
+const PAGES=["tablero","material","publicaciones","calendario","guardias","equipo","metricas","medios"];
+function nav(id,tab,sb){
+  PAGES.forEach(p=>{const el=document.getElementById("p-"+p);if(el)el.style.display=p===id?(["publicaciones","calendario"].includes(p)?"flex":"block"):"none";});
+  document.querySelectorAll(".ntab,.sbi").forEach(b=>b.classList.remove("on"));
+  if(tab)tab.classList.add("on");if(sb)sb.classList.add("on");
   const ti=["tablero","material","publicaciones","calendario","guardias","equipo","metricas","medios"].indexOf(id);
-  if(ti>=0&&tabs[ti])tabs[ti].classList.add("on");
-  const si=["tablero","material","publicaciones","calendario","guardias","equipo","ideas","metricas","medios"].indexOf(id);
-  if(si>=0&&sbis[si])sbis[si].classList.add("on");
-  // Render
+  const tabs=document.querySelectorAll(".ntab");if(ti>=0&&tabs[ti])tabs[ti].classList.add("on");
+  const si=["tablero","material","publicaciones","calendario","guardias","equipo","metricas","medios"].indexOf(id);
+  const sbis=document.querySelectorAll(".sbi");if(si>=0&&sbis[si])sbis[si].classList.add("on");
   if(id==="guardias")initGuardias();
+  if(id==="metricas")renderMetricas();
+  if(id==="medios"){renderNoticias();renderMedioSum();}
 }
-
-function popSelects(){
-  ["fresp","agresp","presp","pcolab","progresp","progcolab"].forEach(id=>{
-    const s=document.getElementById(id);if(!s)return;
-    const v=s.value;while(s.options.length>1)s.remove(1);
-    const list=(id==="agresp")?teams.filter(m=>m.cobertura):teams;
-    list.forEach(m=>s.appendChild(new Option(m.nombre,m.nombre)));
-    s.value=v;
-  });
-  const kfr=document.getElementById("kfr");
-  if(kfr){const v=kfr.value;while(kfr.options.length>1)kfr.remove(1);teams.forEach(m=>kfr.appendChild(new Option(m.nombre,m.nombre)));kfr.value=v;}
-}
-
 function renderPersons(){
   document.getElementById("sbpersons").innerHTML=teams.map(m=>`
     <div class="sbp${fp===m.nombre?" sel":""}" onclick="setFP('${m.nombre}')">
-      ${mkAv(m,20)}
+      ${av(m,18)}
       <span style="font-size:11px;font-weight:${fp===m.nombre?700:400};color:${fp===m.nombre?"#6d28d9":"#4b5563"}">${m.nombre}</span>
       <span style="margin-left:auto;font-size:9px;color:#9ca3af">${tasks.filter(t=>t.responsable===m.nombre&&t.estado!=="Completo").length}</span>
     </div>`).join("");
 }
 function setFP(n){fp=fp===n?"":n;renderPersons();renderKanban();}
 
-// ═══════════════════════════════════════════════════════════════
-// KANBAN
-// ═══════════════════════════════════════════════════════════════
+// ═══ KANBAN ═══
 function renderKanban(){
-  const kr=document.getElementById("kfr").value||fp;
-  const kp=document.getElementById("kfp").value;
-  let ft=tasks.filter(t=>{
+  const kr=document.getElementById("kfr")?.value||fp;
+  const kp=document.getElementById("kfp")?.value;
+  const ft=tasks.filter(t=>{
     if(t.estado==="Completo")return false;
     if(kr&&t.responsable!==kr)return false;
     if(kp&&t.prioridad!==kp)return false;
@@ -930,17 +743,15 @@ function renderKanban(){
       <div class="khdr ${col.cls}"><div class="kt"><div class="kd"></div>${col.lbl}</div><span class="kc">${ct.length}</span></div>
       <div class="kbody">
         ${ct.map(t=>{
-          const m=gm(t.responsable);
-          const ac=ageCls(t.created_at,t.estado);
-          const tgc=t.prioridad==="Alta"?"tga":t.prioridad==="Baja"?"tgb":"tgm";
+          const m=gm(t.responsable);const a=dayAge(t.created_at);const ac=a>14?"a2":a>7?"a1":"";
           return`<div class="tc ${ac}" onclick="editTask('${t.id}')">
             <div class="tc-t">${t.descripcion}</div>
-            ${t.observaciones?`<div style="font-size:9px;color:#9ca3af;font-style:italic;margin-bottom:4px">${t.observaciones}</div>`:""}
+            ${t.observaciones?`<div style="font-size:9px;color:#9ca3af;margin-bottom:3px;font-style:italic">${t.observaciones}</div>`:""}
             <div class="tc-f">
-              <span class="tg ${tgc}">${t.prioridad}</span>
+              <span class="tg ${t.prioridad==="Alta"?"tga":t.prioridad==="Baja"?"tgb":"tgm"}">${t.prioridad}</span>
               <div style="display:flex;align-items:center;gap:4px">
-                <span class="tage">${ageLabel(t.created_at)}</span>
-                ${m?mkAv(m,20):`<span style="font-size:9px;color:#d97706;background:#fffbeb;padding:1px 5px;border-radius:4px">Sin asignar</span>`}
+                <span style="font-size:9px;color:#9ca3af">${a}d</span>
+                ${m?av(m,18):`<span style="font-size:9px;color:#d97706;background:#fffbeb;padding:1px 5px;border-radius:4px">Sin asig.</span>`}
               </div>
             </div>
           </div>`;
@@ -951,67 +762,50 @@ function renderKanban(){
   }).join("");
   updateBadges();
 }
-
 function openTaskMod(id=null,def=null){
-  editTid=id;
+  document.getElementById("editTid").value=id||"";
   document.getElementById("taskmodt").textContent=id?"Editar tarea":"Nueva tarea";
   if(id){const t=tasks.find(x=>x.id===id);document.getElementById("fdesc").value=t.descripcion;document.getElementById("fresp").value=t.responsable||"";document.getElementById("fprio").value=t.prioridad;document.getElementById("fest").value=t.estado;document.getElementById("fobs").value=t.observaciones||"";}
   else{["fdesc","fobs"].forEach(i=>document.getElementById(i).value="");document.getElementById("fresp").value="";document.getElementById("fprio").value="Alta";document.getElementById("fest").value=def||"Pendiente";}
   document.getElementById("modTask").classList.add("open");
 }
 function editTask(id){openTaskMod(id)}
-
 async function saveTask(){
   const desc=document.getElementById("fdesc").value.trim();if(!desc){alert("Descripción obligatoria");return}
-  const resp=document.getElementById("fresp").value;
-  const data={descripcion:desc,responsable:resp,prioridad:document.getElementById("fprio").value,estado:document.getElementById("fest").value,observaciones:document.getElementById("fobs").value.trim()};
-  let oldR="",isNew=!editTid;
-  if(editTid){const t=tasks.find(x=>x.id===editTid);oldR=t?.responsable||"";await db.from("tareas").update({...data,updated_at:new Date().toISOString()}).eq("id",editTid);}
+  const data={descripcion:desc,responsable:document.getElementById("fresp").value,prioridad:document.getElementById("fprio").value,estado:document.getElementById("fest").value,observaciones:document.getElementById("fobs").value.trim()};
+  const eid=document.getElementById("editTid").value;
+  if(eid)await db.from("tareas").update({...data,updated_at:new Date().toISOString()}).eq("id",eid);
   else await db.from("tareas").insert(data);
   closeMod("modTask");
-  // Mail manual disponible desde botón Alertar en Equipo
 }
 
-function checkLate(){
-  // Mails automáticos desactivados - usar botón Alertar en Equipo
-  const late=tasks.filter(t=>t.estado!=="Completo"&&dayAge(t.created_at)>=14&&t.responsable);
-  if(late.length)console.log("Tareas con +14 días:",late.map(t=>t.descripcion));
-}
-
-// ═══════════════════════════════════════════════════════════════
-// MATERIAL DISPONIBLE
-// ═══════════════════════════════════════════════════════════════
+// ═══ MATERIAL ═══
 function renderMaterial(){
   const mat=tasks.filter(t=>t.estado==="Listo s/publicar");
   document.getElementById("sbm").textContent=mat.length;
-  if(!mat.length){document.getElementById("matgrid").innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:2rem;color:#9ca3af;font-size:12px">No hay material listo todavía.</div>`;return;}
+  if(!mat.length){document.getElementById("matgrid").innerHTML=`<div style="text-align:center;padding:2rem;color:#9ca3af">No hay material listo.</div>`;return;}
   document.getElementById("matgrid").innerHTML=mat.map(t=>{
     const m=gm(t.responsable);
     return`<div class="mcard">
-      <div class="mct">${t.descripcion}</div>
-      <div class="mcm">
-        ${t.observaciones?`<div style="font-style:italic;margin-bottom:3px">${t.observaciones}</div>`:""}
-        <div style="display:flex;align-items:center;gap:6px">
-          <span style="font-size:9px;padding:2px 6px;border-radius:4px;background:#dcfce7;color:#16a34a;font-weight:600">Listo ✓</span>
-          ${m?`<div style="display:flex;align-items:center;gap:3px">${mkAv(m,17)}<span style="font-size:10px">${m.nombre}</span></div>`:""}
-          <span style="font-size:9px;color:#9ca3af">${ageLabel(t.created_at)}</span>
-        </div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:5px">${t.descripcion}</div>
+      ${t.observaciones?`<div style="font-size:10px;color:#6b7280;margin-bottom:6px;font-style:italic">${t.observaciones}</div>`:""}
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+        ${m?`<div style="display:flex;align-items:center;gap:3px">${av(m,16)}<span style="font-size:10px">${m.nombre}</span></div>`:""}
+        <span style="font-size:9px;background:#dcfce7;color:#16a34a;padding:1px 6px;border-radius:4px;font-weight:600">Listo ✓</span>
       </div>
-      <div class="mca">
-        <button class="btn p sm" onclick="openProgram('${t.id}','${t.descripcion.replace(/'/g,"\\'")}')">📅 Programar publicación</button>
-        <button class="btn sm" onclick="markCompleto('${t.id}')">✓ Marcar completo</button>
+      <div style="display:flex;gap:6px">
+        <button class="btn p sm" onclick="openProgram('${t.id}','${t.descripcion.replace(/'/g,"\\'")}')">📅 Programar</button>
+        <button class="btn sm" onclick="markCompleto('${t.id}')">✓ Completo</button>
       </div>
     </div>`;
   }).join("");
 }
+async function markCompleto(id){await db.from("tareas").update({estado:"Completo",updated_at:new Date().toISOString()}).eq("id",id);}
 
-async function markCompleto(id){await db.from("tareas").update({estado:"Completo",updated_at:new Date().toISOString()}).eq("id",id);toast("✓ Tarea marcada como completa");}
-
-// ═══════════════════════════════════════════════════════════════
-// WEEKLY VIEW (shared for Publicaciones and Calendario)
-// ═══════════════════════════════════════════════════════════════
-function buildWeekShell(hdrId,scrollId,weekOffset,showPubs,showAg){
-  const mon=weekMon(weekOffset);
+// ═══ WEEKLY VIEW ═══
+function weekMon(off){return addD(START,off*7)}
+function buildWeek(hdrId,scrollId,off,showPubs,showAg){
+  const mon=weekMon(off);
   const DN=["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
   let hdr=`<div class="wgut"></div>`;
   for(let i=0;i<7;i++){
@@ -1027,7 +821,6 @@ function buildWeekShell(hdrId,scrollId,weekOffset,showPubs,showAg){
     </div>`;
   }
   document.getElementById(hdrId).innerHTML=hdr;
-
   let body="";
   for(const hr of HOURS){
     const hl=`${String(hr).padStart(2,"0")}:00`;
@@ -1038,18 +831,16 @@ function buildWeekShell(hdrId,scrollId,weekOffset,showPubs,showAg){
       const guards=getGuardia(ds);
       const gbg=guards.length>0?(gm(guards[0])||{color:"transparent"}).color+"10":"transparent";
       let evs="";
-      // Agenda events - show timed events in correct slot
+      // Agenda events (manual + gcal)
       if(showAg){
-        [...agendas,...gcalEvents].filter(a=>{
-          const f=String(a.fecha).slice(0,10);
-          if(f!==ds||a.cancelado)return false;
-          if(!a.hora||a.hora===null||a.hora==="")return hr===8; // no-time → 8am
-          const h=parseInt(String(a.hora).split(":")[0]);
-          return h===hr;
+        [...agendas,...gcalEvs].filter(a=>{
+          const af=String(a.fecha).slice(0,10);
+          if(af!==ds||a.cancelado)return false;
+          return matchH(a.hora,hr);
         }).forEach(e=>{
           const cls=e.tipo==="prensa"?"ep":e.tipo==="municipal"?"em":"ei";
           const icon=e.tipo==="prensa"?"📻":e.tipo==="municipal"?"🏛":"🗓";
-          evs+=`<div class="ev ${cls}" title="${e.descripcion}">
+          evs+=`<div class="ev ${cls}" title="${e.descripcion}${e.lugar?" — "+e.lugar:""}">
             <div class="ev-t">${icon} ${e.descripcion}</div>
             <div class="ev-s">${e.lugar||""}${e.responsable?" · "+e.responsable:""}</div>
           </div>`;
@@ -1057,11 +848,14 @@ function buildWeekShell(hdrId,scrollId,weekOffset,showPubs,showAg){
       }
       // Publications
       if(showPubs){
-        pubs.filter(p=>String(p.fecha).slice(0,10)===ds&&matchH(p.hora,hr)).forEach(p=>{
+        pubs.filter(p=>{
+          const pf=String(p.fecha).slice(0,10);
+          return pf===ds&&matchH(p.hora,hr);
+        }).forEach(p=>{
           const ct=getCta(p.cuenta)||{cls:"efbm",label:p.cuenta,sub:""};
           evs+=`<div class="ev ${ct.cls}" onclick="editPubItem('${p.id}')" title="${p.descripcion}">
             <div class="ev-t">${ct.label} · ${p.tipo}</div>
-            <div class="ev-s">${p.descripcion.slice(0,24)}${p.descripcion.length>24?"…":""}${p.responsable?" · "+p.responsable:""}${p.colaboracion?" 🤝"+p.colaboracion:""}</div>
+            <div class="ev-s">${p.descripcion.slice(0,22)}${p.descripcion.length>22?"…":""}${p.responsable?" · "+p.responsable:""}</div>
           </div>`;
         });
       }
@@ -1073,43 +867,21 @@ function buildWeekShell(hdrId,scrollId,weekOffset,showPubs,showAg){
     row+=`</div>`;body+=row;
   }
   const sc=document.getElementById(scrollId);
-  if(sc){sc.innerHTML=body;setTimeout(()=>{sc.scrollTop=(8-HOURS[0])*52;},30);}
+  if(sc){sc.innerHTML=body;setTimeout(()=>{sc.scrollTop=(8-HOURS[0])*50;},30);}
 }
 
-// ═══════════════════════════════════════════════════════════════
-// PUBLICACIONES
-// ═══════════════════════════════════════════════════════════════
-function weekMon(off){const m=addD(START,off*7);return m}
+// ═══ PUBLICACIONES ═══
 function changePW(d){pwO+=d;renderWeek()}
-
 function renderWeek(){
   const mon=weekMon(pwO),sun=addD(mon,6);
   const lbl=`${mon.getDate()} ${MNS[mon.getMonth()]} — ${sun.getDate()} ${MNS[sun.getMonth()]} ${sun.getFullYear()}`;
   const lel=document.getElementById("pwlbl");if(lel)lel.textContent=lbl;
-  const sel=document.getElementById("pubsub");if(sel)sel.textContent=`Semana del ${mon.getDate()} de ${MNF[mon.getMonth()]} ${mon.getFullYear()}`;
-  if(document.getElementById("whdr"))buildWeekShell("whdr","wscroll",pwO,true,true);
+  const sel=document.getElementById("pubsub");if(sel)sel.textContent=`Semana del ${mon.getDate()} de ${MNF[mon.getMonth()]}`;
+  if(document.getElementById("whdr"))buildWeek("whdr","wscroll",pwO,true,true);
 }
-
-// ═══════════════════════════════════════════════════════════════
-// CALENDARIO
-// ═══════════════════════════════════════════════════════════════
-function changeCalW(d){calWO+=d;renderCal()}
-
-function renderCal(){
-  if(!document.getElementById("calwhdr"))return;
-  const mon=weekMon(calWO),sun=addD(mon,6);
-  const lbl=mon.getMonth()===sun.getMonth()?`${mon.getDate()} — ${sun.getDate()} de ${MNF[mon.getMonth()]} ${mon.getFullYear()}`:`${mon.getDate()} ${MNS[mon.getMonth()]} — ${sun.getDate()} ${MNS[sun.getMonth()]} ${sun.getFullYear()}`;
-  const lel=document.getElementById("callbl");if(lel)lel.textContent=lbl;
-  const sel=document.getElementById("calsub");if(sel)sel.textContent=gcalOk?"Sincronizado con Google Calendar":"Sin sincronización activa";
-  const ban=document.getElementById("calbanner");
-  if(ban)ban.innerHTML=!gcalOk?`<div class="ibanner">📅 Sincronizá el calendario del Intendente para ver todos los eventos.<button class="btn p sm" style="margin-left:auto" onclick="syncGCal()">Sincronizar</button></div>`:"";
-  buildWeekShell("calwhdr","calwscroll",calWO,true,true);
-}
-
-// PUBLICACIONES MODAL
 function openPubMod(fecha="",hora=""){
   document.getElementById("pubmodt").textContent="Nueva publicación";
-  document.getElementById("pubeid").value="";document.getElementById("pubtid").value="";
+  document.getElementById("pubeid").value="";
   document.getElementById("pfecha").value=fecha;document.getElementById("phora").value=hora;
   document.getElementById("pdesc").value="";document.getElementById("ptipo").value="Reel/Video";
   document.getElementById("presp").value="";document.getElementById("pcolab").value="";document.getElementById("pest").value="Pendiente";
@@ -1123,60 +895,58 @@ function editPubItem(id){
   document.getElementById("pubeid").value=id;document.getElementById("pfecha").value=p.fecha;
   document.getElementById("phora").value=p.hora||"";document.getElementById("pdesc").value=p.descripcion;
   document.getElementById("ptipo").value=p.tipo;document.getElementById("presp").value=p.responsable||"";
-  document.getElementById("pcolab").value=p.colaboracion||"";document.getElementById("pest").value=p.estado;
+  document.getElementById("pcolab").value=p.colaboracion||"";document.getElementById("pest").value=p.estado||"Pendiente";
   buildCuentasGrid("cuentasgrid",p.cuenta);
   document.getElementById("modPub").classList.add("open");
 }
 async function savePub(){
   const fecha=document.getElementById("pfecha").value,desc=document.getElementById("pdesc").value.trim();
   if(!fecha||!desc){alert("Fecha y descripción obligatorias");return}
-  const cuenta=getSelCuenta("cuentasgrid");if(!cuenta){alert("Seleccioná una cuenta/red social");return}
+  const cuenta=getSelCuenta("cuentasgrid");if(!cuenta){alert("Seleccioná una cuenta");return}
   const hora=document.getElementById("phora").value||null;
-  const resp=document.getElementById("presp").value,colab=document.getElementById("pcolab").value;
-  const data={fecha,hora,descripcion:desc,cuenta,tipo:document.getElementById("ptipo").value,responsable:resp,colaboracion:colab,estado:document.getElementById("pest").value};
+  const data={fecha,hora,descripcion:desc,cuenta,tipo:document.getElementById("ptipo").value,responsable:document.getElementById("presp").value,colaboracion:document.getElementById("pcolab").value,estado:document.getElementById("pest").value};
   const eid=document.getElementById("pubeid").value;
-  let isNew=!eid,oldR="";
-  if(eid){const p=pubs.find(x=>x.id===eid);oldR=p?.responsable||"";await db.from("publicaciones").update({...data,updated_at:new Date().toISOString()}).eq("id",eid);}
+  if(eid)await db.from("publicaciones").update({...data,updated_at:new Date().toISOString()}).eq("id",eid);
   else await db.from("publicaciones").insert(data);
   closeMod("modPub");
-  // Mail manual disponible desde botón Alertar en Equipo
 }
-
-// Cuentas grid
 function buildCuentasGrid(cid,selected){
   document.getElementById(cid).innerHTML=CUENTAS.map(c=>`
-    <div class="copt${selected===c.id?" sel":""}" onclick="selCuenta('${cid}','${c.id}')">
+    <div class="copt${selected===c.id?" sel":""}" onclick="selCta('${cid}','${c.id}')">
       <span class="cdot" style="background:${c.dot}"></span>
       <div><div class="clabel">${c.label}</div><div class="csub">${c.sub}</div></div>
     </div>`).join("");
 }
-function selCuenta(cid,id){document.getElementById(cid).querySelectorAll(".copt").forEach(e=>e.classList.remove("sel"));const el=document.getElementById(cid).querySelector(`[onclick*="'${id}'"]`);if(el)el.classList.add("sel");}
+function selCta(cid,id){document.getElementById(cid).querySelectorAll(".copt").forEach(e=>e.classList.remove("sel"));const el=document.getElementById(cid).querySelector(`[onclick*="'${id}'"]`);if(el)el.classList.add("sel");}
 function getSelCuenta(cid){const s=document.getElementById(cid).querySelector(".copt.sel");if(!s)return null;const m=s.getAttribute("onclick").match(/'([^']+)'\)$/);return m?m[1]:null;}
-
-// Programar desde material
 function openProgram(tid,desc){
   document.getElementById("progtid").value=tid;
-  document.getElementById("progdesc").textContent="📋 "+desc;
+  document.getElementById("proginfo").textContent="📋 "+desc;
   document.getElementById("progfecha").value="";document.getElementById("proghora").value="";
-  document.getElementById("progresp").value="";document.getElementById("progcolab").value="";
+  document.getElementById("progresp").value="";
   buildCuentasGrid("progcuentas",null);
   document.getElementById("modProgram").classList.add("open");
 }
 async function saveProgram(){
-  const fecha=document.getElementById("progfecha").value;if(!fecha){alert("Seleccioná una fecha");return}
-  const cuenta=getSelCuenta("progcuentas");if(!cuenta){alert("Seleccioná una cuenta");return}
-  const desc=document.getElementById("progdesc").textContent.replace("📋 ","");
-  const tid=document.getElementById("progtid").value;
-  const resp=document.getElementById("progresp").value;
-  const hora=document.getElementById("proghora").value||null;
-  await db.from("publicaciones").insert({fecha,hora,descripcion:desc,cuenta,tipo:document.getElementById("progtipo").value,responsable:resp,colaboracion:document.getElementById("progcolab").value,estado:"Pendiente",tarea_id:tid});
+  const fecha=document.getElementById("progfecha").value;if(!fecha){alert("Seleccioná fecha");return}
+  const cuenta=getSelCuenta("progcuentas");if(!cuenta){alert("Seleccioná cuenta");return}
+  const desc=document.getElementById("proginfo").textContent.replace("📋 ","");
+  await db.from("publicaciones").insert({fecha,hora:document.getElementById("proghora").value||null,descripcion:desc,cuenta,tipo:document.getElementById("progtipo")?.value||"Reel/Video",responsable:document.getElementById("progresp").value,colaboracion:"",estado:"Pendiente",tarea_id:document.getElementById("progtid").value});
   closeMod("modProgram");toast("✓ Publicación programada");
-  // Mail manual disponible desde botón Alertar en Equipo
 }
 
-// ═══════════════════════════════════════════════════════════════
-// AGENDA
-// ═══════════════════════════════════════════════════════════════
+// ═══ CALENDARIO ═══
+function changeCalW(d){calWO+=d;renderCal()}
+function renderCal(){
+  if(!document.getElementById("calwhdr"))return;
+  const mon=weekMon(calWO),sun=addD(mon,6);
+  const lbl=mon.getMonth()===sun.getMonth()?`${mon.getDate()} — ${sun.getDate()} de ${MNF[mon.getMonth()]} ${mon.getFullYear()}`:`${mon.getDate()} ${MNS[mon.getMonth()]} — ${sun.getDate()} ${MNS[sun.getMonth()]} ${sun.getFullYear()}`;
+  const lel=document.getElementById("callbl");if(lel)lel.textContent=lbl;
+  const sel=document.getElementById("calsub");if(sel)sel.textContent=gcalOk?`Sincronizado · ${gcalEvs.length} eventos`:"Sin sincronización activa";
+  const ban=document.getElementById("calbanner");
+  if(ban)ban.innerHTML=!gcalOk?`<div class="ibanner">📅 Sincronizá el calendario del Intendente para ver todos los eventos.<button class="btn p sm" style="margin-left:auto" onclick="syncGCal()">Sincronizar</button></div>`:"";
+  buildWeek("calwhdr","calwscroll",calWO,true,true);
+}
 function openAgMod(fecha=""){
   ["aghora","agdesc","aglugar"].forEach(i=>document.getElementById(i).value="");
   document.getElementById("agfecha").value=fecha;document.getElementById("agresp").value="";
@@ -1185,82 +955,97 @@ function openAgMod(fecha=""){
 async function saveAg(){
   const fecha=document.getElementById("agfecha").value,desc=document.getElementById("agdesc").value.trim();
   if(!fecha||!desc){alert("Fecha y descripción obligatorias");return}
-  const hora=document.getElementById("aghora").value||null;
-  const resp=document.getElementById("agresp").value;
-  await db.from("agenda").insert({fecha,hora,descripcion:desc,lugar:document.getElementById("aglugar").value.trim(),tipo:document.getElementById("agtipo").value,responsable:resp,cancelado:false});
-  // Mail manual disponible desde botón Alertar en Equipo
+  await db.from("agenda").insert({fecha,hora:document.getElementById("aghora").value||null,descripcion:desc,lugar:document.getElementById("aglugar").value.trim(),tipo:document.getElementById("agtipo").value,responsable:document.getElementById("agresp").value,cancelado:false});
   closeMod("modAg");toast("✓ Evento agregado");
 }
 
-// ═══════════════════════════════════════════════════════════════
-// GOOGLE CALENDAR
-// ═══════════════════════════════════════════════════════════════
+// ═══ GOOGLE CALENDAR ═══
 async function syncGCal(){
-  const btn=document.getElementById("gcbtn"),txt=document.getElementById("gctxt");
+  const btn=document.getElementById("gcbtn"),txt=document.getElementById("gctxt"),dot=document.getElementById("gcdot");
   btn.className="gcbtn go";txt.textContent="Sincronizando...";
   try{
     let all=[],next=null;
-    const tMin=new Date(TODAY.getFullYear(),TODAY.getMonth()-3,1).toISOString();
-    const tMax=new Date(TODAY.getFullYear()+1,TODAY.getMonth()+3,1).toISOString();
+    const tMin=new Date(TODAY.getFullYear(),TODAY.getMonth()-2,1).toISOString();
+    const tMax=new Date(TODAY.getFullYear()+1,TODAY.getMonth()+2,1).toISOString();
     do{
       const url=`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(GCAL_ID)}/events?key=${encodeURIComponent(GCAL_KEY)}&timeMin=${tMin}&timeMax=${tMax}&singleEvents=true&orderBy=startTime&maxResults=2500${next?"&pageToken="+next:""}`;
       const res=await fetch(url);
-      if(!res.ok){const e=await res.json();throw new Error(e.error?.message||"Error")}
+      if(!res.ok){const e=await res.json();throw new Error(e.error?.message||"Error API")}
       const data=await res.json();
       all=[...all,...(data.items||[])];
       next=data.nextPageToken||null;
       txt.textContent=`Cargando... ${all.length}`;
     }while(next);
-    mergeGCal(all);
-    gcalOk=true;btn.className="gcbtn ok";txt.textContent=`Calendar · ${all.length}`;
+    // Store in memory — NO Supabase writes
+    gcalEvs=[];
+    for(const item of all){
+      if(item.status==="cancelled")continue;
+      const s=item.start?.dateTime||item.start?.date||"";if(!s)continue;
+      const fecha=s.split("T")[0];
+      const hora=s.includes("T")?s.split("T")[1].slice(0,5):null;
+      const desc=(item.summary||"(Sin título)").slice(0,200);
+      const lugar=(item.location||"").slice(0,200);
+      const dl=desc.toLowerCase();
+      // Broad prensa detection
+      const esPrensaKW=dl.includes("radio")||dl.includes("entrevista")||dl.includes("prensa")||
+        dl.includes("lu24")||dl.includes("la voz")||dl.includes("onda")||dl.includes("diario")||
+        dl.includes("nota")||dl.includes("medio")||dl.includes("canal")||dl.includes("tv")||
+        dl.includes("fm ")||dl.includes(" am ")||dl.includes("programa")||dl.includes("ciclo")||
+        dl.includes("televis")||dl.includes("columna")||dl.includes("periodis")||dl.includes("senal")||
+        dl.includes("señal")||dl.includes("cobertura")||dl.includes("reportaje")||dl.includes("103")||
+        dl.includes("105")||dl.includes("107")||dl.includes("98.5")||dl.includes("91.3");
+      const tipo=esPrensaKW?"prensa":"intendente";
+      gcalEvs.push({id:"gc_"+item.id,fecha,hora,descripcion:desc,lugar,tipo,cancelado:false,gcal:true});
+    }
+    gcalOk=true;btn.className="gcbtn ok";txt.textContent=`Calendar · ${gcalEvs.length}`;
     renderCal();renderWeek();updateBadges();
-    await autoSyncPublicaciones();
-    toast(`✓ ${all.length} eventos sincronizados`);
-    document.getElementById("sbag").textContent=[...agendas,...gcalEvents].filter(a=>!a.cancelado).length;
+    // Auto-sync Pablo + prensa after 15:00 to publicaciones
+    await autoSyncPubs();
+    toast(`✓ ${gcalEvs.length} eventos sincronizados`);
+    // Auto-resync every 5 min
     if(!syncGCal._iv)syncGCal._iv=setInterval(syncGCal,5*60*1000);
   }catch(err){
     gcalOk=false;btn.className="gcbtn";txt.textContent="Sincronizar Calendar";
     toast("Error Calendar: "+err.message,"err");
+    console.error("syncGCal:",err);
   }
 }
 
-function mergeGCal(items){
-  // Store gcal events in memory ONLY - no Supabase writes
-  gcalEvents=[];
-  for(const item of items){
-    try{
-      const s=item.start?.dateTime||item.start?.date||"";if(!s)continue;
-      const fecha=s.split("T")[0];
-      const hora=s.includes("T")?s.split("T")[1].slice(0,5):null;
-      if(item.status==="cancelled")continue;
-      const desc=(item.summary||"(Sin título)").slice(0,200);
-      const lugar=(item.location||"").slice(0,200);
-      const dl=desc.toLowerCase();
-      // Detect prensa - very broad keywords
-      const esPrensaKW=dl.includes("radio")||dl.includes("entrevista")||dl.includes("prensa")||
-        dl.includes("lu24")||dl.includes("la voz")||dl.includes("onda")||dl.includes("diario")||
-        dl.includes("nota")||dl.includes("periodis")||dl.includes("medio")||dl.includes("canal")||
-        dl.includes("cobertura")||dl.includes("tv")||dl.includes("noticias")||
-        dl.includes("reportaje")||dl.includes("informe")||dl.includes("programa")||
-        dl.includes("fm ")||dl.includes(" am")||dl.includes("103")||dl.includes("105")||
-        dl.includes("107")||dl.includes("98")||dl.includes("91")||dl.includes("93")||
-        dl.includes("periodico")||dl.includes("televis")||dl.includes("columna")||
-        dl.includes("ciclo")||dl.includes("señal")||dl.includes("senal");
-      // Events with times are more likely prensa (radio/TV have set hours)
-      const tieneHora=hora&&hora!==null&&hora!=="";
-      const tipo=esPrensaKW?"prensa":tieneHora?"intendente":"intendente";
-      const g=getGuardia(fecha),resp=g.length>0?(gm(g[0])||{nombre:""}).nombre:"";
-      gcalEvents.push({id:"gc_"+item.id,fecha,hora,descripcion:desc,lugar,tipo,responsable:resp,cancelado:false,gcal:true});
-    }catch(e){console.warn("gcal parse error:",e);}
-  }
+// Auto-sync: Pablo + prensa events after 15:00 → publicaciones
+async function autoSyncPubs(){
+  if(!db||!gcalEvs.length)return;
+  const todayStr=iso(TODAY);
+  const nextStr=iso(addD(TODAY,14));
+  const targets=gcalEvs.filter(e=>{
+    if(e.fecha<todayStr||e.fecha>nextStr)return false;
+    if(!e.hora)return false;
+    const h=parseInt(String(e.hora).split(":")[0]);
+    if(h<15)return false;
+    const esPablo=e.descripcion.toLowerCase().includes("pablo")||e.descripcion.toLowerCase().includes("garate");
+    return esPablo||e.tipo==="prensa";
+  });
+  if(!targets.length)return;
+  try{
+    const ex=await db.from("publicaciones").select("descripcion,fecha").gte("fecha",todayStr);
+    const keys=new Set((ex.data||[]).map(p=>p.fecha+"|"+p.descripcion.slice(0,30)));
+    let added=0;
+    for(const ev of targets){
+      const k=ev.fecha+"|"+ev.descripcion.slice(0,30);
+      if(keys.has(k))continue;
+      const esPablo=ev.descripcion.toLowerCase().includes("pablo")||ev.descripcion.toLowerCase().includes("garate");
+      const g=getGuardia(ev.fecha);const resp=g.length>0?(gm(g[0])||{nombre:""}).nombre:"";
+      await db.from("publicaciones").insert({fecha:ev.fecha,hora:ev.hora,descripcion:ev.descripcion+(ev.lugar?" — "+ev.lugar:""),cuenta:esPablo?"ig-p":"ig-m",tipo:"Streaming",responsable:resp,colaboracion:"",estado:"Pendiente"});
+      added++;
+    }
+    if(added>0){toast(`✓ ${added} publicaciones auto-sincronizadas`);renderWeek();}
+  }catch(e){console.warn("autoSyncPubs:",e);}
 }
 
-// ═══════════════════════════════════════════════════════════════
-// GUARDIAS
-// ═══════════════════════════════════════════════════════════════
+// ═══ GUARDIAS ═══
 function initGuardias(){
-  const sel=document.getElementById("gwsel");sel.innerHTML="";
-  for(let w=0;w<16;w++){
+  const sel=document.getElementById("gwsel");if(!sel)return;
+  sel.innerHTML="";
+  for(let w=0;w<20;w++){
     const mon=addD(START,w*7),sun=addD(mon,6);
     const opt=new Option(`${mon.getDate()} ${MNS[mon.getMonth()]} — ${sun.getDate()} ${MNS[sun.getMonth()]}`,w);
     if(TODAY>=mon&&TODAY<=addD(mon,6))opt.selected=true;
@@ -1269,7 +1054,7 @@ function initGuardias(){
   renderGuardias();
 }
 function renderGuardias(){
-  const wo=parseInt(document.getElementById("gwsel").value)||0;
+  const wo=parseInt(document.getElementById("gwsel")?.value)||0;
   const mon=addD(START,wo*7);
   const DN=["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"];
   let days="";
@@ -1277,40 +1062,35 @@ function renderGuardias(){
     const d=addD(mon,i),ds=iso(d),isWE=i>=5,isTd=ds===isoToday;
     const g=getGuardia(ds);
     const gc=g.length>0?(gm(g[0])||{color:"#e5e7eb"}).color:"#e5e7eb";
-    const evs=agendas.filter(a=>a.fecha===ds&&!a.cancelado);
+    const evs=[...agendas,...gcalEvs].filter(a=>String(a.fecha).slice(0,10)===ds&&!a.cancelado);
     days+=`<div class="gwd${isWE?" gwwe":""}${isTd?" gwt":""}" style="border-top:3px solid ${gc}">
       <div class="gwdate">${d.getDate()} ${MNS[d.getMonth()]}</div>
       <div class="gwags">
-        ${g.map((n,gi)=>{const m=gm(n);return m?`<div class="gwag">${mkAv(m,17)}<span style="font-size:9px;line-height:1.2">${m.nombre}<br><span style="color:#9ca3af;font-size:8px">${gi===0?"titular":"soporte"}</span></span></div>`:""}).join("")||`<span style="font-size:9px;color:#d1d5db">—</span>`}
+        ${g.map((n,gi)=>{const m=gm(n);return m?`<div class="gwag">${av(m,16)}<span style="font-size:9px;line-height:1.2">${m.nombre}<br><span style="color:#9ca3af;font-size:8px">${gi===0?"titular":"soporte"}</span></span></div>`:""}).join("")||`<span style="font-size:9px;color:#d1d5db">—</span>`}
       </div>
-      ${evs.length?`<div class="gwevs">${evs.map(e=>`🗓 ${e.descripcion.slice(0,18)}`).join("<br>")}</div>`:""}
+      ${evs.length?`<div class="gwevs">${evs.slice(0,3).map(e=>`${e.tipo==="prensa"?"📻":"🗓"} ${e.descripcion.slice(0,20)}`).join("<br>")}</div>`:""}
       <button class="gwnb" onclick="notifyDay('${ds}')">Notificar</button>
     </div>`;
   }
-  document.getElementById("gwcontent").innerHTML=`
-    <div class="gwtbl">
-      <div class="gwh">${DN.map(d=>`<div class="gwhi">${d.slice(0,3)}</div>`).join("")}</div>
-      <div class="gwb">${days}</div>
-    </div>`;
+  document.getElementById("gwcontent").innerHTML=`<div class="gwtbl"><div class="gwh">${DN.map(d=>`<div class="gwhi">${d.slice(0,3)}</div>`).join("")}</div><div class="gwb">${days}</div></div>`;
 }
-
 function notifyDay(ds){
-  const g=getGuardia(ds),d=parseD(ds),dia=`${DNF[d.getDay()]} ${d.getDate()} de ${MNF[d.getMonth()]}`;
-  const evs=agendas.filter(a=>a.fecha===ds&&!a.cancelado);
+  const g=getGuardia(ds),d=parseD(ds);
+  const dia=`${DNF[d.getDay()]} ${d.getDate()} de ${MNF[d.getMonth()]}`;
+  const evs=[...agendas,...gcalEvs].filter(a=>String(a.fecha).slice(0,10)===ds&&!a.cancelado);
   let sent=0,nomail=[];
   g.forEach((n,gi)=>{
     const m=gm(n);if(!m)return;
     const partner=g.filter(x=>x!==n).join(", ")||"solo/a";
-    const evtxt=evs.length?"\n\nEventos del día:\n"+evs.map(e=>`  🗓 ${e.descripcion}${e.hora?" a las "+e.hora:""}`).join("\n"):"\n\nSin eventos cargados.";
-    if(m.email){mail(m.nombre,`🗓️ Guardia (${gi===0?"titular":"soporte"}) — ${dia}`,`Hola ${m.nombre},\n\nGuardia el ${dia} como ${gi===0?"titular":"soporte"}.\nCompañero/a: ${partner}${evtxt}\n\nPanel: https://equipodecomu.netlify.app\n\nSaludos,\nDpto. Comunicación — Municipalidad de Tres Arroyos`);sent++;}
+    const evtxt=evs.length?"\n\nEventos:\n"+evs.map(e=>`• ${e.hora||""} ${e.descripcion}`).join("\n"):"\nSin eventos.";
+    if(m.email){mail(m.nombre,`🗓️ Guardia — ${dia}`,`Hola ${m.nombre},\n\nGuardia el ${dia} como ${gi===0?"titular":"soporte"}.\nCompañero/a: ${partner}${evtxt}\n\nPanel: https://marianelahut-lang.github.io/panel-comunicacion/\n\nSaludos,\nDpto. Comunicación — Municipalidad de Tres Arroyos`);sent++;}
     else nomail.push(m.nombre);
   });
   if(sent)toast(`✓ Notificado — ${dia}`);
   if(nomail.length)toast(`Sin correo: ${nomail.join(", ")}`,"warn");
 }
-
 function notifyWeek(){
-  const wo=parseInt(document.getElementById("gwsel").value)||0;
+  const wo=parseInt(document.getElementById("gwsel")?.value)||0;
   const mon=addD(START,wo*7);
   const DN=["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"];
   const done=new Set();let sent=0,nomail=[];
@@ -1319,8 +1099,8 @@ function notifyWeek(){
     getGuardia(ds).forEach(n=>{
       const m=gm(n);if(!m||done.has(n))return;done.add(n);
       const dias=[];
-      for(let j=0;j<7;j++){const dj=addD(mon,j),dsj=iso(dj),gj=getGuardia(dsj);if(gj.includes(n)){const ej=agendas.filter(a=>a.fecha===dsj&&!a.cancelado);dias.push(`  • ${DN[j]} ${dj.getDate()}/${dj.getMonth()+1}${ej.length?" — "+ej.map(e=>e.descripcion.slice(0,25)).join(", "):""}`)}}
-      if(m.email){mail(m.nombre,`🗓️ Guardias semana del ${mon.getDate()} de ${MNF[mon.getMonth()]}`,`Hola ${m.nombre},\n\nTu rotación esta semana:\n\n${dias.join("\n")}\n\nPanel: https://equipodecomu.netlify.app\n\nSaludos,\nDpto. Comunicación — Municipalidad de Tres Arroyos`);sent++;}
+      for(let j=0;j<7;j++){const dj=addD(mon,j),dsj=iso(dj),gj=getGuardia(dsj);if(gj.includes(n)){const ej=[...agendas,...gcalEvs].filter(a=>String(a.fecha).slice(0,10)===dsj&&!a.cancelado);dias.push(`• ${DN[j]} ${dj.getDate()}/${dj.getMonth()+1}${ej.length?" — "+ej.map(e=>e.descripcion.slice(0,20)).join(", "):""}`)}}
+      if(m.email){mail(m.nombre,`🗓️ Guardias semana del ${mon.getDate()} de ${MNF[mon.getMonth()]}`,`Hola ${m.nombre},\n\nTu rotación esta semana:\n\n${dias.join("\n")}\n\nPanel: https://marianelahut-lang.github.io/panel-comunicacion/\n\nSaludos,\nDpto. Comunicación — Municipalidad de Tres Arroyos`);sent++;}
       else nomail.push(m.nombre);
     });
   }
@@ -1328,23 +1108,19 @@ function notifyWeek(){
   if(nomail.length)toast(`Sin correo: ${nomail.join(", ")}`,"warn");
 }
 
-// ═══════════════════════════════════════════════════════════════
-// EQUIPO
-// ═══════════════════════════════════════════════════════════════
+// ═══ EQUIPO ═══
 function renderTeam(){
-  const rk=r=>r.includes("Jefe")?"#f3f4f6,#374151":r.includes("Resp")?"#ede9fe,#6d28d9":"#dbeafe,#1e40af";
   document.getElementById("teamgrid").innerHTML=teams.map(m=>{
     const act=tasks.filter(t=>t.responsable===m.nombre&&t.estado!=="Completo").length;
-    const [rb,rc]=rk(m.rol).split(",");
     return`<div class="tmcard" onclick="openEmMod('${m.id}')">
-      <div class="av" style="background:${m.color};color:${m.color_texto};width:46px;height:46px;font-size:16px;margin:0 auto">${ini(m.nombre)}</div>
-      <div style="font-size:13px;font-weight:700;color:#111827;margin-top:8px">${m.nombre}</div>
-      <div style="margin:3px 0"><span style="font-size:10px;padding:2px 8px;border-radius:7px;background:${rb};color:${rc};font-weight:600">${m.rol}</span></div>
-      ${!m.cobertura?`<span style="font-size:9px;color:#d97706;background:#fffbeb;padding:2px 6px;border-radius:6px;display:inline-block;margin-top:2px">Sin coberturas</span>`:""}
-      ${m.email?`<div style="font-size:9px;color:#9ca3af;margin-top:3px;word-break:break-all">${m.email}</div>`:`<div style="font-size:9px;color:#d97706;background:#fffbeb;padding:2px 6px;border-radius:6px;display:inline-block;margin-top:3px">Sin correo</div>`}
+      ${av(m,46)}
+      <div style="font-size:13px;font-weight:700;margin-top:8px">${m.nombre}</div>
+      <div style="font-size:10px;padding:2px 8px;border-radius:7px;background:#ede9fe;color:#6d28d9;font-weight:600;margin:3px 0;display:inline-block">${m.rol}</div>
+      ${!m.cobertura?`<div style="font-size:9px;color:#d97706;background:#fffbeb;padding:2px 6px;border-radius:6px;margin-top:2px">Sin coberturas</div>`:""}
+      ${m.email?`<div style="font-size:9px;color:#9ca3af;margin-top:3px;word-break:break-all">${m.email}</div>`:`<div style="font-size:9px;color:#dc2626;margin-top:3px">Sin correo ⚠</div>`}
       ${m.telefono?`<a href="https://wa.me/${m.telefono}" target="_blank" style="display:inline-flex;align-items:center;gap:3px;margin-top:5px;padding:3px 9px;background:#25d366;color:#fff;border-radius:20px;font-size:9px;font-weight:600;text-decoration:none">📱 WhatsApp</a>`:""}
-      <div style="font-size:10px;color:#6b7280;margin-top:3px">${act} tarea${act!==1?"s":""} activa${act!==1?"s":""}</div>
-      ${m.email?`<button onclick="event.stopPropagation();sendAlert('${m.nombre}')" style="margin-top:5px;padding:3px 9px;border-radius:20px;border:none;background:#667eea;color:#fff;font-size:9px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">📧 Alertar hoy</button>`:""}
+      <div style="font-size:10px;color:#6b7280;margin-top:3px">${act} tareas activas</div>
+      ${m.email?`<button onclick="event.stopPropagation();sendAlert('${m.nombre}')" style="margin-top:5px;padding:3px 9px;border-radius:20px;border:none;background:#667eea;color:#fff;font-size:9px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">📧 Alertar hoy</button>`:""}
     </div>`;
   }).join("");
 }
@@ -1359,30 +1135,25 @@ function openEmMod(id){
 async function saveMember(){
   const id=document.getElementById("emid").value;
   await db.from("usuarios").update({email:document.getElementById("ememail").value.trim(),telefono:document.getElementById("emtel").value.trim().replace(/[^0-9]/g,""),rol:document.getElementById("emrol").value,cobertura:document.getElementById("emcob").value==="1"}).eq("id",id);
-  closeMod("modEquipo");toast("✓ Actualizado");
+  closeMod("modEquipo");toast("✓ Guardado");
+}
+function sendAlert(nombre){
+  const m=gm(nombre);if(!m?.email){toast("Sin correo","warn");return;}
+  const g=getGuardia(isoToday);const gi=g.indexOf(nombre);
+  const evs=[...agendas,...gcalEvs].filter(a=>String(a.fecha).slice(0,10)===isoToday&&!a.cancelado);
+  const ps=pubs.filter(p=>String(p.fecha).slice(0,10)===isoToday&&p.responsable===nombre);
+  const mt=tasks.filter(t=>t.responsable===m.nombre&&t.estado!=="Completo");
+  const d=parseD(isoToday);
+  mail(m.nombre,`🗓️ Resumen del día — ${DNF[d.getDay()]} ${d.getDate()} de ${MNF[d.getMonth()]}`,
+    `Hola ${m.nombre},${gi>=0?`\nRol hoy: ${gi===0?"titular":"soporte"} de guardia`:""}`+
+    (evs.length?"\n\nEventos:\n"+evs.map(e=>`• ${e.hora||""} ${e.descripcion}`).join("\n"):"")+
+    (ps.length?"\n\nPublicaciones:\n"+ps.map(p=>{const ct=getCta(p.cuenta);return`• ${ct?.label}: ${p.descripcion.slice(0,50)}`}).join("\n"):"")+
+    (mt.length?"\n\nTareas ("+mt.length+"):\n"+mt.slice(0,5).map(t=>`• [${t.prioridad}] ${t.descripcion.slice(0,50)}`).join("\n"):"")+
+    "\n\nPanel: https://marianelahut-lang.github.io/panel-comunicacion/"
+  );
 }
 
-// ═══════════════════════════════════════════════════════════════
-// IDEAS
-// ═══════════════════════════════════════════════════════════════
-function renderIdeas(){
-  const CC={"SOMOS":"#ede9fe","MUNICIPALIDAD":"#dbeafe","SOMOS PABLO":"#f3f4f6","NINGUNA":"#f3f4f6","":" #f3f4f6"};
-  const TC={"SOMOS":"#6d28d9","MUNICIPALIDAD":"#1e40af","SOMOS PABLO":"#374151","NINGUNA":"#6b7280","":" #6b7280"};
-  document.getElementById("ideagrid").innerHTML=ideas.map(i=>`
-    <div class="icard">
-      <div style="font-size:12px;font-weight:700;color:#111827;margin-bottom:4px">${i.t}</div>
-      <div style="font-size:10px;color:#6b7280;line-height:1.5;margin-bottom:7px">${i.d}</div>
-      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:3px">
-        ${i.c?`<span style="font-size:9px;padding:2px 7px;border-radius:7px;background:${CC[i.c]||"#f3f4f6"};color:${TC[i.c]||"#374151"};font-weight:600">${i.c}</span>`:"<span></span>"}
-        <span style="font-size:9px;padding:2px 7px;border-radius:7px;background:${i.ok?"#dcfce7":"#fef2f2"};color:${i.ok?"#16a34a":"#dc2626"};font-weight:600">${i.ok?"✓ Listo":"Por compartir"}</span>
-      </div>
-    </div>`).join("");
-}
-function openIdeaMod(){document.getElementById("modIdea")&&document.getElementById("modIdea").classList.add("open");}
-
-// ═══════════════════════════════════════════════════════════════
-// MÉTRICAS
-// ═══════════════════════════════════════════════════════════════
+// ═══ METRICAS ═══
 function getFilteredStats(){
   const days=parseInt(document.getElementById("mrange")?.value||7);
   const cut=new Date(TODAY);cut.setDate(cut.getDate()-days);const cutStr=iso(cut);
@@ -1394,154 +1165,110 @@ function renderMetricas(){
   if(!document.getElementById("metcards"))return;
   const data=getFilteredStats();
   const tot=f=>data.reduce((a,s)=>a+(s[f]||0),0);
-  const mets=[{i:"👁",v:tot("alcance"),l:"Alcance",bg:"#eff6ff"},{i:"❤️",v:tot("likes"),l:"Likes",bg:"#fce7f3"},{i:"💬",v:tot("comentarios"),l:"Comentarios",bg:"#f0fdf4"},{i:"🔄",v:tot("compartidos"),l:"Compartidos",bg:"#fffbeb"},{i:"▶️",v:tot("reproducciones"),l:"Reproducciones",bg:"#fee2e2"},{i:"👥",v:tot("nuevos_seguidores"),l:"Nuevos seguidores",bg:"#ede9fe"}];
-  document.getElementById("metcards").innerHTML=mets.map(m=>`
-    <div class="met"><div class="met-ico" style="background:${m.bg}">${m.i}</div><div class="met-v">${fmtN(m.v)}</div><div class="met-l">${m.l}</div></div>`).join("");
-
-  // Account tabs
+  const mets=[{i:"👁",v:tot("alcance"),l:"Alcance",bg:"#eff6ff"},{i:"❤️",v:tot("likes"),l:"Likes",bg:"#fce7f3"},{i:"💬",v:tot("comentarios"),l:"Comentarios",bg:"#f0fdf4"},{i:"🔄",v:tot("compartidos"),l:"Compartidos",bg:"#fffbeb"},{i:"▶️",v:tot("reproducciones"),l:"Reproducciones",bg:"#fee2e2"},{i:"👥",v:tot("nuevos_seguidores"),l:"Nuevos seg.",bg:"#ede9fe"}];
+  document.getElementById("metcards").innerHTML=mets.map(m=>`<div class="met"><div class="met-ico" style="background:${m.bg}">${m.i}</div><div class="met-v">${fmtN(m.v)}</div><div class="met-l">${m.l}</div></div>`).join("");
   const tabs=[{k:"todas",l:"Todas",c:"#667eea"},...Object.entries(ACC_CLR).map(([k,c])=>({k,l:k.replace("-"," · "),c}))];
-  document.getElementById("acctabs").innerHTML=tabs.map(t=>`
-    <button onclick="setMTab('${t.k}',this)" style="padding:5px 11px;border-radius:20px;font-size:10px;font-weight:500;cursor:pointer;border:1.5px solid ${mAccTab===t.k?t.c:"#e5e7eb"};background:${mAccTab===t.k?t.c:"#fff"};color:${mAccTab===t.k?"#fff":"#6b7280"};font-family:'Inter',sans-serif;transition:.15s">${t.l}</button>`).join("");
-
-  // Charts
+  document.getElementById("acctabs").innerHTML=tabs.map(t=>`<button onclick="mAccTab='${t.k}';renderMetricas()" style="padding:5px 11px;border-radius:20px;font-size:10px;font-weight:500;cursor:pointer;border:1.5px solid ${mAccTab===t.k?t.c:"#e5e7eb"};background:${mAccTab===t.k?t.c:"#fff"};color:${mAccTab===t.k?"#fff":"#6b7280"};font-family:Inter,sans-serif">${t.l}</button>`).join("");
   const days=parseInt(document.getElementById("mrange")?.value||7);
   const dates=[];for(let i=days-1;i>=0;i--){const d=new Date(TODAY);d.setDate(d.getDate()-i);dates.push(iso(d));}
   const dLbl=dates.map(d=>d.slice(5));
-
-  destroyMChart("a");destroyMChart("e");destroyMChart("r");destroyMChart("s");
-
+  ["a","e","r","s"].forEach(k=>{if(mCharts[k]){mCharts[k].destroy();delete mCharts[k];}});
   const c1=document.getElementById("chartAlcance")?.getContext("2d");
   if(c1)mCharts.a=new Chart(c1,{type:"line",data:{labels:dLbl,datasets:[{label:"Alcance",data:dates.map(d=>data.filter(s=>s.fecha===d).reduce((a,s)=>a+(s.alcance||0),0)),borderColor:"#667eea",backgroundColor:"rgba(102,126,234,.1)",tension:.4,fill:true},{label:"Impresiones",data:dates.map(d=>data.filter(s=>s.fecha===d).reduce((a,s)=>a+(s.impresiones||0),0)),borderColor:"#a78bfa",tension:.4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{font:{size:10}}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>fmtN(v),font:{size:9}}},x:{ticks:{font:{size:9}}}}}});
-
   const c2=document.getElementById("chartEng")?.getContext("2d");
-  if(c2)mCharts.e=new Chart(c2,{type:"bar",data:{labels:dLbl,datasets:[{label:"Likes",data:dates.map(d=>data.filter(s=>s.fecha===d).reduce((a,s)=>a+(s.likes||0),0)),backgroundColor:"rgba(236,72,153,.7)"},{label:"Comentarios",data:dates.map(d=>data.filter(s=>s.fecha===d).reduce((a,s)=>a+(s.comentarios||0),0)),backgroundColor:"rgba(102,126,234,.7)"},{label:"Compartidos",data:dates.map(d=>data.filter(s=>s.fecha===d).reduce((a,s)=>a+(s.compartidos||0),0)),backgroundColor:"rgba(34,197,94,.7)"}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{font:{size:10}}}},scales:{x:{stacked:true,ticks:{font:{size:9}}},y:{stacked:true,beginAtZero:true,ticks:{font:{size:9}}}}}});
-
+  if(c2)mCharts.e=new Chart(c2,{type:"bar",data:{labels:dLbl,datasets:[{label:"Likes",data:dates.map(d=>data.filter(s=>s.fecha===d).reduce((a,s)=>a+(s.likes||0),0)),backgroundColor:"rgba(236,72,153,.7)"},{label:"Comentarios",data:dates.map(d=>data.filter(s=>s.fecha===d).reduce((a,s)=>a+(s.comentarios||0),0)),backgroundColor:"rgba(102,126,234,.7)"}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{font:{size:10}}}},scales:{x:{stacked:true,ticks:{font:{size:9}}},y:{stacked:true,beginAtZero:true,ticks:{font:{size:9}}}}}});
   const cut2=dates[0]||isoToday;
   const muD=stats.filter(s=>s.cuenta==="Municipalidad"&&s.fecha>=cut2);
   const pbD=stats.filter(s=>s.cuenta==="Pablo Garate"&&s.fecha>=cut2);
   const ts=(arr,f)=>arr.reduce((a,s)=>a+(s[f]||0),0);
   const c3=document.getElementById("chartRadar")?.getContext("2d");
-  if(c3)mCharts.r=new Chart(c3,{type:"radar",data:{labels:["Alcance","Likes","Comentarios","Compartidos","Reproducciones","Nuevos seg."],datasets:[{label:"Municipalidad",data:[ts(muD,"alcance"),ts(muD,"likes"),ts(muD,"comentarios"),ts(muD,"compartidos"),ts(muD,"reproducciones"),ts(muD,"nuevos_seguidores")],borderColor:"#1877f2",backgroundColor:"rgba(24,119,242,.12)",pointBackgroundColor:"#1877f2"},{label:"Pablo Garate",data:[ts(pbD,"alcance"),ts(pbD,"likes"),ts(pbD,"comentarios"),ts(pbD,"compartidos"),ts(pbD,"reproducciones"),ts(pbD,"nuevos_seguidores")],borderColor:"#667eea",backgroundColor:"rgba(102,126,234,.12)",pointBackgroundColor:"#667eea"}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{font:{size:10}}}},scales:{r:{ticks:{callback:v=>fmtN(v),font:{size:8}},pointLabels:{font:{size:9}}}}}});
-
+  if(c3)mCharts.r=new Chart(c3,{type:"radar",data:{labels:["Alcance","Likes","Comentarios","Compartidos","Reproducciones","Nuevos seg."],datasets:[{label:"Municipalidad",data:[ts(muD,"alcance"),ts(muD,"likes"),ts(muD,"comentarios"),ts(muD,"compartidos"),ts(muD,"reproducciones"),ts(muD,"nuevos_seguidores")],borderColor:"#1877f2",backgroundColor:"rgba(24,119,242,.12)"},{label:"Pablo Garate",data:[ts(pbD,"alcance"),ts(pbD,"likes"),ts(pbD,"comentarios"),ts(pbD,"compartidos"),ts(pbD,"reproducciones"),ts(pbD,"nuevos_seguidores")],borderColor:"#667eea",backgroundColor:"rgba(102,126,234,.12)"}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{font:{size:10}}}},scales:{r:{ticks:{font:{size:8}},pointLabels:{font:{size:9}}}}}});
   const cuentas=[...new Set(stats.map(s=>s.cuenta+"-"+s.red))];
   const c4=document.getElementById("chartSeg")?.getContext("2d");
-  if(c4)mCharts.s=new Chart(c4,{type:"line",data:{labels:dLbl,datasets:cuentas.map(key=>{const[ct,rd]=key.split("-");return{label:key,data:dates.map(d=>{const r=stats.filter(s=>s.fecha===d&&s.cuenta===ct&&s.red===rd).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at))[0];return r?.seguidores_total||null}),borderColor:ACC_CLR[key]||"#667eea",backgroundColor:"transparent",tension:.4,spanGaps:true,pointRadius:3};})},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{font:{size:9}}}},scales:{y:{ticks:{callback:v=>fmtN(v),font:{size:9}}},x:{ticks:{font:{size:9}}}}}});
+  if(c4)mCharts.s=new Chart(c4,{type:"line",data:{labels:dLbl,datasets:cuentas.map(key=>{const[ct,rd]=key.split("-");return{label:key,data:dates.map(d=>{const r=stats.filter(s=>s.fecha===d&&s.cuenta===ct&&s.red===rd).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at))[0];return r?.seguidores_total||null}),borderColor:ACC_CLR[key]||"#667eea",backgroundColor:"transparent",tension:.4,spanGaps:true};})},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{font:{size:9}}}},scales:{y:{ticks:{callback:v=>fmtN(v),font:{size:9}}},x:{ticks:{font:{size:9}}}}}});
 }
-function destroyMChart(k){if(mCharts[k]){mCharts[k].destroy();delete mCharts[k];}}
-function setMTab(k){mAccTab=k;renderMetricas();}
 function openStatsMod(){document.getElementById("sfecha").value=isoToday;document.getElementById("modStats").classList.add("open");}
 async function saveStats(){
-  const fecha=document.getElementById("sfecha").value;if(!fecha){alert("Seleccioná fecha");return}
+  const fecha=document.getElementById("sfecha").value;if(!fecha){alert("Fecha obligatoria");return}
   const p=document.getElementById("scuenta").value.split("|");
   await db.from("stats_redes").insert({fecha,cuenta:p[0],red:p[1],alcance:parseInt(document.getElementById("salcance").value)||0,impresiones:parseInt(document.getElementById("simpres").value)||0,likes:parseInt(document.getElementById("slikes").value)||0,comentarios:parseInt(document.getElementById("scoments").value)||0,compartidos:parseInt(document.getElementById("sshares").value)||0,reproducciones:parseInt(document.getElementById("sviews").value)||0,nuevos_seguidores:parseInt(document.getElementById("snew").value)||0,seguidores_total:parseInt(document.getElementById("stotal").value)||0,fuente:"manual"});
-  closeMod("modStats");toast("✓ Estadísticas guardadas");
+  closeMod("modStats");toast("✓ Stats guardadas");
 }
 
-// ═══════════════════════════════════════════════════════════════
-// MEDIOS
-// ═══════════════════════════════════════════════════════════════
+// ═══ MEDIOS ═══
 async function scanMedios(){
   const btn=document.getElementById("scanbtn");btn.disabled=true;
-  btn.innerHTML=`<div class="spin"></div> Escaneando...`;
-  document.getElementById("scanstatus").innerHTML=`<div class="scan-bar scanning"><div class="spin"></div><span>Analizando medios de comunicación...</span></div>`;
-  let total=0;
+  btn.textContent="Escaneando...";
+  const statusEl=document.getElementById("scanstatus");
+  statusEl.innerHTML=`<div class="sbar scan"><div class="spin"></div><span>Buscando noticias en medios locales... (30-60 seg)</span></div>`;
+  let total=0,errors=0;
   for(const m of MEDIOS){
-    document.getElementById("scanstatus").innerHTML=`<div class="scan-bar scanning"><div class="spin"></div><span>Analizando ${m.n}...</span></div>`;
+    statusEl.innerHTML=`<div class="sbar scan"><div class="spin"></div><span>Analizando ${m.n}...</span></div>`;
     try{
-      const items=await fetchMedioNoticias(m);
+      const items=await fetchMedioRSS(m);
       for(const n of items){
-        const ex=noticias.find(x=>x.url===n.url&&x.url);
-        if(!ex&&n.titulo){await db.from("noticias_medios").insert({...n,medio:m.n});total++;}
+        const ex=noticias.find(x=>x.url&&x.url===n.url);
+        if(!ex&&n.titulo){
+          try{await db.from("noticias_medios").insert({...n,medio:m.n});total++;}
+          catch(e){console.warn("Insert:",e.message);}
+        }
       }
-    }catch(e){console.warn("Error",m.n,e);}
+    }catch(e){errors++;console.warn(m.n,":",e.message);}
   }
-  document.getElementById("scanstatus").innerHTML=`<div class="scan-bar done">✓ Escaneo completado — ${total} noticias nuevas encontradas</div>`;
-  setTimeout(()=>document.getElementById("scanstatus").innerHTML="",5000);
-  btn.disabled=false;
-  btn.innerHTML=`<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg> Escanear medios`;
-  toast(total>0?`✓ ${total} noticias nuevas`:"Sin noticias nuevas");
+  if(total>0){
+    statusEl.innerHTML=`<div class="sbar done">✓ ${total} noticias nuevas encontradas</div>`;
+    toast(`✓ ${total} noticias nuevas`);
+  }else{
+    statusEl.innerHTML=`<div class="sbar fail">Sin noticias nuevas${errors>0?" (errores de red)":""} — Usá "+ Agregar" para cargar manualmente</div>`;
+    toast("Sin noticias nuevas","warn");
+  }
+  setTimeout(()=>statusEl.innerHTML="",8000);
+  btn.disabled=false;btn.innerHTML=`<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg> Escanear medios`;
 }
 
-
-async function fetchMedioNoticias(medio){
-  const siteMap={"La Voz del Pueblo":"lavozdelpueblo.com.ar","LU24":"lu24.com.ar","Diario 3":"diario3.com.ar","Via País":"viapais.com.ar","Onda Uno":"ondauno.com.ar"};
-  const site=siteMap[medio.n]||medio.url.replace("https://","").split("/")[0];
-  const q=`${site} tres arroyos OR garate OR municipio OR municipalidad OR intendente`;
-  const rss=`https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=es-AR&gl=AR&ceid=AR:es`;
-  const proxy=`https://api.allorigins.win/get?url=${encodeURIComponent(rss)}`;
-  try{
-    const resp=await fetch(proxy,{signal:AbortSignal.timeout(12000)});
-    if(!resp.ok)throw new Error("proxy "+resp.status);
-    const raw=await resp.json();
-    if(!raw.contents)return[];
-    const parser=new DOMParser();
-    const xml=parser.parseFromString(raw.contents,"text/xml");
-    const items=[...xml.querySelectorAll("item")];
-    const results=[];
-    const cutoff=new Date(TODAY);cutoff.setDate(cutoff.getDate()-7);
-    for(const item of items.slice(0,15)){
-      const tit=(item.querySelector("title")?.textContent||"").replace(/<[^>]*>/g,"").trim();
-      const link=item.querySelector("link")?.textContent||item.querySelector("guid")?.textContent||"";
-      const pubDate=item.querySelector("pubDate")?.textContent||"";
-      const desc=(item.querySelector("description")?.textContent||"").replace(/<[^>]*>/g,"").trim();
-      if(!tit)continue;
-      let fechaISO=isoToday;
-      try{const fd=new Date(pubDate);if(!isNaN(fd)){if(fd<cutoff)continue;fechaISO=iso(fd);}}catch(e){}
-      const tl=(tit+" "+desc).toLowerCase();
-      const tono=tl.includes("probl")||tl.includes("critic")||tl.includes("denuncia")||tl.includes("protest")?"negativo":tl.includes("inaugur")||tl.includes("obra")||tl.includes("logro")||tl.includes("benefi")?"positivo":"neutral";
-      results.push({titulo:tit.slice(0,200),url:link,fecha:fechaISO,resumen:desc.slice(0,120),tono,menciona_municipio:tl.includes("municipio")||tl.includes("municipalidad")||tl.includes("tres arroyos"),menciona_pablo:tl.includes("pablo garate")||tl.includes("garate")});
-    }
-    return results;
-  }catch(e){console.warn("Medios ("+medio.n+"):",e.message);return[];}
+async function fetchMedioRSS(medio){
+  // Use allorigins.win to bypass CORS and parse RSS XML
+  const rssMap={"La Voz del Pueblo":"https://www.lavozdelpueblo.com.ar/feed/","LU24":"https://www.lu24.com.ar/feed/","Diario 3":"https://www.diario3.com.ar/feed/","Via País":"https://viapais.com.ar/tres-arroyos/feed/","Onda Uno":"https://ondauno.com.ar/feed/"};
+  const rssUrl=rssMap[medio.n];if(!rssUrl)return[];
+  const proxy=`https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}`;
+  const resp=await fetch(proxy,{signal:AbortSignal.timeout(12000)});
+  if(!resp.ok)throw new Error("HTTP "+resp.status);
+  const raw=await resp.json();
+  if(!raw.contents)return[];
+  const parser=new DOMParser();
+  const xml=parser.parseFromString(raw.contents,"text/xml");
+  const items=[...xml.querySelectorAll("item")];
+  if(!items.length)return[];
+  const kws=["pablo garate","garate","intendente","tres arroyos","municipio","municipalidad","gobierno local"];
+  const cutoff=new Date(TODAY);cutoff.setDate(cutoff.getDate()-7);
+  const results=[];
+  for(const item of items.slice(0,20)){
+    const tit=(item.querySelector("title")?.textContent||"").replace(/<[^>]*>/g,"").trim();
+    const link=item.querySelector("link")?.textContent||item.querySelector("guid")?.textContent||"";
+    const pubDate=item.querySelector("pubDate")?.textContent||"";
+    const desc=(item.querySelector("description")?.textContent||"").replace(/<[^>]*>/g,"").slice(0,150);
+    if(!tit)continue;
+    const text=(tit+" "+desc).toLowerCase();
+    if(!kws.some(k=>text.includes(k)))continue;
+    let fechaISO=isoToday;
+    try{const fd=new Date(pubDate);if(!isNaN(fd)){if(fd<cutoff)continue;fechaISO=iso(fd);}}catch(e){}
+    const tl=tit.toLowerCase();
+    const tono=tl.includes("probl")||tl.includes("critic")||tl.includes("denuncia")||tl.includes("protest")?"negativo":tl.includes("inaugur")||tl.includes("obra")||tl.includes("benefi")||tl.includes("logro")?"positivo":"neutral";
+    results.push({titulo:tit.slice(0,200),url:link,fecha:fechaISO,resumen:desc,tono,menciona_municipio:text.includes("municipio")||text.includes("municipalidad")||text.includes("tres arroyos"),menciona_pablo:text.includes("pablo garate")||text.includes("garate")});
+  }
+  return results;
 }
-
-
-// ══ AUTO-SYNC: Pablo + Prensa events after 15:00 → Publicaciones ══
-async function autoSyncPublicaciones(){
-  if(!db||!gcalEvents.length)return;
-  const todayStr=iso(TODAY);
-  const nextStr=iso(addD(TODAY,14));
-  
-  const eventos=gcalEvents.filter(e=>{
-    if(e.fecha<todayStr||e.fecha>nextStr)return false;
-    if(!e.hora)return false;
-    const h=parseInt(String(e.hora).split(":")[0]);
-    const esPablo=e.descripcion.toLowerCase().includes("pablo")||e.descripcion.toLowerCase().includes("garate");
-    const esPrensaTarde=e.tipo==="prensa"&&h>=15;
-    return (esPablo||esPrensaTarde)&&h>=15;
-  });
-  
-  if(!eventos.length)return;
-  
-  try{
-    const existing=await db.from("publicaciones").select("descripcion,fecha").gte("fecha",todayStr);
-    const keys=new Set((existing.data||[]).map(p=>p.fecha+"_"+p.descripcion.slice(0,30)));
-    let added=0;
-    for(const ev of eventos){
-      const key=ev.fecha+"_"+ev.descripcion.slice(0,30);
-      if(keys.has(key))continue;
-      const esPablo=ev.descripcion.toLowerCase().includes("pablo")||ev.descripcion.toLowerCase().includes("garate");
-      const cuenta=esPablo?"ig-p":"ig-m";
-      const g=getGuardia(ev.fecha);
-      const resp=g.length>0?(gm(g[0])||{nombre:""}).nombre:"";
-      await db.from("publicaciones").insert({fecha:ev.fecha,hora:ev.hora,descripcion:ev.descripcion+(ev.lugar?" — "+ev.lugar:""),cuenta,tipo:"Streaming",responsable:resp,colaboracion:"",estado:"Pendiente"});
-      added++;
-    }
-    if(added>0)toast(`✓ ${added} eventos sincronizados a Publicaciones`);
-  }catch(e){console.warn("autoSync error:",e);}
-}
-
 
 function renderNoticias(){
   if(!document.getElementById("nlist"))return;
-  const mf=document.getElementById("mfilter")?.value||"";
-  const tf=document.getElementById("tfilter")?.value||"";
-  let data=noticias;
+  const mf=document.getElementById("mfilt")?.value||"";
+  const tf=document.getElementById("tfilt")?.value||"";
+  let data=[...noticias];
   if(mf)data=data.filter(n=>n.medio===mf);
   if(tf)data=data.filter(n=>n.tono===tf);
   document.getElementById("ncount").textContent=`${data.length} noticias`;
   const MC={"La Voz del Pueblo":"#1d4e7a","LU24":"#7c2d12","Diario 3":"#065f46","Via País":"#5b21b6","Onda Uno":"#92400e"};
-  if(!data.length){document.getElementById("nlist").innerHTML=`<div style="text-align:center;padding:2rem;color:#9ca3af;font-size:12px">No hay noticias. Hacé clic en <strong>"Escanear medios"</strong> para buscar automáticamente.</div>`;return;}
+  if(!data.length){document.getElementById("nlist").innerHTML=`<div style="text-align:center;padding:2rem;color:#9ca3af">No hay noticias. Hacé clic en <strong>"Escanear medios"</strong> o usá <strong>"+ Agregar"</strong> para cargar manualmente.</div>`;return;}
   document.getElementById("nlist").innerHTML=data.slice(0,50).map(n=>`
     <div class="nrow">
       <div style="min-width:80px;flex-shrink:0">
@@ -1550,12 +1277,12 @@ function renderNoticias(){
       </div>
       <div style="flex:1;min-width:0">
         <div class="ntitle">${n.url?`<a href="${n.url}" target="_blank" rel="noopener">${n.titulo}</a>`:n.titulo}</div>
-        <div class="nmeta">
+        <div style="display:flex;gap:4px;flex-wrap:wrap;margin:2px 0">
           <span class="pill pill-${n.tono==="positivo"?"pos":n.tono==="negativo"?"neg":"neu"}">${n.tono||"neutral"}</span>
-          ${n.menciona_municipio?`<span class="pill pill-muni">Municipalidad</span>`:""}
+          ${n.menciona_municipio?`<span class="pill pill-muni">Municipio</span>`:""}
           ${n.menciona_pablo?`<span class="pill pill-pablo">Pablo Garate</span>`:""}
         </div>
-        ${n.resumen?`<div class="nresumen">${n.resumen}</div>`:""}
+        ${n.resumen?`<div style="font-size:10px;color:#6b7280">${n.resumen}</div>`:""}
       </div>
     </div>`).join("");
 }
@@ -1570,69 +1297,19 @@ function renderMedioSum(){
     const cnt=semData.filter(n=>n.medio===m.n).length;
     const pos=semData.filter(n=>n.medio===m.n&&n.tono==="positivo").length;
     const neg=semData.filter(n=>n.medio===m.n&&n.tono==="negativo").length;
-    const pct=Math.round(cnt/maxC*100);
     return`<div class="meds">
       <div class="meds-logo" style="background:${m.c}">${m.s}</div>
-      <div style="flex:1;min-width:0">
+      <div style="flex:1">
         <div style="font-size:11px;font-weight:600">${m.n}</div>
-        <div style="display:flex;gap:8px;margin-top:2px;flex-wrap:wrap">
+        <div style="display:flex;gap:8px;margin-top:2px">
           <span style="font-size:10px;color:#6b7280"><strong>${cnt}</strong> noticias</span>
           <span style="font-size:10px;color:#16a34a"><strong>${pos}</strong> pos</span>
           <span style="font-size:10px;color:#dc2626"><strong>${neg}</strong> neg</span>
         </div>
-        <div class="meds-bar"><div class="meds-fill" style="width:${pct}%;background:${m.c}"></div></div>
+        <div class="meds-bar"><div class="meds-fill" style="width:${Math.round(cnt/maxC*100)}%;background:${m.c}"></div></div>
       </div>
     </div>`;
   }).join("");
-
-  // Charts
-  destroyMChart("m");destroyMChart("t");
-  const c5=document.getElementById("chartMedios")?.getContext("2d");
-  if(c5)mCharts.m=new Chart(c5,{type:"bar",data:{labels:MEDIOS.map(m=>m.s),datasets:[{label:"Noticias",data:MEDIOS.map(m=>semData.filter(n=>n.medio===m.n).length),backgroundColor:MEDIOS.map(m=>m.c+"cc"),borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1,font:{size:9}}},x:{ticks:{font:{size:9}}}}}});
-  const pos=semData.filter(n=>n.tono==="positivo").length;
-  const neu=semData.filter(n=>!n.tono||n.tono==="neutral").length;
-  const neg=semData.filter(n=>n.tono==="negativo").length;
-  const c6=document.getElementById("chartTono")?.getContext("2d");
-  if(c6)mCharts.t=new Chart(c6,{type:"doughnut",data:{labels:["Positivo","Neutral","Negativo"],datasets:[{data:[pos,neu,neg],backgroundColor:["rgba(22,163,74,.8)","rgba(107,114,128,.6)","rgba(220,38,38,.8)"],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:"65%",plugins:{legend:{position:"bottom",labels:{font:{size:10},padding:12}}}}});
-}
-
-// ═══════════════════════════════════════════════════════════════
-// ALERTA DIARIA 8AM
-// ═══════════════════════════════════════════════════════════════
-function scheduleDailyAlert(){
-  const now=new Date();
-  const target=new Date(now);target.setHours(8,0,0,0);
-  if(now>=target)target.setDate(target.getDate()+1);
-  const ms=target-now;
-  setTimeout(()=>{sendDailyAlerts();setInterval(sendDailyAlerts,24*60*60*1000);},ms);
-}
-
-function sendDailyAlerts(){
-  const g=getGuardia(isoToday);if(!g.length)return;
-  const evs=agendas.filter(a=>a.fecha===isoToday&&!a.cancelado);
-  const ps=pubs.filter(p=>p.fecha===isoToday);
-  const d=parseD(isoToday);
-  g.forEach((n,gi)=>{
-    const m=gm(n);if(!m||!m.email)return;
-    const partner=g.filter(x=>x!==n).join(", ")||"solo/a";
-    const evtxt=evs.length?"\n\n📅 EVENTOS HOY:\n"+evs.map(e=>`  • ${e.hora||""}${e.hora?" — ":""}${e.descripcion}`).join("\n"):"\n\n📅 Sin eventos para hoy.";
-    const ptxt=ps.length?"\n\n📱 PUBLICACIONES HOY:\n"+ps.map(p=>{const ct=getCta(p.cuenta);return`  • ${ct?.label||p.cuenta}: ${p.descripcion.slice(0,50)}`}).join("\n"):"";
-    const mytasks=tasks.filter(t=>t.responsable===m.nombre&&t.estado!=="Completo");
-    const ttxt=mytasks.length?"\n\n📋 TUS TAREAS PENDIENTES ("+mytasks.length+"):\n"+mytasks.slice(0,5).map(t=>`  • [${t.prioridad}] ${t.descripcion.slice(0,50)}`).join("\n"):"";
-    mail(m.nombre,`🗓️ Alerta diaria — ${DNF[d.getDay()]} ${d.getDate()} de ${MNF[d.getMonth()]}`,`Hola ${m.nombre},\n\nBuen día. Sos el/la ${gi===0?"titular":"soporte"} de guardia hoy.\nCompañero/a: ${partner}${evtxt}${ptxt}${ttxt}\n\nPanel: https://equipodecomu.netlify.app\n\nSaludos,\nDpto. Comunicación — Municipalidad de Tres Arroyos`);
-  });
-  checkLate();
-}
-
-function sendAlert(nombre){
-  const m=gm(nombre);if(!m||!m.email){toast("Sin correo para "+nombre,"warn");return;}
-  const g=getGuardia(isoToday);const gi=g.indexOf(nombre);
-  const evs=agendas.filter(a=>a.fecha===isoToday&&!a.cancelado);
-  const ps=pubs.filter(p=>p.fecha===isoToday&&p.responsable===nombre);
-  const mytasks=tasks.filter(t=>t.responsable===m.nombre&&t.estado!=="Completo");
-  const d=parseD(isoToday);
-  const guardiaInfo=gi>=0?`\nRol hoy: ${gi===0?"titular":"soporte"} de guardia`:"";
-  mail(m.nombre,`🗓️ Resumen del día — ${DNF[d.getDay()]} ${d.getDate()} de ${MNF[d.getMonth()]}`,`Hola ${m.nombre},${guardiaInfo}${evs.length?"\n\n📅 EVENTOS:\n"+evs.map(e=>`  • ${e.hora||""}${e.hora?" — ":""}${e.descripcion}`).join("\n"):""}${ps.length?"\n\n📱 TUS PUBLICACIONES:\n"+ps.map(p=>{const ct=getCta(p.cuenta);return`  • ${ct?.label}: ${p.descripcion.slice(0,50)}`}).join("\n"):""}${mytasks.length?"\n\n📋 TAREAS PENDIENTES ("+mytasks.length+"):\n"+mytasks.slice(0,5).map(t=>`  • [${t.prioridad}] ${t.descripcion.slice(0,50)}`).join("\n"):""}\n\nPanel: https://equipodecomu.netlify.app\n\nSaludos,\nDpto. Comunicación — Municipalidad de Tres Arroyos`);
 }
 
 function openNoticiaMod(){
@@ -1644,23 +1321,9 @@ function openNoticiaMod(){
   document.getElementById("modNoticia").classList.add("open");
 }
 async function saveNoticia(){
-  const tit=document.getElementById("ntit").value.trim();
-  if(!tit){alert("Título obligatorio");return}
-  const m=document.getElementById("nmenciona").value;
-  const data={
-    titulo:tit,
-    medio:document.getElementById("nmedio").value,
-    fecha:document.getElementById("nfecha").value||isoToday,
-    url:document.getElementById("nurl").value.trim(),
-    resumen:document.getElementById("nresumen").value.trim().slice(0,120),
-    tono:document.getElementById("ntono").value,
-    menciona_municipio:m==="ambos"||m==="municipio",
-    menciona_pablo:m==="ambos"||m==="pablo"
-  };
-  await db.from("noticias_medios").insert(data);
+  const tit=document.getElementById("ntit").value.trim();if(!tit){alert("Título obligatorio");return}
+  const mc=document.getElementById("nmenc").value;
+  await db.from("noticias_medios").insert({titulo:tit,medio:document.getElementById("nmedio").value,fecha:document.getElementById("nfecha").value||isoToday,url:document.getElementById("nurl").value.trim(),resumen:document.getElementById("nresumen").value.trim().slice(0,120),tono:document.getElementById("ntono").value,menciona_municipio:mc==="ambos"||mc==="muni",menciona_pablo:mc==="ambos"||mc==="pablo"});
   closeMod("modNoticia");toast("✓ Noticia agregada");
 }
-
-</script>
-</body>
-</html>
+</script></body></html>
