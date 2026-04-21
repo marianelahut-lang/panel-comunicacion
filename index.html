@@ -528,6 +528,7 @@ select,input{font-family:'Inter',sans-serif}
             <select id="mfilter" onchange="renderNoticias()" style="font-size:11px;padding:5px 8px;border-radius:6px;border:1.5px solid #e5e7eb;background:#fff;font-family:'Inter',sans-serif;outline:none"><option value="">Todos los medios</option><option>La Voz del Pueblo</option><option>LU24</option><option>Diario 3</option><option>Via País</option><option>Onda Uno</option></select>
             <select id="tfilter" onchange="renderNoticias()" style="font-size:11px;padding:5px 8px;border-radius:6px;border:1.5px solid #e5e7eb;background:#fff;font-family:'Inter',sans-serif;outline:none"><option value="">Todos los tonos</option><option value="positivo">Positivo</option><option value="neutral">Neutral</option><option value="negativo">Negativo</option></select>
             <button class="btn g" id="scanbtn" onclick="scanMedios()"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>Escanear medios</button>
+            <button class="btn p" onclick="openNoticiaMod()"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Agregar noticia</button>
           </div>
         </div>
         <div id="scanstatus"></div>
@@ -652,6 +653,21 @@ select,input{font-family:'Inter',sans-serif}
   <div class="mft"><button class="btn" onclick="closeMod('modStats')">Cancelar</button><button class="btn p" onclick="saveStats()">Guardar</button></div>
 </div></div>
 
+<div class="ov" id="modNoticia"><div class="mod">
+  <div class="mod-t">Agregar noticia manualmente</div>
+  <div class="fg"><label>Título</label><input type="text" id="ntit" placeholder="Título de la noticia"></div>
+  <div class="fr">
+    <div class="fg"><label>Medio</label><select id="nmedio"><option>La Voz del Pueblo</option><option>LU24</option><option>Diario 3</option><option>Via País</option><option>Onda Uno</option></select></div>
+    <div class="fg"><label>Fecha</label><input type="date" id="nfecha"></div>
+  </div>
+  <div class="fg"><label>URL de la noticia</label><input type="url" id="nurl" placeholder="https://..."></div>
+  <div class="fg"><label>Resumen</label><textarea id="nresumen" rows="2" placeholder="Breve resumen..."></textarea></div>
+  <div class="fr">
+    <div class="fg"><label>Tono</label><select id="ntono"><option value="neutral">Neutral</option><option value="positivo">Positivo</option><option value="negativo">Negativo</option></select></div>
+    <div class="fg"><label>Menciona</label><select id="nmenciona"><option value="ambos">Municipio y Pablo</option><option value="municipio">Solo Municipio</option><option value="pablo">Solo Pablo Garate</option></select></div>
+  </div>
+  <div class="mft"><button class="btn" onclick="closeMod('modNoticia')">Cancelar</button><button class="btn p" onclick="saveNoticia()">Guardar</button></div>
+</div></div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1618,6 +1634,33 @@ function sendAlert(nombre){
   const guardiaInfo=gi>=0?`\nRol hoy: ${gi===0?"titular":"soporte"} de guardia`:"";
   mail(m.nombre,`🗓️ Resumen del día — ${DNF[d.getDay()]} ${d.getDate()} de ${MNF[d.getMonth()]}`,`Hola ${m.nombre},${guardiaInfo}${evs.length?"\n\n📅 EVENTOS:\n"+evs.map(e=>`  • ${e.hora||""}${e.hora?" — ":""}${e.descripcion}`).join("\n"):""}${ps.length?"\n\n📱 TUS PUBLICACIONES:\n"+ps.map(p=>{const ct=getCta(p.cuenta);return`  • ${ct?.label}: ${p.descripcion.slice(0,50)}`}).join("\n"):""}${mytasks.length?"\n\n📋 TAREAS PENDIENTES ("+mytasks.length+"):\n"+mytasks.slice(0,5).map(t=>`  • [${t.prioridad}] ${t.descripcion.slice(0,50)}`).join("\n"):""}\n\nPanel: https://equipodecomu.netlify.app\n\nSaludos,\nDpto. Comunicación — Municipalidad de Tres Arroyos`);
 }
+
+function openNoticiaMod(){
+  document.getElementById("ntit").value="";
+  document.getElementById("nfecha").value=isoToday;
+  document.getElementById("nurl").value="";
+  document.getElementById("nresumen").value="";
+  document.getElementById("ntono").value="neutral";
+  document.getElementById("modNoticia").classList.add("open");
+}
+async function saveNoticia(){
+  const tit=document.getElementById("ntit").value.trim();
+  if(!tit){alert("Título obligatorio");return}
+  const m=document.getElementById("nmenciona").value;
+  const data={
+    titulo:tit,
+    medio:document.getElementById("nmedio").value,
+    fecha:document.getElementById("nfecha").value||isoToday,
+    url:document.getElementById("nurl").value.trim(),
+    resumen:document.getElementById("nresumen").value.trim().slice(0,120),
+    tono:document.getElementById("ntono").value,
+    menciona_municipio:m==="ambos"||m==="municipio",
+    menciona_pablo:m==="ambos"||m==="pablo"
+  };
+  await db.from("noticias_medios").insert(data);
+  closeMod("modNoticia");toast("✓ Noticia agregada");
+}
+
 </script>
 </body>
 </html>
