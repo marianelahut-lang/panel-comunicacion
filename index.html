@@ -1480,6 +1480,42 @@ async function fetchMedioNoticias(medio){
 }
 
 
+// ══ AUTO-SYNC: Pablo + Prensa events after 15:00 → Publicaciones ══
+async function autoSyncPublicaciones(){
+  if(!db||!gcalEvents.length)return;
+  const todayStr=iso(TODAY);
+  const nextStr=iso(addD(TODAY,14));
+  
+  const eventos=gcalEvents.filter(e=>{
+    if(e.fecha<todayStr||e.fecha>nextStr)return false;
+    if(!e.hora)return false;
+    const h=parseInt(String(e.hora).split(":")[0]);
+    const esPablo=e.descripcion.toLowerCase().includes("pablo")||e.descripcion.toLowerCase().includes("garate");
+    const esPrensaTarde=e.tipo==="prensa"&&h>=15;
+    return (esPablo||esPrensaTarde)&&h>=15;
+  });
+  
+  if(!eventos.length)return;
+  
+  try{
+    const existing=await db.from("publicaciones").select("descripcion,fecha").gte("fecha",todayStr);
+    const keys=new Set((existing.data||[]).map(p=>p.fecha+"_"+p.descripcion.slice(0,30)));
+    let added=0;
+    for(const ev of eventos){
+      const key=ev.fecha+"_"+ev.descripcion.slice(0,30);
+      if(keys.has(key))continue;
+      const esPablo=ev.descripcion.toLowerCase().includes("pablo")||ev.descripcion.toLowerCase().includes("garate");
+      const cuenta=esPablo?"ig-p":"ig-m";
+      const g=getGuardia(ev.fecha);
+      const resp=g.length>0?(gm(g[0])||{nombre:""}).nombre:"";
+      await db.from("publicaciones").insert({fecha:ev.fecha,hora:ev.hora,descripcion:ev.descripcion+(ev.lugar?" — "+ev.lugar:""),cuenta,tipo:"Streaming",responsable:resp,colaboracion:"",estado:"Pendiente"});
+      added++;
+    }
+    if(added>0)toast(`✓ ${added} eventos sincronizados a Publicaciones`);
+  }catch(e){console.warn("autoSync error:",e);}
+}
+
+
 function renderNoticias(){
   if(!document.getElementById("nlist"))return;
   const mf=document.getElementById("mfilter")?.value||"";
