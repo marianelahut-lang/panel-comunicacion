@@ -1608,4 +1608,8 @@ function sendAlert(nombre){
   const mytasks=tasks.filter(t=>t.responsable===m.nombre&&t.estado!=="Completo");
   const d=parseD(isoToday);
   const guardiaInfo=gi>=0?`\nRol hoy: ${gi===0?"titular":"soporte"} de guardia`:"";
-  mail(m.nombre,`🗓️ Resumen del día — ${DNF[d.getDay()]} ${d.getDate()} de ${MNF[d.getMonth()]}`,`Hola ${m.nombre},${guardiaInfo}${evs.length?"\n\n📅 EVENTOS:\n"+evs.map(e=>`  • ${e.hora||""}${e.hora?" — ":""}${e.descripcion}`).join("\n"):""}${ps.length?"\n\n📱 TUS PUBLICACIONES:\n"+ps.map(p=>{const ct=getCta(p.cuenta);return`  • ${ct?.label}: ${p.descripcion.slice(0,50)}`}).join((
+  mail(m.nombre,`🗓️ Resumen del día — ${DNF[d.getDay()]} ${d.getDate()} de ${MNF[d.getMonth()]}`,`Hola ${m.nombre},${guardiaInfo}${evs.length?"\n\n📅 EVENTOS:\n"+evs.map(e=>`  • ${e.hora||""}${e.hora?" — ":""}${e.descripcion}`).join("\n"):""}${ps.length?"\n\n📱 TUS PUBLICACIONES:\n"+ps.map(p=>{const ct=getCta(p.cuenta);return`  • ${ct?.label}: ${p.descripcion.slice(0,50)}`}).join("\n"):""}${mytasks.length?"\n\n📋 TAREAS PENDIENTES ("+mytasks.length+"):\n"+mytasks.slice(0,5).map(t=>`  • [${t.prioridad}] ${t.descripcion.slice(0,50)}`).join("\n"):""}\n\nPanel: https://equipodecomu.netlify.app\n\nSaludos,\nDpto. Comunicación — Municipalidad de Tres Arroyos`);
+}
+</script>
+</body>
+</html>
