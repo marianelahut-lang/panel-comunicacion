@@ -1446,67 +1446,39 @@ async function scanMedios(){
   toast(total>0?`✓ ${total} noticias nuevas`:"Sin noticias nuevas");
 }
 
+
 async function fetchMedioNoticias(medio){
-  const rssUrls={
-    "La Voz del Pueblo":"https://www.lavozdelpueblo.com.ar/feed/",
-    "LU24":"https://www.lu24.com.ar/feed/",
-    "Diario 3":"https://www.diario3.com.ar/feed/",
-    "Via País":"https://viapais.com.ar/tres-arroyos/feed/",
-    "Onda Uno":"https://ondauno.com.ar/feed/"
-  };
-  const rssUrl=rssUrls[medio.n];
-  if(!rssUrl)return[];
-  
-  // Try multiple proxies
-  const proxies=[
-    `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}&count=30`,
-    `https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}`,
-  ];
-  
-  for(const apiUrl of proxies){
-    try{
-      const resp=await fetch(apiUrl,{signal:AbortSignal.timeout(8000)});
-      if(!resp.ok)continue;
-      const raw=await resp.json();
-      
-      let items=[];
-      if(raw.items&&raw.status==="ok"){
-        // rss2json format
-        items=raw.items;
-      } else if(raw.contents){
-        // allorigins format - parse XML
-        const parser=new DOMParser();
-        const xml=parser.parseFromString(raw.contents,"text/xml");
-        const entries=[...xml.querySelectorAll("item")];
-        items=entries.map(e=>({
-          title:e.querySelector("title")?.textContent||"",
-          link:e.querySelector("link")?.textContent||"",
-          pubDate:e.querySelector("pubDate")?.textContent||"",
-          description:e.querySelector("description")?.textContent||""
-        }));
-      }
-      
-      if(!items.length)continue;
-      
-      const keywords=["pablo garate","garate","intendente","tres arroyos","municipio","municipalidad"];
-      const results=[];
-      const cutoff=new Date(TODAY);cutoff.setDate(cutoff.getDate()-7);
-      
-      for(const item of items){
-        const text=((item.title||"")+" "+(item.description||"")).toLowerCase();
-        if(!keywords.some(kw=>text.includes(kw)))continue;
-        let fechaISO=isoToday;
-        try{const fd=new Date(item.pubDate||"");if(fd>cutoff&&!isNaN(fd))fechaISO=iso(fd);}catch(e){}
-        const tit=(item.title||"").replace(/<[^>]*>/g,"").trim();
-        const tl=tit.toLowerCase();
-        const tono=tl.includes("probl")||tl.includes("critic")||tl.includes("denuncia")||tl.includes("protest")?"negativo":tl.includes("inaugur")||tl.includes("obra")||tl.includes("logro")||tl.includes("benefi")?"positivo":"neutral";
-        results.push({titulo:tit.slice(0,200),url:item.link||"",fecha:fechaISO,resumen:(item.description||"").replace(/<[^>]*>/g,"").slice(0,120),tono,menciona_municipio:text.includes("municipio")||text.includes("municipalidad")||text.includes("tres arroyos"),menciona_pablo:text.includes("pablo garate")||text.includes("garate")});
-      }
-      if(results.length>0||items.length>0)return results;
-    }catch(e){console.warn("Proxy error:",e.message);}
-  }
-  return[];
+  const siteMap={"La Voz del Pueblo":"lavozdelpueblo.com.ar","LU24":"lu24.com.ar","Diario 3":"diario3.com.ar","Via País":"viapais.com.ar","Onda Uno":"ondauno.com.ar"};
+  const site=siteMap[medio.n]||medio.url.replace("https://","").split("/")[0];
+  const q=`${site} tres arroyos OR garate OR municipio OR municipalidad OR intendente`;
+  const rss=`https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=es-AR&gl=AR&ceid=AR:es`;
+  const proxy=`https://api.allorigins.win/get?url=${encodeURIComponent(rss)}`;
+  try{
+    const resp=await fetch(proxy,{signal:AbortSignal.timeout(12000)});
+    if(!resp.ok)throw new Error("proxy "+resp.status);
+    const raw=await resp.json();
+    if(!raw.contents)return[];
+    const parser=new DOMParser();
+    const xml=parser.parseFromString(raw.contents,"text/xml");
+    const items=[...xml.querySelectorAll("item")];
+    const results=[];
+    const cutoff=new Date(TODAY);cutoff.setDate(cutoff.getDate()-7);
+    for(const item of items.slice(0,15)){
+      const tit=(item.querySelector("title")?.textContent||"").replace(/<[^>]*>/g,"").trim();
+      const link=item.querySelector("link")?.textContent||item.querySelector("guid")?.textContent||"";
+      const pubDate=item.querySelector("pubDate")?.textContent||"";
+      const desc=(item.querySelector("description")?.textContent||"").replace(/<[^>]*>/g,"").trim();
+      if(!tit)continue;
+      let fechaISO=isoToday;
+      try{const fd=new Date(pubDate);if(!isNaN(fd)){if(fd<cutoff)continue;fechaISO=iso(fd);}}catch(e){}
+      const tl=(tit+" "+desc).toLowerCase();
+      const tono=tl.includes("probl")||tl.includes("critic")||tl.includes("denuncia")||tl.includes("protest")?"negativo":tl.includes("inaugur")||tl.includes("obra")||tl.includes("logro")||tl.includes("benefi")?"positivo":"neutral";
+      results.push({titulo:tit.slice(0,200),url:link,fecha:fechaISO,resumen:desc.slice(0,120),tono,menciona_municipio:tl.includes("municipio")||tl.includes("municipalidad")||tl.includes("tres arroyos"),menciona_pablo:tl.includes("pablo garate")||tl.includes("garate")});
+    }
+    return results;
+  }catch(e){console.warn("Medios ("+medio.n+"):",e.message);return[];}
 }
+
 
 function renderNoticias(){
   if(!document.getElementById("nlist"))return;
