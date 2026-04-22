@@ -968,12 +968,39 @@ async function deleteTask(id,desc){
 }
 function editTask(id){openTaskMod(id)}
 async function saveTask(){
-  const desc=document.getElementById("fdesc").value.trim();if(!desc){alert("Descripción obligatoria");return}
-  const data={descripcion:desc,responsable:document.getElementById("fresp").value,prioridad:document.getElementById("fprio").value,estado:document.getElementById("fest").value,observaciones:document.getElementById("fobs").value.trim()};
+  const desc=document.getElementById("fdesc").value.trim();
+  if(!desc){alert("Descripción obligatoria");return}
+  const resp=document.getElementById("fresp").value;
+  const prio=document.getElementById("fprio").value;
+  const estado=document.getElementById("fest").value;
+  const data={descripcion:desc,responsable:resp,prioridad:prio,estado,observaciones:document.getElementById("fobs").value.trim()};
   const eid=document.getElementById("editTid").value;
+  const esNueva=!eid;
+  // Detectar si cambió el responsable (para alerta)
+  const tareaAnterior=eid?tasks.find(t=>t.id===eid):null;
+  const cambioResponsable=eid&&tareaAnterior&&tareaAnterior.responsable!==resp&&resp;
+
   if(eid)await db.from("tareas").update({...data,updated_at:new Date().toISOString()}).eq("id",eid);
   else await db.from("tareas").insert(data);
+
   closeMod("modTask");
+
+  // Alerta automática al responsable
+  if(resp&&(esNueva||cambioResponsable)){
+    const c=getContact(resp);
+    const prioEmoji=prio==="Alta"?"🔴":prio==="Media"?"🟡":"🟢";
+    const msg=`${prioEmoji} Nueva tarea asignada\n\n"${desc}"\n\nPrioridad: ${prio}\nEstado: ${estado}\n${data.observaciones?"Obs: "+data.observaciones+"\n":""}\nPanel: https://marianelahut-lang.github.io/panel-comunicacion/`;
+    if(c.tel){
+      // WA directo
+      window.open(`https://wa.me/${c.tel}?text=${encodeURIComponent(msg)}`,"_blank");
+      toast(`📱 Alerta WA enviada a ${resp}`);
+    } else if(c.email){
+      window.open(`https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(c.email)}&su=${encodeURIComponent(`${prioEmoji} Nueva tarea: ${desc.slice(0,40)}`)}&body=${encodeURIComponent(msg)}`,"_blank");
+      toast(`📧 Mail abierto para ${resp}`);
+    }
+    // Push notification local
+    pushNotif(`${prioEmoji} Tarea asignada a ${resp}`,desc.slice(0,60));
+  }
 }
 
 // ═══ MATERIAL ═══
@@ -1374,6 +1401,16 @@ async function saveAg(){
   const esGuardia=horaFinal&&parseInt(String(horaFinal).split(":")[0])>=15;
   toast(esGuardia?"✓ Evento guardado y asignado a Guardia 📋":"✓ Evento agregado");
   notifEventoGuardado(desc,fecha,horaFinal,tipo);
+  // Alerta al responsable si tiene uno asignado
+  const respAg=document.getElementById("agresp").value;
+  if(respAg&&savedId){
+    const c=getContact(respAg);
+    const d2=parseD(fecha);
+    const diaStr=`${DNF[d2.getDay()]} ${d2.getDate()} de ${MNF[d2.getMonth()]}`;
+    const msgAg=`📅 Evento asignado\n\n"${desc}"\n\n📆 ${diaStr}${horaFinal?" · "+horaFinal.slice(0,5):""}\n${document.getElementById("aglugar").value?" 📍 "+document.getElementById("aglugar").value+"\n":""}\nPanel: https://marianelahut-lang.github.io/panel-comunicacion/`;
+    if(c.tel){window.open(`https://wa.me/${c.tel}?text=${encodeURIComponent(msgAg)}`,"_blank");toast(`📱 Alerta enviada a ${respAg}`);}
+    else if(c.email){window.open(`https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(c.email)}&su=${encodeURIComponent("📅 Evento: "+desc.slice(0,40))}&body=${encodeURIComponent(msgAg)}`,"_blank");}
+  }
   // Refresh con filtro de fechas
   const agFrom2=iso(addD(TODAY,-30));const agTo2=iso(addD(TODAY,180));
   const r2=await db.from("agenda").select("*").gte("fecha",agFrom2).lte("fecha",agTo2).order("fecha");
@@ -1835,107 +1872,107 @@ async function scanMedios(){
   const btn=document.getElementById("scanbtn");
   const statusEl=document.getElementById("scanstatus");
   if(btn)btn.disabled=true;
-  if(statusEl)statusEl.innerHTML='<div class="sbar scan"><div class="spin"></div><span>Buscando noticias con IA...</span></div>';
+  if(statusEl)statusEl.innerHTML='<div class="sbar scan"><div class="spin"></div><span>Buscando noticias en medios locales...</span></div>';
 
-  try{
-    // Usar Claude con web_search para buscar noticias reales de cada medio
-    const hoy=new Date();
-    const fechaStr=`${hoy.getDate()}/${hoy.getMonth()+1}/${hoy.getFullYear()}`;
-    const prompt=`Buscá noticias publicadas en los últimos 7 días (hoy es ${fechaStr}) en estos medios locales de Tres Arroyos, Buenos Aires, Argentina:
-- LU24 (lu24.com.ar)
-- La Voz del Pueblo (lavozdelpueblo.com.ar)
-- Via País sección Tres Arroyos (viapais.com.ar/tres-arroyos)
-- Onda Uno (ondauno.com.ar)
-- Provincia Noticias (provincianoticias.com.ar)
+  // Usar rss2json.com — API JSON gratuita sin problemas CORS
+  // API key pública de rss2json (tier gratuito)
+  const RSS2JSON_KEY="nqbghjlpahb6cmzwxstjfnlrxwpqiefmkydvncvg";
+  const kws=["pablo garate","garate","intendente","municipalidad","municipio","gobierno municipal",
+    "tres arroyos","secretaría","secretaria","obras","inauguró","inauguro","inauguración",
+    "concejo","ordenanza","decreto","licitación","subsidio","vecinos","ciudad","hospital",
+    "parque industrial","agua potable","recolección","tránsito","transito","empleo"];
 
-Buscá TODAS las noticias sobre la ciudad de Tres Arroyos que mencionen alguno de estos términos:
-municipio, municipalidad, intendente, intendente Garate, Pablo Garate, Garate, gobierno municipal, gestión municipal, concejo deliberante, obras municipales, secretaría de salud, secretaría de obras, secretaría de educación, secretaría de desarrollo social, secretaría de hacienda, dirección de cultura, subsidio municipal, licitación municipal, ordenanza, decreto municipal, Tres Arroyos ciudad, vecinos de Tres Arroyos, acto oficial, inauguración, apertura, entrega de viviendas.
-Incluí cualquier noticia relevante sobre la gestión local aunque no mencione directamente al intendente.
+  const mediosRSS=[
+    {n:"LU24",c:"#7c2d12",rss:"https://www.lu24.com.ar/feed/"},
+    {n:"La Voz del Pueblo",c:"#1d4e7a",rss:"https://www.lavozdelpueblo.com.ar/feed/"},
+    {n:"Via País",c:"#5b21b6",rss:"https://viapais.com.ar/tres-arroyos/feed/"},
+    {n:"Onda Uno",c:"#92400e",rss:"https://ondauno.com.ar/feed/"},
+    {n:"Provincia Noticias",c:"#0f5ca8",rss:"https://provincianoticias.com.ar/feed/"},
+  ];
 
-Respondé SOLO con un JSON válido, sin texto extra, sin markdown:
-[
-  {"titulo":"título exacto","medio":"nombre del medio","url":"url completa","fecha":"YYYY-MM-DD","resumen":"resumen breve","tono":"positivo|neutral|negativo","menciona_pablo":true|false,"menciona_municipio":true|false},
-  ...
-]
-Si no encontrás noticias de algún medio, simplemente no lo incluyas. Incluí máximo 5 noticias por medio.`;
+  let total=0;
+  const cutoff=new Date(TODAY);cutoff.setDate(cutoff.getDate()-14);
 
-    const resp=await fetch("https://api.anthropic.com/v1/messages",{
-      method:"POST",
-      headers:{"Content-Type":"application/json","anthropic-dangerous-direct-browser-access":"true"},
-      body:JSON.stringify({
-        model:"claude-sonnet-4-20250514",
-        max_tokens:4000,
-        tools:[{type:"web_search_20250305",name:"web_search"}],
-        messages:[{role:"user",content:prompt}]
-      })
-    });
-
-    if(!resp.ok){
-      const err=await resp.json();
-      throw new Error(err.error?.message||"Error API: "+resp.status);
-    }
-
-    const data=await resp.json();
-    // Extraer el texto de la respuesta (puede haber tool_use blocks)
-    let text="";
-    for(const block of(data.content||[])){
-      if(block.type==="text")text+=block.text;
-    }
-
-    // Parsear el JSON de noticias
-    let nuevas=[];
+  for(const medio of mediosRSS){
     try{
-      const clean=text.replace(/```json|```/g,"").trim();
-      const arr=JSON.parse(clean);
-      if(Array.isArray(arr))nuevas=arr;
-    }catch(e){
-      // Intentar extraer JSON del texto
-      const match=text.match(/\[[\s\S]*\]/);
-      if(match){
-        try{nuevas=JSON.parse(match[0]);}catch(e2){console.warn("No se pudo parsear JSON:",text.slice(0,200));}
-      }
-    }
-
-    // Guardar en Supabase
-    let total=0;
-    for(const n of nuevas){
-      if(!n.titulo||!n.medio)continue;
-      const ex=noticias.find(x=>x.url&&x.url===n.url);
-      if(ex)continue;
+      if(statusEl)statusEl.innerHTML=`<div class="sbar scan"><div class="spin"></div><span>Escaneando ${medio.n}...</span></div>`;
+      // Estrategia 1: rss2json con key
+      let items=[];
       try{
-        const{data:rows,error}=await db.from("noticias_medios").insert({
-          titulo:(n.titulo||"").slice(0,200),
-          medio:n.medio,
-          url:n.url||"",
-          fecha:n.fecha||isoToday,
-          resumen:(n.resumen||"").slice(0,200),
-          tono:n.tono||"neutral",
-          menciona_municipio:n.menciona_municipio||false,
-          menciona_pablo:n.menciona_pablo||false
-        }).select();
-        if(!error&&rows?.[0]){noticias.unshift(rows[0]);total++;}
-      }catch(e){console.warn("Insert:",e.message);}
-    }
+        const r=await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(medio.rss)}&api_key=${RSS2JSON_KEY}&count=30`,
+          {signal:AbortSignal.timeout(12000)});
+        const d=await r.json();
+        if(d.status==="ok"&&d.items?.length){
+          items=d.items.map(i=>({
+            titulo:(i.title||"").replace(/<[^>]*>/g,"").trim(),
+            url:i.link||"",
+            pubDate:i.pubDate||"",
+            resumen:(i.description||i.content||"").replace(/<[^>]*>/g,"").slice(0,200)
+          }));
+          console.log(`✓ ${medio.n}: ${items.length} items via rss2json`);
+        }
+      }catch(e){console.warn(`${medio.n} rss2json:`,e.message);}
 
-    if(statusEl){
-      statusEl.innerHTML=total>0
-        ?`<div class="sbar done">✓ ${total} noticias nuevas encontradas por IA</div>`
-        :`<div class="sbar warn" style="background:#fffbeb;border:1px solid #fde68a;color:#92400e">Sin noticias nuevas — usá "+ Agregar" para cargar manualmente</div>`;
-      setTimeout(()=>{if(statusEl)statusEl.innerHTML="";},8000);
-    }
-    if(total>0){toast(total+" noticias nuevas");renderNoticias();renderMedioSum();}
-    else toast("Sin noticias nuevas esta semana","warn");
+      // Estrategia 2: allorigins como fallback
+      if(!items.length){
+        try{
+          const r=await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(medio.rss)}&t=${Date.now()}`,
+            {signal:AbortSignal.timeout(15000)});
+          const d=await r.json();
+          if(d.contents){
+            const xml=new DOMParser().parseFromString(d.contents,"text/xml");
+            items=[...xml.querySelectorAll("item")].map(n=>({
+              titulo:(n.querySelector("title")?.textContent||"").replace(/<[^>]*>/g,"").trim(),
+              url:n.querySelector("link")?.textContent||n.querySelector("guid")?.textContent||"",
+              pubDate:n.querySelector("pubDate")?.textContent||"",
+              resumen:(n.querySelector("description")?.textContent||"").replace(/<[^>]*>/g,"").slice(0,200)
+            }));
+            console.log(`✓ ${medio.n}: ${items.length} items via allorigins`);
+          }
+        }catch(e){console.warn(`${medio.n} allorigins:`,e.message);}
+      }
 
-  }catch(e){
-    console.error("scanMedios:",e);
-    if(statusEl)statusEl.innerHTML=`<div class="sbar fail">Error: ${e.message} — usá "+ Agregar" para cargar manualmente</div>`;
-    toast("Error al escanear: "+e.message,"err");
+      if(!items.length){console.warn(`✗ ${medio.n}: sin items`);continue;}
+
+      for(const item of items){
+        if(!item.titulo)continue;
+        const text=(item.titulo+" "+item.resumen).toLowerCase();
+        // Incluir si menciona Tres Arroyos O alguna keyword municipal
+        const esTresArroyos=text.includes("tres arroyos")||text.includes("3 arroyos");
+        const esMunicipal=kws.some(k=>text.includes(k));
+        if(!esTresArroyos&&!esMunicipal)continue;
+        // Verificar fecha
+        let fechaISO=isoToday;
+        try{const fd=new Date(item.pubDate);if(!isNaN(fd)){if(fd<cutoff)continue;fechaISO=iso(fd);}}catch(e){}
+        // No duplicar
+        if(noticias.find(x=>x.url&&x.url===item.url))continue;
+        const tl=item.titulo.toLowerCase();
+        const tono=tl.includes("probl")||tl.includes("critic")||tl.includes("denuncia")||tl.includes("protest")||tl.includes("corte")?"negativo":
+          tl.includes("inaugur")||tl.includes("obra")||tl.includes("benefi")||tl.includes("logro")||tl.includes("entrega")||tl.includes("apertura")?"positivo":"neutral";
+        try{
+          const{data:rows,error}=await db.from("noticias_medios").insert({
+            titulo:item.titulo.slice(0,200),medio:medio.n,url:item.url,fecha:fechaISO,
+            resumen:item.resumen.slice(0,200),tono,
+            menciona_municipio:text.includes("municipio")||text.includes("municipalidad")||text.includes("tres arroyos"),
+            menciona_pablo:text.includes("pablo garate")||text.includes("garate")
+          }).select();
+          if(!error&&rows?.[0]){noticias.unshift(rows[0]);total++;}
+        }catch(e){console.warn("Insert:",e.message);}
+      }
+    }catch(e){console.warn(`Error ${medio.n}:`,e.message);}
   }
-  if(btn){
-    btn.disabled=false;
-    btn.innerHTML='<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg> Escanear medios';
+
+  if(statusEl){
+    statusEl.innerHTML=total>0
+      ?`<div class="sbar done">✓ ${total} noticias nuevas encontradas</div>`
+      :`<div class="sbar" style="background:#fffbeb;border:1px solid #fde68a;color:#92400e;display:flex;gap:8px;padding:8px 12px;border-radius:8px;font-size:11px">Sin noticias nuevas esta semana — probá "+ Agregar" para cargar manualmente</div>`;
+    setTimeout(()=>{if(statusEl)statusEl.innerHTML="";},8000);
   }
+  if(btn){btn.disabled=false;btn.innerHTML='<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg> Escanear medios';}
+  if(total>0){toast(total+" noticias nuevas");renderNoticias();renderMedioSum();}
+  else toast("Sin noticias nuevas","warn");
 }
+
 
 
 function renderNoticias(){
