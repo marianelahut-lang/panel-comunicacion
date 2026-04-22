@@ -95,8 +95,8 @@ html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111
 .tc-f{display:flex;align-items:center;justify-content:space-between;gap:4px}
 .tg{font-size:9px;padding:2px 5px;border-radius:4px;font-weight:500}
 .tga{background:#fee2e2;color:#dc2626}.tgm{background:#fffbeb;color:#d97706}.tgb{background:#f0fdf4;color:#16a34a}
-.wshell{display:flex;flex-direction:column;background:#fff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;flex:1;min-height:400px}
-.whdr{display:grid;grid-template-columns:60px repeat(7,1fr);border-bottom:2px solid #e5e7eb;background:#fff;flex-shrink:0}
+.wshell{display:flex;flex-direction:column;background:#fff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;flex:1;min-height:500px}
+.whdr{display:flex;border-bottom:2px solid #e5e7eb;background:#fff;flex-shrink:0;overflow:hidden}
 .wgut{background:#f9fafb;border-right:1px solid #e5e7eb}
 .wdc{padding:6px 3px;text-align:center;border-right:1px solid #e5e7eb}
 .wdc:last-child{border-right:none}
@@ -108,7 +108,7 @@ html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111
 .wgav{display:flex;justify-content:center;gap:2px;margin-top:2px;flex-wrap:wrap}
 .gav{width:15px;height:15px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:6px;font-weight:700;border:1.5px solid #fff;box-shadow:0 1px 2px rgba(0,0,0,.2)}
 .wgt{font-size:8px;color:#9ca3af;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px}
-.wscroll{overflow-y:auto;flex:1}
+.wscroll{overflow-y:auto;flex:1;min-height:0}
 .hrow{display:grid;grid-template-columns:60px repeat(7,1fr);border-bottom:1px solid #f0f0f0;min-height:72px}
 .hl{padding:3px 6px 0;font-size:11px;font-weight:600;color:#9ca3af;text-align:right;border-right:1px solid #e5e7eb;background:#fafafa;white-space:nowrap}
 .hc{border-right:1px solid #f3f4f6;padding:2px;cursor:pointer;position:relative;min-height:50px}
@@ -801,8 +801,22 @@ async function loadAll(){
 function setupRealtime(){
   db.channel("rt")
     .on("postgres_changes",{event:"*",schema:"public",table:"tareas"},async()=>{const r=await db.from("tareas").select("*").order("created_at");if(r.data)tasks=r.data;renderKanban();renderMaterial();updateBadges();renderPersons();})
-    .on("postgres_changes",{event:"*",schema:"public",table:"publicaciones"},async()=>{const r=await db.from("publicaciones").select("*").order("fecha,hora");if(r.data)pubs=r.data;renderWeek();renderCal();})
-    .on("postgres_changes",{event:"*",schema:"public",table:"agenda"},async()=>{const agFrom=iso(addD(TODAY,-30));const agTo=iso(addD(TODAY,180));const r=await db.from("agenda").select("*").gte("fecha",agFrom).lte("fecha",agTo).order("fecha");if(r.data)agendas=r.data;renderCal();updateBadges();})
+    .on("postgres_changes",{event:"*",schema:"public",table:"publicaciones"},async()=>{const r=await db.from("publicaciones").select("*").order("fecha,hora");if(r.data)pubs=r.data;renderWeek();renderCal();renderMaterial();updateBadges();const gp=document.getElementById("p-guardias");if(gp&&gp.style.display!=="none")renderGuardias();})
+    .on("postgres_changes",{event:"*",schema:"public",table:"agenda"},async()=>{
+      const agFrom=iso(addD(TODAY,-30));const agTo=iso(addD(TODAY,180));
+      const r=await db.from("agenda").select("*").gte("fecha",agFrom).lte("fecha",agTo).order("fecha");
+      if(r.data){
+        agendas=r.data;
+        // Auto-marcar eventos +15hs para guardia
+        agendas.forEach(a=>{
+          if(!a.hora||a.cancelado)return;
+          const h=parseInt(String(a.hora).split(":")[0]);
+          if(h>=15)cobSel[a.id]=true;
+        });
+      }
+      renderCal();updateBadges();
+      const gp=document.getElementById("p-guardias");if(gp&&gp.style.display!=="none")renderGuardias();
+    })
     .on("postgres_changes",{event:"*",schema:"public",table:"usuarios"},async()=>{const r=await db.from("usuarios").select("*").order("nombre");if(r.data)teams=r.data;renderTeam();popSelects();renderPersons();})
     .subscribe();
 }
@@ -1309,13 +1323,24 @@ async function saveAg(){
   }else if(!agCobActivo&&savedId){
     delete cobSel[savedId];
   }
+  // Auto-sincronizar con guardia si es +15hs (independientemente de cobActivo)
+  const horaAg=document.getElementById("aghora").value||null;
+  if(savedId&&horaAg){
+    const hAg=parseInt(String(horaAg).split(":")[0]);
+    if(hAg>=15){
+      cobSel[savedId]=true; // siempre marcar para guardia si es +15hs
+    }
+  }
   closeMod("modAg");
-  toast(agCobActivo?"✓ Evento guardado con cobertura de prensa 📋":"✓ Evento agregado");
-  // Notificación push
-  notifEventoGuardado(desc,fecha,document.getElementById("aghora").value||null,tipo);
-  // Refresh
-  const r2=await db.from("agenda").select("*").order("fecha");if(r2.data)agendas=r2.data;
-  renderCal();if(document.getElementById("p-guardias").style.display!=="none")renderGuardias();
+  const horaFinal=document.getElementById("aghora").value||null;
+  const esGuardia=horaFinal&&parseInt(String(horaFinal).split(":")[0])>=15;
+  toast(esGuardia?"✓ Evento guardado y asignado a Guardia 📋":"✓ Evento agregado");
+  notifEventoGuardado(desc,fecha,horaFinal,tipo);
+  // Refresh con filtro de fechas
+  const agFrom2=iso(addD(TODAY,-30));const agTo2=iso(addD(TODAY,180));
+  const r2=await db.from("agenda").select("*").gte("fecha",agFrom2).lte("fecha",agTo2).order("fecha");
+  if(r2.data)agendas=r2.data;
+  renderCal();renderGuardias();
 }
 
 // ═══ GOOGLE CALENDAR ═══
@@ -1379,7 +1404,14 @@ async function syncGCal(){
     const presnaCount=gcalEvs.filter(e=>e.tipo==="prensa").length;
     txt.textContent=`GCal · ${gcalEvs.length} (${presnaCount} prensa)`;
     console.log(`GCal: ${all.length} raw → ${gcalEvs.length} únicos (${presnaCount} prensa)`);
+    // Auto-marcar eventos +15hs para guardia
+    gcalEvs.forEach(e=>{
+      if(!e.hora||e.cancelado)return;
+      const h=parseInt(String(e.hora).split(":")[0]);
+      if(h>=15&&!cobSel[e.id])cobSel[e.id]=true;
+    });
     renderCal();renderWeek();updateBadges();
+    const gp2=document.getElementById("p-guardias");if(gp2&&gp2.style.display!=="none")renderGuardias();
     toast(`✓ ${gcalEvs.length} eventos sincronizados (${presnaCount} prensa)`);
     if(!syncGCal._iv)syncGCal._iv=setInterval(syncGCal,5*60*1000);
   }catch(err){
