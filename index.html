@@ -98,27 +98,27 @@ html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111
 .tga{background:#fee2e2;color:#dc2626}.tgm{background:#fffbeb;color:#d97706}.tgb{background:#f0fdf4;color:#16a34a}
 /* WEEKLY */
 .wshell{display:flex;flex-direction:column;background:#fff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;flex:1;min-height:400px}
-.whdr{display:grid;grid-template-columns:52px repeat(7,1fr);border-bottom:2px solid #e5e7eb;background:#fff;flex-shrink:0}
+.whdr{display:grid;grid-template-columns:60px repeat(7,1fr);border-bottom:2px solid #e5e7eb;background:#fff;flex-shrink:0}
 .wgut{background:#f9fafb;border-right:1px solid #e5e7eb}
 .wdc{padding:6px 3px;text-align:center;border-right:1px solid #e5e7eb}
 .wdc:last-child{border-right:none}
 .wdc.wdt{background:#eff6ff}
 .wdc.wdw{background:#fafafa}
-.wdn{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af}
-.wnum{font-size:13px;font-weight:700;color:#111827}
+.wdn{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af}
+.wnum{font-size:16px;font-weight:700;color:#111827}
 .wdc.wdt .wnum{display:inline-flex;width:22px;height:22px;background:#667eea;color:#fff;border-radius:50%;align-items:center;justify-content:center;font-size:12px}
 .wgav{display:flex;justify-content:center;gap:2px;margin-top:2px;flex-wrap:wrap}
 .gav{width:15px;height:15px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:6px;font-weight:700;border:1.5px solid #fff;box-shadow:0 1px 2px rgba(0,0,0,.2)}
 .wgt{font-size:8px;color:#9ca3af;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px}
 .wscroll{overflow-y:auto;flex:1}
-.hrow{display:grid;grid-template-columns:52px repeat(7,1fr);border-bottom:1px solid #f0f0f0;min-height:64px}
-.hl{padding:3px 4px 0;font-size:9px;font-weight:600;color:#b0b0b0;text-align:right;border-right:1px solid #e5e7eb;background:#fafafa;white-space:nowrap}
+.hrow{display:grid;grid-template-columns:60px repeat(7,1fr);border-bottom:1px solid #f0f0f0;min-height:72px}
+.hl{padding:3px 6px 0;font-size:11px;font-weight:600;color:#9ca3af;text-align:right;border-right:1px solid #e5e7eb;background:#fafafa;white-space:nowrap}
 .hc{border-right:1px solid #f3f4f6;padding:2px;cursor:pointer;position:relative;min-height:50px}
 .hc:last-child{border-right:none}
 .hc:hover{background:#f5f3ff}
 .hc.hct{background:rgba(102,126,234,.04)}
 .ci{display:flex;flex-direction:column;gap:2px}
-.ev{border-radius:4px;padding:2px 5px;font-size:9px;cursor:pointer;line-height:1.3}
+.ev{border-radius:4px;padding:3px 6px;font-size:10px;cursor:pointer;line-height:1.4}
 .ev.ei{background:#dbeafe;border-left:3px solid #3b82f6;color:#1e40af}
 .ev.ep{background:#fce7f3;border-left:3px solid #ec4899;color:#9d174d}
 .ev.em{background:#dcfce7;border-left:3px solid #22c55e;color:#15803d}
@@ -129,8 +129,8 @@ html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111
 .ev.eigp{background:#fff0fb;border-left:3px solid #c13584;color:#701a75}
 .ev.etkp{background:#f0fdf4;border-left:3px solid #15803d;color:#14532d}
 .ev.ewap{background:#f0fdf4;border-left:3px solid #25d366;color:#15803d}
-.ev-t{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ev-s{font-size:8px;opacity:.7;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ev-t{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px}
+.ev-s{font-size:9px;opacity:.8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hadd{position:absolute;bottom:2px;right:2px;width:14px;height:14px;border-radius:50%;background:rgba(102,126,234,.15);border:none;color:#667eea;font-size:12px;line-height:1;cursor:pointer;display:none;align-items:center;justify-content:center;font-family:Inter,sans-serif}
 .hc:hover .hadd{display:flex}
 .wleg{display:flex;gap:8px;flex-wrap:wrap;padding:5px 10px;background:#fafafa;border-top:1px solid #f3f4f6;flex-shrink:0;font-size:9px;color:#6b7280}
@@ -1096,7 +1096,8 @@ function renderGuardias(){
         ${g.map((n,gi)=>{const m=gm(n);return m?`<div class="gwag">${av(m,16)}<span style="font-size:9px;line-height:1.2">${m.nombre}<br><span style="color:#9ca3af;font-size:8px">${gi===0?"titular":"soporte"}</span></span></div>`:""}).join("")||`<span style="font-size:9px;color:#d1d5db">—</span>`}
       </div>
       ${evs.filter(e=>{if(!e.hora)return false;const h=parseInt(String(e.hora).split(":")[0]);return h>=15;}).length?`<div class="gwevs" style="border-top:1px dashed #e5e7eb;padding-top:3px;margin-top:2px"><div style="font-size:7px;color:#9ca3af;margin-bottom:1px">+15hs:</div>${evs.filter(e=>{if(!e.hora)return false;const h=parseInt(String(e.hora).split(":")[0]);return h>=15;}).slice(0,4).map(e=>`${e.tipo==="prensa"?"📻":"🗓"} ${e.hora?e.hora.slice(0,5)+" ":""}${e.descripcion.slice(0,18)}`).join("<br>")}</div>`:""}
-      <button class="gwnb" onclick="notifyDay('${ds}')">Notificar</button>
+      <button class="gwnb" onclick="notifyDay('${ds}')">📧 Notificar</button>
+      ${(()=>{const gg=getGuardia(ds);return gg.map(n=>{const mm=gm(n);if(!mm||!mm.telefono)return '';const tel=mm.telefono.replace(/[^0-9]/g,'');const d2=parseD(ds);const evd=[...agendas,...gcalEvs].filter(a=>String(a.fecha).slice(0,10)===ds&&!a.cancelado);let msg='Guardia '+DNF[d2.getDay()]+' '+d2.getDate()+' de '+MNF[d2.getMonth()];if(evd.length)msg+='\n'+evd.slice(0,4).map(e=>(e.hora||'')+' '+e.descripcion).join('\n');msg+='\nPanel: https://marianelahut-lang.github.io/panel-comunicacion/';return '<a href="https://wa.me/'+tel+'?text='+encodeURIComponent(msg)+'" target="_blank" style="display:block;margin-top:2px;padding:2px 6px;border-radius:4px;background:#25d366;color:#fff;font-size:8px;font-weight:600;text-decoration:none;text-align:center">📱 WA '+mm.nombre+'</a>';}).join('');})()}
     </div>`;
   }
   document.getElementById("gwcontent").innerHTML=`<div class="gwtbl"><div class="gwh">${DN.map(d=>`<div class="gwhi">${d.slice(0,3)}</div>`).join("")}</div><div class="gwb">${days}</div></div>`;
@@ -1202,6 +1203,46 @@ function sendAlert(nombre){
   if(m.telefono){const tel=m.telefono.replace(/[^0-9]/g,"");window.open("https://wa.me/"+tel+"?text="+encodeURIComponent(msg),"_blank");toast("WA -> "+m.nombre);}
   else if(m.email){mail(m.nombre,"Alerta dia - "+dia,msg);}
   else{toast(m.nombre+" sin WA ni correo","warn");}
+}
+
+
+async function scanMedios(){
+  const btn=document.getElementById("scanbtn");
+  if(btn)btn.disabled=true;
+  const statusEl=document.getElementById("scanstatus");
+  if(statusEl)statusEl.innerHTML='<div class="sbar scan"><div class="spin"></div><span>Buscando noticias en todos los medios...</span></div>';
+  let total=0;
+  const promises=MEDIOS.map(async m=>{
+    try{
+      const items=await fetchMedioRSS(m);
+      let cnt=0;
+      for(const n of items){
+        const ex=noticias.find(x=>x.url&&x.url===n.url);
+        if(!ex&&n.titulo){
+          try{
+            await db.from("noticias_medios").insert({...n,medio:m.n});
+            cnt++;total++;
+          }catch(e){console.warn("Insert "+m.n+":",e.message);}
+        }
+      }
+      return{n:m.n,cnt,ok:true};
+    }catch(e){console.warn(m.n,":",e.message);return{n:m.n,cnt:0,ok:false};}
+  });
+  await Promise.all(promises);
+  if(statusEl){
+    if(total>0){
+      statusEl.innerHTML='<div class="sbar done">✓ '+total+' noticias nuevas encontradas</div>';
+    }else{
+      statusEl.innerHTML='<div class="sbar fail">Sin noticias nuevas — usá "+ Agregar" para cargar manualmente</div>';
+    }
+    setTimeout(()=>{if(statusEl)statusEl.innerHTML="";},8000);
+  }
+  if(btn){
+    btn.disabled=false;
+    btn.innerHTML='<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg> Escanear medios';
+  }
+  if(total>0)toast(total+" noticias nuevas");
+  else toast("Sin noticias nuevas","warn");
 }
 
 
