@@ -694,7 +694,10 @@ function setupRealtime(){
     .subscribe();
 }
 function renderAll(){
-  updateBadges();renderPersons();renderKanban();renderMaterial();renderWeek();renderCal();renderTeam();initGuardias();renderMetricas();renderNoticias();renderMedioSum();
+  updateBadges();renderPersons();renderKanban();renderMaterial();renderWeek();renderCal();renderTeam();initGuardias();
+  if(typeof renderMetricas==='function')renderMetricas();
+  if(typeof renderNoticias==='function')renderNoticias();
+  if(typeof renderMedioSum==='function')renderMedioSum();
 }
 function updateBadges(){
   const p=tasks.filter(t=>t.estado!=="Completo").length;
@@ -718,7 +721,7 @@ function nav(id,tab,sb){
   const si=["tablero","material","publicaciones","calendario","guardias","equipo","metricas","medios"].indexOf(id);
   const sbis=document.querySelectorAll(".sbi");if(si>=0&&sbis[si])sbis[si].classList.add("on");
   if(id==="guardias")initGuardias();
-  if(id==="metricas")renderMetricas();
+  if(id==="metricas"&&typeof renderMetricas==="function")renderMetricas();
   if(id==="medios"){renderNoticias();renderMedioSum();}
 }
 function renderPersons(){
@@ -1304,4 +1307,39 @@ async function saveNoticia(){
   await db.from("noticias_medios").insert({titulo:tit,medio:document.getElementById("nmedio").value,fecha:document.getElementById("nfecha").value||isoToday,url:document.getElementById("nurl").value.trim(),resumen:document.getElementById("nresumen").value.trim().slice(0,120),tono:document.getElementById("ntono").value,menciona_municipio:mc==="ambos"||mc==="muni",menciona_pablo:mc==="ambos"||mc==="pablo"});
   closeMod("modNoticia");toast("✓ Noticia agregada");
 }
+
+// METRICAS
+function getFilteredStats(){const days=parseInt(document.getElementById("mrange")?.value||7);const cut=new Date(TODAY);cut.setDate(cut.getDate()-days);const cutStr=iso(cut);let data=stats.filter(s=>s.fecha>=cutStr);if(mAccTab!=="todas"){const[cnt,red]=mAccTab.split("-");data=data.filter(s=>s.cuenta===cnt&&s.red===red);}return data;}
+function renderMetricas(){
+  if(!document.getElementById("metcards"))return;
+  const data=getFilteredStats();
+  const tot=f=>data.reduce((a,s)=>a+(s[f]||0),0);
+  document.getElementById("metcards").innerHTML=[{i:"👁",v:tot("alcance"),l:"Alcance",bg:"#eff6ff"},{i:"❤️",v:tot("likes"),l:"Likes",bg:"#fce7f3"},{i:"💬",v:tot("comentarios"),l:"Comentarios",bg:"#f0fdf4"},{i:"▶️",v:tot("reproducciones"),l:"Reproducciones",bg:"#fee2e2"},{i:"👥",v:tot("nuevos_seguidores"),l:"Nuevos seg.",bg:"#ede9fe"}].map(m=>'<div class="met"><div class="met-ico" style="background:'+m.bg+'">'+m.i+'</div><div class="met-v">'+fmtN(m.v)+'</div><div class="met-l">'+m.l+'</div></div>').join("");
+  const tabs=[{k:"todas",l:"Todas",c:"#667eea"},...Object.entries(ACC_CLR).map(([k,c])=>({k,l:k.replace("-"," · "),c}))];
+  const atabs=document.getElementById("acctabs");
+  if(atabs)atabs.innerHTML=tabs.map(t=>`<button onclick="mAccTab='${t.k}';renderMetricas()" style="padding:5px 11px;border-radius:20px;font-size:10px;font-weight:500;cursor:pointer;border:1.5px solid ${mAccTab===t.k?t.c:'#e5e7eb'};background:${mAccTab===t.k?t.c:'#fff'};color:${mAccTab===t.k?'#fff':'#6b7280'};font-family:Inter,sans-serif">${t.l}</button>`).join("");
+  const days=parseInt(document.getElementById("mrange")?.value||7);
+  const dates=[];for(let i=days-1;i>=0;i--){const d=new Date(TODAY);d.setDate(d.getDate()-i);dates.push(iso(d));}
+  const dLbl=dates.map(d=>d.slice(5));
+  ["a","e","r","s"].forEach(k=>{if(mCharts[k]){mCharts[k].destroy();delete mCharts[k];}});
+  const c1=document.getElementById("chartAlcance")?.getContext("2d");
+  if(c1)mCharts.a=new Chart(c1,{type:"line",data:{labels:dLbl,datasets:[{label:"Alcance",data:dates.map(d=>data.filter(s=>s.fecha===d).reduce((a,s)=>a+(s.alcance||0),0)),borderColor:"#667eea",backgroundColor:"rgba(102,126,234,.1)",tension:.4,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom"}},scales:{y:{beginAtZero:true},x:{}}}});
+  const c2=document.getElementById("chartEng")?.getContext("2d");
+  if(c2)mCharts.e=new Chart(c2,{type:"bar",data:{labels:dLbl,datasets:[{label:"Likes",data:dates.map(d=>data.filter(s=>s.fecha===d).reduce((a,s)=>a+(s.likes||0),0)),backgroundColor:"rgba(236,72,153,.7)"},{label:"Comentarios",data:dates.map(d=>data.filter(s=>s.fecha===d).reduce((a,s)=>a+(s.comentarios||0),0)),backgroundColor:"rgba(102,126,234,.7)"}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom"}},scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}}}});
+  const cut2=dates[0]||isoToday;
+  const muD=stats.filter(s=>s.cuenta==="Municipalidad"&&s.fecha>=cut2);
+  const pbD=stats.filter(s=>s.cuenta==="Pablo Garate"&&s.fecha>=cut2);
+  const ts=(arr,f)=>arr.reduce((a,s)=>a+(s[f]||0),0);
+  const c3=document.getElementById("chartRadar")?.getContext("2d");
+  if(c3)mCharts.r=new Chart(c3,{type:"radar",data:{labels:["Alcance","Likes","Comentarios","Compartidos","Reproducciones","Nuevos seg."],datasets:[{label:"Municipalidad",data:[ts(muD,"alcance"),ts(muD,"likes"),ts(muD,"comentarios"),ts(muD,"compartidos"),ts(muD,"reproducciones"),ts(muD,"nuevos_seguidores")],borderColor:"#1877f2",backgroundColor:"rgba(24,119,242,.12)"},{label:"Pablo Garate",data:[ts(pbD,"alcance"),ts(pbD,"likes"),ts(pbD,"comentarios"),ts(pbD,"compartidos"),ts(pbD,"reproducciones"),ts(pbD,"nuevos_seguidores")],borderColor:"#667eea",backgroundColor:"rgba(102,126,234,.12)"}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom"}}}});
+}
+function openStatsMod(){const sf=document.getElementById("sfecha");if(sf)sf.value=isoToday;document.getElementById("modStats").classList.add("open");}
+async function saveStats(){
+  const fecha=document.getElementById("sfecha")?.value;if(!fecha){alert("Fecha obligatoria");return;}
+  const pv=(document.getElementById("scuenta")?.value||"Municipalidad|Facebook").split("|");
+  const row={fecha,cuenta:pv[0],red:pv[1],alcance:parseInt(document.getElementById("salcance")?.value)||0,impresiones:parseInt(document.getElementById("simpres")?.value)||0,likes:parseInt(document.getElementById("slikes")?.value)||0,comentarios:parseInt(document.getElementById("scoments")?.value)||0,compartidos:parseInt(document.getElementById("sshares")?.value)||0,reproducciones:parseInt(document.getElementById("sviews")?.value)||0,nuevos_seguidores:parseInt(document.getElementById("snew")?.value)||0,seguidores_total:parseInt(document.getElementById("stotal")?.value)||0,fuente:"manual"};
+  try{const{error}=await db.from("stats_redes").insert(row);if(error)throw new Error(error.message);const r=await db.from("stats_redes").select("*").order("fecha,cuenta").catch(()=>({data:[]}));if(r.data)stats=r.data;closeMod("modStats");toast("Stats guardadas");renderMetricas();}
+  catch(e){toast("Error: "+e.message,"err");}
+}
+
 </script></body></html>
