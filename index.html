@@ -1181,7 +1181,7 @@ function renderTeam(){
       <div style="font-size:10px;padding:2px 8px;border-radius:7px;background:#ede9fe;color:#6d28d9;font-weight:600;margin:3px 0;display:inline-block">${m.rol}</div>
       ${!m.cobertura?`<div style="font-size:9px;color:#d97706;background:#fffbeb;padding:2px 6px;border-radius:6px;margin-top:2px">Sin coberturas</div>`:""}
       ${m.email?`<div style="font-size:9px;color:#9ca3af;margin-top:3px;word-break:break-all">${m.email}</div>`:`<div style="font-size:9px;color:#dc2626;margin-top:3px">Sin correo ⚠</div>`}
-      ${m.telefono?`<a href="https://wa.me/${m.telefono}" target="_blank" style="display:inline-flex;align-items:center;gap:3px;margin-top:5px;padding:3px 9px;background:#25d366;color:#fff;border-radius:20px;font-size:9px;font-weight:600;text-decoration:none">📱 WhatsApp</a>`:""}
+      ${(()=>{const _c=getContact(m.nombre);return _c.tel?'<a href="https://wa.me/'+_c.tel+'" target="_blank" style="display:inline-flex;align-items:center;gap:3px;margin-top:5px;padding:3px 9px;background:#25d366;color:#fff;border-radius:20px;font-size:9px;font-weight:600;text-decoration:none">📱 WhatsApp</a>':''})()}
       <div style="font-size:10px;color:#6b7280;margin-top:3px">${act} tareas activas</div>
       <button onclick="event.stopPropagation();sendAlert('${m.nombre}')" style="margin-top:5px;padding:3px 9px;border-radius:20px;border:none;background:${m.telefono?'#25d366':'#667eea'};color:#fff;font-size:9px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">${m.telefono?'📱 WA':'📧 Mail'}</button>
     </div>`;
@@ -1281,33 +1281,37 @@ async function scanMedios(){
 
 async function fetchMedioRSS(medio){
   const rssOpts={
-    "La Voz del Pueblo":["https://www.lavozdelpueblo.com.ar/feed/","https://lavozdelpueblo.com.ar/feed/"],
-    "LU24":["https://lu24.com.ar/feed/","https://www.lu24.com.ar/feed/","https://lu24.com.ar/rss.xml"],
-    "Diario 3":["https://www.diario3.com.ar/feed/","https://diario3.com.ar/feed/"],
+    "La Voz del Pueblo":["https://www.lavozdelpueblo.com.ar/feed/"],
+    "LU24":["https://lu24.com.ar/feed/","https://www.lu24.com.ar/feed/"],
+    "Diario 3":["https://www.diario3.com.ar/feed/"],
     "Via País":["https://viapais.com.ar/feed/","https://viapais.com.ar/tres-arroyos/feed/"],
-    "Onda Uno":["https://ondauno.com.ar/feed/","https://www.ondauno.com.ar/feed/"]
+    "Onda Uno":["https://ondauno.com.ar/feed/"]
   };
+  const kws=["pablo garate","garate","intendente","tres arroyos","municipio","municipalidad"];
+  const proxies=[
+    url=>`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+    url=>`https://corsproxy.io/?${encodeURIComponent(url)}`,
+    url=>`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
+  ];
   const urls=rssOpts[medio.n]||[];
-  const kws=["pablo garate","garate","intendente","tres arroyos","municipio","municipalidad","gobierno local","pablo","tresarroyos"];
-  const proxies=["https://api.allorigins.win/get?url=","https://corsproxy.io/?"];
   for(const rssUrl of urls){
-    for(const proxy of proxies){
+    for(const makeProxy of proxies){
       try{
-        const proxyUrl=proxy+encodeURIComponent(rssUrl);
-        const resp=await fetch(proxyUrl,{signal:AbortSignal.timeout(10000)});
+        const proxyUrl=makeProxy(rssUrl);
+        const resp=await fetch(proxyUrl,{signal:AbortSignal.timeout(8000)});
         if(!resp.ok)continue;
         const raw=await resp.json();
         const xmlStr=raw.contents||raw.body||"";
-        if(!xmlStr)continue;
+        if(!xmlStr||xmlStr.length<100)continue;
         const parser=new DOMParser();
         const xml=parser.parseFromString(xmlStr,"text/xml");
         const items=[...xml.querySelectorAll("item")];
         if(!items.length)continue;
         const cutoff=new Date(TODAY);cutoff.setDate(cutoff.getDate()-7);
         const results=[];
-        for(const item of items.slice(0,25)){
+        for(const item of items.slice(0,20)){
           const tit=(item.querySelector("title")?.textContent||"").replace(/<[^>]*>/g,"").trim();
-          const link=item.querySelector("link")?.textContent||item.querySelector("guid")?.textContent||"";
+          const link=item.querySelector("link")?.textContent||"";
           const pubDate=item.querySelector("pubDate")?.textContent||"";
           const desc=(item.querySelector("description")?.textContent||"").replace(/<[^>]*>/g,"").slice(0,150);
           if(!tit)continue;
@@ -1316,14 +1320,15 @@ async function fetchMedioRSS(medio){
           let fechaISO=isoToday;
           try{const fd=new Date(pubDate);if(!isNaN(fd)){if(fd<cutoff)continue;fechaISO=iso(fd);}}catch(e){}
           const tl=tit.toLowerCase();
-          const tono=tl.includes("probl")||tl.includes("critic")||tl.includes("denuncia")||tl.includes("protest")?"negativo":tl.includes("inaugur")||tl.includes("obra")||tl.includes("benefi")||tl.includes("logro")?"positivo":"neutral";
-          results.push({titulo:tit.slice(0,200),url:link,fecha:fechaISO,resumen:desc,tono,menciona_municipio:text.includes("municipio")||text.includes("municipalidad")||text.includes("tres arroyos"),menciona_pablo:text.includes("pablo garate")||text.includes("pablo")||text.includes("garate")});
+          const tono=tl.includes("probl")||tl.includes("critic")||tl.includes("denuncia")?"negativo":tl.includes("inaugur")||tl.includes("obra")||tl.includes("benefi")?"positivo":"neutral";
+          results.push({titulo:tit.slice(0,200),url:link,fecha:fechaISO,resumen:desc,tono,menciona_municipio:text.includes("municipio")||text.includes("municipalidad")||text.includes("tres arroyos"),menciona_pablo:text.includes("pablo garate")||text.includes("garate")});
         }
-        console.log(medio.n+": "+results.length+" noticias via "+proxy);
+        console.log(medio.n+": "+results.length+" noticias via "+proxyUrl.slice(0,30));
         return results;
-      }catch(e){console.warn(medio.n+" proxy "+proxy+":",e.message);}
+      }catch(e){console.warn(medio.n+" proxy error:",e.message);}
     }
   }
+  console.warn(medio.n+": todos los proxies fallaron");
   return[];
 }
 
