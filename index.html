@@ -1490,39 +1490,54 @@ function renderGuardias(){
     const g=getGuardia(ds);
     const gc=g.length>0?(gm(g[0])||{color:"#e5e7eb"}).color:"#e5e7eb";
     const evs=[...agendas,...gcalEvs,...(window._pubGuardia||[])].filter(a=>String(a.fecha).slice(0,10)===ds&&!a.cancelado);
-    // Eventos marcados para cobertura (desde calendario) + eventos +15hs sin marcar
     const coberturas=evs.filter(e=>cobSel[e.id]);
     const evsTarde=evs.filter(e=>{if(!e.hora)return false;const h=parseInt(String(e.hora).split(":")[0]);return h>=15;});
-    // Mostrar coberturas marcadas primero, luego +15hs sin marcar
-    const evsMostrar=[...coberturas,...evsTarde.filter(e=>!cobSel[e.id])];
 
-    // Sección cobertura: eventos marcados desde calendario
-    const cobHtml=coberturas.length?`
-      <div style="background:#ede9fe;border:1px solid #c4b5fd;border-radius:7px;padding:6px 8px;margin-top:5px">
-        <div style="font-size:7px;color:#6d28d9;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">📋 Coberturas asignadas</div>
-        ${coberturas.map(e=>`<div style="font-size:9px;color:#4c1d95;font-weight:600;padding:2px 0;display:flex;align-items:center;gap:4px">
-          <span>${e.tipo==="prensa"?"📻":e.tipo==="publicacion"?"📱":"🗓"}</span>
-          <span>${e.hora?e.hora.slice(0,5)+" ":""}</span>
-          <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.descripcion.slice(0,25)}</span>
-          <button onclick="cobSel['${e.id}']=false;renderGuardias();renderCal()" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:10px;padding:0">✕</button>
-        </div>`).join("")}
-      </div>`:
-      evsTarde.length?`<div style="font-size:7px;color:#9ca3af;padding:4px 0 2px;text-transform:uppercase;letter-spacing:.05em">+15hs — clic en calendario para asignar cobertura</div>`:"";
+    // ── Sección coberturas mejorada ──
+    const allCobs=[...coberturas]; // los marcados manualmente
+    // También incluir pubs +15hs que se auto-asignaron
+    evsTarde.filter(e=>e.tipo==="publicacion"&&!coberturas.find(c=>c.id===e.id)).forEach(e=>allCobs.push(e));
 
-    // Botones WA — incluyen coberturas marcadas, o todos los +15hs si no hay ninguna
+    const cobHtml=allCobs.length?`
+      <div style="background:#f5f3ff;border:1.5px solid #c4b5fd;border-radius:9px;padding:8px 10px;margin-top:6px">
+        <div style="display:flex;align-items:center;gap:5px;margin-bottom:6px">
+          <span style="font-size:11px">📋</span>
+          <span style="font-size:9px;color:#6d28d9;font-weight:800;text-transform:uppercase;letter-spacing:.06em">Coberturas del día</span>
+        </div>
+        ${allCobs.map(e=>{
+          const isPub=e.tipo==="publicacion";
+          const isPren=e.tipo==="prensa";
+          const icon=isPub?"📱":isPren?"📻":"🗓";
+          const bg=isPub?"#ede9fe":isPren?"#fce7f3":"#dbeafe";
+          const brd=isPub?"#8b5cf6":isPren?"#ec4899":"#3b82f6";
+          const tc=isPub?"#5b21b6":isPren?"#9d174d":"#1e40af";
+          const canRemove=cobSel[e.id]; // solo mostrar X si fue marcado manualmente
+          return`<div style="display:flex;align-items:center;gap:6px;padding:5px 7px;background:${bg};border-left:3px solid ${brd};border-radius:6px;margin-bottom:3px">
+            <span style="font-size:12px;flex-shrink:0">${icon}</span>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:10px;font-weight:700;color:${tc};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.descripcion.replace("📱 ","").slice(0,30)}</div>
+              ${e.hora?`<div style="font-size:9px;color:${tc};opacity:.7">🕐 ${e.hora.slice(0,5)}</div>`:""}
+            </div>
+            ${canRemove?`<button onclick="cobSel['${e.id}']=false;renderGuardias();renderCal()" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:13px;padding:0;flex-shrink:0;line-height:1">✕</button>`:""}
+          </div>`;
+        }).join("")}
+      </div>`
+    :evsTarde.length?`<div style="margin-top:6px;padding:6px 8px;background:#fffbeb;border:1px dashed #fde68a;border-radius:7px;font-size:9px;color:#92400e;text-align:center">+15hs · Asigná cobertura desde el Calendario</div>`:"";
+
+    // ── Botones WA con coberturas ──
+    const envEvs=allCobs.length>0?allCobs:evsTarde;
     const waBtns=g.map(n=>{
       const c=getContact(n);
-      if(!c.tel)return'';
+      if(!c.tel)return"";
       const d2=parseD(ds);
-      const envEvs=coberturas.length>0?coberturas:evsTarde;
       let msg=`Guardia ${DNF[d2.getDay()]} ${d2.getDate()} de ${MNF[d2.getMonth()]}`;
       if(envEvs.length){
-        msg+=coberturas.length>0?"\n\n📋 Coberturas confirmadas:\n":"\n\nEventos +15hs:\n";
-        msg+=envEvs.slice(0,5).map(e=>"• "+(e.hora?e.hora.slice(0,5)+" ":"")+e.descripcion).join("\n");
+        msg+=allCobs.length>0?"\n\n📋 Coberturas del día:\n":"\n\nEventos +15hs:\n";
+        msg+=envEvs.slice(0,5).map(e=>"• "+(e.hora?e.hora.slice(0,5)+" ":"")+e.descripcion.replace("📱 ","")).join("\n");
       }
       msg+="\n\nPanel: https://marianelahut-lang.github.io/panel-comunicacion/";
-      return`<a href="https://wa.me/${c.tel}?text=${encodeURIComponent(msg)}" target="_blank" style="display:block;margin-top:2px;padding:3px 6px;border-radius:4px;background:#25d366;color:#fff;font-size:9px;font-weight:600;text-decoration:none;text-align:center">📱 WA ${n}</a>`;
-    }).join('');
+      return`<a href="https://wa.me/${c.tel}?text=${encodeURIComponent(msg)}" target="_blank" style="display:block;margin-top:3px;padding:6px;border-radius:6px;background:#25d366;color:#fff;font-size:10px;font-weight:700;text-decoration:none;text-align:center">📱 WA ${n}</a>`;
+    }).join("");
 
     days+=`<div class="gwd${isWE?" gwwe":""}${isTd?" gwt":""}" style="border-top:3px solid ${gc}">
       <div class="gwdate">${d.getDate()} ${MNS[d.getMonth()]}</div>
@@ -1687,104 +1702,108 @@ function sendAlert(nombre){
 // ═══ MEDIOS — ESCANEO RSS ═══
 async function scanMedios(){
   const btn=document.getElementById("scanbtn");
-  if(btn)btn.disabled=true;
   const statusEl=document.getElementById("scanstatus");
-  if(statusEl)statusEl.innerHTML='<div class="sbar scan"><div class="spin"></div><span>Buscando noticias en todos los medios...</span></div>';
-  let total=0;
-  const promises=MEDIOS.map(async medio=>{
+  if(btn)btn.disabled=true;
+  if(statusEl)statusEl.innerHTML='<div class="sbar scan"><div class="spin"></div><span>Buscando noticias con IA...</span></div>';
+
+  try{
+    // Usar Claude con web_search para buscar noticias reales de cada medio
+    const hoy=new Date();
+    const fechaStr=`${hoy.getDate()}/${hoy.getMonth()+1}/${hoy.getFullYear()}`;
+    const prompt=`Buscá noticias publicadas en los últimos 7 días (hoy es ${fechaStr}) en estos medios locales de Tres Arroyos, Buenos Aires, Argentina:
+- LU24 (lu24.com.ar)
+- La Voz del Pueblo (lavozdelpueblo.com.ar)
+- Via País sección Tres Arroyos (viapais.com.ar/tres-arroyos)
+- Onda Uno (ondauno.com.ar)
+- Provincia Noticias (provincianoticias.com.ar)
+
+Buscá noticias que mencionen: municipalidad de Tres Arroyos, intendente Pablo Garate, obras municipales, concejo deliberante, gestión municipal, o cualquier actividad del gobierno local.
+
+Respondé SOLO con un JSON válido, sin texto extra, sin markdown:
+[
+  {"titulo":"título exacto","medio":"nombre del medio","url":"url completa","fecha":"YYYY-MM-DD","resumen":"resumen breve","tono":"positivo|neutral|negativo","menciona_pablo":true|false,"menciona_municipio":true|false},
+  ...
+]
+Si no encontrás noticias de algún medio, simplemente no lo incluyas. Incluí máximo 5 noticias por medio.`;
+
+    const resp=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json","anthropic-dangerous-direct-browser-access":"true"},
+      body:JSON.stringify({
+        model:"claude-sonnet-4-20250514",
+        max_tokens:4000,
+        tools:[{type:"web_search_20250305",name:"web_search"}],
+        messages:[{role:"user",content:prompt}]
+      })
+    });
+
+    if(!resp.ok){
+      const err=await resp.json();
+      throw new Error(err.error?.message||"Error API: "+resp.status);
+    }
+
+    const data=await resp.json();
+    // Extraer el texto de la respuesta (puede haber tool_use blocks)
+    let text="";
+    for(const block of(data.content||[])){
+      if(block.type==="text")text+=block.text;
+    }
+
+    // Parsear el JSON de noticias
+    let nuevas=[];
     try{
-      const items=await fetchMedioRSS(medio);
-      let cnt=0;
-      for(const n of items){
-        const ex=noticias.find(x=>x.url&&x.url===n.url);
-        if(!ex&&n.titulo){
-          try{
-            const r=await db.from("noticias_medios").insert({...n,medio:medio.n}).select();
-            if(!r.error){cnt++;total++;if(r.data&&r.data[0])noticias.unshift(r.data[0]);}
-          }catch(e){console.warn("Insert "+medio.n+":",e.message);}
-        }
+      const clean=text.replace(/```json|```/g,"").trim();
+      const arr=JSON.parse(clean);
+      if(Array.isArray(arr))nuevas=arr;
+    }catch(e){
+      // Intentar extraer JSON del texto
+      const match=text.match(/\[[\s\S]*\]/);
+      if(match){
+        try{nuevas=JSON.parse(match[0]);}catch(e2){console.warn("No se pudo parsear JSON:",text.slice(0,200));}
       }
-      return{n:medio.n,cnt,ok:true};
-    }catch(e){console.warn(medio.n,":",e.message);return{n:medio.n,cnt:0,ok:false};}
-  });
-  await Promise.all(promises);
-  if(statusEl){
-    statusEl.innerHTML=total>0?`<div class="sbar done">✓ ${total} noticias nuevas encontradas</div>`:'<div class="sbar fail">Sin noticias nuevas — probá con "+ Agregar" para cargar manualmente</div>';
-    setTimeout(()=>{if(statusEl)statusEl.innerHTML="";},8000);
+    }
+
+    // Guardar en Supabase
+    let total=0;
+    for(const n of nuevas){
+      if(!n.titulo||!n.medio)continue;
+      const ex=noticias.find(x=>x.url&&x.url===n.url);
+      if(ex)continue;
+      try{
+        const{data:rows,error}=await db.from("noticias_medios").insert({
+          titulo:(n.titulo||"").slice(0,200),
+          medio:n.medio,
+          url:n.url||"",
+          fecha:n.fecha||isoToday,
+          resumen:(n.resumen||"").slice(0,200),
+          tono:n.tono||"neutral",
+          menciona_municipio:n.menciona_municipio||false,
+          menciona_pablo:n.menciona_pablo||false
+        }).select();
+        if(!error&&rows?.[0]){noticias.unshift(rows[0]);total++;}
+      }catch(e){console.warn("Insert:",e.message);}
+    }
+
+    if(statusEl){
+      statusEl.innerHTML=total>0
+        ?`<div class="sbar done">✓ ${total} noticias nuevas encontradas por IA</div>`
+        :`<div class="sbar warn" style="background:#fffbeb;border:1px solid #fde68a;color:#92400e">Sin noticias nuevas — usá "+ Agregar" para cargar manualmente</div>`;
+      setTimeout(()=>{if(statusEl)statusEl.innerHTML="";},8000);
+    }
+    if(total>0){toast(total+" noticias nuevas");renderNoticias();renderMedioSum();}
+    else toast("Sin noticias nuevas esta semana","warn");
+
+  }catch(e){
+    console.error("scanMedios:",e);
+    if(statusEl)statusEl.innerHTML=`<div class="sbar fail">Error: ${e.message} — usá "+ Agregar" para cargar manualmente</div>`;
+    toast("Error al escanear: "+e.message,"err");
   }
-  if(btn){btn.disabled=false;btn.innerHTML='<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg> Escanear medios';}
-  if(total>0){toast(total+" noticias nuevas");renderNoticias();renderMedioSum();}
-  else toast("Sin noticias nuevas — intentá con '+ Agregar'","warn");
+  if(btn){
+    btn.disabled=false;
+    btn.innerHTML='<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg> Escanear medios';
+  }
 }
 
-async function fetchMedioRSS(medio){
-  const rssUrl=medio.rss;
-  if(!rssUrl)return[];
-  const kws=["pablo garate","garate","intendente","municipalidad","municipio","gobierno municipal",
-    "tres arroyos","3 arroyos","secretaría de","dirección de","inauguró","inauguración",
-    "obra municipal","licitación","concejo deliberante","ordenanza","decreto municipal",
-    "vecinos de tres","ciudad de tres","el municipio","comuna","intendencia"];
-  const parseXML=(xmlStr)=>{
-    const xml=new DOMParser().parseFromString(xmlStr,"text/xml");
-    return[...xml.querySelectorAll("item")].map(n=>({
-      title:(n.querySelector("title")?.textContent||"").replace(/<[^>]*>/g,"").trim(),
-      link:n.querySelector("link")?.textContent||n.querySelector("guid")?.textContent||"",
-      pubDate:n.querySelector("pubDate")?.textContent||"",
-      desc:(n.querySelector("description")?.textContent||"").replace(/<[^>]*>/g,"").slice(0,300)
-    }));
-  };
-  const estrategias=[
-    async()=>{
-      const r=await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}&count=50`,{signal:AbortSignal.timeout(12000)});
-      if(!r.ok)throw new Error("HTTP "+r.status);
-      const d=await r.json();
-      if(!d.items?.length)throw new Error(d.message||"sin items");
-      return d.items.map(i=>({title:(i.title||"").replace(/<[^>]*>/g,"").trim(),link:i.link||"",pubDate:i.pubDate||"",desc:(i.description||i.content||"").replace(/<[^>]*>/g,"").slice(0,300)}));
-    },
-    async()=>{
-      const r=await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}&t=${Date.now()}`,{signal:AbortSignal.timeout(15000)});
-      if(!r.ok)throw new Error("HTTP "+r.status);
-      const d=await r.json();
-      if(!d.contents||d.contents.length<100)throw new Error("respuesta vacía");
-      return parseXML(d.contents);
-    },
-    async()=>{
-      const r=await fetch(`https://corsproxy.io/?url=${encodeURIComponent(rssUrl)}`,{signal:AbortSignal.timeout(15000)});
-      if(!r.ok)throw new Error("HTTP "+r.status);
-      return parseXML(await r.text());
-    },
-    async()=>{
-      const r=await fetch(`https://thingproxy.freeboard.io/fetch/${rssUrl}`,{signal:AbortSignal.timeout(15000)});
-      if(!r.ok)throw new Error("HTTP "+r.status);
-      return parseXML(await r.text());
-    }
-  ];
-  for(let i=0;i<estrategias.length;i++){
-    try{
-      const raw=await estrategias[i]();
-      if(!raw?.length){console.log(`${medio.n} E${i+1}: sin items`);continue;}
-      const cutoff=new Date(TODAY);cutoff.setDate(cutoff.getDate()-14);
-      const results=[];
-      for(const item of raw){
-        const tit=item.title;if(!tit)continue;
-        const text=(tit+" "+item.desc).toLowerCase();
-        if(!kws.some(k=>text.includes(k)))continue;
-        let fechaISO=isoToday;
-        try{const fd=new Date(item.pubDate);if(!isNaN(fd)){if(fd<cutoff)continue;fechaISO=iso(fd);}}catch(e){}
-        const tl=tit.toLowerCase();
-        const tono=tl.includes("probl")||tl.includes("critic")||tl.includes("denuncia")||tl.includes("protest")?"negativo":
-          tl.includes("inaugur")||tl.includes("obra")||tl.includes("benefi")||tl.includes("logro")||tl.includes("entreg")?"positivo":"neutral";
-        results.push({titulo:tit.slice(0,200),url:item.link,fecha:fechaISO,resumen:item.desc.slice(0,200),tono,
-          menciona_municipio:text.includes("municipio")||text.includes("municipalidad")||text.includes("tres arroyos"),
-          menciona_pablo:text.includes("pablo garate")||text.includes("garate")});
-      }
-      if(results.length){console.log(`✓ ${medio.n}: ${results.length} noticias (E${i+1}/${raw.length} items)`);return results;}
-      console.log(`${medio.n} E${i+1}: ${raw.length} items, 0 con keywords`);
-    }catch(e){console.warn(`✗ ${medio.n} E${i+1}:`,e.message);}
-  }
-  console.warn(`✗ ${medio.n}: todos los proxies fallaron`);
-  return[];
-}
 
 function renderNoticias(){
   if(!document.getElementById("nlist"))return;
