@@ -924,6 +924,8 @@ function weekMon(off){return addD(START,off*7)}
 function buildWeek(hdrId,scrollId,off,showPubs,showAg){
   const mon=weekMon(off);
   const DN=["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
+
+  // Header con guardia
   let hdr=`<div class="wgut"></div>`;
   for(let i=0;i<7;i++){
     const d=addD(mon,i),ds=iso(d);
@@ -938,57 +940,59 @@ function buildWeek(hdrId,scrollId,off,showPubs,showAg){
     </div>`;
   }
   document.getElementById(hdrId).innerHTML=hdr;
-  let body="";
-  for(const hr of HOURS){
-    const hl=`${String(hr).padStart(2,"0")}:00`;
-    let row=`<div class="hrow"><div class="hl">${hl}</div>`;
-    for(let i=0;i<7;i++){
-      const d=addD(mon,i),ds=iso(d);
-      const isT=ds===isoToday,isWE=i>=5;
-      const guards=getGuardia(ds);
-      const gbg=guards.length>0?(gm(guards[0])||{color:"transparent"}).color+"10":"transparent";
-      let evs="";
-      if(showAg){
-        // FIX: deduplicar eventos por id antes de renderizar
-        const seen=new Set();
-        [...agendas,...gcalEvs].filter(a=>{
-          const af=String(a.fecha).slice(0,10);
-          if(af!==ds||a.cancelado)return false;
-          if(seen.has(a.id))return false;
-          seen.add(a.id);
-          return matchH(a.hora,hr);
-        }).forEach(e=>{
-          const isCob=cobSel[e.id]||false;
-          // Color base por tipo, override violeta si tiene cobertura
-          const cls=isCob?"ep":e.tipo==="prensa"?"ep":e.tipo==="municipal"?"em":"ei";
-          const icon=e.tipo==="prensa"?"📻":e.tipo==="municipal"?"🏛":"🗓";
-          const cobBadge=isCob?`<span style="font-size:8px;background:#6d28d9;color:#fff;padding:1px 4px;border-radius:3px;margin-left:2px;vertical-align:middle">📋</span>`:"";
-          const cobStyle=isCob?"background:#ede9fe;border-left:3px solid #6d28d9;color:#4c1d95;font-weight:700":"";
-          evs+=`<div class="ev ${cls}" onclick="event.stopPropagation();openEvPanel(${JSON.stringify(e).replace(/"/g,'&quot;')})" style="cursor:pointer;${cobStyle}">
-            <div class="ev-t">${icon} ${e.descripcion}${cobBadge}</div>
-            <div class="ev-s">${e.hora?e.hora.slice(0,5)+" ":""}${e.lugar||""}${e.responsable?" · "+e.responsable:""}</div>
-          </div>`;
-        });
-      }
-      if(showPubs){
-        pubs.filter(p=>{
-          const pf=String(p.fecha).slice(0,10);
-          return pf===ds&&matchH(p.hora,hr);
-        }).forEach(p=>{
-          const ct=getCta(p.cuenta)||{cls:"efbm",label:p.cuenta,sub:""};
-          evs+=`<div class="ev ${ct.cls}" onclick="editPubItem('${p.id}')" title="${p.descripcion}">
-            <div class="ev-t">${ct.label} · ${p.tipo}</div>
-            <div class="ev-s">${p.descripcion.slice(0,22)}${p.descripcion.length>22?"…":""}${p.responsable?" · "+p.responsable:""}</div>
-          </div>`;
-        });
-      }
-      row+=`<div class="hc${isT?' hct':''}${isWE?' hcw':''}" style="background:${gbg}" onclick="openPubFromCell('${ds}','${hl}')">
-        <div class="ci">${evs}</div>
-        <button class="hadd" onclick="event.stopPropagation();openPubFromCell('${ds}','${hl}')">+</button>
-      </div>`;
+
+  // Body: columnas por dia, TODOS los eventos ordenados por hora
+  const dayEvs=[];
+  for(let i=0;i<7;i++){
+    const d=addD(mon,i),ds=iso(d);
+    const seen=new Set();
+    const evList=[];
+    if(showAg){
+      [...agendas,...gcalEvs].filter(a=>{
+        const af=String(a.fecha).slice(0,10);
+        if(af!==ds||a.cancelado||seen.has(a.id))return false;
+        seen.add(a.id);return true;
+      }).forEach(e=>{
+        const isCob=cobSel[e.id]||false;
+        const cls=isCob?"ep":e.tipo==="prensa"?"ep":e.tipo==="municipal"?"em":"ei";
+        const icon=e.tipo==="prensa"?"📻":e.tipo==="municipal"?"🏛":"🗓";
+        const cobBadge=isCob?`<span style="font-size:8px;background:#6d28d9;color:#fff;padding:1px 4px;border-radius:3px;margin-left:2px">📋</span>`:"";
+        const cobStyle=isCob?"background:#ede9fe;border-left:3px solid #6d28d9;color:#4c1d95;":"";
+        const hp=e.hora?String(e.hora).split(":"):[""," "];
+        const horaSort=e.hora?(parseInt(hp[0])||0)*60+(parseInt(hp[1])||0):0;
+        evList.push({horaSort,html:`<div class="ev ${cls}" onclick="event.stopPropagation();openEvPanel(${JSON.stringify(e).replace(/"/g,'&quot;')})" style="cursor:pointer;${cobStyle}">
+          <div class="ev-t">${icon} ${e.descripcion}${cobBadge}</div>
+          <div class="ev-s">${e.hora?e.hora.slice(0,5)+" ":""}${e.lugar||""}${e.responsable?" · "+e.responsable:""}</div>
+        </div>`});
+      });
     }
-    row+=`</div>`;body+=row;
+    if(showPubs){
+      pubs.filter(p=>String(p.fecha).slice(0,10)===ds).forEach(p=>{
+        const ct=getCta(p.cuenta)||{cls:"efbm",label:p.cuenta};
+        const hp=p.hora?String(p.hora).split(":"):[""," "];
+        const horaSort=p.hora?(parseInt(hp[0])||0)*60+(parseInt(hp[1])||0):0;
+        evList.push({horaSort,html:`<div class="ev ${ct.cls}" onclick="editPubItem('${p.id}')">
+          <div class="ev-t">${ct.label} · ${p.tipo}</div>
+          <div class="ev-s">${p.hora?p.hora.slice(0,5)+" ":""}${p.descripcion.slice(0,20)}${p.descripcion.length>20?"…":""}${p.responsable?" · "+p.responsable:""}</div>
+        </div>`});
+      });
+    }
+    evList.sort((a,b)=>a.horaSort-b.horaSort);
+    dayEvs.push({ds,evList,isT:ds===isoToday,isWE:i>=5});
   }
+
+  const maxEvs=Math.max(3,...dayEvs.map(d=>d.evList.length));
+  let body=`<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:0;min-height:${Math.max(200,maxEvs*36+20)}px">`;
+  for(const {ds,evList,isT,isWE} of dayEvs){
+    const guards=getGuardia(ds);
+    const gbg=guards.length>0?(gm(guards[0])||{color:"transparent"}).color+"08":"transparent";
+    body+=`<div style="border-right:1px solid #f3f4f6;padding:3px 2px;background:${isT?"rgba(102,126,234,.04)":gbg}" onclick="openPubFromCell('${ds}','09:00')">
+      ${evList.length?evList.map(e=>e.html).join(""):
+        `<div style="text-align:center;padding:20px 4px;color:#e5e7eb;font-size:18px">—</div>`}
+      <button class="hadd" style="display:flex;margin:3px auto 0;position:static;opacity:.5" onclick="event.stopPropagation();openPubFromCell('${ds}','09:00')">+</button>
+    </div>`;
+  }
+  body+=`</div>`;
   const sc=document.getElementById(scrollId);
   if(sc){sc.innerHTML=body;setTimeout(()=>{sc.scrollTop=0;},30);}
 }
