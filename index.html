@@ -485,7 +485,7 @@ html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111
   <input type="hidden" id="emid">
   <div class="fg"><label>Nombre</label><input type="text" id="emnombre" readonly style="background:#f9fafb"></div>
   <div class="fg"><label>Correo</label><input type="email" id="ememail"></div>
-  <div class="fg"><label>WhatsApp (con código país)</label><input type="tel" id="emtel" placeholder="5492983000000"></div>
+  <div class="fg"><label>WhatsApp (con código país)</label><input type="tel" id="emtel" placeholder="Ej: 5492983569618"></div>
   <div class="fg"><label>Rol</label><select id="emrol"><option>Jefe/a de área</option><option>Responsable de equipo</option><option>Comunicador/a</option><option>Diseñador/a</option><option>Editor/a de video</option><option>Community Manager</option><option>Camarógrafo/a</option><option>Fotógrafo/a</option></select></div>
   <div class="fg"><label>¿Hace coberturas?</label><select id="emcob"><option value="1">Sí</option><option value="0">No</option></select></div>
   <div class="mft"><button class="btn" onclick="closeMod('modEquipo')">Cancelar</button><button class="btn p" onclick="saveMember()">Guardar</button></div>
@@ -1174,10 +1174,14 @@ function renderTeam(){
 function openEmMod(id){
   const m=teams.find(x=>x.id===id);if(!m)return;
   document.getElementById("emtitle").textContent="Editar — "+m.nombre;
-  document.getElementById("emid").value=id;document.getElementById("emnombre").value=m.nombre;
-  document.getElementById("ememail").value=m.email||"";document.getElementById("emtel").value=m.telefono||"";
-  document.getElementById("emrol").value=m.rol;document.getElementById("emcob").value=m.cobertura?"1":"0";
+  document.getElementById("emid").value=id;
+  document.getElementById("emnombre").value=m.nombre;
+  document.getElementById("ememail").value=m.email||"";
+  document.getElementById("emtel").value=m.telefono||"";
+  document.getElementById("emrol").value=m.rol||"Comunicador/a";
+  document.getElementById("emcob").value=m.cobertura?"1":"0";
   document.getElementById("modEquipo").classList.add("open");
+  console.log("Editando",m.nombre,"tel:",m.telefono,"email:",m.email);
 }
 async function saveMember(){
   const id=document.getElementById("emid").value;
@@ -1188,22 +1192,16 @@ async function saveMember(){
   const rol=document.getElementById("emrol").value;
   const cobertura=document.getElementById("emcob").value==="1";
   try{
-    // Try with telefono first, fallback without if column missing
-    let res=await db.from("usuarios").update({email,telefono:tel,rol,cobertura}).eq("id",id);
-    if(res.error&&res.error.message.includes("telefono")){
-      // Column doesn't exist yet - save without it
-      res=await db.from("usuarios").update({email,rol,cobertura}).eq("id",id);
-      if(res.error)throw new Error(res.error.message);
-      toast("✓ Guardado (sin tel — ejecutá el SQL para agregar la columna)","warn");
-    } else {
-      if(res.error)throw new Error(res.error.message);
-      toast("✓ Guardado correctamente");
-    }
+    console.log("Guardando",id,"email:",email,"tel:",tel,"rol:",rol);
+    const{data,error}=await db.from("usuarios").update({email,telefono:tel,rol,cobertura}).eq("id",id).select();
+    if(error)throw new Error(error.message);
+    console.log("Guardado OK:",data);
     closeMod("modEquipo");
+    toast("✓ Guardado: "+email+(tel?" · WA:"+tel:""));
     const r=await db.from("usuarios").select("*").order("nombre");
     if(r.data)teams=r.data;
     renderTeam();
-  }catch(e){toast("Error: "+e.message,"err");console.error("saveMember:",e);}
+  }catch(e){toast("Error: "+e.message,"err");console.error("saveMember error:",e);}
 }
 function sendAlert(nombre){
   const m=gm(nombre);
