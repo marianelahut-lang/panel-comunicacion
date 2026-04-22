@@ -11,121 +11,163 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111827;font-size:13px;overflow:hidden}
 /* DARK MODE */
-body.dark{background:#0f0f1a;color:#e5e7eb}
-body.dark .sb{background:#1a1a2e;border-color:#2d2d44}
-body.dark .sb-sec{color:#6b7280}
-body.dark .sbi{color:#9ca3af}
-body.dark .sbi:hover{background:#2d2d44}
-body.dark .sbi.on{background:#2d1b69;color:#a78bfa;border-color:#7c3aed}
-body.dark .sbadge{background:#2d2d44;color:#9ca3af}
-body.dark .content{background:#0f0f1a}
-body.dark .wshell{background:#1a1a2e;border-color:#2d2d44}
-body.dark .whdr{background:#1a1a2e;border-color:#2d2d44}
-body.dark .hrow{border-color:#1e1e30}
-body.dark .hc{border-color:#1e1e30}
-body.dark .hc:hover{background:#1e1e30}
-body.dark .hc.hct{background:rgba(102,126,234,.08)}
-body.dark .hl{background:#151525;color:#6b7280;border-color:#2d2d44}
-body.dark .wleg{background:#151525;border-color:#2d2d44}
-body.dark .kcol{background:#1a1a2e;border-color:#2d2d44}
-body.dark .khdr.p1{background:#2d1515;border-color:#7f1d1d}
-body.dark .khdr.p2{background:#2d2515;border-color:#78350f}
-body.dark .khdr.p3{background:#151a2d;border-color:#1e3a8a}
-body.dark .tc{background:#1a1a2e;border-color:#2d2d44}
-body.dark .mod{background:#1a1a2e;color:#e5e7eb}
-body.dark .fg input,.dark .fg select,.dark .fg textarea{background:#0f0f1a;border-color:#2d2d44;color:#e5e7eb}
-body.dark .btn{background:#2d2d44;border-color:#3d3d54;color:#e5e7eb}
-body.dark .mcard{background:#1a1a2e;border-color:#2d2d44}
-body.dark .tmcard{background:#1a1a2e;border-color:#2d2d44}
-body.dark .gwtbl,.dark .gwd{background:#1a1a2e;border-color:#2d2d44}
-body.dark .nrow{border-color:#2d2d44}
-body.dark .cbox{background:#1a1a2e;border-color:#2d2d44}
-body.dark .met{background:#1a1a2e;border-color:#2d2d44}
-body.dark .meds{background:#1a1a2e;border-color:#2d2d44}
-body.dark .met-v{color:#e5e7eb}
-body.dark .ntitle a{color:#a5b4fc}
-body.dark .div{background:#2d2d44}
-body.dark .sbp:hover{background:#1e1e30}
-body.dark .ptitle{color:#f3f4f6}
-body.dark .kadd{border-color:#3d3d54;color:#6b7280}
-body.dark .kadd:hover{border-color:#7c3aed;color:#a78bfa}
-/* Textos generales en modo oscuro */
-body.dark .psub{color:#9ca3af}
-body.dark .tc-t{color:#e5e7eb}
-body.dark .tc{background:#1e1e30;border-color:#2d2d44;color:#e5e7eb}
-body.dark .tc:hover{box-shadow:0 3px 10px rgba(0,0,0,.3)}
-body.dark .wnum{color:#e5e7eb}
-body.dark .wdn{color:#6b7280}
-body.dark .wdc{background:#1a1a2e}
-body.dark .wdc.wdt{background:#1e1e35}
-body.dark .wgut{background:#151525;border-color:#2d2d44}
-body.dark .evp-title{color:#f3f4f6}
-body.dark .evp-meta{color:#9ca3af}
-body.dark #evpanel{background:#1a1a2e;border-color:#2d2d44}
-body.dark .evp-hdr{border-color:#2d2d44}
-body.dark .evp-body{color:#d1d5db}
-body.dark .evp-ftr{border-color:#2d2d44}
-body.dark .evp-cob{background:#1e1e30;border-color:#3d3d54}
-body.dark .evp-cob:hover{border-color:#7c3aed}
-body.dark .evp-cob-lbl{color:#e5e7eb}
-body.dark .evp-cob-sub{color:#9ca3af}
-body.dark .gwdate{color:#f3f4f6}
-body.dark .gwhi{color:#9ca3af;border-color:#2d2d44}
-body.dark .gwh{background:#151525;border-color:#2d2d44}
-body.dark .gwd{border-color:#2d2d44}
-body.dark .gwd.gwt{background:#1a1a2e}
-body.dark .gwd.gwwe{background:#1a1520}
-body.dark .gwnb{background:#1e1e30;border-color:#3d3d54;color:#9ca3af}
-body.dark .gwnb:hover{background:#667eea;color:#fff;border-color:#667eea}
-body.dark .met-v{color:#f3f4f6}
-body.dark .met-l{color:#9ca3af}
-body.dark .met{color:#e5e7eb}
-body.dark .cbox-t{color:#e5e7eb}
-body.dark .ntitle{color:#e5e7eb}
-body.dark .ntitle a{color:#a5b4fc}
-body.dark .mod-t{color:#f3f4f6}
-body.dark .fg label{color:#9ca3af}
-body.dark .fg input,.dark .fg select,.dark .fg textarea{background:#0f0f1a;border-color:#3d3d54;color:#e5e7eb}
-body.dark .fg input:focus,.dark .fg select:focus,.dark .fg textarea:focus{border-color:#7c3aed}
-body.dark .clabel{color:#e5e7eb}
-body.dark .csub{color:#9ca3af}
-body.dark .copt{background:#1e1e30;border-color:#3d3d54}
-body.dark .copt:hover{border-color:#7c3aed;background:#1e1830}
-body.dark .copt.sel{border-color:#7c3aed;background:#2d1b69}
-body.dark .mft{border-color:#2d2d44}
-body.dark .btn{background:#2d2d44;border-color:#3d3d54;color:#e5e7eb}
-body.dark .btn:hover{background:#3d3d54}
-body.dark .ov{background:rgba(0,0,0,.6)}
-body.dark .sbar.scan{background:#1a1520;border-color:#7c3aed;color:#c4b5fd}
-body.dark .sbar.done{background:#0f2020;border-color:#22c55e;color:#86efac}
-body.dark .sbar.fail{background:#200f0f;border-color:#ef4444;color:#fca5a5}
-body.dark .ibanner{background:#1a1520;border-color:#7c3aed;color:#c4b5fd}
+body.dark{background:#1e2028;color:#e2e8f0}
+body.dark .sb{background:#252830;border-color:#373b47}
+body.dark .sb-sec{color:#8892a4}
+body.dark .sbi{color:#b0bac9;background:transparent}
+body.dark .sbi:hover{background:#2d3140}
+body.dark .sbi.on{background:#2d2d5e;color:#a78bfa;border-color:#7c3aed}
+body.dark .sbadge{background:#373b47;color:#b0bac9}
 body.dark .sbadge.hot{background:#4c1d1d;color:#fca5a5}
-body.dark .pill-neu{background:#1e1e30;color:#9ca3af}
-body.dark .pill-pos{background:#0f2515;color:#86efac}
-body.dark .pill-neg{background:#250f0f;color:#fca5a5}
-body.dark .pill-muni{background:#0f1525;color:#93c5fd}
-body.dark .pill-pablo{background:#1a0f25;color:#c4b5fd}
-body.dark .nbadge{opacity:.9}
-body.dark .wleg{background:#151525;border-color:#2d2d44;color:#9ca3af}
-body.dark .ptop{color:#f3f4f6}
-body.dark select option{background:#1a1a2e;color:#e5e7eb}
-body.dark .lfg select,.dark .lfg input{color:#fff}
-body.dark .tg{opacity:.9}
-body.dark .tc-f span{color:#9ca3af}
-/* Guardias coberturas en dark */
-body.dark .gwag span{color:#d1d5db}
-/* Modales en dark */
-body.dark .mod{background:#1a1a2e;color:#e5e7eb;border:1px solid #2d2d44}
-body.dark .proginfo{background:#0f2020;border-color:#22c55e;color:#86efac}
-/* Sidebar badges */
-body.dark .sbadge{background:#2d2d44;color:#9ca3af}
-/* Event panel */  
-body.dark .evp-guardia{background:#0f2020;border-color:#22c55e}
+body.dark .content{background:#1e2028}
+body.dark .ptitle{color:#f1f5f9;font-weight:700}
+body.dark .psub{color:#94a3b8}
+body.dark .ptop{color:#f1f5f9}
+body.dark .div{background:#373b47}
+body.dark .sbp:hover{background:#2d3140}
+
+/* Kanban */
+body.dark .kcol{background:#252830;border-color:#373b47}
+body.dark .khdr.p1{background:#3d1515;border-color:#991b1b}
+body.dark .khdr.p2{background:#3d2e10;border-color:#92400e}
+body.dark .khdr.p3{background:#152040;border-color:#1e3a8a}
+body.dark .p1 .kt{color:#fca5a5}
+body.dark .p2 .kt{color:#fcd34d}
+body.dark .p3 .kt{color:#93c5fd}
+body.dark .p1 .kd{background:#ef4444}
+body.dark .p2 .kd{background:#f59e0b}
+body.dark .p3 .kd{background:#3b82f6}
+body.dark .p1 .kc{background:#991b1b;color:#fecaca}
+body.dark .p2 .kc{background:#92400e;color:#fef3c7}
+body.dark .p3 .kc{background:#1e3a8a;color:#bfdbfe}
+body.dark .tc{background:#2a2d38;border-color:#373b47;color:#e2e8f0}
+body.dark .tc:hover{box-shadow:0 3px 10px rgba(0,0,0,.4);background:#2d3040}
+body.dark .tc-t{color:#e2e8f0}
+body.dark .tc-f span{color:#94a3b8}
+body.dark .kadd{border-color:#373b47;color:#8892a4}
+body.dark .kadd:hover{border-color:#7c3aed;color:#a78bfa;background:#2d2d5e}
+
+/* Calendario / Publicaciones */
+body.dark .wshell{background:#252830;border-color:#373b47}
+body.dark .whdr{background:#252830;border-color:#373b47}
+body.dark .wgut{background:#2a2d38;border-color:#373b47}
+body.dark .wdc{background:#252830}
+body.dark .wdc.wdt{background:#252845}
+body.dark .wdc.wdw{background:#28252e}
+body.dark .wnum{color:#e2e8f0}
+body.dark .wdn{color:#8892a4}
+body.dark .wleg{background:#2a2d38;border-color:#373b47;color:#94a3b8}
+body.dark .hrow{border-color:#2e3140}
+body.dark .hc{border-color:#2e3140;background:transparent}
+body.dark .hc:hover{background:#2d3140}
+body.dark .hc.hct{background:rgba(102,126,234,.06)}
+body.dark .hl{background:#2a2d38;color:#8892a4;border-color:#373b47}
+
+/* Guardias */
+body.dark .gwtbl{background:#252830;border-color:#373b47}
+body.dark .gwh{background:#2a2d38;border-color:#373b47}
+body.dark .gwhi{color:#8892a4;border-color:#373b47}
+body.dark .gwd{background:#252830;border-color:#373b47}
+body.dark .gwd.gwt{background:#252845}
+body.dark .gwd.gwwe{background:#282530}
+body.dark .gwdate{color:#f1f5f9;font-weight:700}
+body.dark .gwag span{color:#cbd5e1}
+body.dark .gwevs{color:#93c5fd}
+body.dark .gwnb{background:#2a2d38;border-color:#373b47;color:#94a3b8}
+body.dark .gwnb:hover{background:#667eea;color:#fff;border-color:#667eea}
+
+/* Equipo */
+body.dark .tmcard{background:#252830;border-color:#373b47;color:#e2e8f0}
+body.dark .tmcard:hover{box-shadow:0 4px 14px rgba(0,0,0,.4)}
+
+/* Material */
+body.dark .mcard{background:#252830;border-color:#373b47;color:#e2e8f0}
+
+/* Métricas */
+body.dark .met{background:#252830;border-color:#373b47;color:#e2e8f0}
+body.dark .met-v{color:#f1f5f9}
+body.dark .met-l{color:#94a3b8}
+body.dark .cbox{background:#252830;border-color:#373b47}
+body.dark .cbox-t{color:#e2e8f0}
+
+/* Medios */
+body.dark .meds{background:#252830;border-color:#373b47}
+body.dark .nrow{border-color:#373b47}
+body.dark .ntitle{color:#e2e8f0}
+body.dark .ntitle a{color:#93c5fd}
+body.dark .nbadge{opacity:.95}
+body.dark .pill-neu{background:#2a2d38;color:#94a3b8}
+body.dark .pill-pos{background:#14291a;color:#86efac}
+body.dark .pill-neg{background:#2d1515;color:#fca5a5}
+body.dark .pill-muni{background:#152040;color:#93c5fd}
+body.dark .pill-pablo{background:#251540;color:#c4b5fd}
+
+/* Barras de estado */
+body.dark .sbar.scan{background:#252030;border-color:#7c3aed;color:#c4b5fd}
+body.dark .sbar.done{background:#142514;border-color:#22c55e;color:#86efac}
+body.dark .sbar.fail{background:#2d1515;border-color:#ef4444;color:#fca5a5}
+body.dark .ibanner{background:#1e2040;border-color:#3b82f6;color:#93c5fd}
+
+/* Modales */
+body.dark .ov{background:rgba(0,0,0,.65)}
+body.dark .mod{background:#252830;color:#e2e8f0;border:1px solid #373b47}
+body.dark .mod-t{color:#f1f5f9}
+body.dark .fg label{color:#94a3b8}
+body.dark .fg input,body.dark .fg select,body.dark .fg textarea{background:#1e2028;border-color:#373b47;color:#e2e8f0}
+body.dark .fg input:focus,body.dark .fg select,body.dark .fg textarea:focus{border-color:#7c3aed}
+body.dark .fg input::placeholder,body.dark .fg textarea::placeholder{color:#4b5563}
+body.dark .mft{border-color:#373b47}
+body.dark .fr .fg input,body.dark .fr .fg select{background:#1e2028}
+body.dark .copt{background:#2a2d38;border-color:#373b47}
+body.dark .copt:hover{border-color:#7c3aed;background:#2d2d50}
+body.dark .copt.sel{border-color:#7c3aed;background:#2d2d5e}
+body.dark .clabel{color:#e2e8f0}
+body.dark .csub{color:#94a3b8}
+
+/* Botones */
+body.dark .btn{background:#2a2d38;border-color:#373b47;color:#e2e8f0}
+body.dark .btn:hover{background:#373b47}
+body.dark .btn.p{background:#667eea;color:#fff;border-color:#667eea}
+body.dark .btn.g{background:#16a34a;color:#fff;border-color:#16a34a}
+body.dark .btn.r{background:#dc2626;color:#fff;border-color:#dc2626}
+
+/* Panel evento lateral */
+body.dark #evpanel{background:#252830;border-color:#373b47}
+body.dark .evp-hdr{border-color:#373b47}
+body.dark .evp-title{color:#f1f5f9}
+body.dark .evp-meta{color:#94a3b8}
+body.dark .evp-body{color:#cbd5e1}
+body.dark .evp-ftr{border-color:#373b47}
+body.dark .evp-cob{background:#2a2d38;border-color:#373b47}
+body.dark .evp-cob:hover{border-color:#7c3aed;background:#2d2d50}
+body.dark .evp-cob-lbl{color:#e2e8f0}
+body.dark .evp-cob-sub{color:#94a3b8}
+body.dark .evp-check{border-color:#4b5563}
+body.dark .evp-guardia{background:#142514;border-color:#22c55e}
 body.dark #evp-guardia-names{color:#86efac}
+
+/* Select options */
+body.dark select option{background:#252830;color:#e2e8f0}
+
+/* Topbar badges */
+body.dark .live{border-color:#373b47}
+body.dark .upill{border-color:#373b47}
+body.dark .outbtn{border-color:#373b47;color:#94a3b8}
+body.dark .gcbtn{border-color:#373b47;color:#94a3b8}
+body.dark .gcbtn.ok{border-color:rgba(34,197,94,.4);color:#4ade80}
+
 /* Settings */
-body.dark #modSettings .mod>div>div{background:#0f0f1a;border-color:#2d2d44}
-body.dark #modSettings .fg input{background:#0a0a15}
+body.dark #modSettings .mod>div>div{background:#1e2028;border-color:#373b47}
+body.dark #modSettings .fg input{background:#1e2028;color:#e2e8f0}
+
+/* Tags prioridad */
+body.dark .tga{background:#3d1515;color:#fca5a5}
+body.dark .tgm{background:#3d2e10;color:#fcd34d}
+body.dark .tgb{background:#142514;color:#86efac}
+
+/* Inputs login */
+body.dark .lfg select,body.dark .lfg input{color:#fff}
+
 #login{position:fixed;inset:0;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);display:flex;align-items:center;justify-content:center;z-index:9999}
 .lbox{background:rgba(255,255,255,.07);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:40px 44px;width:min(400px,92vw);text-align:center}
 .llogo{width:56px;height:56px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:16px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:22px;color:#fff;margin:0 auto 16px}
@@ -377,7 +419,7 @@ body.dark #modSettings .fg input{background:#0a0a15}
   <div class="topbar">
     <div class="logo">
       <div class="logo-b">TA</div>
-      <div><div class="logo-n">Comunicación</div><div class="logo-s">Muni · Tres Arroyos</div></div>
+      <div><div class="logo-n">Comunicación</div><div class="logo-s">Muni · Tres Arroyos · v3</div></div>
     </div>
     <div class="ntabs">
       <button class="ntab on" onclick="nav('tablero',this)">Tablero</button>
@@ -1957,36 +1999,54 @@ async function saveMember(){
   const email=document.getElementById("ememail").value.trim();
   const rol=document.getElementById("emrol").value;
   const cobertura=document.getElementById("emcob").value==="1";
-  const {color,texto}=getEmColor();
+
+  // Color del avatar
+  let color="#667eea",color_texto="#fff";
   try{
+    const selEl=document.querySelector("#emcolors .copt[style*='border: 2px solid rgb(17']")||
+                document.querySelector("#emcolors .copt[style*='border:2px solid #111']");
+    if(selEl){color=selEl.dataset.color||"#667eea";color_texto=selEl.dataset.txt||"#fff";}
+  }catch(e){}
+
+  // Guardar en CONTACTOS_FB como fallback local inmediato
+  if(CONTACTOS_FB[nombre]!==undefined||!id){
+    CONTACTOS_FB[nombre]={email,tel};
+  }
+
+  // Intentar guardar con telefono, sin telefono como fallback
+  const baseData={email,rol,cobertura,color,color_texto};
+  const withTel={...baseData,telefono:tel};
+
+  try{
+    let error=null;
     if(id){
-      // Editar existente
-      const{error}=await db.from("usuarios").update({email,telefono:tel,rol,cobertura,color,color_texto:texto}).eq("id",id);
-      if(error)throw new Error(error.message);
-      toast("✓ Datos actualizados");
+      // Editar
+      const r=await db.from("usuarios").update(withTel).eq("id",id);
+      if(r.error?.message?.toLowerCase().includes("telefono")){
+        // Sin columna telefono — guardar sin ella pero cachear localmente
+        const r2=await db.from("usuarios").update(baseData).eq("id",id);
+        if(r2.error)throw new Error(r2.error.message);
+        toast("✓ Datos actualizados (tel guardado localmente)","warn");
+      } else {
+        if(r.error)throw new Error(r.error.message);
+        toast("✓ Datos actualizados");
+      }
     }else{
-      // Agregar nuevo
-      const{error}=await db.from("usuarios").insert({nombre,email,telefono:tel,rol,cobertura,color,color_texto:texto});
-      if(error)throw new Error(error.message);
-      toast("✓ "+nombre+" agregado al equipo");
+      // Nuevo miembro
+      const r=await db.from("usuarios").insert({nombre,...withTel}).select();
+      if(r.error?.message?.toLowerCase().includes("telefono")){
+        const r2=await db.from("usuarios").insert({nombre,...baseData}).select();
+        if(r2.error)throw new Error(r2.error.message);
+        toast("✓ "+nombre+" agregado (tel guardado localmente)","warn");
+      } else {
+        if(r.error)throw new Error(r.error.message);
+        toast("✓ "+nombre+" agregado al equipo");
+      }
     }
     closeMod("modEquipo");
-    // Recargar teams inmediatamente
     const r=await db.from("usuarios").select("*").order("nombre");
     if(r.data){teams=r.data;renderTeam();popSelects();renderPersons();}
   }catch(e){
-    // Fallback sin columna telefono
-    if(e.message.toLowerCase().includes("telefono")){
-      try{
-        if(id){await db.from("usuarios").update({email,rol,cobertura,color,color_texto:texto}).eq("id",id);}
-        else{await db.from("usuarios").insert({nombre,email,rol,cobertura,color,color_texto:texto});}
-        closeMod("modEquipo");
-        const r=await db.from("usuarios").select("*").order("nombre");
-        if(r.data){teams=r.data;renderTeam();popSelects();renderPersons();}
-        toast("✓ Guardado (sin teléfono — ejecutá el SQL)","warn");
-        return;
-      }catch(e2){}
-    }
     toast("Error: "+e.message,"err");
     console.error("saveMember:",e);
   }
@@ -2039,7 +2099,9 @@ async function scanMedios(){
   const btn=document.getElementById("scanbtn");
   const statusEl=document.getElementById("scanstatus");
   if(btn)btn.disabled=true;
-  if(statusEl)statusEl.innerHTML='<div class="sbar scan"><div class="spin"></div><span>Buscando noticias en medios locales...</span></div>';
+  // Versión del escaner — si ves "v3-rss2json" el archivo nuevo está activo
+  console.log("scanMedios v3-rss2json iniciado");
+  if(statusEl)statusEl.innerHTML='<div class="sbar scan"><div class="spin"></div><span>Buscando noticias en medios locales... (v3)</span></div>';
 
   // Usar rss2json.com — API JSON gratuita sin problemas CORS
   // API key pública de rss2json (tier gratuito)
