@@ -538,6 +538,7 @@ html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111
 
 <div class="toast" id="toast"></div>
 <script>
+
 // ═══ CONFIG ═══
 const SB_URL="https://kvbwurvvgfarmiqtvlsc.supabase.co";
 const SB_KEY="sb_publishable_XYkrltbXO7qOj4Tz48PoJg_uh8m-zmr";
@@ -572,6 +573,8 @@ const ACC_CLR={"Municipalidad-Facebook":"#1877f2","Municipalidad-Instagram":"#e1
 // State
 const TODAY=new Date();TODAY.setHours(0,0,0,0);
 const isoToday=iso(TODAY);
+const CONTACTOS={"Marianela":{email:"marianelahut@gmail.com",tel:"5492983569618"},"Yesi":{email:"yedann86@gmail.com",tel:"5492983548005"},"Debora":{email:"Amestoydebora@gmail.com",tel:"5492983604796"},"Guada":{email:"guadalul2603@gmail.com",tel:"5492983544254"},"Maiten":{email:"maitenfaber@gmail.com",tel:"5492983560222"},"Lina":{email:"",tel:""},"Nadia":{email:"",tel:""},"Santiago":{email:"santiagogarate96@gmail.com",tel:""}};
+function getContact(n){const m=gm(n);const d=CONTACTOS[n]||{email:"",tel:""};return{email:(m&&m.email&&m.email.trim())?m.email:d.email,tel:(m&&m.telefono&&m.telefono.trim()&&m.telefono.replace(/[^0-9]/g,"").length>4)?m.telefono.replace(/[^0-9]/g,""):d.tel};}
 // Week offset = current week from START
 const _wd=Math.max(0,Math.floor((TODAY-START)/(7*86400000)));
 let db,cu,fp="",gcalOk=false,mCharts={},mAccTab="todas";
@@ -1679,4 +1682,7 @@ async function saveStats(){
   catch(e){toast("Error: "+e.message,"err");}
 }
 
-</script></body></html>
+
+</script>
+</body>
+</html>
