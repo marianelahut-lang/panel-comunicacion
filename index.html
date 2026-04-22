@@ -378,7 +378,12 @@ html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111
       </div>
 
       <div id="p-equipo" style="display:none">
-        <div class="ptop"><div><div class="ptitle">Equipo</div><div class="psub">Clic para editar datos de contacto</div></div></div>
+        <div class="ptop">
+          <div><div class="ptitle">Equipo</div><div class="psub">Clic en una persona para editar</div></div>
+          <div class="acts">
+            <button class="btn p" onclick="openNuevoMiembro()"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><path d="M12 5v14M5 12h14"/></svg>Agregar persona</button>
+          </div>
+        </div>
         <div class="tgrid" id="teamgrid"></div>
       </div>
 
@@ -561,12 +566,28 @@ html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111
 <div class="ov" id="modEquipo"><div class="mod">
   <div class="mod-t" id="emtitle">Editar integrante</div>
   <input type="hidden" id="emid">
-  <div class="fg"><label>Nombre</label><input type="text" id="emnombre" readonly style="background:#f9fafb"></div>
+  <div class="fg"><label>Nombre</label><input type="text" id="emnombre" placeholder="Nombre completo"></div>
+  <div class="fg"><label>Color</label>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px" id="emcolors">
+      <div class="copt sel" data-color="#667eea" data-txt="#fff" onclick="selEmColor(this)" style="padding:4px 10px;border-radius:20px;background:#667eea;color:#fff;font-size:11px;border:2px solid #667eea;cursor:pointer">Violeta</div>
+      <div class="copt" data-color="#ef4444" data-txt="#fff" onclick="selEmColor(this)" style="padding:4px 10px;border-radius:20px;background:#ef4444;color:#fff;font-size:11px;border:2px solid transparent;cursor:pointer">Rojo</div>
+      <div class="copt" data-color="#22c55e" data-txt="#fff" onclick="selEmColor(this)" style="padding:4px 10px;border-radius:20px;background:#22c55e;color:#fff;font-size:11px;border:2px solid transparent;cursor:pointer">Verde</div>
+      <div class="copt" data-color="#f59e0b" data-txt="#fff" onclick="selEmColor(this)" style="padding:4px 10px;border-radius:20px;background:#f59e0b;color:#fff;font-size:11px;border:2px solid transparent;cursor:pointer">Naranja</div>
+      <div class="copt" data-color="#3b82f6" data-txt="#fff" onclick="selEmColor(this)" style="padding:4px 10px;border-radius:20px;background:#3b82f6;color:#fff;font-size:11px;border:2px solid transparent;cursor:pointer">Azul</div>
+      <div class="copt" data-color="#ec4899" data-txt="#fff" onclick="selEmColor(this)" style="padding:4px 10px;border-radius:20px;background:#ec4899;color:#fff;font-size:11px;border:2px solid transparent;cursor:pointer">Rosa</div>
+      <div class="copt" data-color="#8b5cf6" data-txt="#fff" onclick="selEmColor(this)" style="padding:4px 10px;border-radius:20px;background:#8b5cf6;color:#fff;font-size:11px;border:2px solid transparent;cursor:pointer">Lila</div>
+      <div class="copt" data-color="#06b6d4" data-txt="#fff" onclick="selEmColor(this)" style="padding:4px 10px;border-radius:20px;background:#06b6d4;color:#fff;font-size:11px;border:2px solid transparent;cursor:pointer">Celeste</div>
+    </div>
+  </div>
   <div class="fg"><label>Correo</label><input type="email" id="ememail"></div>
   <div class="fg"><label>WhatsApp (con código país, solo números)</label><input type="tel" id="emtel" placeholder="Ej: 5492983569618"></div>
   <div class="fg"><label>Rol</label><select id="emrol"><option>Jefe/a de área</option><option>Responsable de equipo</option><option>Comunicador/a</option><option>Diseñador/a</option><option>Editor/a de video</option><option>Community Manager</option><option>Camarógrafo/a</option><option>Fotógrafo/a</option></select></div>
   <div class="fg"><label>¿Hace coberturas?</label><select id="emcob"><option value="1">Sí</option><option value="0">No</option></select></div>
-  <div class="mft"><button class="btn" onclick="closeMod('modEquipo')">Cancelar</button><button class="btn p" onclick="saveMember()">Guardar</button></div>
+  <div class="mft">
+    <button class="btn r" id="emdelbtn" onclick="deleteMember()" style="display:none;margin-right:auto">🗑 Eliminar</button>
+    <button class="btn" onclick="closeMod('modEquipo')">Cancelar</button>
+    <button class="btn p" onclick="saveMember()">Guardar</button>
+  </div>
 </div></div>
 
 <div class="ov" id="modProgram"><div class="mod">
@@ -801,7 +822,24 @@ async function loadAll(){
 function setupRealtime(){
   db.channel("rt")
     .on("postgres_changes",{event:"*",schema:"public",table:"tareas"},async()=>{const r=await db.from("tareas").select("*").order("created_at");if(r.data)tasks=r.data;renderKanban();renderMaterial();updateBadges();renderPersons();})
-    .on("postgres_changes",{event:"*",schema:"public",table:"publicaciones"},async()=>{const r=await db.from("publicaciones").select("*").order("fecha,hora");if(r.data)pubs=r.data;renderWeek();renderCal();renderMaterial();updateBadges();const gp=document.getElementById("p-guardias");if(gp&&gp.style.display!=="none")renderGuardias();})
+    .on("postgres_changes",{event:"*",schema:"public",table:"publicaciones"},async()=>{
+      const r=await db.from("publicaciones").select("*").order("fecha,hora");
+      if(r.data)pubs=r.data;
+      renderWeek();
+      renderCal();
+      renderMaterial();
+      updateBadges();
+      // Sync _pubGuardia from current pubs
+      if(window._pubGuardia){
+        // Remove pubs that no longer exist in DB
+        window._pubGuardia=window._pubGuardia.filter(pg=>{
+          const pubId=pg.id.replace("pub_","");
+          return pubs.find(p=>p.id===pubId);
+        });
+      }
+      const gp=document.getElementById("p-guardias");
+      if(gp&&gp.style.display!=="none")renderGuardias();
+    })
     .on("postgres_changes",{event:"*",schema:"public",table:"agenda"},async()=>{
       const agFrom=iso(addD(TODAY,-30));const agTo=iso(addD(TODAY,180));
       const r=await db.from("agenda").select("*").gte("fecha",agFrom).lte("fecha",agTo).order("fecha");
@@ -1667,47 +1705,108 @@ function renderTeam(){
   }).join("");
 }
 
+function selEmColor(el){
+  document.querySelectorAll("#emcolors .copt").forEach(e=>{e.style.border="2px solid transparent";});
+  el.style.border="2px solid #111";
+}
+function getEmColor(){
+  const sel=document.querySelector("#emcolors .copt[style*='border: 2px solid rgb(17']")||
+            document.querySelector("#emcolors .copt[style*='border:2px solid #111']")||
+            document.querySelector("#emcolors .copt:first-child");
+  return sel?{color:sel.dataset.color,texto:sel.dataset.txt||"#fff"}:{color:"#667eea",texto:"#fff"};
+}
+function setEmColor(color){
+  document.querySelectorAll("#emcolors .copt").forEach(e=>{
+    e.style.border=e.dataset.color===color?"2px solid #111":"2px solid transparent";
+  });
+}
+
+function openNuevoMiembro(){
+  document.getElementById("emtitle").textContent="Agregar persona";
+  document.getElementById("emid").value="";
+  document.getElementById("emnombre").value="";
+  document.getElementById("emnombre").removeAttribute("readonly");
+  document.getElementById("ememail").value="";
+  document.getElementById("emtel").value="";
+  document.getElementById("emrol").value="Comunicador/a";
+  document.getElementById("emcob").value="1";
+  document.getElementById("emdelbtn").style.display="none";
+  setEmColor("#667eea");
+  document.getElementById("modEquipo").classList.add("open");
+}
+
 function openEmMod(id){
   const m=teams.find(x=>x.id===id);if(!m)return;
   const c=getContact(m.nombre);
   document.getElementById("emtitle").textContent="Editar — "+m.nombre;
   document.getElementById("emid").value=id;
   document.getElementById("emnombre").value=m.nombre;
+  document.getElementById("emnombre").setAttribute("readonly","true");
   document.getElementById("ememail").value=c.email||"";
   document.getElementById("emtel").value=c.tel||"";
   document.getElementById("emrol").value=m.rol||"Comunicador/a";
   document.getElementById("emcob").value=m.cobertura?"1":"0";
+  document.getElementById("emdelbtn").style.display="inline-flex";
+  setEmColor(m.color||"#667eea");
   document.getElementById("modEquipo").classList.add("open");
 }
 
-// FIX: saveMember con manejo robusto de columna telefono
 async function saveMember(){
   const id=document.getElementById("emid").value;
-  if(!id){toast("Error: sin ID","err");return;}
+  const nombre=document.getElementById("emnombre").value.trim();
+  if(!nombre){toast("El nombre es obligatorio","err");return;}
   const tel=document.getElementById("emtel").value.trim().replace(/[^0-9]/g,"");
   const email=document.getElementById("ememail").value.trim();
   const rol=document.getElementById("emrol").value;
   const cobertura=document.getElementById("emcob").value==="1";
+  const {color,texto}=getEmColor();
   try{
-    let res=await db.from("usuarios").update({email,telefono:tel,rol,cobertura}).eq("id",id);
-    if(res.error&&res.error.message&&res.error.message.toLowerCase().includes("telefono")){
-      res=await db.from("usuarios").update({email,rol,cobertura}).eq("id",id);
-      if(res.error)throw new Error(res.error.message);
-      // Guardar tel en CONTACTOS_FB como fallback local
-      if(CONTACTOS_FB[document.getElementById("emnombre").value]){
-        CONTACTOS_FB[document.getElementById("emnombre").value].tel=tel;
-        CONTACTOS_FB[document.getElementById("emnombre").value].email=email;
-      }
-      toast("✓ Guardado (ejecutá el SQL para activar columna de teléfono)","warn");
+    if(id){
+      // Editar existente
+      const{error}=await db.from("usuarios").update({email,telefono:tel,rol,cobertura,color,color_texto:texto}).eq("id",id);
+      if(error)throw new Error(error.message);
+      toast("✓ Datos actualizados");
     }else{
-      if(res.error)throw new Error(res.error.message);
-      toast("✓ Datos guardados correctamente");
+      // Agregar nuevo
+      const{error}=await db.from("usuarios").insert({nombre,email,telefono:tel,rol,cobertura,color,color_texto:texto});
+      if(error)throw new Error(error.message);
+      toast("✓ "+nombre+" agregado al equipo");
     }
     closeMod("modEquipo");
+    // Recargar teams inmediatamente
     const r=await db.from("usuarios").select("*").order("nombre");
-    if(r.data)teams=r.data;
-    renderTeam();popSelects();
-  }catch(e){toast("Error: "+e.message,"err");console.error("saveMember:",e);}
+    if(r.data){teams=r.data;renderTeam();popSelects();renderPersons();}
+  }catch(e){
+    // Fallback sin columna telefono
+    if(e.message.toLowerCase().includes("telefono")){
+      try{
+        if(id){await db.from("usuarios").update({email,rol,cobertura,color,color_texto:texto}).eq("id",id);}
+        else{await db.from("usuarios").insert({nombre,email,rol,cobertura,color,color_texto:texto});}
+        closeMod("modEquipo");
+        const r=await db.from("usuarios").select("*").order("nombre");
+        if(r.data){teams=r.data;renderTeam();popSelects();renderPersons();}
+        toast("✓ Guardado (sin teléfono — ejecutá el SQL)","warn");
+        return;
+      }catch(e2){}
+    }
+    toast("Error: "+e.message,"err");
+    console.error("saveMember:",e);
+  }
+}
+
+async function deleteMember(){
+  const id=document.getElementById("emid").value;
+  const nombre=document.getElementById("emnombre").value;
+  if(!id)return;
+  if(!confirm(`¿Eliminar a ${nombre} del equipo?`))return;
+  try{
+    const{error}=await db.from("usuarios").delete().eq("id",id);
+    if(error)throw new Error(error.message);
+    closeMod("modEquipo");
+    toast("✓ "+nombre+" eliminado");
+    const r=await db.from("usuarios").select("*").order("nombre");
+    if(r.data){teams=r.data;renderTeam();popSelects();renderPersons();}
+  }catch(e){toast("Error: "+e.message,"err");}
 }
 
 // FIX: sendAlert usa getContact()
@@ -1749,7 +1848,9 @@ async function scanMedios(){
 - Onda Uno (ondauno.com.ar)
 - Provincia Noticias (provincianoticias.com.ar)
 
-Buscá noticias que mencionen: municipalidad de Tres Arroyos, intendente Pablo Garate, obras municipales, concejo deliberante, gestión municipal, o cualquier actividad del gobierno local.
+Buscá TODAS las noticias sobre la ciudad de Tres Arroyos que mencionen alguno de estos términos:
+municipio, municipalidad, intendente, intendente Garate, Pablo Garate, Garate, gobierno municipal, gestión municipal, concejo deliberante, obras municipales, secretaría de salud, secretaría de obras, secretaría de educación, secretaría de desarrollo social, secretaría de hacienda, dirección de cultura, subsidio municipal, licitación municipal, ordenanza, decreto municipal, Tres Arroyos ciudad, vecinos de Tres Arroyos, acto oficial, inauguración, apertura, entrega de viviendas.
+Incluí cualquier noticia relevante sobre la gestión local aunque no mencione directamente al intendente.
 
 Respondé SOLO con un JSON válido, sin texto extra, sin markdown:
 [
