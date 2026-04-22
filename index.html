@@ -111,7 +111,7 @@ html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111
 .gav{width:15px;height:15px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:6px;font-weight:700;border:1.5px solid #fff;box-shadow:0 1px 2px rgba(0,0,0,.2)}
 .wgt{font-size:8px;color:#9ca3af;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px}
 .wscroll{overflow-y:auto;flex:1}
-.hrow{display:grid;grid-template-columns:52px repeat(7,1fr);border-bottom:1px solid #f0f0f0;min-height:50px}
+.hrow{display:grid;grid-template-columns:52px repeat(7,1fr);border-bottom:1px solid #f0f0f0;min-height:64px}
 .hl{padding:3px 4px 0;font-size:9px;font-weight:600;color:#b0b0b0;text-align:right;border-right:1px solid #e5e7eb;background:#fafafa;white-space:nowrap}
 .hc{border-right:1px solid #f3f4f6;padding:2px;cursor:pointer;position:relative;min-height:50px}
 .hc:last-child{border-right:none}
@@ -566,7 +566,7 @@ const MEDIOS=[
 const MNS=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
 const MNF=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
 const DNF=["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
-const HOURS=[6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22];
+const HOURS=[7,8,9,10,11,12,13,14,15,16,17,18,19,20];
 const ACC_CLR={"Municipalidad-Facebook":"#1877f2","Municipalidad-Instagram":"#e1306c","Municipalidad-YouTube":"#ef4444","Pablo Garate-Facebook":"#0f5ca8","Pablo Garate-Instagram":"#c13584"};
 
 // State
@@ -602,9 +602,14 @@ function toast(m,t="ok"){
 }
 function closeMod(id){document.getElementById(id).classList.remove("open")}
 function matchH(h,hr){
-  if(!h||h===null||h===""||h==="null")return hr===8;
-  const n=parseInt(String(h).split(":")[0]);
-  return !isNaN(n)&&n===hr;
+  if(!h||h===null||h===""||h==="null"||h==="undefined")return hr===9; // all-day → 9am
+  const str=String(h).trim();
+  if(!str||str==="null")return hr===9;
+  const n=parseInt(str.split(":")[0]);
+  if(isNaN(n))return hr===9;
+  // If hour is outside our range (7-20), show at 9am
+  if(n<7||n>20)return hr===9;
+  return n===hr;
 }
 function fmtN(n){if(!n)return"0";if(n>=1000000)return(n/1000000).toFixed(1)+"M";if(n>=1000)return(n/1000).toFixed(1)+"K";return String(n)}
 function mail(nombre,sub,body){
@@ -860,7 +865,7 @@ function buildWeek(hdrId,scrollId,off,showPubs,showAg){
           </div>`;
         });
       }
-      row+=`<div class="hc${isT?" hct":""}${isWE?" hcw":""}" style="background:${gbg}" onclick="openPubFromCell('${ds}','${hl}')">
+      row+=`<div class="hc${isT?' hct':''}${isWE?' hcw':''}" style="background:${gbg}" onclick="openPubFromCell('${ds}','${hl}')">
         <div class="ci">${evs}</div>
         <button class="hadd" onclick="event.stopPropagation();openPubFromCell('${ds}','${hl}')">+</button>
       </div>`;
@@ -868,7 +873,7 @@ function buildWeek(hdrId,scrollId,off,showPubs,showAg){
     row+=`</div>`;body+=row;
   }
   const sc=document.getElementById(scrollId);
-  if(sc){sc.innerHTML=body;setTimeout(()=>{sc.scrollTop=(8-HOURS[0])*50;},30);}
+  if(sc){sc.innerHTML=body;setTimeout(()=>{sc.scrollTop=0;},30);}
 }
 
 // ═══ PUBLICACIONES ═══
@@ -1152,142 +1157,42 @@ async function saveMember(){
   const rol=document.getElementById("emrol").value;
   const cobertura=document.getElementById("emcob").value==="1";
   try{
-    const{error}=await db.from("usuarios").update({email,telefono:tel,rol,cobertura}).eq("id",id);
-    if(error)throw new Error(error.message);
-    closeMod("modEquipo");toast("✓ Guardado correctamente");
+    // Try with telefono first, fallback without if column missing
+    let res=await db.from("usuarios").update({email,telefono:tel,rol,cobertura}).eq("id",id);
+    if(res.error&&res.error.message.includes("telefono")){
+      // Column doesn't exist yet - save without it
+      res=await db.from("usuarios").update({email,rol,cobertura}).eq("id",id);
+      if(res.error)throw new Error(res.error.message);
+      toast("✓ Guardado (sin tel — ejecutá el SQL para agregar la columna)","warn");
+    } else {
+      if(res.error)throw new Error(res.error.message);
+      toast("✓ Guardado correctamente");
+    }
+    closeMod("modEquipo");
     const r=await db.from("usuarios").select("*").order("nombre");
     if(r.data)teams=r.data;
     renderTeam();
-  }catch(e){toast("Error guardando: "+e.message,"err");console.error("saveMember:",e);}
+  }catch(e){toast("Error: "+e.message,"err");console.error("saveMember:",e);}
 }
 function sendAlert(nombre){
   const m=gm(nombre);
   if(!m){toast("Agente no encontrado","err");return;}
-  // Try WhatsApp first if phone available
-  if(m.telefono){
-    const tel=m.telefono.replace(/[^0-9]/g,"");
-    const evs=[...agendas,...gcalEvs].filter(a=>String(a.fecha).slice(0,10)===isoToday&&!a.cancelado);
-    const ps=pubs.filter(p=>String(p.fecha).slice(0,10)===isoToday&&p.responsable===nombre);
-    const mt=tasks.filter(t=>t.responsable===m.nombre&&t.estado!=="Completo");
-    const d=parseD(isoToday);
-    let msg=`🗓️ *Alerta del día — ${DNF[d.getDay()]} ${d.getDate()} de ${MNF[d.getMonth()]}*
-
-Hola ${m.nombre}!`;
-    if(evs.length)msg+="
-
-📅 *Eventos hoy:*
-"+evs.map(e=>`• ${e.hora||""} ${e.descripcion}`).join("
-");
-    if(ps.length)msg+="
-
-📱 *Publicaciones:*
-"+ps.map(p=>{const ct=getCta(p.cuenta);return`• ${ct?.label}: ${p.descripcion.slice(0,50)}`}).join("
-");
-    if(mt.length)msg+="
-
-📋 *Tareas ("+mt.length+"):*
-"+mt.slice(0,3).map(t=>`• [${t.prioridad}] ${t.descripcion.slice(0,50)}`).join("
-");
-    msg+="
-
-🔗 Panel: https://marianelahut-lang.github.io/panel-comunicacion/";
-    window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`,"_blank");
-    toast(`✓ WhatsApp → ${m.nombre}`);
-    return;
-  }
-  if(!m.email){toast(`${nombre} sin WhatsApp ni correo`,"warn");return;}
-  const g=getGuardia(isoToday);const gi=g.indexOf(nombre);
   const evs=[...agendas,...gcalEvs].filter(a=>String(a.fecha).slice(0,10)===isoToday&&!a.cancelado);
   const ps=pubs.filter(p=>String(p.fecha).slice(0,10)===isoToday&&p.responsable===nombre);
   const mt=tasks.filter(t=>t.responsable===m.nombre&&t.estado!=="Completo");
   const d=parseD(isoToday);
-  mail(m.nombre,`🗓️ Resumen del día — ${DNF[d.getDay()]} ${d.getDate()} de ${MNF[d.getMonth()]}`,
-    `Hola ${m.nombre},${gi>=0?`\nRol hoy: ${gi===0?"titular":"soporte"} de guardia`:""}`+
-    (evs.length?"\n\nEventos:\n"+evs.map(e=>`• ${e.hora||""} ${e.descripcion}`).join("\n"):"")+
-    (ps.length?"\n\nPublicaciones:\n"+ps.map(p=>{const ct=getCta(p.cuenta);return`• ${ct?.label}: ${p.descripcion.slice(0,50)}`}).join("\n"):"")+
-    (mt.length?"\n\nTareas ("+mt.length+"):\n"+mt.slice(0,5).map(t=>`• [${t.prioridad}] ${t.descripcion.slice(0,50)}`).join("\n"):"")+
-    "\n\nPanel: https://marianelahut-lang.github.io/panel-comunicacion/"
-  );
+  const dia=DNF[d.getDay()]+" "+d.getDate()+" de "+MNF[d.getMonth()];
+  const nl="\n";
+  let msg="Alerta del dia - "+dia+nl+nl+"Hola "+m.nombre+"!";
+  if(evs.length)msg+=nl+nl+"Eventos hoy:"+nl+evs.map(e=>"- "+(e.hora||"")+" "+e.descripcion).join(nl);
+  if(ps.length)msg+=nl+nl+"Publicaciones:"+nl+ps.map(p=>{const ct=getCta(p.cuenta);return"- "+(ct?ct.label:p.cuenta)+": "+p.descripcion.slice(0,50);}).join(nl);
+  if(mt.length)msg+=nl+nl+"Tareas ("+mt.length+"):"+nl+mt.slice(0,3).map(t=>"- ["+t.prioridad+"] "+t.descripcion.slice(0,50)).join(nl);
+  msg+=nl+nl+"Panel: https://marianelahut-lang.github.io/panel-comunicacion/";
+  if(m.telefono){const tel=m.telefono.replace(/[^0-9]/g,"");window.open("https://wa.me/"+tel+"?text="+encodeURIComponent(msg),"_blank");toast("WA -> "+m.nombre);}
+  else if(m.email){mail(m.nombre,"Alerta dia - "+dia,msg);}
+  else{toast(m.nombre+" sin WA ni correo","warn");}
 }
 
-// ═══ METRICAS ═══
-function getFilteredStats(){
-  const days=parseInt(document.getElementById("mrange")?.value||7);
-  const cut=new Date(TODAY);cut.setDate(cut.getDate()-days);const cutStr=iso(cut);
-  let data=stats.filter(s=>s.fecha>=cutStr);
-  if(mAccTab!=="todas"){const[cnt,red]=mAccTab.split("-");data=data.filter(s=>s.cuenta===cnt&&s.red===red);}
-  return data;
-}
-function renderMetricas(){
-  if(!document.getElementById("metcards"))return;
-  const data=getFilteredStats();
-  const tot=f=>data.reduce((a,s)=>a+(s[f]||0),0);
-  const mets=[{i:"👁",v:tot("alcance"),l:"Alcance",bg:"#eff6ff"},{i:"❤️",v:tot("likes"),l:"Likes",bg:"#fce7f3"},{i:"💬",v:tot("comentarios"),l:"Comentarios",bg:"#f0fdf4"},{i:"🔄",v:tot("compartidos"),l:"Compartidos",bg:"#fffbeb"},{i:"▶️",v:tot("reproducciones"),l:"Reproducciones",bg:"#fee2e2"},{i:"👥",v:tot("nuevos_seguidores"),l:"Nuevos seg.",bg:"#ede9fe"}];
-  document.getElementById("metcards").innerHTML=mets.map(m=>`<div class="met"><div class="met-ico" style="background:${m.bg}">${m.i}</div><div class="met-v">${fmtN(m.v)}</div><div class="met-l">${m.l}</div></div>`).join("");
-  const tabs=[{k:"todas",l:"Todas",c:"#667eea"},...Object.entries(ACC_CLR).map(([k,c])=>({k,l:k.replace("-"," · "),c}))];
-  document.getElementById("acctabs").innerHTML=tabs.map(t=>`<button onclick="mAccTab='${t.k}';renderMetricas()" style="padding:5px 11px;border-radius:20px;font-size:10px;font-weight:500;cursor:pointer;border:1.5px solid ${mAccTab===t.k?t.c:"#e5e7eb"};background:${mAccTab===t.k?t.c:"#fff"};color:${mAccTab===t.k?"#fff":"#6b7280"};font-family:Inter,sans-serif">${t.l}</button>`).join("");
-  const days=parseInt(document.getElementById("mrange")?.value||7);
-  const dates=[];for(let i=days-1;i>=0;i--){const d=new Date(TODAY);d.setDate(d.getDate()-i);dates.push(iso(d));}
-  const dLbl=dates.map(d=>d.slice(5));
-  ["a","e","r","s"].forEach(k=>{if(mCharts[k]){mCharts[k].destroy();delete mCharts[k];}});
-  const c1=document.getElementById("chartAlcance")?.getContext("2d");
-  if(c1)mCharts.a=new Chart(c1,{type:"line",data:{labels:dLbl,datasets:[{label:"Alcance",data:dates.map(d=>data.filter(s=>s.fecha===d).reduce((a,s)=>a+(s.alcance||0),0)),borderColor:"#667eea",backgroundColor:"rgba(102,126,234,.1)",tension:.4,fill:true},{label:"Impresiones",data:dates.map(d=>data.filter(s=>s.fecha===d).reduce((a,s)=>a+(s.impresiones||0),0)),borderColor:"#a78bfa",tension:.4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{font:{size:10}}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>fmtN(v),font:{size:9}}},x:{ticks:{font:{size:9}}}}}});
-  const c2=document.getElementById("chartEng")?.getContext("2d");
-  if(c2)mCharts.e=new Chart(c2,{type:"bar",data:{labels:dLbl,datasets:[{label:"Likes",data:dates.map(d=>data.filter(s=>s.fecha===d).reduce((a,s)=>a+(s.likes||0),0)),backgroundColor:"rgba(236,72,153,.7)"},{label:"Comentarios",data:dates.map(d=>data.filter(s=>s.fecha===d).reduce((a,s)=>a+(s.comentarios||0),0)),backgroundColor:"rgba(102,126,234,.7)"}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{font:{size:10}}}},scales:{x:{stacked:true,ticks:{font:{size:9}}},y:{stacked:true,beginAtZero:true,ticks:{font:{size:9}}}}}});
-  const cut2=dates[0]||isoToday;
-  const muD=stats.filter(s=>s.cuenta==="Municipalidad"&&s.fecha>=cut2);
-  const pbD=stats.filter(s=>s.cuenta==="Pablo Garate"&&s.fecha>=cut2);
-  const ts=(arr,f)=>arr.reduce((a,s)=>a+(s[f]||0),0);
-  const c3=document.getElementById("chartRadar")?.getContext("2d");
-  if(c3)mCharts.r=new Chart(c3,{type:"radar",data:{labels:["Alcance","Likes","Comentarios","Compartidos","Reproducciones","Nuevos seg."],datasets:[{label:"Municipalidad",data:[ts(muD,"alcance"),ts(muD,"likes"),ts(muD,"comentarios"),ts(muD,"compartidos"),ts(muD,"reproducciones"),ts(muD,"nuevos_seguidores")],borderColor:"#1877f2",backgroundColor:"rgba(24,119,242,.12)"},{label:"Pablo Garate",data:[ts(pbD,"alcance"),ts(pbD,"likes"),ts(pbD,"comentarios"),ts(pbD,"compartidos"),ts(pbD,"reproducciones"),ts(pbD,"nuevos_seguidores")],borderColor:"#667eea",backgroundColor:"rgba(102,126,234,.12)"}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{font:{size:10}}}},scales:{r:{ticks:{font:{size:8}},pointLabels:{font:{size:9}}}}}});
-  const cuentas=[...new Set(stats.map(s=>s.cuenta+"-"+s.red))];
-  const c4=document.getElementById("chartSeg")?.getContext("2d");
-  if(c4)mCharts.s=new Chart(c4,{type:"line",data:{labels:dLbl,datasets:cuentas.map(key=>{const[ct,rd]=key.split("-");return{label:key,data:dates.map(d=>{const r=stats.filter(s=>s.fecha===d&&s.cuenta===ct&&s.red===rd).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at))[0];return r?.seguidores_total||null}),borderColor:ACC_CLR[key]||"#667eea",backgroundColor:"transparent",tension:.4,spanGaps:true};})},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{font:{size:9}}}},scales:{y:{ticks:{callback:v=>fmtN(v),font:{size:9}}},x:{ticks:{font:{size:9}}}}}});
-}
-function openStatsMod(){document.getElementById("sfecha").value=isoToday;document.getElementById("modStats").classList.add("open");}
-async function saveStats(){
-  const fecha=document.getElementById("sfecha").value;if(!fecha){alert("Fecha obligatoria");return}
-  const p=document.getElementById("scuenta").value.split("|");
-  await db.from("stats_redes").insert({fecha,cuenta:p[0],red:p[1],alcance:parseInt(document.getElementById("salcance").value)||0,impresiones:parseInt(document.getElementById("simpres").value)||0,likes:parseInt(document.getElementById("slikes").value)||0,comentarios:parseInt(document.getElementById("scoments").value)||0,compartidos:parseInt(document.getElementById("sshares").value)||0,reproducciones:parseInt(document.getElementById("sviews").value)||0,nuevos_seguidores:parseInt(document.getElementById("snew").value)||0,seguidores_total:parseInt(document.getElementById("stotal").value)||0,fuente:"manual"});
-  closeMod("modStats");toast("✓ Stats guardadas");
-}
-
-// ═══ MEDIOS ═══
-async function scanMedios(){
-  const btn=document.getElementById("scanbtn");btn.disabled=true;
-  btn.textContent="Escaneando...";
-  const statusEl=document.getElementById("scanstatus");
-  statusEl.innerHTML=`<div class="sbar scan"><div class="spin"></div><span>Buscando noticias en medios locales... (30-60 seg)</span></div>`;
-  // Escanea todos los medios en paralelo
-  let total=0,errors=0;
-  const promises=MEDIOS.map(async m=>{
-    try{
-      const items=await fetchMedioRSS(m);
-      let cnt=0;
-      for(const n of items){
-        const ex=noticias.find(x=>x.url&&x.url===n.url);
-        if(!ex&&n.titulo){
-          try{await db.from("noticias_medios").insert({...n,medio:m.n});cnt++;total++;}
-          catch(e){console.warn("Insert "+m.n+":",e.message);}
-        }
-      }
-      return{n:m.n,cnt,ok:true};
-    }catch(e){errors++;console.warn(m.n,":",e.message);return{n:m.n,cnt:0,ok:false};}
-  });
-  statusEl.innerHTML=`<div class="sbar scan"><div class="spin"></div><span>Analizando todos los medios en paralelo...</span></div>`;
-  const results=await Promise.all(promises);
-  const summary=results.map(r=>`${r.n.split(" ")[0]}: ${r.cnt}`).join(" | ");
-  console.log("Scan results:",summary);
-  if(total>0){
-    statusEl.innerHTML=`<div class="sbar done">✓ ${total} noticias nuevas encontradas</div>`;
-    toast(`✓ ${total} noticias nuevas`);
-  }else{
-    statusEl.innerHTML=`<div class="sbar fail">Sin noticias nuevas${errors>0?" (errores de red)":""} — Usá "+ Agregar" para cargar manualmente</div>`;
-    toast("Sin noticias nuevas","warn");
-  }
-  setTimeout(()=>statusEl.innerHTML="",8000);
-  btn.disabled=false;btn.innerHTML=`<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg> Escanear medios`;
-}
 
 async function fetchMedioRSS(medio){
   // Use allorigins.win to bypass CORS and parse RSS XML
@@ -1330,7 +1235,7 @@ async function fetchMedioRSS(medio){
     results.push({titulo:tit.slice(0,200),url:link,fecha:fechaISO,resumen:desc,tono,menciona_municipio:text.includes("municipio")||text.includes("municipalidad")||text.includes("tres arroyos"),menciona_pablo:text.includes("pablo garate")||text.includes("garate")});
   }
   if(results.length>0)return results;
-  } // end for urls
+  } // end for urls loop
   return[];
 }
 
