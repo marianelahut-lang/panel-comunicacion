@@ -1,4 +1,4 @@
-PANEL = '''<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -72,7 +72,6 @@ html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111
 .ptitle{font-size:17px;font-weight:700;color:#111827}
 .psub{font-size:11px;color:#6b7280;margin-top:2px}
 .acts{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-/* KANBAN */
 .kanban{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;align-items:flex-start}
 .kcol{flex:0 0 220px;border-radius:10px;overflow:hidden;background:#f9fafb;border:1px solid #e5e7eb}
 .khdr{padding:9px 11px;display:flex;align-items:center;justify-content:space-between}
@@ -96,7 +95,6 @@ html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111
 .tc-f{display:flex;align-items:center;justify-content:space-between;gap:4px}
 .tg{font-size:9px;padding:2px 5px;border-radius:4px;font-weight:500}
 .tga{background:#fee2e2;color:#dc2626}.tgm{background:#fffbeb;color:#d97706}.tgb{background:#f0fdf4;color:#16a34a}
-/* WEEKLY */
 .wshell{display:flex;flex-direction:column;background:#fff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;flex:1;min-height:400px}
 .whdr{display:grid;grid-template-columns:60px repeat(7,1fr);border-bottom:2px solid #e5e7eb;background:#fff;flex-shrink:0}
 .wgut{background:#f9fafb;border-right:1px solid #e5e7eb}
@@ -136,11 +134,9 @@ html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111
 .wleg{display:flex;gap:8px;flex-wrap:wrap;padding:5px 10px;background:#fafafa;border-top:1px solid #f3f4f6;flex-shrink:0;font-size:9px;color:#6b7280}
 .leg{display:flex;align-items:center;gap:3px}
 .ld{width:7px;height:7px;border-radius:2px}
-/* TEAM */
 .tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px}
 .tmcard{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:13px;text-align:center;cursor:pointer}
 .tmcard:hover{box-shadow:0 4px 14px rgba(0,0,0,.09)}
-/* GUARDIAS */
 .gwtbl{background:#fff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden}
 .gwh{display:grid;grid-template-columns:repeat(7,1fr);background:#f9fafb;border-bottom:1px solid #e5e7eb}
 .gwhi{padding:7px 4px;font-size:9px;font-weight:700;text-transform:uppercase;color:#6b7280;text-align:center;border-right:1px solid #e5e7eb}
@@ -156,7 +152,6 @@ html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111
 .gwevs{font-size:9px;color:#1e40af;line-height:1.6;margin-top:4px;text-align:left}
 .gwnb{margin-top:5px;width:100%;padding:4px;border-radius:5px;border:1px solid #e5e7eb;background:#fff;font-size:9px;color:#6b7280;cursor:pointer;font-family:Inter,sans-serif;font-weight:500}
 .gwnb:hover{background:#667eea;color:#fff;border-color:#667eea}
-/* METRICAS */
 .metrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
 .met{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:12px}
 .met-ico{font-size:18px;margin-bottom:6px}
@@ -166,7 +161,6 @@ html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111
 .cbox{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:13px}
 .cbox-t{font-size:12px;font-weight:600;margin-bottom:10px}
 .ch{position:relative;height:200px}
-/* MEDIOS */
 .meds{background:#fff;border:1px solid #e5e7eb;border-radius:9px;padding:10px 11px;display:flex;align-items:center;gap:10px}
 .meds-logo{width:36px;height:36px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
 .meds-bar{height:3px;background:#f3f4f6;border-radius:2px;margin-top:5px}
@@ -189,7 +183,6 @@ html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111
 .sbar.fail{background:#fef2f2;border:1px solid #fca5a5;color:#dc2626}
 .spin{width:13px;height:13px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
 @keyframes spin{to{transform:rotate(360deg)}}
-/* MODAL */
 .ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:500;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(3px)}
 .ov.open{display:flex}
 .mod{background:#fff;border-radius:14px;padding:22px;width:min(480px,100%);max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2)}
@@ -274,7 +267,7 @@ html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111
       <button class="sbi on" onclick="nav('tablero',null,this)"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Tablero<span class="sbadge hot" id="sbt">0</span></button>
       <button class="sbi" onclick="nav('material',null,this)"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Material<span class="sbadge" id="sbm">0</span></button>
       <button class="sbi" onclick="nav('publicaciones',null,this)"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>Publicaciones</button>
-      <button class="sbi" onclick="nav('calendario',null,this)"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Calendario<span class="sbadge big" id="sbag">0</span></button>
+      <button class="sbi" onclick="nav('calendario',null,this)"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Calendario<span class="sbadge" id="sbag">0</span></button>
       <div class="div"></div>
       <div class="sb-sec">Equipo</div>
       <button class="sbi" onclick="nav('guardias',null,this)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Guardias</button>
@@ -287,7 +280,6 @@ html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111
     </aside>
 
     <div class="content" id="main">
-      <!-- TABLERO -->
       <div id="p-tablero">
         <div class="ptop">
           <div><div class="ptitle">Tablero de tareas</div><div class="psub" id="tsub"></div></div>
@@ -300,13 +292,11 @@ html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111
         <div class="kanban" id="kanban"></div>
       </div>
 
-      <!-- MATERIAL -->
       <div id="p-material" style="display:none">
         <div class="ptop"><div><div class="ptitle">Material disponible para publicar</div><div class="psub">Tareas listas — programalas en redes</div></div></div>
         <div class="mgrid" id="matgrid"></div>
       </div>
 
-      <!-- PUBLICACIONES -->
       <div id="p-publicaciones" style="display:none;flex-direction:column;gap:10px;height:100%">
         <div class="ptop">
           <div><div class="ptitle">Publicaciones</div><div class="psub" id="pubsub"></div></div>
@@ -328,13 +318,10 @@ html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111
             <span class="leg"><span class="ld" style="background:#c13584"></span>IG Pablo</span>
             <span class="leg"><span class="ld" style="background:#15803d"></span>TK Pablo</span>
             <span class="leg"><span class="ld" style="background:#25d366"></span>WA Pablo</span>
-            <span class="leg"><span class="ld" style="background:#3b82f6"></span>Intendente</span>
-            <span class="leg"><span class="ld" style="background:#ec4899"></span>Prensa</span>
           </div>
         </div>
       </div>
 
-      <!-- CALENDARIO -->
       <div id="p-calendario" style="display:none;flex-direction:column;gap:10px;height:100%">
         <div class="ptop">
           <div><div class="ptitle">Calendario</div><div class="psub" id="calsub">Sin sincronización activa</div></div>
@@ -354,30 +341,26 @@ html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111
             <span class="leg"><span class="ld" style="background:#3b82f6"></span>Intendente</span>
             <span class="leg"><span class="ld" style="background:#ec4899"></span>Prensa</span>
             <span class="leg"><span class="ld" style="background:#22c55e"></span>Municipal</span>
-            <span class="leg"><span class="ld" style="background:#8b5cf6"></span>Publicación</span>
           </div>
         </div>
       </div>
 
-      <!-- GUARDIAS -->
       <div id="p-guardias" style="display:none">
         <div class="ptop">
           <div><div class="ptitle">Guardias semanales</div><div class="psub">Santiago: gestión sin coberturas de campo</div></div>
           <div class="acts">
             <select id="gwsel" onchange="renderGuardias()" style="font-size:11px;padding:5px 8px;border-radius:6px;border:1.5px solid #e5e7eb;font-family:Inter,sans-serif;outline:none"></select>
-            <button class="btn p" onclick="notifyWeek()">Notificar semana</button>
+            <button class="btn p" onclick="notifyWeek()">📧 Notificar semana</button>
           </div>
         </div>
         <div id="gwcontent"></div>
       </div>
 
-      <!-- EQUIPO -->
       <div id="p-equipo" style="display:none">
         <div class="ptop"><div><div class="ptitle">Equipo</div><div class="psub">Clic para editar datos de contacto</div></div></div>
         <div class="tgrid" id="teamgrid"></div>
       </div>
 
-      <!-- METRICAS -->
       <div id="p-metricas" style="display:none">
         <div class="ptop">
           <div><div class="ptitle">Métricas de redes sociales</div><div class="psub">Municipalidad y Pablo Garate</div></div>
@@ -404,7 +387,6 @@ html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111
         </div>
       </div>
 
-      <!-- MEDIOS -->
       <div id="p-medios" style="display:none">
         <div class="ptop">
           <div><div class="ptitle">Monitoreo de medios</div><div class="psub">Noticias sobre el municipio y Pablo Garate</div></div>
@@ -459,7 +441,7 @@ html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111
     <div class="fg"><label>Responsable</label><select id="presp"><option value="">Sin asignar</option></select></div>
   </div>
   <div class="fr">
-    <div class="fg"><label>Colaboración (secretaría, dirección, área)</label><input type="text" id="pcolab" placeholder="Ej: Secretaría de Obras, Dirección de Salud..."></div>
+    <div class="fg"><label>Colaboración</label><input type="text" id="pcolab" placeholder="Ej: Secretaría de Obras..."></div>
     <div class="fg"><label>Estado</label><select id="pest"><option>Pendiente</option><option>En producción</option><option>Listo</option><option>Publicado</option></select></div>
   </div>
   <div class="mft"><button class="btn" onclick="closeMod('modPub')">Cancelar</button><button class="btn p" onclick="savePub()">Guardar</button></div>
@@ -485,7 +467,7 @@ html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111
   <input type="hidden" id="emid">
   <div class="fg"><label>Nombre</label><input type="text" id="emnombre" readonly style="background:#f9fafb"></div>
   <div class="fg"><label>Correo</label><input type="email" id="ememail"></div>
-  <div class="fg"><label>WhatsApp (con código país)</label><input type="tel" id="emtel" placeholder="Ej: 5492983569618"></div>
+  <div class="fg"><label>WhatsApp (con código país, solo números)</label><input type="tel" id="emtel" placeholder="Ej: 5492983569618"></div>
   <div class="fg"><label>Rol</label><select id="emrol"><option>Jefe/a de área</option><option>Responsable de equipo</option><option>Comunicador/a</option><option>Diseñador/a</option><option>Editor/a de video</option><option>Community Manager</option><option>Camarógrafo/a</option><option>Fotógrafo/a</option></select></div>
   <div class="fg"><label>¿Hace coberturas?</label><select id="emcob"><option value="1">Sí</option><option value="0">No</option></select></div>
   <div class="mft"><button class="btn" onclick="closeMod('modEquipo')">Cancelar</button><button class="btn p" onclick="saveMember()">Guardar</button></div>
@@ -537,8 +519,8 @@ html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111
 </div></div>
 
 <div class="toast" id="toast"></div>
-<script>
 
+<script>
 // ═══ CONFIG ═══
 const SB_URL="https://kvbwurvvgfarmiqtvlsc.supabase.co";
 const SB_KEY="sb_publishable_XYkrltbXO7qOj4Tz48PoJg_uh8m-zmr";
@@ -573,13 +555,33 @@ const ACC_CLR={"Municipalidad-Facebook":"#1877f2","Municipalidad-Instagram":"#e1
 // State
 const TODAY=new Date();TODAY.setHours(0,0,0,0);
 const isoToday=iso(TODAY);
-const CONTACTOS={"Marianela":{email:"marianelahut@gmail.com",tel:"5492983569618"},"Yesi":{email:"yedann86@gmail.com",tel:"5492983548005"},"Debora":{email:"Amestoydebora@gmail.com",tel:"5492983604796"},"Guada":{email:"guadalul2603@gmail.com",tel:"5492983544254"},"Maiten":{email:"maitenfaber@gmail.com",tel:"5492983560222"},"Lina":{email:"",tel:""},"Nadia":{email:"",tel:""},"Santiago":{email:"santiagogarate96@gmail.com",tel:""}};
-function getContact(n){const m=gm(n);const d=CONTACTOS[n]||{email:"",tel:""};return{email:(m&&m.email&&m.email.trim())?m.email:d.email,tel:(m&&m.telefono&&m.telefono.trim()&&m.telefono.replace(/[^0-9]/g,"").length>4)?m.telefono.replace(/[^0-9]/g,""):d.tel};}
-// Week offset = current week from START
+
+// FIX: contactos hardcodeados como fallback (se usan si la DB no tiene el dato)
+const CONTACTOS_FB={
+  "Marianela":{email:"marianelahut@gmail.com",tel:"5492983569618"},
+  "Yesi":{email:"yedann86@gmail.com",tel:"5492983548005"},
+  "Debora":{email:"Amestoydebora@gmail.com",tel:"5492983604796"},
+  "Guada":{email:"guadalul2603@gmail.com",tel:"5492983544254"},
+  "Maiten":{email:"maitenfaber@gmail.com",tel:"5492983560222"},
+  "Lina":{email:"",tel:""},
+  "Nadia":{email:"",tel:""},
+  "Santiago":{email:"santiagogarate96@gmail.com",tel:""}
+};
+
+// FIX: getContact ahora prioriza DB, cae a fallback si está vacío
+function getContact(nombre){
+  const m=gm(nombre);
+  const fb=CONTACTOS_FB[nombre]||{email:"",tel:""};
+  const email=(m&&m.email&&m.email.trim())?m.email:fb.email;
+  const telRaw=(m&&m.telefono&&String(m.telefono).trim())?String(m.telefono):fb.tel;
+  const tel=telRaw.replace(/[^0-9]/g,"");
+  return{email,tel};
+}
+
 const _wd=Math.max(0,Math.floor((TODAY-START)/(7*86400000)));
 let db,cu,fp="",gcalOk=false,mCharts={},mAccTab="todas";
 let pwO=_wd,calWO=_wd;
-let gcalEvs=[]; // Google Calendar events in memory ONLY
+let gcalEvs=[];
 let teams=[],tasks=[],agendas=[],pubs=[],stats=[],noticias=[];
 
 // ═══ UTILS ═══
@@ -587,7 +589,6 @@ function iso(d){return d.toISOString().split("T")[0]}
 function addD(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r}
 function parseD(s){return new Date(s+"T00:00:00")}
 function dayAge(c){if(!c)return 0;return Math.floor((TODAY-parseD(c))/86400000)}
-function ageCls(c){const a=dayAge(c);return a<=7?"":"a1"+(a>14?"2":"")}
 function ini(n){return(n||"?").slice(0,2).toUpperCase()}
 function gm(n){return teams.find(m=>m.nombre===(n||"").trim())}
 function av(m,sz=20){if(!m)return`<div style="width:${sz}px;height:${sz}px;border-radius:50%;background:#e5e7eb;flex-shrink:0"></div>`;return`<div style="width:${sz}px;height:${sz}px;border-radius:50%;background:${m.color};color:${m.color_texto};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:${Math.floor(sz*.42)}px;flex-shrink:0">${ini(m.nombre)}</div>`}
@@ -610,16 +611,22 @@ function matchH(h,hr){
   if(!str||str==="null"||str==="undefined")return hr===9;
   const n=parseInt(str.split(":")[0]);
   if(isNaN(n))return hr===9;
-  if(n<8)return hr===8;   // before 8am → show at 8am
-  if(n>20)return hr===20; // after 8pm → show at 20
+  if(n<8)return hr===8;
+  if(n>20)return hr===20;
   return n===hr;
 }
 function fmtN(n){if(!n)return"0";if(n>=1000000)return(n/1000000).toFixed(1)+"M";if(n>=1000)return(n/1000).toFixed(1)+"K";return String(n)}
+
+// FIX: mail ahora usa getContact() en vez de buscar m.email directamente
 function mail(nombre,sub,body){
-  const m=gm(nombre);if(!m?.email)return toast(`${nombre} sin correo`,"warn");
-  const a=document.createElement("a");a.href=`mailto:${m.email}?subject=${encodeURIComponent(sub)}&body=${encodeURIComponent(body)}`;a.style.display="none";document.body.appendChild(a);a.click();setTimeout(()=>a.remove(),300);
-  toast(`✓ Mail → ${m.nombre}`);
+  const c=getContact(nombre);
+  if(!c.email){toast(`${nombre} sin correo`,"warn");return;}
+  const a=document.createElement("a");
+  a.href=`mailto:${c.email}?subject=${encodeURIComponent(sub)}&body=${encodeURIComponent(body)}`;
+  a.style.display="none";document.body.appendChild(a);a.click();setTimeout(()=>a.remove(),300);
+  toast(`✓ Mail → ${nombre}`);
 }
+
 function popSelects(){
   ["fresp","agresp","presp","progresp"].forEach(id=>{
     const s=document.getElementById(id);if(!s)return;
@@ -659,6 +666,7 @@ async function initApp(){
     db=supabase.createClient(SB_URL,SB_KEY);
     await loadAll();
     setLive(true);
+    // FIX: popSelects y renderTeam DESPUÉS de cargar teams
     popSelects();
     renderAll();
     setupRealtime();
@@ -684,7 +692,6 @@ async function loadAll(){
   if(ta.data)tasks=ta.data;
   if(ag.data)agendas=ag.data;
   if(pu.data)pubs=pu.data;
-  // Optional tables
   try{const r=await db.from("stats_redes").select("*").order("fecha,cuenta");if(r.data)stats=r.data;}catch(e){}
   try{const r=await db.from("noticias_medios").select("*").order("created_at",{ascending:false});if(r.data)noticias=r.data;}catch(e){}
 }
@@ -703,21 +710,23 @@ function renderAll(){
   try{renderMaterial();}catch(e){}
   try{renderWeek();}catch(e){}
   try{renderCal();}catch(e){}
-  try{renderTeam();}catch(e){}
+  try{renderTeam();}catch(e){console.error("renderTeam:",e);}
   try{initGuardias();}catch(e){}
-  try{if(typeof renderMetricas==='function')renderMetricas();}catch(e){}
-  try{if(typeof renderNoticias==='function')renderNoticias();}catch(e){}
-  try{if(typeof renderMedioSum==='function')renderMedioSum();}catch(e){}
+  try{renderMetricas();}catch(e){}
+  try{renderNoticias();}catch(e){}
+  try{renderMedioSum();}catch(e){}
 }
 function updateBadges(){
   const p=tasks.filter(t=>t.estado!=="Completo").length;
   const m=tasks.filter(t=>t.estado==="Listo s/publicar").length;
-  const a=[...agendas,...gcalEvs].filter(a=>!a.cancelado).length;
+  // FIX: contador calendario = agendas + gcalEvs SIN duplicados por id
+  const allEvIds=new Set();
+  const allEvCount=[...agendas,...gcalEvs].filter(a=>{if(a.cancelado||allEvIds.has(a.id))return false;allEvIds.add(a.id);return true;}).length;
   document.getElementById("sbt").textContent=p;
   document.getElementById("sbt").className="sbadge"+(p>5?" hot":"");
   document.getElementById("sbm").textContent=m;
-  document.getElementById("sbag").textContent=a;
-  document.getElementById("tsub").textContent=`${tasks.filter(t=>t.estado!=="Completo").length} activas`;
+  document.getElementById("sbag").textContent=allEvCount;
+  document.getElementById("tsub").textContent=`${p} activas`;
 }
 
 // ═══ NAVIGATION ═══
@@ -726,13 +735,13 @@ function nav(id,tab,sb){
   PAGES.forEach(p=>{const el=document.getElementById("p-"+p);if(el)el.style.display=p===id?(["publicaciones","calendario"].includes(p)?"flex":"block"):"none";});
   document.querySelectorAll(".ntab,.sbi").forEach(b=>b.classList.remove("on"));
   if(tab)tab.classList.add("on");if(sb)sb.classList.add("on");
-  const ti=["tablero","material","publicaciones","calendario","guardias","equipo","metricas","medios"].indexOf(id);
-  const tabs=document.querySelectorAll(".ntab");if(ti>=0&&tabs[ti])tabs[ti].classList.add("on");
-  const si=["tablero","material","publicaciones","calendario","guardias","equipo","metricas","medios"].indexOf(id);
-  const sbis=document.querySelectorAll(".sbi");if(si>=0&&sbis[si])sbis[si].classList.add("on");
+  const ti=PAGES.indexOf(id);const tabs=document.querySelectorAll(".ntab");if(ti>=0&&tabs[ti])tabs[ti].classList.add("on");
+  const sbis=document.querySelectorAll(".sbi");if(ti>=0&&sbis[ti])sbis[ti].classList.add("on");
   if(id==="guardias")initGuardias();
-  if(id==="metricas"&&typeof renderMetricas==="function")renderMetricas();
+  if(id==="metricas")renderMetricas();
   if(id==="medios"){renderNoticias();renderMedioSum();}
+  // FIX: forzar renderTeam al entrar a equipo
+  if(id==="equipo")renderTeam();
 }
 function renderPersons(){
   document.getElementById("sbpersons").innerHTML=teams.map(m=>`
@@ -757,21 +766,22 @@ function renderKanban(){
   const COLS=[{id:"Pendiente",cls:"p1",lbl:"Pendiente"},{id:"En proceso",cls:"p2",lbl:"En proceso"},{id:"Listo s/publicar",cls:"p3",lbl:"Listo"}];
   document.getElementById("kanban").innerHTML=COLS.map(col=>{
     const ct=ft.filter(t=>t.estado===col.id);
+    const a=dayAge;
     return`<div class="kcol">
       <div class="khdr ${col.cls}"><div class="kt"><div class="kd"></div>${col.lbl}</div><span class="kc">${ct.length}</span></div>
       <div class="kbody">
         ${ct.map(t=>{
-          const m=gm(t.responsable);const a=dayAge(t.created_at);const ac=a>14?"a2":a>7?"a1":"";
+          const m=gm(t.responsable);const age=dayAge(t.created_at);const ac=age>14?"a2":age>7?"a1":"";
           return`<div class="tc ${ac}" onclick="editTask('${t.id}')">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:4px">
               <div class="tc-t" style="flex:1">${t.descripcion}</div>
-              <button onclick="event.stopPropagation();deleteTask('${t.id}','${t.descripcion.replace(/'/g,"\'").slice(0,30)}')" style="background:none;border:none;cursor:pointer;color:#d1d5db;font-size:13px;padding:0;line-height:1;flex-shrink:0" title="Borrar tarea">✕</button>
+              <button onclick="event.stopPropagation();deleteTask('${t.id}','${t.descripcion.replace(/'/g,"\\'").slice(0,30)}')" style="background:none;border:none;cursor:pointer;color:#d1d5db;font-size:13px;padding:0;line-height:1;flex-shrink:0" title="Borrar">✕</button>
             </div>
             ${t.observaciones?`<div style="font-size:9px;color:#9ca3af;margin-bottom:3px;font-style:italic">${t.observaciones}</div>`:""}
             <div class="tc-f">
               <span class="tg ${t.prioridad==="Alta"?"tga":t.prioridad==="Baja"?"tgb":"tgm"}">${t.prioridad}</span>
               <div style="display:flex;align-items:center;gap:4px">
-                <span style="font-size:9px;color:#9ca3af">${a}d</span>
+                <span style="font-size:9px;color:#9ca3af">${age}d</span>
                 ${m?av(m,18):`<span style="font-size:9px;color:#d97706;background:#fffbeb;padding:1px 5px;border-radius:4px">Sin asig.</span>`}
               </div>
             </div>
@@ -790,16 +800,11 @@ function openTaskMod(id=null,def=null){
   else{["fdesc","fobs"].forEach(i=>document.getElementById(i).value="");document.getElementById("fresp").value="";document.getElementById("fprio").value="Alta";document.getElementById("fest").value=def||"Pendiente";}
   document.getElementById("modTask").classList.add("open");
 }
-async function deleteTask(id, desc){
+async function deleteTask(id,desc){
   if(!confirm("¿Borrar la tarea: "+desc+"...?"))return;
-  try{
-    const{error}=await db.from("tareas").delete().eq("id",id);
-    if(error)throw new Error(error.message);
-    toast("✓ Tarea borrada");
-  }catch(e){toast("Error: "+e.message,"err");}
+  try{const{error}=await db.from("tareas").delete().eq("id",id);if(error)throw new Error(error.message);toast("✓ Tarea borrada");}
+  catch(e){toast("Error: "+e.message,"err");}
 }
-
-
 function editTask(id){openTaskMod(id)}
 async function saveTask(){
   const desc=document.getElementById("fdesc").value.trim();if(!desc){alert("Descripción obligatoria");return}
@@ -862,23 +867,25 @@ function buildWeek(hdrId,scrollId,off,showPubs,showAg){
       const guards=getGuardia(ds);
       const gbg=guards.length>0?(gm(guards[0])||{color:"transparent"}).color+"10":"transparent";
       let evs="";
-      // Agenda events (manual + gcal)
       if(showAg){
+        // FIX: deduplicar eventos por id antes de renderizar
+        const seen=new Set();
         [...agendas,...gcalEvs].filter(a=>{
           const af=String(a.fecha).slice(0,10);
           if(af!==ds||a.cancelado)return false;
+          if(seen.has(a.id))return false;
+          seen.add(a.id);
           return matchH(a.hora,hr);
         }).forEach(e=>{
+          // FIX: mapeo de tipo a clase CSS correcto
           const cls=e.tipo==="prensa"?"ep":e.tipo==="municipal"?"em":"ei";
           const icon=e.tipo==="prensa"?"📻":e.tipo==="municipal"?"🏛":"🗓";
-          const gcid=e.gcal?e.id.replace("gc_",""):"";
           evs+=`<div class="ev ${cls}" title="${e.descripcion}${e.lugar?" — "+e.lugar:""}${e.gcal?" [GCal]":""}">
             <div class="ev-t">${icon} ${e.descripcion}</div>
-            <div class="ev-s">${e.hora?e.hora+" ":""}${e.lugar||""}${e.responsable?" · "+e.responsable:""}</div>
+            <div class="ev-s">${e.hora?e.hora.slice(0,5)+" ":""}${e.lugar||""}${e.responsable?" · "+e.responsable:""}</div>
           </div>`;
         });
       }
-      // Publications
       if(showPubs){
         pubs.filter(p=>{
           const pf=String(p.fecha).slice(0,10);
@@ -974,7 +981,10 @@ function renderCal(){
   const mon=weekMon(calWO),sun=addD(mon,6);
   const lbl=mon.getMonth()===sun.getMonth()?`${mon.getDate()} — ${sun.getDate()} de ${MNF[mon.getMonth()]} ${mon.getFullYear()}`:`${mon.getDate()} ${MNS[mon.getMonth()]} — ${sun.getDate()} ${MNS[sun.getMonth()]} ${sun.getFullYear()}`;
   const lel=document.getElementById("callbl");if(lel)lel.textContent=lbl;
-  const sel=document.getElementById("calsub");if(sel)sel.textContent=gcalOk?`Sincronizado · ${gcalEvs.length} eventos`:"Sin sincronización activa";
+  // FIX: mostrar contador REAL de gcalEvs (sin contar duplicados de agenda)
+  const totalEvs=gcalEvs.filter(e=>!e.cancelado).length + agendas.filter(a=>!a.cancelado).length;
+  const sel=document.getElementById("calsub");
+  if(sel)sel.textContent=gcalOk?`Sincronizado · ${gcalEvs.length} eventos GCal · ${agendas.length} manuales`:"Sin sincronización activa";
   const ban=document.getElementById("calbanner");
   if(ban)ban.innerHTML=!gcalOk?`<div class="ibanner">📅 Sincronizá el calendario del Intendente para ver todos los eventos.<button class="btn p sm" style="margin-left:auto" onclick="syncGCal()">Sincronizar</button></div>`:"";
   buildWeek("calwhdr","calwscroll",calWO,true,true);
@@ -1006,11 +1016,18 @@ async function syncGCal(){
       const data=await res.json();
       all=[...all,...(data.items||[])];
       next=data.nextPageToken||null;
-      txt.textContent=`Cargando... ${all.length} eventos`;
+      txt.textContent=`Cargando... ${all.length}`;
     }while(next);
-    // Store in memory — NO Supabase writes
-    gcalEvs=[];
+
+    // FIX: deduplicar por item.id ANTES de procesar
+    const seen=new Map();
     for(const item of all){
+      if(!seen.has(item.id))seen.set(item.id,item);
+    }
+    const uniqueItems=[...seen.values()];
+
+    gcalEvs=[];
+    for(const item of uniqueItems){
       if(item.status==="cancelled")continue;
       const s=item.start?.dateTime||item.start?.date||"";if(!s)continue;
       const fecha=s.split("T")[0];
@@ -1018,34 +1035,35 @@ async function syncGCal(){
       const desc=(item.summary||"(Sin título)").slice(0,200);
       const lugar=(item.location||"").slice(0,200);
       const dl=desc.toLowerCase();
-      // Broad prensa detection
-      // Google Calendar colorId: flamingo=4, tomato=11, banana=5, sage=2, basil=10
-      // Pink/red colorIds indicate prensa events
-      const colorId=item.colorId||"";
-      const esColorPrensaId=["4","11","3","6","1"].includes(colorId); // flamingo, tomato, tangerine, grape, lavender
-      const esColorPrensaName=(item.color||"").toLowerCase().includes("pink")||(item.color||"").toLowerCase().includes("flamingo")||(item.color||"").toLowerCase().includes("tomato");
-      const esPrensaKW=dl.includes("radio")||dl.includes("entrevista")||dl.includes("prensa")||
-        dl.includes("lu24")||dl.includes("la voz")||dl.includes("onda")||dl.includes("diario")||
+
+      // FIX: detección de prensa mejorada — colorId de Google Calendar:
+      // 4=Flamingo(rosa), 11=Tomato(rojo), 3=Grape, 6=Tangerine, 1=Lavender
+      const colorId=String(item.colorId||"");
+      const esColorPrensa=["4","11"].includes(colorId);
+
+      const esPrensaKW=
+        dl.includes("radio")||dl.includes("entrevista")||dl.includes("prensa")||
+        dl.includes("lu24")||dl.includes("la voz")||dl.includes("onda uno")||dl.includes("diario")||
         dl.includes("nota")||dl.includes("medio")||dl.includes("canal")||dl.includes("tv")||
-        dl.includes("fm ")||dl.includes(" am ")||dl.includes("programa")||dl.includes("ciclo")||
-        dl.includes("televis")||dl.includes("columna")||dl.includes("periodis")||dl.includes("señal")||
-        dl.includes("senal")||dl.includes("cobertura")||dl.includes("reportaje")||dl.includes("105")||
-        dl.includes("103")||dl.includes("107")||dl.includes("98.")||dl.includes("91.")||
-        dl.includes("frecuencia")||dl.includes("locutor")||dl.includes("conductor")||
-        dl.includes("micro")||dl.includes("bloque")||dl.includes("emisor")||
+        dl.includes("fm ")||dl.includes(" am ")||dl.includes("programa ")||dl.includes("ciclo")||
+        dl.includes("televis")||dl.includes("columna")||dl.includes("periodis")||
+        dl.includes("cobertura")||dl.includes("reportaje")||
         dl.includes("olivera")||dl.includes("scarabotti")||dl.includes("voz del pueblo")||
-        dl.includes("ciclo informativo")||dl.includes("laporte")||dl.includes("peco")||
+        dl.includes("laporte")||dl.includes("peco")||
         dl.includes("entrevistar")||dl.includes("periodico")||dl.includes("reporter");
-      const tipo=(esColorPrensaId||esColorPrensaName||esPrensaKW)?"prensa":"intendente";
+
+      const tipo=(esColorPrensa||esPrensaKW)?"prensa":"intendente";
       gcalEvs.push({id:"gc_"+item.id,fecha,hora,descripcion:desc,lugar,tipo,cancelado:false,gcal:true});
     }
-    gcalOk=true;btn.className="gcbtn ok";txt.textContent=`Calendar · ${gcalEvs.length}`;
-    console.log("GCal sync: "+gcalEvs.length+" eventos en memoria");
-    console.log("Prensa events:", gcalEvs.filter(e=>e.tipo==="prensa").length);
-    console.log("Fechas únicas:", [...new Set(gcalEvs.map(e=>e.fecha))].sort().join(", "));
+
+    gcalOk=true;
+    btn.className="gcbtn ok";
+    // FIX: mostrar contador real (sin duplicados)
+    const presnaCount=gcalEvs.filter(e=>e.tipo==="prensa").length;
+    txt.textContent=`GCal · ${gcalEvs.length} (${presnaCount} prensa)`;
+    console.log(`GCal: ${all.length} raw → ${gcalEvs.length} únicos (${presnaCount} prensa)`);
     renderCal();renderWeek();updateBadges();
-    toast(`✓ ${gcalEvs.length} eventos sincronizados`);
-    // Auto-resync every 5 min
+    toast(`✓ ${gcalEvs.length} eventos sincronizados (${presnaCount} prensa)`);
     if(!syncGCal._iv)syncGCal._iv=setInterval(syncGCal,5*60*1000);
   }catch(err){
     gcalOk=false;btn.className="gcbtn";txt.textContent="Sincronizar Calendar";
@@ -1054,36 +1072,6 @@ async function syncGCal(){
   }
 }
 
-// Auto-sync: Pablo + prensa events after 15:00 → publicaciones
-async function autoSyncPubs(){
-  if(!db||!gcalEvs.length)return;
-  const todayStr=iso(TODAY);
-  const nextStr=iso(addD(TODAY,14));
-  const targets=gcalEvs.filter(e=>{
-    if(e.fecha<todayStr||e.fecha>nextStr)return false;
-    if(!e.hora)return false;
-    const h=parseInt(String(e.hora).split(":")[0]);
-    if(h<15)return false;
-    const esPablo=e.descripcion.toLowerCase().includes("pablo")||e.descripcion.toLowerCase().includes("garate");
-    return esPablo||e.tipo==="prensa";
-  });
-  if(!targets.length)return;
-  try{
-    const ex=await db.from("publicaciones").select("descripcion,fecha").gte("fecha",todayStr);
-    const keys=new Set((ex.data||[]).map(p=>p.fecha+"|"+p.descripcion.slice(0,30)));
-    let added=0;
-    for(const ev of targets){
-      const k=ev.fecha+"|"+ev.descripcion.slice(0,30);
-      if(keys.has(k))continue;
-      const esPablo=ev.descripcion.toLowerCase().includes("pablo")||ev.descripcion.toLowerCase().includes("garate");
-      const g=getGuardia(ev.fecha);const resp=g.length>0?(gm(g[0])||{nombre:""}).nombre:"";
-      await db.from("publicaciones").insert({fecha:ev.fecha,hora:ev.hora,descripcion:ev.descripcion+(ev.lugar?" — "+ev.lugar:""),cuenta:esPablo?"ig-p":"ig-m",tipo:"Streaming",responsable:resp,colaboracion:"",estado:"Pendiente"});
-      added++;
-    }
-    if(added>0){toast(`✓ ${added} publicaciones auto-sincronizadas`);renderWeek();}
-  }catch(e){console.warn("autoSyncPubs:",e);}
-}
-
 // ═══ GUARDIAS ═══
 function initGuardias(){
   const sel=document.getElementById("gwsel");if(!sel)return;
@@ -1096,6 +1084,7 @@ function initGuardias(){
   }
   renderGuardias();
 }
+
 function renderGuardias(){
   const wo=parseInt(document.getElementById("gwsel")?.value)||0;
   const mon=addD(START,wo*7);
@@ -1106,52 +1095,55 @@ function renderGuardias(){
     const g=getGuardia(ds);
     const gc=g.length>0?(gm(g[0])||{color:"#e5e7eb"}).color:"#e5e7eb";
     const evs=[...agendas,...gcalEvs].filter(a=>String(a.fecha).slice(0,10)===ds&&!a.cancelado);
+    const evsTarde=evs.filter(e=>{if(!e.hora)return false;const h=parseInt(String(e.hora).split(":")[0]);return h>=15;});
+
+    // FIX: construir botones WA usando getContact (que combina DB + fallback)
+    const waBtns=g.map(n=>{
+      const c=getContact(n);
+      if(!c.tel)return'';
+      const d2=parseD(ds);
+      let msg=`Guardia ${DNF[d2.getDay()]} ${d2.getDate()} de ${MNF[d2.getMonth()]}`;
+      if(evsTarde.length)msg+="\n"+evsTarde.slice(0,4).map(e=>(e.hora?e.hora.slice(0,5)+" ":"")+e.descripcion).join("\n");
+      msg+="\nPanel: https://marianelahut-lang.github.io/panel-comunicacion/";
+      return`<a href="https://wa.me/${c.tel}?text=${encodeURIComponent(msg)}" target="_blank" style="display:block;margin-top:2px;padding:3px 6px;border-radius:4px;background:#25d366;color:#fff;font-size:9px;font-weight:600;text-decoration:none;text-align:center">📱 WA ${n}</a>`;
+    }).join('');
+
     days+=`<div class="gwd${isWE?" gwwe":""}${isTd?" gwt":""}" style="border-top:3px solid ${gc}">
       <div class="gwdate">${d.getDate()} ${MNS[d.getMonth()]}</div>
       <div class="gwags">
         ${g.map((n,gi)=>{const m=gm(n);return m?`<div class="gwag">${av(m,16)}<span style="font-size:9px;line-height:1.2">${m.nombre}<br><span style="color:#9ca3af;font-size:8px">${gi===0?"titular":"soporte"}</span></span></div>`:""}).join("")||`<span style="font-size:9px;color:#d1d5db">—</span>`}
       </div>
-      ${evs.filter(e=>{if(!e.hora)return false;const h=parseInt(String(e.hora).split(":")[0]);return h>=15;}).length?`<div class="gwevs" style="border-top:1px dashed #e5e7eb;padding-top:3px;margin-top:2px"><div style="font-size:7px;color:#9ca3af;margin-bottom:1px">+15hs:</div>${evs.filter(e=>{if(!e.hora)return false;const h=parseInt(String(e.hora).split(":")[0]);return h>=15;}).slice(0,4).map(e=>`${e.tipo==="prensa"?"📻":"🗓"} ${e.hora?e.hora.slice(0,5)+" ":""}${e.descripcion.slice(0,18)}`).join("<br>")}</div>`:""}
-      <button class="gwnb" onclick="notifyDay('${ds}')">📧 Mail</button>
-      <button class="gwnb" style="background:#25d366;color:#fff;border-color:#25d366;margin-top:2px" onclick="notifyWA('${ds}')">📱 WhatsApp</button>
+      ${evsTarde.length?`<div class="gwevs" style="border-top:1px dashed #e5e7eb;padding-top:3px;margin-top:2px"><div style="font-size:7px;color:#9ca3af;margin-bottom:1px">+15hs:</div>${evsTarde.slice(0,4).map(e=>`${e.tipo==="prensa"?"📻":"🗓"} ${e.hora?e.hora.slice(0,5)+" ":""}${e.descripcion.slice(0,18)}`).join("<br>")}</div>`:""}
+      <button class="gwnb" onclick="notifyDay('${ds}')">📧 Mail guardia</button>
+      ${waBtns}
     </div>`;
   }
   document.getElementById("gwcontent").innerHTML=`<div class="gwtbl"><div class="gwh">${DN.map(d=>`<div class="gwhi">${d.slice(0,3)}</div>`).join("")}</div><div class="gwb">${days}</div></div>`;
 }
-function notifyWA(ds){
-  const g=getGuardia(ds);
-  const d=parseD(ds);
-  const nl="\n";
-  const dia=DNF[d.getDay()]+" "+d.getDate()+" de "+MNF[d.getMonth()];
-  const evs=[...agendas,...gcalEvs].filter(a=>String(a.fecha).slice(0,10)===ds&&!a.cancelado);
-  let sent=0,notel=[];
-  g.forEach((n,gi)=>{
-    const m=gm(n);if(!m)return;
-    const partner=g.filter(x=>x!==n).join(", ")||"solo/a";
-    let msg="Guardia "+dia+nl+"Rol: "+(gi===0?"titular":"soporte")+". Comp: "+partner;
-    if(evs.length)msg+=nl+"Eventos:"+nl+evs.slice(0,5).map(e=>"- "+(e.hora?e.hora+" ":"")+e.descripcion).join(nl);
-    msg+=nl+"Panel: https://marianelahut-lang.github.io/panel-comunicacion/";
-    if(m.telefono){const tel=m.telefono.replace(/[^0-9]/g,"");window.open("https://wa.me/"+tel+"?text="+encodeURIComponent(msg),"_blank");sent++;}
-    else notel.push(m.nombre);
-  });
-  if(sent)toast("WhatsApp enviado");
-  if(notel.length)toast("Sin tel: "+notel.join(", "),"warn");
-}
+
+// FIX: notifyDay y notifyWA ahora usan getContact()
 function notifyDay(ds){
   const g=getGuardia(ds),d=parseD(ds);
   const dia=`${DNF[d.getDay()]} ${d.getDate()} de ${MNF[d.getMonth()]}`;
   const evs=[...agendas,...gcalEvs].filter(a=>String(a.fecha).slice(0,10)===ds&&!a.cancelado);
   let sent=0,nomail=[];
   g.forEach((n,gi)=>{
-    const m=gm(n);if(!m)return;
+    const c=getContact(n);
+    if(!c.email){nomail.push(n);return;}
     const partner=g.filter(x=>x!==n).join(", ")||"solo/a";
-    const evtxt=evs.length?"\n\nEventos:\n"+evs.map(e=>`• ${e.hora||""} ${e.descripcion}`).join("\n"):"\nSin eventos.";
-    if(m.email){mail(m.nombre,`🗓️ Guardia — ${dia}`,`Hola ${m.nombre},\n\nGuardia el ${dia} como ${gi===0?"titular":"soporte"}.\nCompañero/a: ${partner}${evtxt}\n\nPanel: https://marianelahut-lang.github.io/panel-comunicacion/\n\nSaludos,\nDpto. Comunicación — Municipalidad de Tres Arroyos`);sent++;}
-    else nomail.push(m.nombre);
+    const evtxt=evs.length?"\n\nEventos:\n"+evs.map(e=>`• ${e.hora?e.hora.slice(0,5):""} ${e.descripcion}`).join("\n"):"\nSin eventos registrados.";
+    // FIX: usar directamente mailto con el email de getContact
+    const sub=`🗓️ Guardia — ${dia}`;
+    const body=`Hola ${n},\n\nTenés guardia el ${dia} como ${gi===0?"titular":"soporte"}.\nCompañero/a: ${partner}${evtxt}\n\nPanel: https://marianelahut-lang.github.io/panel-comunicacion/\n\nSaludos,\nDpto. Comunicación — Municipalidad de Tres Arroyos`;
+    const a=document.createElement("a");
+    a.href=`mailto:${c.email}?subject=${encodeURIComponent(sub)}&body=${encodeURIComponent(body)}`;
+    a.style.display="none";document.body.appendChild(a);a.click();setTimeout(()=>a.remove(),400);
+    sent++;
   });
-  if(sent)toast(`✓ Notificado — ${dia}`);
+  if(sent)toast(`✓ Mail guardia — ${dia}`);
   if(nomail.length)toast(`Sin correo: ${nomail.join(", ")}`,"warn");
 }
+
 function notifyWeek(){
   const wo=parseInt(document.getElementById("gwsel")?.value)||0;
   const mon=addD(START,wo*7);
@@ -1160,11 +1152,23 @@ function notifyWeek(){
   for(let i=0;i<7;i++){
     const d=addD(mon,i),ds=iso(d);
     getGuardia(ds).forEach(n=>{
-      const m=gm(n);if(!m||done.has(n))return;done.add(n);
+      if(done.has(n))return;done.add(n);
+      const c=getContact(n);
+      if(!c.email){nomail.push(n);return;}
       const dias=[];
-      for(let j=0;j<7;j++){const dj=addD(mon,j),dsj=iso(dj),gj=getGuardia(dsj);if(gj.includes(n)){const ej=[...agendas,...gcalEvs].filter(a=>String(a.fecha).slice(0,10)===dsj&&!a.cancelado);dias.push(`• ${DN[j]} ${dj.getDate()}/${dj.getMonth()+1}${ej.length?" — "+ej.map(e=>e.descripcion.slice(0,20)).join(", "):""}`)}}
-      if(m.email){mail(m.nombre,`🗓️ Guardias semana del ${mon.getDate()} de ${MNF[mon.getMonth()]}`,`Hola ${m.nombre},\n\nTu rotación esta semana:\n\n${dias.join("\n")}\n\nPanel: https://marianelahut-lang.github.io/panel-comunicacion/\n\nSaludos,\nDpto. Comunicación — Municipalidad de Tres Arroyos`);sent++;}
-      else nomail.push(m.nombre);
+      for(let j=0;j<7;j++){
+        const dj=addD(mon,j),dsj=iso(dj),gj=getGuardia(dsj);
+        if(gj.includes(n)){
+          const ej=[...agendas,...gcalEvs].filter(a=>String(a.fecha).slice(0,10)===dsj&&!a.cancelado);
+          dias.push(`• ${DN[j]} ${dj.getDate()}/${dj.getMonth()+1}${ej.length?" — "+ej.map(e=>e.descripcion.slice(0,20)).join(", "):""}`)
+        }
+      }
+      const sub=`🗓️ Guardias semana del ${mon.getDate()} de ${MNF[mon.getMonth()]}`;
+      const body=`Hola ${n},\n\nTu rotación esta semana:\n\n${dias.join("\n")}\n\nPanel: https://marianelahut-lang.github.io/panel-comunicacion/\n\nSaludos,\nDpto. Comunicación — Municipalidad de Tres Arroyos`;
+      const a=document.createElement("a");
+      a.href=`mailto:${c.email}?subject=${encodeURIComponent(sub)}&body=${encodeURIComponent(body)}`;
+      a.style.display="none";document.body.appendChild(a);a.click();setTimeout(()=>a.remove(),400);
+      sent++;
     });
   }
   if(sent)toast(`✓ Enviado a ${sent} integrante${sent!==1?"s":""}`);
@@ -1172,416 +1176,171 @@ function notifyWeek(){
 }
 
 // ═══ EQUIPO ═══
+// FIX: una sola definición de renderTeam, usando getContact()
 function renderTeam(){
-  document.getElementById("teamgrid").innerHTML=teams.map(m=>{
+  const grid=document.getElementById("teamgrid");
+  if(!grid)return;
+  if(!teams.length){grid.innerHTML=`<div style="text-align:center;padding:2rem;color:#9ca3af;grid-column:1/-1">Cargando equipo...</div>`;return;}
+  grid.innerHTML=teams.map(m=>{
     const act=tasks.filter(t=>t.responsable===m.nombre&&t.estado!=="Completo").length;
+    const c=getContact(m.nombre);
     return`<div class="tmcard" onclick="openEmMod('${m.id}')">
       ${av(m,46)}
       <div style="font-size:13px;font-weight:700;margin-top:8px">${m.nombre}</div>
-      <div style="font-size:10px;padding:2px 8px;border-radius:7px;background:#ede9fe;color:#6d28d9;font-weight:600;margin:3px 0;display:inline-block">${m.rol}</div>
+      <div style="font-size:10px;padding:2px 8px;border-radius:7px;background:#ede9fe;color:#6d28d9;font-weight:600;margin:3px 0;display:inline-block">${m.rol||"—"}</div>
       ${!m.cobertura?`<div style="font-size:9px;color:#d97706;background:#fffbeb;padding:2px 6px;border-radius:6px;margin-top:2px">Sin coberturas</div>`:""}
-      ${m.email?`<div style="font-size:9px;color:#9ca3af;margin-top:3px;word-break:break-all">${m.email}</div>`:`<div style="font-size:9px;color:#dc2626;margin-top:3px">Sin correo ⚠</div>`}
-      ${(()=>{const _c=getContact(m.nombre);return _c.tel?'<a href="https://wa.me/'+_c.tel+'" target="_blank" style="display:inline-flex;align-items:center;gap:3px;margin-top:5px;padding:3px 9px;background:#25d366;color:#fff;border-radius:20px;font-size:9px;font-weight:600;text-decoration:none">📱 WhatsApp</a>':''})()}
+      ${c.email?`<div style="font-size:9px;color:#9ca3af;margin-top:3px;word-break:break-all">${c.email}</div>`:`<div style="font-size:9px;color:#dc2626;margin-top:3px">Sin correo ⚠</div>`}
+      ${c.tel?`<a href="https://wa.me/${c.tel}" target="_blank" onclick="event.stopPropagation()" style="display:inline-flex;align-items:center;gap:3px;margin-top:5px;padding:3px 9px;background:#25d366;color:#fff;border-radius:20px;font-size:9px;font-weight:600;text-decoration:none">📱 WhatsApp</a>`:""}
       <div style="font-size:10px;color:#6b7280;margin-top:3px">${act} tareas activas</div>
-      <button onclick="event.stopPropagation();sendAlert('${m.nombre}')" style="margin-top:5px;padding:3px 9px;border-radius:20px;border:none;background:${m.telefono?'#25d366':'#667eea'};color:#fff;font-size:9px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">${m.telefono?'📱 WA':'📧 Mail'}</button>
+      <button onclick="event.stopPropagation();sendAlert('${m.nombre}')" style="margin-top:5px;padding:3px 9px;border-radius:20px;border:none;background:${c.tel?'#25d366':'#667eea'};color:#fff;font-size:9px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">${c.tel?'📱 Alerta WA':'📧 Alerta Mail'}</button>
     </div>`;
   }).join("");
 }
+
 function openEmMod(id){
   const m=teams.find(x=>x.id===id);if(!m)return;
+  const c=getContact(m.nombre);
   document.getElementById("emtitle").textContent="Editar — "+m.nombre;
   document.getElementById("emid").value=id;
   document.getElementById("emnombre").value=m.nombre;
-  document.getElementById("ememail").value=m.email||"";
-  document.getElementById("emtel").value=m.telefono||"";
+  document.getElementById("ememail").value=c.email||"";
+  document.getElementById("emtel").value=c.tel||"";
   document.getElementById("emrol").value=m.rol||"Comunicador/a";
   document.getElementById("emcob").value=m.cobertura?"1":"0";
   document.getElementById("modEquipo").classList.add("open");
-  console.log("Editando",m.nombre,"tel:",m.telefono,"email:",m.email);
 }
+
+// FIX: saveMember con manejo robusto de columna telefono
 async function saveMember(){
   const id=document.getElementById("emid").value;
   if(!id){toast("Error: sin ID","err");return;}
-  const telRaw=document.getElementById("emtel").value.trim();
-  const tel=telRaw.replace(/[^0-9]/g,""); // keep only digits, remove spaces/dashes
+  const tel=document.getElementById("emtel").value.trim().replace(/[^0-9]/g,"");
   const email=document.getElementById("ememail").value.trim();
   const rol=document.getElementById("emrol").value;
   const cobertura=document.getElementById("emcob").value==="1";
   try{
-    console.log("Guardando",id,"email:",email,"tel:",tel,"rol:",rol);
-    const{data,error}=await db.from("usuarios").update({email,telefono:tel,rol,cobertura}).eq("id",id).select();
-    if(error)throw new Error(error.message);
-    console.log("Guardado OK:",data);
+    let res=await db.from("usuarios").update({email,telefono:tel,rol,cobertura}).eq("id",id);
+    if(res.error&&res.error.message&&res.error.message.toLowerCase().includes("telefono")){
+      res=await db.from("usuarios").update({email,rol,cobertura}).eq("id",id);
+      if(res.error)throw new Error(res.error.message);
+      // Guardar tel en CONTACTOS_FB como fallback local
+      if(CONTACTOS_FB[document.getElementById("emnombre").value]){
+        CONTACTOS_FB[document.getElementById("emnombre").value].tel=tel;
+        CONTACTOS_FB[document.getElementById("emnombre").value].email=email;
+      }
+      toast("✓ Guardado (ejecutá el SQL para activar columna de teléfono)","warn");
+    }else{
+      if(res.error)throw new Error(res.error.message);
+      toast("✓ Datos guardados correctamente");
+    }
     closeMod("modEquipo");
-    toast("✓ Guardado: "+email+(tel?" · WA:"+tel:""));
     const r=await db.from("usuarios").select("*").order("nombre");
     if(r.data)teams=r.data;
-    renderTeam();
-  }catch(e){toast("Error: "+e.message,"err");console.error("saveMember error:",e);}
+    renderTeam();popSelects();
+  }catch(e){toast("Error: "+e.message,"err");console.error("saveMember:",e);}
 }
+
+// FIX: sendAlert usa getContact()
 function sendAlert(nombre){
   const m=gm(nombre);
   if(!m){toast("Agente no encontrado","err");return;}
+  const c=getContact(nombre);
   const evs=[...agendas,...gcalEvs].filter(a=>String(a.fecha).slice(0,10)===isoToday&&!a.cancelado);
   const ps=pubs.filter(p=>String(p.fecha).slice(0,10)===isoToday&&p.responsable===nombre);
-  const mt=tasks.filter(t=>t.responsable===m.nombre&&t.estado!=="Completo");
+  const mt=tasks.filter(t=>t.responsable===nombre&&t.estado!=="Completo");
   const d=parseD(isoToday);
   const dia=DNF[d.getDay()]+" "+d.getDate()+" de "+MNF[d.getMonth()];
   const nl="\n";
-  let msg="Alerta del dia - "+dia+nl+nl+"Hola "+m.nombre+"!";
-  if(evs.length)msg+=nl+nl+"Eventos hoy:"+nl+evs.map(e=>"- "+(e.hora||"")+" "+e.descripcion).join(nl);
+  let msg="Alerta del día - "+dia+nl+nl+"Hola "+nombre+"!";
+  if(evs.length)msg+=nl+nl+"Eventos hoy:"+nl+evs.map(e=>"- "+(e.hora?e.hora.slice(0,5)+" ":"")+e.descripcion).join(nl);
   if(ps.length)msg+=nl+nl+"Publicaciones:"+nl+ps.map(p=>{const ct=getCta(p.cuenta);return"- "+(ct?ct.label:p.cuenta)+": "+p.descripcion.slice(0,50);}).join(nl);
   if(mt.length)msg+=nl+nl+"Tareas ("+mt.length+"):"+nl+mt.slice(0,3).map(t=>"- ["+t.prioridad+"] "+t.descripcion.slice(0,50)).join(nl);
   msg+=nl+nl+"Panel: https://marianelahut-lang.github.io/panel-comunicacion/";
-  if(m.telefono){const tel=m.telefono.replace(/[^0-9]/g,"");window.open("https://wa.me/"+tel+"?text="+encodeURIComponent(msg),"_blank");toast("WA -> "+m.nombre);}
-  else if(m.email){mail(m.nombre,"Alerta dia - "+dia,msg);}
-  else{toast(m.nombre+" sin WA ni correo","warn");}
+  if(c.tel){window.open("https://wa.me/"+c.tel+"?text="+encodeURIComponent(msg),"_blank");toast("📱 WA → "+nombre);}
+  else if(c.email){mail(nombre,"Alerta día - "+dia,msg);}
+  else{toast(nombre+" sin WA ni correo","warn");}
 }
 
-
+// ═══ MEDIOS — ESCANEO RSS ═══
 async function scanMedios(){
   const btn=document.getElementById("scanbtn");
   if(btn)btn.disabled=true;
   const statusEl=document.getElementById("scanstatus");
   if(statusEl)statusEl.innerHTML='<div class="sbar scan"><div class="spin"></div><span>Buscando noticias en todos los medios...</span></div>';
   let total=0;
-  const promises=MEDIOS.map(async m=>{
+  const promises=MEDIOS.map(async medio=>{
     try{
-      const items=await fetchMedioRSS(m);
+      const items=await fetchMedioRSS(medio);
       let cnt=0;
       for(const n of items){
         const ex=noticias.find(x=>x.url&&x.url===n.url);
         if(!ex&&n.titulo){
           try{
-            await db.from("noticias_medios").insert({...n,medio:m.n});
-            cnt++;total++;
-          }catch(e){console.warn("Insert "+m.n+":",e.message);}
+            const r=await db.from("noticias_medios").insert({...n,medio:medio.n}).select();
+            if(!r.error){cnt++;total++;if(r.data&&r.data[0])noticias.unshift(r.data[0]);}
+          }catch(e){console.warn("Insert "+medio.n+":",e.message);}
         }
       }
-      return{n:m.n,cnt,ok:true};
-    }catch(e){console.warn(m.n,":",e.message);return{n:m.n,cnt:0,ok:false};}
+      return{n:medio.n,cnt,ok:true};
+    }catch(e){console.warn(medio.n,":",e.message);return{n:medio.n,cnt:0,ok:false};}
   });
   await Promise.all(promises);
   if(statusEl){
-    if(total>0){
-      statusEl.innerHTML='<div class="sbar done">✓ '+total+' noticias nuevas encontradas</div>';
-    }else{
-      statusEl.innerHTML='<div class="sbar fail">Sin noticias nuevas — usá "+ Agregar" para cargar manualmente</div>';
-    }
+    statusEl.innerHTML=total>0?`<div class="sbar done">✓ ${total} noticias nuevas encontradas</div>`:'<div class="sbar fail">Sin noticias nuevas — probá con "+ Agregar" para cargar manualmente</div>';
     setTimeout(()=>{if(statusEl)statusEl.innerHTML="";},8000);
   }
-  if(btn){
-    btn.disabled=false;
-    btn.innerHTML='<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg> Escanear medios';
-  }
-  if(total>0)toast(total+" noticias nuevas");
-  else toast("Sin noticias nuevas","warn");
+  if(btn){btn.disabled=false;btn.innerHTML='<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg> Escanear medios';}
+  if(total>0){toast(total+" noticias nuevas");renderNoticias();renderMedioSum();}
+  else toast("Sin noticias nuevas — intentá con '+ Agregar'","warn");
 }
-
 
 async function fetchMedioRSS(medio){
   const rssOpts={
     "La Voz del Pueblo":["https://www.lavozdelpueblo.com.ar/feed/"],
     "LU24":["https://lu24.com.ar/feed/","https://www.lu24.com.ar/feed/"],
-    "Diario 3":["https://www.diario3.com.ar/feed/"],
+    "Diario 3":["https://www.diario3.com.ar/feed/","https://diario3.com.ar/feed/"],
     "Via País":["https://viapais.com.ar/feed/","https://viapais.com.ar/tres-arroyos/feed/"],
-    "Onda Uno":["https://ondauno.com.ar/feed/"]
+    "Onda Uno":["https://ondauno.com.ar/feed/","https://www.ondauno.com.ar/feed/"]
   };
   const kws=["pablo garate","garate","intendente","tres arroyos","municipio","municipalidad"];
   const proxies=[
-    url=>`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
-    url=>`https://corsproxy.io/?${encodeURIComponent(url)}`,
-    url=>`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
+    u=>`https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
+    u=>`https://corsproxy.io/?${encodeURIComponent(u)}`,
+    u=>`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`
   ];
   const urls=rssOpts[medio.n]||[];
   for(const rssUrl of urls){
     for(const makeProxy of proxies){
       try{
-        const proxyUrl=makeProxy(rssUrl);
-        const resp=await fetch(proxyUrl,{signal:AbortSignal.timeout(8000)});
+        const resp=await fetch(makeProxy(rssUrl),{signal:AbortSignal.timeout(10000)});
         if(!resp.ok)continue;
         const raw=await resp.json();
         const xmlStr=raw.contents||raw.body||"";
-        if(!xmlStr||xmlStr.length<100)continue;
-        const parser=new DOMParser();
-        const xml=parser.parseFromString(xmlStr,"text/xml");
+        if(!xmlStr||xmlStr.length<200)continue;
+        const xml=new DOMParser().parseFromString(xmlStr,"text/xml");
         const items=[...xml.querySelectorAll("item")];
         if(!items.length)continue;
         const cutoff=new Date(TODAY);cutoff.setDate(cutoff.getDate()-7);
         const results=[];
-        for(const item of items.slice(0,20)){
+        for(const item of items.slice(0,30)){
           const tit=(item.querySelector("title")?.textContent||"").replace(/<[^>]*>/g,"").trim();
-          const link=item.querySelector("link")?.textContent||"";
+          const link=item.querySelector("link")?.textContent||item.querySelector("guid")?.textContent||"";
           const pubDate=item.querySelector("pubDate")?.textContent||"";
-          const desc=(item.querySelector("description")?.textContent||"").replace(/<[^>]*>/g,"").slice(0,150);
+          const desc=(item.querySelector("description")?.textContent||"").replace(/<[^>]*>/g,"").slice(0,200);
           if(!tit)continue;
           const text=(tit+" "+desc).toLowerCase();
           if(!kws.some(k=>text.includes(k)))continue;
           let fechaISO=isoToday;
-          try{const fd=new Date(pubDate);if(!isNaN(fd)){if(fd<cutoff)continue;fechaISO=iso(fd);}}catch(e){}
+          try{const fd=new Date(pubDate);if(!isNaN(fd)&&fd>=cutoff)fechaISO=iso(fd);else if(!isNaN(fd)&&fd<cutoff)continue;}catch(e){}
           const tl=tit.toLowerCase();
-          const tono=tl.includes("probl")||tl.includes("critic")||tl.includes("denuncia")?"negativo":tl.includes("inaugur")||tl.includes("obra")||tl.includes("benefi")?"positivo":"neutral";
-          results.push({titulo:tit.slice(0,200),url:link,fecha:fechaISO,resumen:desc,tono,menciona_municipio:text.includes("municipio")||text.includes("municipalidad")||text.includes("tres arroyos"),menciona_pablo:text.includes("pablo garate")||text.includes("garate")});
+          const tono=tl.includes("probl")||tl.includes("critic")||tl.includes("denuncia")||tl.includes("protest")?"negativo":tl.includes("inaugur")||tl.includes("obra")||tl.includes("benefi")||tl.includes("logro")?"positivo":"neutral";
+          results.push({titulo:tit.slice(0,200),url:link,fecha:fechaISO,resumen:desc.slice(0,150),tono,menciona_municipio:text.includes("municipio")||text.includes("municipalidad")||text.includes("tres arroyos"),menciona_pablo:text.includes("pablo garate")||text.includes("garate")});
         }
-        console.log(medio.n+": "+results.length+" noticias via "+proxyUrl.slice(0,30));
-        return results;
-      }catch(e){console.warn(medio.n+" proxy error:",e.message);}
+        if(results.length>0){console.log(medio.n+": "+results.length+" noticias");return results;}
+      }catch(e){console.warn(medio.n+" proxy:",e.message);}
     }
   }
-  console.warn(medio.n+": todos los proxies fallaron");
-  return[];
-}
-
-
-async function autoSyncPubs(){
-  if(!db||!gcalEvs.length)return;
-  const todayStr=iso(TODAY);
-  const nextStr=iso(addD(TODAY,14));
-  const targets=gcalEvs.filter(e=>{
-    if(e.fecha<todayStr||e.fecha>nextStr)return false;
-    if(!e.hora)return false;
-    const h=parseInt(String(e.hora).split(":")[0]);
-    if(h<15)return false;
-    const esPablo=e.descripcion.toLowerCase().includes("pablo")||e.descripcion.toLowerCase().includes("garate");
-    return esPablo||e.tipo==="prensa";
-  });
-  if(!targets.length)return;
-  try{
-    const ex=await db.from("publicaciones").select("descripcion,fecha").gte("fecha",todayStr);
-    const keys=new Set((ex.data||[]).map(p=>p.fecha+"|"+p.descripcion.slice(0,30)));
-    let added=0;
-    for(const ev of targets){
-      const k=ev.fecha+"|"+ev.descripcion.slice(0,30);
-      if(keys.has(k))continue;
-      const esPablo=ev.descripcion.toLowerCase().includes("pablo")||ev.descripcion.toLowerCase().includes("garate");
-      const g=getGuardia(ev.fecha);const resp=g.length>0?(gm(g[0])||{nombre:""}).nombre:"";
-      await db.from("publicaciones").insert({fecha:ev.fecha,hora:ev.hora,descripcion:ev.descripcion+(ev.lugar?" — "+ev.lugar:""),cuenta:esPablo?"ig-p":"ig-m",tipo:"Streaming",responsable:resp,colaboracion:"",estado:"Pendiente"});
-      added++;
-    }
-    if(added>0){toast(`✓ ${added} publicaciones auto-sincronizadas`);renderWeek();}
-  }catch(e){console.warn("autoSyncPubs:",e);}
-}
-
-// ═══ GUARDIAS ═══
-function initGuardias(){
-  const sel=document.getElementById("gwsel");if(!sel)return;
-  sel.innerHTML="";
-  for(let w=0;w<20;w++){
-    const mon=addD(START,w*7),sun=addD(mon,6);
-    const opt=new Option(`${mon.getDate()} ${MNS[mon.getMonth()]} — ${sun.getDate()} ${MNS[sun.getMonth()]}`,w);
-    if(TODAY>=mon&&TODAY<=addD(mon,6))opt.selected=true;
-    sel.appendChild(opt);
-  }
-  renderGuardias();
-}
-function renderGuardias(){
-  const wo=parseInt(document.getElementById("gwsel")?.value)||0;
-  const mon=addD(START,wo*7);
-  const DN=["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"];
-  let days="";
-  for(let i=0;i<7;i++){
-    const d=addD(mon,i),ds=iso(d),isWE=i>=5,isTd=ds===isoToday;
-    const g=getGuardia(ds);
-    const gc=g.length>0?(gm(g[0])||{color:"#e5e7eb"}).color:"#e5e7eb";
-    const evs=[...agendas,...gcalEvs].filter(a=>String(a.fecha).slice(0,10)===ds&&!a.cancelado);
-    days+=`<div class="gwd${isWE?" gwwe":""}${isTd?" gwt":""}" style="border-top:3px solid ${gc}">
-      <div class="gwdate">${d.getDate()} ${MNS[d.getMonth()]}</div>
-      <div class="gwags">
-        ${g.map((n,gi)=>{const m=gm(n);return m?`<div class="gwag">${av(m,16)}<span style="font-size:9px;line-height:1.2">${m.nombre}<br><span style="color:#9ca3af;font-size:8px">${gi===0?"titular":"soporte"}</span></span></div>`:""}).join("")||`<span style="font-size:9px;color:#d1d5db">—</span>`}
-      </div>
-      ${evs.filter(e=>{if(!e.hora)return false;const h=parseInt(String(e.hora).split(":")[0]);return h>=15;}).length?`<div class="gwevs" style="border-top:1px dashed #e5e7eb;padding-top:3px;margin-top:2px"><div style="font-size:7px;color:#9ca3af;margin-bottom:1px">+15hs:</div>${evs.filter(e=>{if(!e.hora)return false;const h=parseInt(String(e.hora).split(":")[0]);return h>=15;}).slice(0,4).map(e=>`${e.tipo==="prensa"?"📻":"🗓"} ${e.hora?e.hora.slice(0,5)+" ":""}${e.descripcion.slice(0,18)}`).join("<br>")}</div>`:""}
-      <button class="gwnb" onclick="notifyDay('${ds}')">📧 Notificar</button>
-      ${(()=>{const gg=getGuardia(ds);return gg.map(n=>{const mm=gm(n);if(!mm||!mm.telefono)return '';const tel=mm.telefono.replace(/[^0-9]/g,'');const d2=parseD(ds);const evd=[...agendas,...gcalEvs].filter(a=>String(a.fecha).slice(0,10)===ds&&!a.cancelado);let msg='Guardia '+DNF[d2.getDay()]+' '+d2.getDate()+' de '+MNF[d2.getMonth()];if(evd.length)msg+='\n'+evd.slice(0,4).map(e=>(e.hora||'')+' '+e.descripcion).join('\n');msg+='\nPanel: https://marianelahut-lang.github.io/panel-comunicacion/';return '<a href="https://wa.me/'+tel+'?text='+encodeURIComponent(msg)+'" target="_blank" style="display:block;margin-top:2px;padding:2px 6px;border-radius:4px;background:#25d366;color:#fff;font-size:8px;font-weight:600;text-decoration:none;text-align:center">📱 WA '+mm.nombre+'</a>';}).join('');})()}
-    </div>`;
-  }
-  document.getElementById("gwcontent").innerHTML=`<div class="gwtbl"><div class="gwh">${DN.map(d=>`<div class="gwhi">${d.slice(0,3)}</div>`).join("")}</div><div class="gwb">${days}</div></div>`;
-}
-function notifyDay(ds){
-  const g=getGuardia(ds),d=parseD(ds);
-  const dia=`${DNF[d.getDay()]} ${d.getDate()} de ${MNF[d.getMonth()]}`;
-  const evs=[...agendas,...gcalEvs].filter(a=>String(a.fecha).slice(0,10)===ds&&!a.cancelado);
-  let sent=0,nomail=[];
-  g.forEach((n,gi)=>{
-    const m=gm(n);if(!m)return;
-    const partner=g.filter(x=>x!==n).join(", ")||"solo/a";
-    const evtxt=evs.length?"\n\nEventos:\n"+evs.map(e=>`• ${e.hora||""} ${e.descripcion}`).join("\n"):"\nSin eventos.";
-    if(m.email){mail(m.nombre,`🗓️ Guardia — ${dia}`,`Hola ${m.nombre},\n\nGuardia el ${dia} como ${gi===0?"titular":"soporte"}.\nCompañero/a: ${partner}${evtxt}\n\nPanel: https://marianelahut-lang.github.io/panel-comunicacion/\n\nSaludos,\nDpto. Comunicación — Municipalidad de Tres Arroyos`);sent++;}
-    else nomail.push(m.nombre);
-  });
-  if(sent)toast(`✓ Notificado — ${dia}`);
-  if(nomail.length)toast(`Sin correo: ${nomail.join(", ")}`,"warn");
-}
-function notifyWeek(){
-  const wo=parseInt(document.getElementById("gwsel")?.value)||0;
-  const mon=addD(START,wo*7);
-  const DN=["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"];
-  const done=new Set();let sent=0,nomail=[];
-  for(let i=0;i<7;i++){
-    const d=addD(mon,i),ds=iso(d);
-    getGuardia(ds).forEach(n=>{
-      const m=gm(n);if(!m||done.has(n))return;done.add(n);
-      const dias=[];
-      for(let j=0;j<7;j++){const dj=addD(mon,j),dsj=iso(dj),gj=getGuardia(dsj);if(gj.includes(n)){const ej=[...agendas,...gcalEvs].filter(a=>String(a.fecha).slice(0,10)===dsj&&!a.cancelado);dias.push(`• ${DN[j]} ${dj.getDate()}/${dj.getMonth()+1}${ej.length?" — "+ej.map(e=>e.descripcion.slice(0,20)).join(", "):""}`)}}
-      if(m.email){mail(m.nombre,`🗓️ Guardias semana del ${mon.getDate()} de ${MNF[mon.getMonth()]}`,`Hola ${m.nombre},\n\nTu rotación esta semana:\n\n${dias.join("\n")}\n\nPanel: https://marianelahut-lang.github.io/panel-comunicacion/\n\nSaludos,\nDpto. Comunicación — Municipalidad de Tres Arroyos`);sent++;}
-      else nomail.push(m.nombre);
-    });
-  }
-  if(sent)toast(`✓ Enviado a ${sent} integrante${sent!==1?"s":""}`);
-  if(nomail.length)toast(`Sin correo: ${nomail.join(", ")}`,"warn");
-}
-
-// ═══ EQUIPO ═══
-function renderTeam(){
-  document.getElementById("teamgrid").innerHTML=teams.map(m=>{
-    const act=tasks.filter(t=>t.responsable===m.nombre&&t.estado!=="Completo").length;
-    return`<div class="tmcard" onclick="openEmMod('${m.id}')">
-      ${av(m,46)}
-      <div style="font-size:13px;font-weight:700;margin-top:8px">${m.nombre}</div>
-      <div style="font-size:10px;padding:2px 8px;border-radius:7px;background:#ede9fe;color:#6d28d9;font-weight:600;margin:3px 0;display:inline-block">${m.rol}</div>
-      ${!m.cobertura?`<div style="font-size:9px;color:#d97706;background:#fffbeb;padding:2px 6px;border-radius:6px;margin-top:2px">Sin coberturas</div>`:""}
-      ${m.email?`<div style="font-size:9px;color:#9ca3af;margin-top:3px;word-break:break-all">${m.email}</div>`:`<div style="font-size:9px;color:#dc2626;margin-top:3px">Sin correo ⚠</div>`}
-      ${m.telefono?`<a href="https://wa.me/${m.telefono}" target="_blank" style="display:inline-flex;align-items:center;gap:3px;margin-top:5px;padding:3px 9px;background:#25d366;color:#fff;border-radius:20px;font-size:9px;font-weight:600;text-decoration:none">📱 WhatsApp</a>`:""}
-      <div style="font-size:10px;color:#6b7280;margin-top:3px">${act} tareas activas</div>
-      <button onclick="event.stopPropagation();sendAlert('${m.nombre}')" style="margin-top:5px;padding:3px 9px;border-radius:20px;border:none;background:${m.telefono?'#25d366':'#667eea'};color:#fff;font-size:9px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">${m.telefono?'📱 WA':'📧 Mail'}</button>
-    </div>`;
-  }).join("");
-}
-function openEmMod(id){
-  const m=teams.find(x=>x.id===id);if(!m)return;
-  document.getElementById("emtitle").textContent="Editar — "+m.nombre;
-  document.getElementById("emid").value=id;document.getElementById("emnombre").value=m.nombre;
-  document.getElementById("ememail").value=m.email||"";document.getElementById("emtel").value=m.telefono||"";
-  document.getElementById("emrol").value=m.rol;document.getElementById("emcob").value=m.cobertura?"1":"0";
-  document.getElementById("modEquipo").classList.add("open");
-}
-async function saveMember(){
-  const id=document.getElementById("emid").value;
-  if(!id){toast("Error: sin ID","err");return;}
-  const telRaw=document.getElementById("emtel").value.trim();
-  const tel=telRaw.replace(/[^0-9]/g,""); // keep only digits, remove spaces/dashes
-  const email=document.getElementById("ememail").value.trim();
-  const rol=document.getElementById("emrol").value;
-  const cobertura=document.getElementById("emcob").value==="1";
-  try{
-    // Try with telefono first, fallback without if column missing
-    let res=await db.from("usuarios").update({email,telefono:tel,rol,cobertura}).eq("id",id);
-    if(res.error&&res.error.message.includes("telefono")){
-      // Column doesn't exist yet - save without it
-      res=await db.from("usuarios").update({email,rol,cobertura}).eq("id",id);
-      if(res.error)throw new Error(res.error.message);
-      toast("✓ Guardado (sin tel — ejecutá el SQL para agregar la columna)","warn");
-    } else {
-      if(res.error)throw new Error(res.error.message);
-      toast("✓ Guardado correctamente");
-    }
-    closeMod("modEquipo");
-    const r=await db.from("usuarios").select("*").order("nombre");
-    if(r.data)teams=r.data;
-    renderTeam();
-  }catch(e){toast("Error: "+e.message,"err");console.error("saveMember:",e);}
-}
-function sendAlert(nombre){
-  const m=gm(nombre);
-  if(!m){toast("Agente no encontrado","err");return;}
-  const evs=[...agendas,...gcalEvs].filter(a=>String(a.fecha).slice(0,10)===isoToday&&!a.cancelado);
-  const ps=pubs.filter(p=>String(p.fecha).slice(0,10)===isoToday&&p.responsable===nombre);
-  const mt=tasks.filter(t=>t.responsable===m.nombre&&t.estado!=="Completo");
-  const d=parseD(isoToday);
-  const dia=DNF[d.getDay()]+" "+d.getDate()+" de "+MNF[d.getMonth()];
-  const nl="\n";
-  let msg="Alerta del dia - "+dia+nl+nl+"Hola "+m.nombre+"!";
-  if(evs.length)msg+=nl+nl+"Eventos hoy:"+nl+evs.map(e=>"- "+(e.hora||"")+" "+e.descripcion).join(nl);
-  if(ps.length)msg+=nl+nl+"Publicaciones:"+nl+ps.map(p=>{const ct=getCta(p.cuenta);return"- "+(ct?ct.label:p.cuenta)+": "+p.descripcion.slice(0,50);}).join(nl);
-  if(mt.length)msg+=nl+nl+"Tareas ("+mt.length+"):"+nl+mt.slice(0,3).map(t=>"- ["+t.prioridad+"] "+t.descripcion.slice(0,50)).join(nl);
-  msg+=nl+nl+"Panel: https://marianelahut-lang.github.io/panel-comunicacion/";
-  if(m.telefono){const tel=m.telefono.replace(/[^0-9]/g,"");window.open("https://wa.me/"+tel+"?text="+encodeURIComponent(msg),"_blank");toast("WA -> "+m.nombre);}
-  else if(m.email){mail(m.nombre,"Alerta dia - "+dia,msg);}
-  else{toast(m.nombre+" sin WA ni correo","warn");}
-}
-
-
-async function scanMedios(){
-  const btn=document.getElementById("scanbtn");
-  if(btn)btn.disabled=true;
-  const statusEl=document.getElementById("scanstatus");
-  if(statusEl)statusEl.innerHTML='<div class="sbar scan"><div class="spin"></div><span>Buscando noticias en todos los medios...</span></div>';
-  let total=0;
-  const promises=MEDIOS.map(async m=>{
-    try{
-      const items=await fetchMedioRSS(m);
-      let cnt=0;
-      for(const n of items){
-        const ex=noticias.find(x=>x.url&&x.url===n.url);
-        if(!ex&&n.titulo){
-          try{
-            await db.from("noticias_medios").insert({...n,medio:m.n});
-            cnt++;total++;
-          }catch(e){console.warn("Insert "+m.n+":",e.message);}
-        }
-      }
-      return{n:m.n,cnt,ok:true};
-    }catch(e){console.warn(m.n,":",e.message);return{n:m.n,cnt:0,ok:false};}
-  });
-  await Promise.all(promises);
-  if(statusEl){
-    if(total>0){
-      statusEl.innerHTML='<div class="sbar done">✓ '+total+' noticias nuevas encontradas</div>';
-    }else{
-      statusEl.innerHTML='<div class="sbar fail">Sin noticias nuevas — usá "+ Agregar" para cargar manualmente</div>';
-    }
-    setTimeout(()=>{if(statusEl)statusEl.innerHTML="";},8000);
-  }
-  if(btn){
-    btn.disabled=false;
-    btn.innerHTML='<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg> Escanear medios';
-  }
-  if(total>0)toast(total+" noticias nuevas");
-  else toast("Sin noticias nuevas","warn");
-}
-
-
-async function fetchMedioRSS(medio){
-  // Use allorigins.win to bypass CORS and parse RSS XML
-  // Multiple URL options per medio for reliability
-  const rssOptions={
-    "La Voz del Pueblo":["https://www.lavozdelpueblo.com.ar/feed/","https://www.lavozdelpueblo.com.ar/feed/rss2/"],
-    "LU24":["https://www.lu24.com.ar/feed/","https://lu24.com.ar/feed/","https://www.lu24.com.ar/rss/"],
-    "Diario 3":["https://www.diario3.com.ar/feed/","https://diario3.com.ar/feed/"],
-    "Via País":["https://viapais.com.ar/tres-arroyos/feed/","https://viapais.com.ar/feed/"],
-    "Onda Uno":["https://ondauno.com.ar/feed/","https://www.ondauno.com.ar/feed/"]
-  };
-  const urls=rssOptions[medio.n]||[];
-  if(!urls.length)return[];
-  // Try each URL until one works
-  for(const rssUrl of urls){
-  const proxy=`https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}`;
-  const resp=await fetch(proxy,{signal:AbortSignal.timeout(12000)});
-  if(!resp.ok)throw new Error("HTTP "+resp.status);
-  const raw=await resp.json();
-  if(!raw.contents)return[];
-  const parser=new DOMParser();
-  const xml=parser.parseFromString(raw.contents,"text/xml");
-  const items=[...xml.querySelectorAll("item")];
-  if(!items.length)return[];
-  const kws=["pablo garate","garate","intendente","tres arroyos","municipio","municipalidad","gobierno local"];
-  const cutoff=new Date(TODAY);cutoff.setDate(cutoff.getDate()-7);
-  const results=[];
-  for(const item of items.slice(0,20)){
-    const tit=(item.querySelector("title")?.textContent||"").replace(/<[^>]*>/g,"").trim();
-    const link=item.querySelector("link")?.textContent||item.querySelector("guid")?.textContent||"";
-    const pubDate=item.querySelector("pubDate")?.textContent||"";
-    const desc=(item.querySelector("description")?.textContent||"").replace(/<[^>]*>/g,"").slice(0,150);
-    if(!tit)continue;
-    const text=(tit+" "+desc).toLowerCase();
-    if(!kws.some(k=>text.includes(k)))continue;
-    let fechaISO=isoToday;
-    try{const fd=new Date(pubDate);if(!isNaN(fd)){if(fd<cutoff)continue;fechaISO=iso(fd);}}catch(e){}
-    const tl=tit.toLowerCase();
-    const tono=tl.includes("probl")||tl.includes("critic")||tl.includes("denuncia")||tl.includes("protest")?"negativo":tl.includes("inaugur")||tl.includes("obra")||tl.includes("benefi")||tl.includes("logro")?"positivo":"neutral";
-    results.push({titulo:tit.slice(0,200),url:link,fecha:fechaISO,resumen:desc,tono,menciona_municipio:text.includes("municipio")||text.includes("municipalidad")||text.includes("tres arroyos"),menciona_pablo:text.includes("pablo garate")||text.includes("garate")});
-  }
-  if(results.length>0)return results;
-  } // end for urls loop
+  console.warn(medio.n+": sin resultados");
   return[];
 }
 
@@ -1649,12 +1408,21 @@ function openNoticiaMod(){
 async function saveNoticia(){
   const tit=document.getElementById("ntit").value.trim();if(!tit){alert("Título obligatorio");return}
   const mc=document.getElementById("nmenc").value;
-  await db.from("noticias_medios").insert({titulo:tit,medio:document.getElementById("nmedio").value,fecha:document.getElementById("nfecha").value||isoToday,url:document.getElementById("nurl").value.trim(),resumen:document.getElementById("nresumen").value.trim().slice(0,120),tono:document.getElementById("ntono").value,menciona_municipio:mc==="ambos"||mc==="muni",menciona_pablo:mc==="ambos"||mc==="pablo"});
+  const r=await db.from("noticias_medios").insert({titulo:tit,medio:document.getElementById("nmedio").value,fecha:document.getElementById("nfecha").value||isoToday,url:document.getElementById("nurl").value.trim(),resumen:document.getElementById("nresumen").value.trim().slice(0,150),tono:document.getElementById("ntono").value,menciona_municipio:mc==="ambos"||mc==="muni",menciona_pablo:mc==="ambos"||mc==="pablo"}).select();
+  if(r.data&&r.data[0])noticias.unshift(r.data[0]);
   closeMod("modNoticia");toast("✓ Noticia agregada");
+  renderNoticias();renderMedioSum();
 }
 
-// METRICAS
-function getFilteredStats(){const mrEl=document.getElementById("mrange");const days=parseInt(mrEl?.value||7);const cut=new Date(TODAY);cut.setDate(cut.getDate()-days);const cutStr=iso(cut);let data=stats.filter(s=>s.fecha>=cutStr);if(mAccTab!=="todas"){const[cnt,red]=mAccTab.split("-");data=data.filter(s=>s.cuenta===cnt&&s.red===red);}return data;}
+// ═══ METRICAS ═══
+function getFilteredStats(){
+  const days=parseInt(document.getElementById("mrange")?.value||7);
+  const cut=new Date(TODAY);cut.setDate(cut.getDate()-days);
+  const cutStr=iso(cut);
+  let data=stats.filter(s=>s.fecha>=cutStr);
+  if(mAccTab!=="todas"){const[cnt,red]=mAccTab.split("-");data=data.filter(s=>s.cuenta===cnt&&s.red===red);}
+  return data;
+}
 function renderMetricas(){
   if(!document.getElementById("metcards"))return;
   const data=getFilteredStats();
@@ -1668,7 +1436,7 @@ function renderMetricas(){
   const dLbl=dates.map(d=>d.slice(5));
   ["a","e","r","s"].forEach(k=>{if(mCharts[k]){mCharts[k].destroy();delete mCharts[k];}});
   const c1=document.getElementById("chartAlcance")?.getContext("2d");
-  if(c1)mCharts.a=new Chart(c1,{type:"line",data:{labels:dLbl,datasets:[{label:"Alcance",data:dates.map(d=>data.filter(s=>s.fecha===d).reduce((a,s)=>a+(s.alcance||0),0)),borderColor:"#667eea",backgroundColor:"rgba(102,126,234,.1)",tension:.4,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom"}},scales:{y:{beginAtZero:true},x:{}}}});
+  if(c1)mCharts.a=new Chart(c1,{type:"line",data:{labels:dLbl,datasets:[{label:"Alcance",data:dates.map(d=>data.filter(s=>s.fecha===d).reduce((a,s)=>a+(s.alcance||0),0)),borderColor:"#667eea",backgroundColor:"rgba(102,126,234,.1)",tension:.4,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom"}},scales:{y:{beginAtZero:true}}}});
   const c2=document.getElementById("chartEng")?.getContext("2d");
   if(c2)mCharts.e=new Chart(c2,{type:"bar",data:{labels:dLbl,datasets:[{label:"Likes",data:dates.map(d=>data.filter(s=>s.fecha===d).reduce((a,s)=>a+(s.likes||0),0)),backgroundColor:"rgba(236,72,153,.7)"},{label:"Comentarios",data:dates.map(d=>data.filter(s=>s.fecha===d).reduce((a,s)=>a+(s.comentarios||0),0)),backgroundColor:"rgba(102,126,234,.7)"}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom"}},scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}}}});
   const cut2=dates[0]||isoToday;
@@ -1683,11 +1451,14 @@ async function saveStats(){
   const fecha=document.getElementById("sfecha")?.value;if(!fecha){alert("Fecha obligatoria");return;}
   const pv=(document.getElementById("scuenta")?.value||"Municipalidad|Facebook").split("|");
   const row={fecha,cuenta:pv[0],red:pv[1],alcance:parseInt(document.getElementById("salcance")?.value)||0,impresiones:parseInt(document.getElementById("simpres")?.value)||0,likes:parseInt(document.getElementById("slikes")?.value)||0,comentarios:parseInt(document.getElementById("scoments")?.value)||0,compartidos:parseInt(document.getElementById("sshares")?.value)||0,reproducciones:parseInt(document.getElementById("sviews")?.value)||0,nuevos_seguidores:parseInt(document.getElementById("snew")?.value)||0,seguidores_total:parseInt(document.getElementById("stotal")?.value)||0,fuente:"manual"};
-  try{const{error}=await db.from("stats_redes").insert(row);if(error)throw new Error(error.message);const r=await db.from("stats_redes").select("*").order("fecha,cuenta").catch(()=>({data:[]}));if(r.data)stats=r.data;closeMod("modStats");toast("Stats guardadas");renderMetricas();}
-  catch(e){toast("Error: "+e.message,"err");}
+  try{
+    const{error}=await db.from("stats_redes").insert(row);
+    if(error)throw new Error(error.message);
+    const r=await db.from("stats_redes").select("*").order("fecha,cuenta").catch(()=>({data:[]}));
+    if(r.data)stats=r.data;
+    closeMod("modStats");toast("Stats guardadas");renderMetricas();
+  }catch(e){toast("Error: "+e.message,"err");}
 }
-
-
 </script>
 </body>
 </html>
