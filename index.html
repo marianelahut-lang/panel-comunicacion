@@ -766,10 +766,13 @@ function setLive(ok){
   document.getElementById("ltxt").textContent=ok?"En vivo":"Sin conexión";
 }
 async function loadAll(){
+  // Solo cargar agenda de los últimos 30 días + próximos 6 meses (evita los 1000 registros viejos)
+  const agFrom=iso(addD(TODAY,-30));
+  const agTo=iso(addD(TODAY,180));
   const[t,ta,ag,pu]=await Promise.all([
     db.from("usuarios").select("*").order("nombre"),
     db.from("tareas").select("*").order("created_at"),
-    db.from("agenda").select("*").order("fecha"),
+    db.from("agenda").select("*").gte("fecha",agFrom).lte("fecha",agTo).order("fecha"),
     db.from("publicaciones").select("*").order("fecha,hora"),
   ]);
   if(t.data)teams=t.data;
@@ -783,7 +786,7 @@ function setupRealtime(){
   db.channel("rt")
     .on("postgres_changes",{event:"*",schema:"public",table:"tareas"},async()=>{const r=await db.from("tareas").select("*").order("created_at");if(r.data)tasks=r.data;renderKanban();renderMaterial();updateBadges();renderPersons();})
     .on("postgres_changes",{event:"*",schema:"public",table:"publicaciones"},async()=>{const r=await db.from("publicaciones").select("*").order("fecha,hora");if(r.data)pubs=r.data;renderWeek();renderCal();})
-    .on("postgres_changes",{event:"*",schema:"public",table:"agenda"},async()=>{const r=await db.from("agenda").select("*").order("fecha");if(r.data)agendas=r.data;renderCal();updateBadges();})
+    .on("postgres_changes",{event:"*",schema:"public",table:"agenda"},async()=>{const agFrom=iso(addD(TODAY,-30));const agTo=iso(addD(TODAY,180));const r=await db.from("agenda").select("*").gte("fecha",agFrom).lte("fecha",agTo).order("fecha");if(r.data)agendas=r.data;renderCal();updateBadges();})
     .on("postgres_changes",{event:"*",schema:"public",table:"usuarios"},async()=>{const r=await db.from("usuarios").select("*").order("nombre");if(r.data)teams=r.data;renderTeam();popSelects();renderPersons();})
     .subscribe();
 }
@@ -927,7 +930,10 @@ function weekMon(off){return addD(START,off*7)}
 function buildWeek(hdrId,scrollId,off,showPubs,showAg){
   const mon=weekMon(off);
   const DN=["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
-  const HORAS=[7,8,9,10,11,12,13,14,15,16,17,18,19,20,21];
+  const SLOT_H=64;   // px por hora
+  const START_H=7;   // hora inicio
+  const END_H=22;    // hora fin
+  const TOTAL_H=END_H-START_H;
 
   // ── HEADER ──
   let hdr=`<div class="wgut" style="background:#f9fafb;border-right:1px solid #e5e7eb"></div>`;
@@ -945,81 +951,126 @@ function buildWeek(hdrId,scrollId,off,showPubs,showAg){
   }
   document.getElementById(hdrId).innerHTML=hdr;
 
-  // ── RECOLECTAR EVENTOS POR DÍA ──
-  const dayMap={};
+  // ── BODY estilo Google Calendar ──
+  // Grilla de horas a la izquierda + 7 columnas
+  const totalPx=TOTAL_H*SLOT_H;
+
+  // Columna de horas
+  let hourCol=`<div style="width:60px;flex-shrink:0;position:relative;height:${totalPx}px;border-right:1px solid #e5e7eb">`;
+  for(let h=START_H;h<=END_H;h++){
+    const top=(h-START_H)*SLOT_H;
+    hourCol+=`<div style="position:absolute;top:${top-9}px;left:0;width:56px;text-align:right;font-size:11px;font-weight:600;color:#9ca3af;line-height:1;padding-right:6px">${h===START_H?"":String(h).padStart(2,"0")+":00"}</div>`;
+  }
+  hourCol+=`</div>`;
+
+  // 7 columnas de días
+  let dayCols="";
   for(let i=0;i<7;i++){
     const d=addD(mon,i),ds=iso(d);
+    const isT=ds===isoToday;
+    const guards=getGuardia(ds);
+    const gbg=guards.length>0?(gm(guards[0])||{color:"transparent"}).color+"06":"transparent";
     const seen=new Set();
-    const evs=[];
+
+    // Recolectar todos los eventos del día
+    const dayEvs=[];
     if(showAg){
       [...agendas,...gcalEvs].filter(a=>{
         const af=String(a.fecha).slice(0,10);
         if(af!==ds||a.cancelado||seen.has(a.id))return false;
         seen.add(a.id);return true;
       }).forEach(e=>{
-        const hr=e.hora?parseInt(String(e.hora).split(":")[0]):null;
-        const min=e.hora?parseInt(String(e.hora).split(":")[1]||0):0;
+        const hr=e.hora?(parseInt(String(e.hora).split(":")[0])||0):null;
+        const mn=e.hora?(parseInt(String(e.hora).split(":")[1])||0):0;
         const isCob=cobSel[e.id]||false;
         const cls=isCob?"ep":e.tipo==="prensa"?"ep":e.tipo==="municipal"?"em":"ei";
         const icon=e.tipo==="prensa"?"📻":e.tipo==="municipal"?"🏛":"🗓";
         const cobBadge=isCob?`<span style="font-size:8px;background:#6d28d9;color:#fff;padding:1px 4px;border-radius:3px;margin-left:2px">📋</span>`:"";
-        const cobStyle=isCob?"background:#ede9fe;border-left:3px solid #6d28d9;color:#4c1d95;":"";
-        evs.push({hr,min,sort:(hr||0)*60+(min||0),html:`<div class="ev ${cls}" onclick="event.stopPropagation();openEvPanel(${JSON.stringify(e).replace(/"/g,'&quot;')})" style="cursor:pointer;margin-bottom:2px;${cobStyle}">
-          <div class="ev-t">${icon} ${e.descripcion}${cobBadge}</div>
-          <div class="ev-s" style="font-weight:600;color:inherit;opacity:.8">${e.hora?`🕐 ${e.hora.slice(0,5)}`:""} ${e.lugar?`📍 ${e.lugar}`:""}</div>
-        </div>`});
+        const colors={ep:["#fce7f3","#ec4899","#9d174d"],em:["#dcfce7","#22c55e","#15803d"],ei:["#dbeafe","#3b82f6","#1e40af"]};
+        const[bg,br,tc]=isCob?["#ede9fe","#6d28d9","#4c1d95"]:colors[cls]||colors.ei;
+        dayEvs.push({hr,mn,sort:(hr||9)*60+mn,html:`<div onclick="event.stopPropagation();openEvPanel(${JSON.stringify(e).replace(/"/g,'&quot;')})" style="background:${bg};border-left:3px solid ${br};color:${tc};border-radius:4px;padding:3px 5px;cursor:pointer;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.1)">
+          <div style="font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${icon} ${e.descripcion}${cobBadge}</div>
+          <div style="font-size:9px;opacity:.8;margin-top:1px">${e.hora?`🕐 ${e.hora.slice(0,5)}`:""} ${e.lugar?`· ${e.lugar.slice(0,15)}`:""}</div>
+        </div>`,hasHora:hr!==null});
       });
     }
     if(showPubs){
       pubs.filter(p=>String(p.fecha).slice(0,10)===ds).forEach(p=>{
-        const hr=p.hora?parseInt(String(p.hora).split(":")[0]):null;
-        const min=p.hora?parseInt(String(p.hora).split(":")[1]||0):0;
-        const ct=getCta(p.cuenta)||{cls:"efbm",label:p.cuenta};
-        evs.push({hr,min,sort:(hr||0)*60+(min||0),html:`<div class="ev ${ct.cls}" onclick="editPubItem('${p.id}')" style="margin-bottom:2px">
-          <div class="ev-t">${ct.label} · ${p.tipo}</div>
-          <div class="ev-s" style="font-weight:600">${p.hora?`🕐 ${p.hora.slice(0,5)}`:""} ${p.descripcion.slice(0,22)}${p.descripcion.length>22?"…":""}</div>
-        </div>`});
+        const hr=p.hora?(parseInt(String(p.hora).split(":")[0])||0):null;
+        const mn=p.hora?(parseInt(String(p.hora).split(":")[1])||0):0;
+        const ct=getCta(p.cuenta)||{cls:"efbm",label:p.cuenta,dot:"#667eea"};
+        dayEvs.push({hr,mn,sort:(hr||9)*60+mn,html:`<div onclick="editPubItem('${p.id}')" style="background:#f0f0ff;border-left:3px solid ${ct.dot||"#667eea"};border-radius:4px;padding:3px 5px;cursor:pointer;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08)">
+          <div style="font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📱 ${ct.label} · ${p.tipo}</div>
+          <div style="font-size:9px;opacity:.8;margin-top:1px">${p.hora?`🕐 ${p.hora.slice(0,5)} `:""} ${p.descripcion.slice(0,18)}${p.descripcion.length>18?"…":""}</div>
+        </div>`,hasHora:hr!==null});
       });
     }
-    evs.sort((a,b)=>a.sort-b.sort);
-    dayMap[iso(addD(mon,i))]=evs;
+    dayEvs.sort((a,b)=>a.sort-b.sort);
+
+    // Detectar solapamientos para calcular columnas internas
+    // Agrupar eventos con hora por su posición vertical
+    const positioned=[];
+    const allDay=[];
+    for(const ev of dayEvs){
+      if(!ev.hasHora){allDay.push(ev);continue;}
+      const top=((ev.hr-START_H)*60+ev.mn)/60*SLOT_H;
+      if(top<0||top>totalPx)continue; // fuera de rango
+      positioned.push({...ev,top,height:Math.max(28,SLOT_H-4)});
+    }
+
+    // Calcular columnas para solapados
+    const placed=[];
+    for(const ev of positioned){
+      let col=0;
+      while(placed.some(p=>p.col===col&&Math.abs(p.top-ev.top)<(SLOT_H-8)))col++;
+      placed.push({...ev,col});
+    }
+    const maxCol=placed.length?Math.max(...placed.map(p=>p.col))+1:1;
+    const colW=100/maxCol;
+
+    // Construir columna del día
+    let evHtml="";
+    // All-day events at top
+    if(allDay.length){
+      evHtml+=`<div style="padding:2px;border-bottom:1px solid #f3f4f6;min-height:24px;display:flex;flex-wrap:wrap;gap:2px">`;
+      for(const ev of allDay){
+        evHtml+=`<div style="flex:1;min-width:0">${ev.html}</div>`;
+      }
+      evHtml+=`</div>`;
+    }
+    // Positioned events
+    evHtml+=`<div style="position:relative;height:${totalPx}px" onclick="openPubFromCell('${ds}','09:00')">`;
+    // Hour lines
+    for(let h=START_H;h<=END_H;h++){
+      const top=(h-START_H)*SLOT_H;
+      evHtml+=`<div style="position:absolute;top:${top}px;left:0;right:0;border-top:1px solid ${h===START_H?"transparent":"#f3f4f6"};pointer-events:none"></div>`;
+    }
+    // Current time indicator
+    if(isT){
+      const now=new Date();
+      const nowTop=((now.getHours()-START_H)*60+now.getMinutes())/60*SLOT_H;
+      if(nowTop>0&&nowTop<totalPx){
+        evHtml+=`<div style="position:absolute;top:${nowTop}px;left:0;right:0;border-top:2px solid #ef4444;z-index:10;pointer-events:none"><div style="position:absolute;top:-4px;left:-1px;width:8px;height:8px;border-radius:50%;background:#ef4444"></div></div>`;
+      }
+    }
+    for(const ev of placed){
+      evHtml+=`<div style="position:absolute;top:${ev.top+1}px;left:${ev.col*colW}%;width:${colW-0.5}%;height:${ev.height}px;z-index:${5+ev.col}" onclick="event.stopPropagation()">${ev.html}</div>`;
+    }
+    // Add button
+    evHtml+=`<button class="hadd" style="position:absolute;bottom:4px;right:4px;display:flex" onclick="event.stopPropagation();openPubFromCell('${ds}','09:00')">+</button>`;
+    evHtml+=`</div>`;
+
+    dayCols+=`<div style="flex:1;border-right:1px solid #e5e7eb;background:${isT?"rgba(102,126,234,.02)":gbg};min-width:0;overflow:hidden">${evHtml}</div>`;
   }
 
-  // ── BODY: filas por hora, CELDAS GRANDES ──
-  let body="";
-  for(const hr of HORAS){
-    const hl=`${String(hr).padStart(2,"0")}:00`;
-    let row=`<div class="hrow" style="min-height:80px"><div class="hl" style="padding-top:6px;font-size:12px;font-weight:700;color:#6b7280">${hl}</div>`;
-    for(let i=0;i<7;i++){
-      const d=addD(mon,i),ds=iso(d);
-      const isT=ds===isoToday;
-      const guards=getGuardia(ds);
-      const gbg=guards.length>0?(gm(guards[0])||{color:"transparent"}).color+"08":"transparent";
-      const dayEvs=dayMap[ds]||[];
-      // Eventos de esta franja horaria (hr exacto O sin hora en la fila 9)
-      const cellEvs=dayEvs.filter(e=>{
-        if(e.hr===null)return hr===9;
-        return e.hr===hr;
-      });
-      row+=`<div class="hc${isT?" hct":""}" style="background:${gbg};min-height:80px;padding:4px 3px;vertical-align:top" onclick="openPubFromCell('${ds}','${hl}')">
-        <div class="ci">${cellEvs.map(e=>e.html).join("")}</div>
-        <button class="hadd" onclick="event.stopPropagation();openPubFromCell('${ds}','${hl}')">+</button>
-      </div>`;
-    }
-    row+=`</div>`;
-    body+=row;
-  }
   const sc=document.getElementById(scrollId);
   if(sc){
-    sc.innerHTML=body;
-    // Scroll a hora 8 / hora actual
+    sc.innerHTML=`<div style="display:flex;height:${totalPx+80}px">${hourCol}<div style="display:flex;flex:1;min-width:0">${dayCols}</div></div>`;
+    // Scroll a hora actual o 8am
     setTimeout(()=>{
       const nowH=new Date().getHours();
-      const targetH=Math.max(7,Math.min(20,nowH-1));
-      const rows=sc.querySelectorAll(".hrow");
-      const idx=HORAS.indexOf(targetH);
-      if(rows[idx])rows[idx].scrollIntoView({block:"start"});
-      else sc.scrollTop=0;
+      const targetH=Math.max(START_H,Math.min(END_H-2,nowH-1));
+      sc.scrollTop=Math.max(0,(targetH-START_H)*SLOT_H-30);
     },50);
   }
 }
@@ -1058,11 +1109,64 @@ async function savePub(){
   if(!fecha||!desc){alert("Fecha y descripción obligatorias");return}
   const cuenta=getSelCuenta("cuentasgrid");if(!cuenta){alert("Seleccioná una cuenta");return}
   const hora=document.getElementById("phora").value||null;
-  const data={fecha,hora,descripcion:desc,cuenta,tipo:document.getElementById("ptipo").value,responsable:document.getElementById("presp").value,colaboracion:document.getElementById("pcolab").value,estado:document.getElementById("pest").value};
+  const estado=document.getElementById("pest").value;
+  const data={fecha,hora,descripcion:desc,cuenta,tipo:document.getElementById("ptipo").value,responsable:document.getElementById("presp").value,colaboracion:document.getElementById("pcolab").value,estado};
   const eid=document.getElementById("pubeid").value;
-  if(eid)await db.from("publicaciones").update({...data,updated_at:new Date().toISOString()}).eq("id",eid);
-  else await db.from("publicaciones").insert(data);
+  let savedId=eid;
+  if(eid){
+    await db.from("publicaciones").update({...data,updated_at:new Date().toISOString()}).eq("id",eid);
+  }else{
+    const r=await db.from("publicaciones").insert(data).select();
+    if(r.data&&r.data[0])savedId=r.data[0].id;
+  }
+  // Sincronizar con guardias si es +15hs y pendiente/en producción/listo
+  _syncPubToGuardia(savedId,hora,desc,fecha,estado);
   closeMod("modPub");
+}
+
+async function saveProgram(){
+  const fecha=document.getElementById("progfecha").value;if(!fecha){alert("Seleccioná fecha");return}
+  const cuenta=getSelCuenta("progcuentas");if(!cuenta){alert("Seleccioná cuenta");return}
+  const hora=document.getElementById("proghora").value||null;
+  const desc=document.getElementById("proginfo").textContent.replace("📋 ","");
+  const r=await db.from("publicaciones").insert({fecha,hora,descripcion:desc,cuenta,tipo:document.getElementById("progtipo")?.value||"Reel/Video",responsable:document.getElementById("progresp").value,colaboracion:"",estado:"Pendiente",tarea_id:document.getElementById("progtid").value}).select();
+  const savedId=r.data?.[0]?.id;
+  _syncPubToGuardia(savedId,hora,desc,fecha,"Pendiente");
+  closeMod("modProgram");toast("✓ Publicación programada");
+}
+
+// Sincroniza publicación con guardia si es +15hs y no está publicada
+function _syncPubToGuardia(id,hora,desc,fecha,estado){
+  if(!id||!hora)return;
+  if(estado==="Publicado")return; // ya publicado, no aplica
+  const h=parseInt(String(hora).split(":")[0]);
+  if(h<15)return; // antes de las 15, no aplica
+  // Crear entrada en cobSel con id de pub (prefijado para distinguir de agenda)
+  const pubKey="pub_"+id;
+  cobSel[pubKey]=true;
+  // Crear objeto compatible con guardias
+  const pubEv={
+    id:pubKey,
+    fecha,
+    hora,
+    descripcion:`📱 ${desc}`,
+    lugar:"",
+    tipo:"publicacion",
+    cancelado:false,
+    gcal:false,
+    esPub:true
+  };
+  // Agregar a gcalEvs temporalmente si no existe
+  if(!gcalEvs.find(e=>e.id===pubKey)&&!agendas.find(e=>e.id===pubKey)){
+    // Usamos un array separado para pubs en guardia
+    if(!window._pubGuardia)window._pubGuardia=[];
+    const exists=window._pubGuardia.find(e=>e.id===pubKey);
+    if(!exists)window._pubGuardia.push(pubEv);
+  }
+  // Refrescar guardias
+  if(document.getElementById("p-guardias")?.style.display!=="none")renderGuardias();
+  toast("📋 Publicación +15hs agregada a la guardia del día");
+  notifEventoGuardado(desc,fecha,hora,"publicacion");
 }
 function buildCuentasGrid(cid,selected){
   document.getElementById(cid).innerHTML=CUENTAS.map(c=>`
@@ -1080,13 +1184,6 @@ function openProgram(tid,desc){
   document.getElementById("progresp").value="";
   buildCuentasGrid("progcuentas",null);
   document.getElementById("modProgram").classList.add("open");
-}
-async function saveProgram(){
-  const fecha=document.getElementById("progfecha").value;if(!fecha){alert("Seleccioná fecha");return}
-  const cuenta=getSelCuenta("progcuentas");if(!cuenta){alert("Seleccioná cuenta");return}
-  const desc=document.getElementById("proginfo").textContent.replace("📋 ","");
-  await db.from("publicaciones").insert({fecha,hora:document.getElementById("proghora").value||null,descripcion:desc,cuenta,tipo:document.getElementById("progtipo")?.value||"Reel/Video",responsable:document.getElementById("progresp").value,colaboracion:"",estado:"Pendiente",tarea_id:document.getElementById("progtid").value});
-  closeMod("modProgram");toast("✓ Publicación programada");
 }
 
 // ═══ CALENDARIO ═══
@@ -1359,7 +1456,7 @@ function renderGuardias(){
       <div style="background:#ede9fe;border:1px solid #c4b5fd;border-radius:7px;padding:6px 8px;margin-top:5px">
         <div style="font-size:7px;color:#6d28d9;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">📋 Coberturas asignadas</div>
         ${coberturas.map(e=>`<div style="font-size:9px;color:#4c1d95;font-weight:600;padding:2px 0;display:flex;align-items:center;gap:4px">
-          <span>${e.tipo==="prensa"?"📻":"🗓"}</span>
+          <span>${e.tipo==="prensa"?"📻":e.tipo==="publicacion"?"📱":"🗓"}</span>
           <span>${e.hora?e.hora.slice(0,5)+" ":""}</span>
           <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.descripcion.slice(0,25)}</span>
           <button onclick="cobSel['${e.id}']=false;renderGuardias();renderCal()" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:10px;padding:0">✕</button>
@@ -1399,7 +1496,7 @@ function renderGuardias(){
 function notifyDay(ds){
   const g=getGuardia(ds),d=parseD(ds);
   const dia=`${DNF[d.getDay()]} ${d.getDate()} de ${MNF[d.getMonth()]}`;
-  const evs=[...agendas,...gcalEvs].filter(a=>String(a.fecha).slice(0,10)===ds&&!a.cancelado);
+  const evs=[...agendas,...gcalEvs,...(window._pubGuardia||[])].filter(a=>String(a.fecha).slice(0,10)===ds&&!a.cancelado);
   const coberturas=evs.filter(e=>cobSel[e.id]);
   const evsTarde=evs.filter(e=>{if(!e.hora)return false;const h=parseInt(String(e.hora).split(":")[0]);return h>=15;});
   let sent=0,nomail=[];
@@ -1426,7 +1523,7 @@ function notifyDay(ds){
     toast(`✓ Mail guardia — ${dia}`);
     pushNotif(`📧 Guardia notificada`,`${dia} — mail enviado a ${sent} integrante${sent!==1?"s":""}`);
   }
-  if(nomail.length)toast(`Sin correo: ${nomail.join(", ")}}`,"warn");
+  if(nomail.length)toast(`Sin correo: ${nomail.join(", ")}`,"warn");
 }
 
 function notifyWeek(){
@@ -1582,7 +1679,20 @@ async function scanMedios(){
 async function fetchMedioRSS(medio){
   const rssUrl=medio.rss;
   if(!rssUrl)return[];
-  const kws=["pablo garate","garate","intendente","tres arroyos","municipio","municipalidad"];
+  const kws=[
+    // Personas
+    "pablo garate","garate","intendente",
+    // Institución
+    "municipalidad","municipio","gobierno municipal","gobierno local","gestión municipal",
+    // Lugar
+    "tres arroyos","3 arroyos",
+    // Áreas comunes del municipio
+    "secretaría de","dirección de","subsecretaría",
+    // Acciones típicas
+    "inauguró","inauguraron","inauguración","obra municipal","licitación","presupuesto municipal",
+    "concejo deliberante","deliberante","ordenanza","decreto municipal",
+    "vecinos de tres","ciudad de tres","el municipio"
+  ];
 
   // Estrategia 1: rss2json.com — mejor soporte CORS, devuelve JSON limpio
   // Estrategia 2: allorigins.win — devuelve XML crudo dentro de JSON
