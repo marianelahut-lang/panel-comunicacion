@@ -394,10 +394,24 @@ html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111
             <select id="mfilt" onchange="renderNoticias()" style="font-size:11px;padding:5px 8px;border-radius:6px;border:1.5px solid #e5e7eb;font-family:Inter,sans-serif;outline:none"><option value="">Todos los medios</option><option>La Voz del Pueblo</option><option>LU24</option><option>Diario 3</option><option>Via País</option><option>Onda Uno</option></select>
             <select id="tfilt" onchange="renderNoticias()" style="font-size:11px;padding:5px 8px;border-radius:6px;border:1.5px solid #e5e7eb;font-family:Inter,sans-serif;outline:none"><option value="">Todos los tonos</option><option value="positivo">Positivo</option><option value="neutral">Neutral</option><option value="negativo">Negativo</option></select>
             <button class="btn g" id="scanbtn" onclick="scanMedios()"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>Escanear medios</button>
+            <button class="btn" id="aibtn" onclick="analizarConIA()" style="background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border-color:#667eea"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 8v4l3 3"/></svg>🤖 Analizar con IA</button>
             <button class="btn p" onclick="openNoticiaMod()"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>+ Agregar</button>
           </div>
         </div>
         <div id="scanstatus"></div>
+        <div id="aianalysis" style="display:none;background:linear-gradient(135deg,#1a1a2e,#302b63);border-radius:10px;padding:16px;margin-bottom:10px;color:#fff">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="width:28px;height:28px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px">🤖</div>
+              <div>
+                <div style="font-size:13px;font-weight:700">Análisis IA — Monitoreo de medios</div>
+                <div id="aidate" style="font-size:10px;color:rgba(255,255,255,.4)"></div>
+              </div>
+            </div>
+            <button onclick="document.getElementById('aianalysis').style.display='none'" style="background:rgba(255,255,255,.1);border:none;color:rgba(255,255,255,.5);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:11px">✕ Cerrar</button>
+          </div>
+          <div id="aitext" style="font-size:12px;line-height:1.7;color:rgba(255,255,255,.85);white-space:pre-wrap"></div>
+        </div>
         <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:13px;margin-bottom:10px">
           <div style="font-size:12px;font-weight:600;margin-bottom:8px;display:flex;justify-content:space-between"><span>Resumen semanal</span><span id="semlbl" style="font-size:10px;color:#9ca3af;font-weight:400"></span></div>
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px" id="mediosum"></div>
@@ -1085,6 +1099,19 @@ function initGuardias(){
   renderGuardias();
 }
 
+// coberturas seleccionadas: {fecha_evid: true/false}
+const cobSel={};
+
+function toggleCob(key){
+  cobSel[key]=!cobSel[key];
+  const el=document.getElementById("cob_"+key);
+  if(el){
+    el.style.background=cobSel[key]?"#667eea":"#f3f4f6";
+    el.style.color=cobSel[key]?"#fff":"#6b7280";
+    el.style.borderColor=cobSel[key]?"#667eea":"#e5e7eb";
+  }
+}
+
 function renderGuardias(){
   const wo=parseInt(document.getElementById("gwsel")?.value)||0;
   const mon=addD(START,wo*7);
@@ -1097,14 +1124,33 @@ function renderGuardias(){
     const evs=[...agendas,...gcalEvs].filter(a=>String(a.fecha).slice(0,10)===ds&&!a.cancelado);
     const evsTarde=evs.filter(e=>{if(!e.hora)return false;const h=parseInt(String(e.hora).split(":")[0]);return h>=15;});
 
-    // FIX: construir botones WA usando getContact (que combina DB + fallback)
+    // Checkboxes de cobertura para cada evento +15hs
+    const cobHtml=evsTarde.length?`
+      <div style="border-top:1px dashed #e5e7eb;padding-top:5px;margin-top:4px">
+        <div style="font-size:7px;color:#9ca3af;margin-bottom:3px;font-weight:700;text-transform:uppercase;letter-spacing:.05em">Cubrir +15hs</div>
+        ${evsTarde.map((e,ei)=>{
+          const key=ds+"_"+ei;
+          const sel=cobSel[key]||false;
+          return`<button id="cob_${key}" onclick="toggleCob('${key}')" style="display:block;width:100%;text-align:left;margin-bottom:2px;padding:3px 6px;border-radius:5px;border:1.5px solid ${sel?"#667eea":"#e5e7eb"};background:${sel?"#667eea":"#f3f4f6"};color:${sel?"#fff":"#6b7280"};font-size:8px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;line-height:1.3">
+            ${sel?"✓ ":""}${e.tipo==="prensa"?"📻":"🗓"} ${e.hora?e.hora.slice(0,5)+" ":""}${e.descripcion.slice(0,22)}
+          </button>`;
+        }).join("")}
+      </div>`:"";
+
+    // Botones WA — solo incluyen eventos seleccionados para cubrir
     const waBtns=g.map(n=>{
       const c=getContact(n);
       if(!c.tel)return'';
       const d2=parseD(ds);
+      // Eventos seleccionados para cobertura, o todos si ninguno fue seleccionado
+      const selEvs=evsTarde.filter((_,ei)=>cobSel[ds+"_"+ei]);
+      const envEvs=selEvs.length>0?selEvs:evsTarde;
       let msg=`Guardia ${DNF[d2.getDay()]} ${d2.getDate()} de ${MNF[d2.getMonth()]}`;
-      if(evsTarde.length)msg+="\n"+evsTarde.slice(0,4).map(e=>(e.hora?e.hora.slice(0,5)+" ":"")+e.descripcion).join("\n");
-      msg+="\nPanel: https://marianelahut-lang.github.io/panel-comunicacion/";
+      if(envEvs.length){
+        msg+=selEvs.length>0?"\n\n📋 Coberturas confirmadas:\n":"\n\nEventos del día:\n";
+        msg+=envEvs.slice(0,5).map(e=>"• "+(e.hora?e.hora.slice(0,5)+" ":"")+e.descripcion).join("\n");
+      }
+      msg+="\n\nPanel: https://marianelahut-lang.github.io/panel-comunicacion/";
       return`<a href="https://wa.me/${c.tel}?text=${encodeURIComponent(msg)}" target="_blank" style="display:block;margin-top:2px;padding:3px 6px;border-radius:4px;background:#25d366;color:#fff;font-size:9px;font-weight:600;text-decoration:none;text-align:center">📱 WA ${n}</a>`;
     }).join('');
 
@@ -1113,7 +1159,7 @@ function renderGuardias(){
       <div class="gwags">
         ${g.map((n,gi)=>{const m=gm(n);return m?`<div class="gwag">${av(m,16)}<span style="font-size:9px;line-height:1.2">${m.nombre}<br><span style="color:#9ca3af;font-size:8px">${gi===0?"titular":"soporte"}</span></span></div>`:""}).join("")||`<span style="font-size:9px;color:#d1d5db">—</span>`}
       </div>
-      ${evsTarde.length?`<div class="gwevs" style="border-top:1px dashed #e5e7eb;padding-top:3px;margin-top:2px"><div style="font-size:7px;color:#9ca3af;margin-bottom:1px">+15hs:</div>${evsTarde.slice(0,4).map(e=>`${e.tipo==="prensa"?"📻":"🗓"} ${e.hora?e.hora.slice(0,5)+" ":""}${e.descripcion.slice(0,18)}`).join("<br>")}</div>`:""}
+      ${cobHtml}
       <button class="gwnb" onclick="notifyDay('${ds}')">📧 Mail guardia</button>
       ${waBtns}
     </div>`;
@@ -1414,7 +1460,76 @@ async function saveNoticia(){
   renderNoticias();renderMedioSum();
 }
 
-// ═══ METRICAS ═══
+// ═══ ANÁLISIS IA DE MEDIOS ═══
+async function analizarConIA(){
+  const btn=document.getElementById("aibtn");
+  const panel=document.getElementById("aianalysis");
+  const txtEl=document.getElementById("aitext");
+  const dateEl=document.getElementById("aidate");
+
+  if(!noticias.length){toast("Primero escaneá los medios o agregá noticias","warn");return;}
+
+  btn.disabled=true;
+  btn.textContent="🤖 Analizando...";
+  panel.style.display="block";
+  txtEl.textContent="Analizando noticias con IA...";
+  dateEl.textContent=new Date().toLocaleString("es-AR");
+
+  // Preparar resumen de noticias para enviar a la API
+  const cut=new Date(TODAY);cut.setDate(cut.getDate()-7);
+  const recientes=noticias.filter(n=>n.fecha>=(iso(cut))).slice(0,40);
+  const noticiasTexto=recientes.map((n,i)=>
+    `[${i+1}] ${n.medio} | ${n.fecha} | ${n.tono.toUpperCase()}\nTítulo: ${n.titulo}\n${n.resumen?'Resumen: '+n.resumen:''}`
+  ).join("\n\n");
+
+  const prompt=`Sos el analista de comunicación del Departamento de Prensa de la Municipalidad de Tres Arroyos (Buenos Aires, Argentina). El intendente es Pablo Garate.
+
+Analizá estas ${recientes.length} noticias de los últimos 7 días en medios locales y hacé un briefing ejecutivo para el equipo de comunicación.
+
+NOTICIAS:
+${noticiasTexto}
+
+Respondé con este formato exacto:
+
+📊 RESUMEN EJECUTIVO
+[2-3 oraciones sobre el panorama general de cobertura mediática]
+
+🔥 TEMAS PRIORITARIOS
+[Lista de 3-5 temas más mencionados con breve descripción]
+
+✅ POSITIVO PARA EL MUNICIPIO
+[Coberturas favorables, logros comunicados]
+
+⚠️ ALERTAS
+[Temas negativos o críticos que requieren atención o respuesta]
+
+📱 RECOMENDACIONES PARA HOY
+[2-3 acciones concretas para el equipo de comunicación basadas en las noticias]
+
+Sé conciso, directo y útil para un equipo de comunicación municipal.`;
+
+  try{
+    const response=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        model:"claude-sonnet-4-20250514",
+        max_tokens:1000,
+        messages:[{role:"user",content:prompt}]
+      })
+    });
+    const data=await response.json();
+    const text=data.content?.[0]?.text||"Sin respuesta de la IA.";
+    txtEl.textContent=text;
+    toast("✓ Análisis generado");
+  }catch(e){
+    txtEl.textContent="Error al conectar con la IA: "+e.message+"\n\nVerificá la conexión e intentá nuevamente.";
+    toast("Error IA: "+e.message,"err");
+  }
+  btn.disabled=false;
+  btn.innerHTML='<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 8v4l3 3"/></svg>🤖 Analizar con IA';
+}
+
 function getFilteredStats(){
   const days=parseInt(document.getElementById("mrange")?.value||7);
   const cut=new Date(TODAY);cut.setDate(cut.getDate()-days);
