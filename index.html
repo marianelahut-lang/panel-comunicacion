@@ -524,7 +524,11 @@ html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111
   <div id="pubguardiabanner" style="display:none;background:#ede9fe;border:1px solid #c4b5fd;border-radius:7px;padding:8px 11px;font-size:11px;color:#6d28d9;margin-top:4px">
     📋 <strong>Pasa a Guardias</strong> — esta publicación es después de las 15hs y está lista para publicar
   </div>
-  <div class="mft"><button class="btn" onclick="closeMod('modPub')">Cancelar</button><button class="btn p" onclick="savePub()">Guardar</button></div>
+  <div class="mft">
+    <button class="btn r" id="pubdelbtn" onclick="deletePub()" style="display:none">🗑 Eliminar</button>
+    <button class="btn" onclick="closeMod('modPub')">Cancelar</button>
+    <button class="btn p" onclick="savePub()">Guardar</button>
+  </div>
 </div></div>
 
 <div class="ov" id="modAg"><div class="mod">
@@ -940,147 +944,134 @@ function weekMon(off){return addD(START,off*7)}
 function buildWeek(hdrId,scrollId,off,showPubs,showAg){
   const mon=weekMon(off);
   const DN=["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
-  const SLOT_H=64;   // px por hora
-  const START_H=7;   // hora inicio
-  const END_H=22;    // hora fin
-  const TOTAL_H=END_H-START_H;
+  const SLOT=60;    // px por hora
+  const H0=7,H1=22; // rango de horas
 
-  // ── HEADER ──
-  let hdr=`<div class="wgut" style="background:#f9fafb;border-right:1px solid #e5e7eb"></div>`;
+  // ── HEADER: días + guardia ──
+  let hdr=`<div style="width:52px;flex-shrink:0;background:#f9fafb;border-right:1px solid #e5e7eb"></div>`;
   for(let i=0;i<7;i++){
     const d=addD(mon,i),ds=iso(d);
     const isT=ds===isoToday,isWE=i>=5;
     const guards=getGuardia(ds);
     const gc=guards.length>0?(gm(guards[0])||{color:"#e5e7eb"}).color:"#e5e7eb";
-    hdr+=`<div class="wdc${isT?" wdt":""}${isWE?" wdw":""}" style="border-top:3px solid ${gc}">
-      <div class="wdn">${DN[i]}</div>
-      <div class="wnum">${d.getDate()}</div>
-      <div class="wgav">${guards.map((n,gi)=>{const m=gm(n);return m?`<div class="gav" style="background:${m.color};color:${m.color_texto}" title="${gi===0?"Titular":"Soporte"}: ${m.nombre}">${ini(m.nombre)}</div>`:""}).join("")}</div>
-      <div class="wgt">${guards.length?guards[0]+(guards[1]?"/"+guards[1]:""):""}</div>
+    hdr+=`<div style="flex:1;padding:5px 3px;text-align:center;border-right:1px solid #e5e7eb;border-top:3px solid ${gc};background:${isT?"#eff6ff":isWE?"#fafafa":"#fff"}">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#9ca3af;letter-spacing:.05em">${DN[i]}</div>
+      <div style="font-size:${isT?14:16}px;font-weight:700;${isT?"display:inline-flex;width:24px;height:24px;background:#667eea;color:#fff;border-radius:50%;align-items:center;justify-content:center;font-size:13px":""}">${d.getDate()}</div>
+      <div style="display:flex;justify-content:center;gap:2px;margin-top:2px">${guards.map((n,gi)=>{const m=gm(n);return m?`<div style="width:14px;height:14px;border-radius:50%;background:${m.color};color:${m.color_texto};display:flex;align-items:center;justify-content:center;font-size:6px;font-weight:700;border:1.5px solid #fff" title="${gi===0?"Titular":"Soporte"}: ${m.nombre}">${ini(m.nombre)}</div>`:""}).join("")}</div>
     </div>`;
   }
-  document.getElementById(hdrId).innerHTML=hdr;
+  const hdrEl=document.getElementById(hdrId);
+  if(hdrEl){hdrEl.style.display="flex";hdrEl.innerHTML=hdr;}
 
-  // ── BODY estilo Google Calendar ──
-  // Grilla de horas a la izquierda + 7 columnas
-  const totalPx=TOTAL_H*SLOT_H;
+  // ── BODY: grid de horas estilo Google Calendar ──
+  const totalPx=(H1-H0)*SLOT;
 
-  // Columna de horas
-  let hourCol=`<div style="width:60px;flex-shrink:0;position:relative;height:${totalPx}px;border-right:1px solid #e5e7eb">`;
-  for(let h=START_H;h<=END_H;h++){
-    const top=(h-START_H)*SLOT_H;
-    hourCol+=`<div style="position:absolute;top:${top-9}px;left:0;width:56px;text-align:right;font-size:11px;font-weight:600;color:#9ca3af;line-height:1;padding-right:6px">${h===START_H?"":String(h).padStart(2,"0")+":00"}</div>`;
-  }
-  hourCol+=`</div>`;
-
-  // 7 columnas de días
-  let dayCols="";
+  // Recolectar eventos por día
+  const dayData=[];
   for(let i=0;i<7;i++){
     const d=addD(mon,i),ds=iso(d);
-    const isT=ds===isoToday;
-    const guards=getGuardia(ds);
-    const gbg=guards.length>0?(gm(guards[0])||{color:"transparent"}).color+"06":"transparent";
     const seen=new Set();
-
-    // Recolectar todos los eventos del día
-    const dayEvs=[];
+    const evs=[];
     if(showAg){
-      [...agendas,...gcalEvs].filter(a=>{
+      [...agendas,...gcalEvs,...(window._pubGuardia||[])].filter(a=>{
         const af=String(a.fecha).slice(0,10);
         if(af!==ds||a.cancelado||seen.has(a.id))return false;
         seen.add(a.id);return true;
       }).forEach(e=>{
-        const hr=e.hora?(parseInt(String(e.hora).split(":")[0])||0):null;
-        const mn=e.hora?(parseInt(String(e.hora).split(":")[1])||0):0;
         const isCob=cobSel[e.id]||false;
-        const cls=isCob?"ep":e.tipo==="prensa"?"ep":e.tipo==="municipal"?"em":"ei";
-        const icon=e.tipo==="prensa"?"📻":e.tipo==="municipal"?"🏛":"🗓";
-        const cobBadge=isCob?`<span style="font-size:8px;background:#6d28d9;color:#fff;padding:1px 4px;border-radius:3px;margin-left:2px">📋</span>`:"";
-        const colors={ep:["#fce7f3","#ec4899","#9d174d"],em:["#dcfce7","#22c55e","#15803d"],ei:["#dbeafe","#3b82f6","#1e40af"]};
-        const[bg,br,tc]=isCob?["#ede9fe","#6d28d9","#4c1d95"]:colors[cls]||colors.ei;
-        dayEvs.push({hr,mn,sort:(hr||9)*60+mn,html:`<div onclick="event.stopPropagation();openEvPanel(${JSON.stringify(e).replace(/"/g,'&quot;')})" style="background:${bg};border-left:3px solid ${br};color:${tc};border-radius:4px;padding:3px 5px;cursor:pointer;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.1)">
-          <div style="font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${icon} ${e.descripcion}${cobBadge}</div>
-          <div style="font-size:9px;opacity:.8;margin-top:1px">${e.hora?`🕐 ${e.hora.slice(0,5)}`:""} ${e.lugar?`· ${e.lugar.slice(0,15)}`:""}</div>
-        </div>`,hasHora:hr!==null});
+        const colors={prensa:["#fce7f3","#ec4899","#9d174d"],municipal:["#dcfce7","#22c55e","#15803d"],publicacion:["#f0e6ff","#8b5cf6","#5b21b6"]};
+        const def=["#dbeafe","#3b82f6","#1e40af"];
+        const[bg,brd,tc]=isCob?["#ede9fe","#6d28d9","#4c1d95"]:(colors[e.tipo]||def);
+        const icon=e.tipo==="prensa"?"📻":e.tipo==="municipal"?"🏛":e.tipo==="publicacion"?"📱":"🗓";
+        const hr=e.hora?parseInt(String(e.hora).split(":")[0]):null;
+        const mn=e.hora?parseInt(String(e.hora).split(":")[1]||0):0;
+        evs.push({hr,mn,sort:(hr??9)*60+mn,bg,brd,tc,
+          html:`<div onclick="event.stopPropagation();openEvPanel(${JSON.stringify(e).replace(/"/g,'&quot;')})" style="background:${bg};border-left:3px solid ${brd};color:${tc};border-radius:4px;padding:3px 5px;font-size:10px;cursor:pointer;overflow:hidden;line-height:1.3;box-shadow:0 1px 2px rgba(0,0,0,.08)">
+            <div style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${icon} ${e.descripcion}${isCob?'<span style="font-size:8px;background:#6d28d9;color:#fff;padding:1px 3px;border-radius:2px;margin-left:2px">📋</span>':''}</div>
+            ${e.hora?`<div style="font-size:9px;opacity:.75;margin-top:1px">🕐 ${e.hora.slice(0,5)}${e.lugar?" · "+e.lugar.slice(0,12):""}${e.responsable?" · "+e.responsable:""}</div>`:""}
+          </div>`
+        });
       });
     }
     if(showPubs){
       pubs.filter(p=>String(p.fecha).slice(0,10)===ds).forEach(p=>{
-        const hr=p.hora?(parseInt(String(p.hora).split(":")[0])||0):null;
-        const mn=p.hora?(parseInt(String(p.hora).split(":")[1])||0):0;
-        const ct=getCta(p.cuenta)||{cls:"efbm",label:p.cuenta,dot:"#667eea"};
-        dayEvs.push({hr,mn,sort:(hr||9)*60+mn,html:`<div onclick="editPubItem('${p.id}')" style="background:#f0f0ff;border-left:3px solid ${ct.dot||"#667eea"};border-radius:4px;padding:3px 5px;cursor:pointer;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08)">
-          <div style="font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📱 ${ct.label} · ${p.tipo}</div>
-          <div style="font-size:9px;opacity:.8;margin-top:1px">${p.hora?`🕐 ${p.hora.slice(0,5)} `:""} ${p.descripcion.slice(0,18)}${p.descripcion.length>18?"…":""}</div>
-        </div>`,hasHora:hr!==null});
+        const ct=getCta(p.cuenta)||{label:p.cuenta,dot:"#667eea"};
+        const hr=p.hora?parseInt(String(p.hora).split(":")[0]):null;
+        const mn=p.hora?parseInt(String(p.hora).split(":")[1]||0):0;
+        evs.push({hr,mn,sort:(hr??9)*60+mn,
+          html:`<div onclick="event.stopPropagation();editPubItem('${p.id}')" style="background:#f0f0ff;border-left:3px solid ${ct.dot||"#667eea"};border-radius:4px;padding:3px 5px;font-size:10px;cursor:pointer;overflow:hidden;line-height:1.3;box-shadow:0 1px 2px rgba(0,0,0,.08)">
+            <div style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📱 ${ct.label} · ${p.tipo}</div>
+            ${p.hora?`<div style="font-size:9px;opacity:.75;margin-top:1px">🕐 ${p.hora.slice(0,5)} ${p.descripcion.slice(0,16)}${p.descripcion.length>16?"…":""}</div>`:""}
+          </div>`
+        });
       });
     }
-    dayEvs.sort((a,b)=>a.sort-b.sort);
+    evs.sort((a,b)=>a.sort-b.sort);
+    dayData.push({ds,evs,isT:ds===isoToday});
+  }
 
-    // Detectar solapamientos para calcular columnas internas
-    // Agrupar eventos con hora por su posición vertical
-    const positioned=[];
-    const allDay=[];
-    for(const ev of dayEvs){
-      if(!ev.hasHora){allDay.push(ev);continue;}
-      const top=((ev.hr-START_H)*60+ev.mn)/60*SLOT_H;
-      if(top<0||top>totalPx)continue; // fuera de rango
-      positioned.push({...ev,top,height:Math.max(28,SLOT_H-4)});
-    }
-
-    // Calcular columnas para solapados
-    const placed=[];
-    for(const ev of positioned){
+  // Detectar solapamientos: asignar columna a cada evento posicionado
+  function assignCols(evList){
+    const cols=[];
+    for(const ev of evList){
+      if(ev.hr===null)continue;
+      const top=(ev.hr-H0)*SLOT+(ev.mn/60)*SLOT;
+      if(top<0||top>=totalPx)continue;
       let col=0;
-      while(placed.some(p=>p.col===col&&Math.abs(p.top-ev.top)<(SLOT_H-8)))col++;
-      placed.push({...ev,col});
+      while(cols.some(c=>c.col===col&&Math.abs(c.top-top)<SLOT*0.8))col++;
+      cols.push({...ev,top,col});
     }
-    const maxCol=placed.length?Math.max(...placed.map(p=>p.col))+1:1;
+    const maxCol=cols.length?Math.max(...cols.map(c=>c.col))+1:1;
+    return{cols,maxCol};
+  }
+
+  // Construir HTML del cuerpo
+  let hourColHtml=`<div style="width:52px;flex-shrink:0;position:relative;border-right:1px solid #e5e7eb">`;
+  for(let h=H0;h<=H1;h++){
+    hourColHtml+=`<div style="position:absolute;top:${(h-H0)*SLOT-9}px;right:6px;font-size:10px;font-weight:600;color:#9ca3af;line-height:1">${h===H0?"":String(h).padStart(2,"0")+":00"}</div>`;
+  }
+  hourColHtml+=`</div>`;
+
+  let dayCols="";
+  for(const {ds,evs,isT} of dayData){
+    const guards=getGuardia(ds);
+    const gbg=guards.length>0?(gm(guards[0])||{color:"transparent"}).color+"06":"transparent";
+    const {cols,maxCol}=assignCols(evs);
+    const allDay=evs.filter(e=>e.hr===null);
     const colW=100/maxCol;
 
-    // Construir columna del día
-    let evHtml="";
-    // All-day events at top
-    if(allDay.length){
-      evHtml+=`<div style="padding:2px;border-bottom:1px solid #f3f4f6;min-height:24px;display:flex;flex-wrap:wrap;gap:2px">`;
-      for(const ev of allDay){
-        evHtml+=`<div style="flex:1;min-width:0">${ev.html}</div>`;
-      }
-      evHtml+=`</div>`;
-    }
-    // Positioned events
-    evHtml+=`<div style="position:relative;height:${totalPx}px" onclick="openPubFromCell('${ds}','09:00')">`;
+    let inner=`<div style="position:relative;height:${totalPx}px;cursor:crosshair" onclick="openPubFromCell('${ds}','09:00')">`;
     // Hour lines
-    for(let h=START_H;h<=END_H;h++){
-      const top=(h-START_H)*SLOT_H;
-      evHtml+=`<div style="position:absolute;top:${top}px;left:0;right:0;border-top:1px solid ${h===START_H?"transparent":"#f3f4f6"};pointer-events:none"></div>`;
+    for(let h=H0;h<=H1;h++){
+      inner+=`<div style="position:absolute;top:${(h-H0)*SLOT}px;left:0;right:0;border-top:1px solid ${h===H0?"transparent":"#f0f0f0"};pointer-events:none"></div>`;
     }
-    // Current time indicator
+    // 15hs line highlight
+    inner+=`<div style="position:absolute;top:${(15-H0)*SLOT}px;left:0;right:0;border-top:2px dashed #fde68a;pointer-events:none" title="+15hs guardia"></div>`;
+    // Current time
     if(isT){
       const now=new Date();
-      const nowTop=((now.getHours()-START_H)*60+now.getMinutes())/60*SLOT_H;
-      if(nowTop>0&&nowTop<totalPx){
-        evHtml+=`<div style="position:absolute;top:${nowTop}px;left:0;right:0;border-top:2px solid #ef4444;z-index:10;pointer-events:none"><div style="position:absolute;top:-4px;left:-1px;width:8px;height:8px;border-radius:50%;background:#ef4444"></div></div>`;
-      }
+      const tp=((now.getHours()-H0)*60+now.getMinutes())/60*SLOT;
+      if(tp>=0&&tp<=totalPx)inner+=`<div style="position:absolute;top:${tp}px;left:0;right:0;z-index:10;pointer-events:none"><div style="border-top:2px solid #ef4444"></div><div style="position:absolute;top:-4px;left:-1px;width:8px;height:8px;border-radius:50%;background:#ef4444"></div></div>`;
     }
-    for(const ev of placed){
-      evHtml+=`<div style="position:absolute;top:${ev.top+1}px;left:${ev.col*colW}%;width:${colW-0.5}%;height:${ev.height}px;z-index:${5+ev.col}" onclick="event.stopPropagation()">${ev.html}</div>`;
+    // Events
+    for(const ev of cols){
+      inner+=`<div style="position:absolute;top:${ev.top+1}px;left:${ev.col*colW}%;width:${colW-0.5}%;min-height:${SLOT-6}px;z-index:${5+ev.col};padding:0 1px" onclick="event.stopPropagation()">${ev.html}</div>`;
     }
-    // Add button
-    evHtml+=`<button class="hadd" style="position:absolute;bottom:4px;right:4px;display:flex" onclick="event.stopPropagation();openPubFromCell('${ds}','09:00')">+</button>`;
-    evHtml+=`</div>`;
+    inner+=`<button class="hadd" style="position:absolute;bottom:4px;right:4px;display:flex;opacity:.4" onclick="event.stopPropagation();openPubFromCell('${ds}','09:00')">+</button>`;
+    inner+=`</div>`;
 
-    dayCols+=`<div style="flex:1;border-right:1px solid #e5e7eb;background:${isT?"rgba(102,126,234,.02)":gbg};min-width:0;overflow:hidden">${evHtml}</div>`;
+    // All-day strip
+    const adStrip=allDay.length?`<div style="padding:2px;border-bottom:1px solid #f0f0f0;min-height:20px;display:flex;flex-direction:column;gap:1px">${allDay.map(e=>e.html).join("")}</div>`:"";
+
+    dayCols+=`<div style="flex:1;min-width:0;border-right:1px solid #e5e7eb;background:${isT?"rgba(102,126,234,.02)":gbg};overflow:hidden">${adStrip}${inner}</div>`;
   }
 
   const sc=document.getElementById(scrollId);
   if(sc){
-    sc.innerHTML=`<div style="display:flex;height:${totalPx+80}px">${hourCol}<div style="display:flex;flex:1;min-width:0">${dayCols}</div></div>`;
-    // Scroll a hora actual o 8am
+    sc.innerHTML=`<div style="display:flex;height:${totalPx+40}px">${hourColHtml}<div style="display:flex;flex:1;min-width:0;overflow-x:hidden">${dayCols}</div></div>`;
     setTimeout(()=>{
       const nowH=new Date().getHours();
-      const targetH=Math.max(START_H,Math.min(END_H-2,nowH-1));
-      sc.scrollTop=Math.max(0,(targetH-START_H)*SLOT_H-30);
+      sc.scrollTop=Math.max(0,(Math.max(H0,nowH-1)-H0)*SLOT-20);
     },50);
   }
 }
@@ -1100,6 +1091,7 @@ function openPubMod(fecha="",hora=""){
   document.getElementById("pfecha").value=fecha;document.getElementById("phora").value=hora;
   document.getElementById("pdesc").value="";document.getElementById("ptipo").value="Reel/Video";
   document.getElementById("presp").value="";document.getElementById("pcolab").value="";document.getElementById("pest").value="Pendiente";
+  document.getElementById("pubdelbtn").style.display="none";
   buildCuentasGrid("cuentasgrid",null);
   document.getElementById("modPub").classList.add("open");
   setTimeout(onPestChange,50);
@@ -1112,9 +1104,23 @@ function editPubItem(id){
   document.getElementById("phora").value=p.hora||"";document.getElementById("pdesc").value=p.descripcion;
   document.getElementById("ptipo").value=p.tipo;document.getElementById("presp").value=p.responsable||"";
   document.getElementById("pcolab").value=p.colaboracion||"";document.getElementById("pest").value=p.estado||"Pendiente";
+  document.getElementById("pubdelbtn").style.display="inline-flex";
   buildCuentasGrid("cuentasgrid",p.cuenta);
   document.getElementById("modPub").classList.add("open");
   setTimeout(onPestChange,50);
+}
+async function deletePub(){
+  const id=document.getElementById("pubeid").value;
+  if(!id)return;
+  if(!confirm("¿Eliminar esta publicación?"))return;
+  try{
+    const{error}=await db.from("publicaciones").delete().eq("id",id);
+    if(error)throw error;
+    // Limpiar de _pubGuardia si existe
+    if(window._pubGuardia)window._pubGuardia=window._pubGuardia.filter(e=>e.id!=="pub_"+id);
+    closeMod("modPub");
+    toast("✓ Publicación eliminada");
+  }catch(e){toast("Error: "+e.message,"err");}
 }
 // Muestra/oculta el banner de guardia según hora y estado
 function onPestChange(){
@@ -1230,7 +1236,7 @@ function renderCal(){
   if(sel)sel.textContent=gcalOk?`Sincronizado · ${gcalEvs.length} eventos GCal · ${agendas.length} manuales`:"Sin sincronización activa";
   const ban=document.getElementById("calbanner");
   if(ban)ban.innerHTML=!gcalOk?`<div class="ibanner">📅 Sincronizá el calendario del Intendente para ver todos los eventos.<button class="btn p sm" style="margin-left:auto" onclick="syncGCal()">Sincronizar</button></div>`:"";
-  buildWeek("calwhdr","calwscroll",calWO,true,true);
+  buildWeek("calwhdr","calwscroll",calWO,false,true);
 }
 let agCobActivo=false;
 
@@ -1710,89 +1716,69 @@ async function scanMedios(){
 async function fetchMedioRSS(medio){
   const rssUrl=medio.rss;
   if(!rssUrl)return[];
-  const kws=[
-    // Personas
-    "pablo garate","garate","intendente",
-    // Institución
-    "municipalidad","municipio","gobierno municipal","gobierno local","gestión municipal",
-    // Lugar
-    "tres arroyos","3 arroyos",
-    // Áreas comunes del municipio
-    "secretaría de","dirección de","subsecretaría",
-    // Acciones típicas
-    "inauguró","inauguraron","inauguración","obra municipal","licitación","presupuesto municipal",
-    "concejo deliberante","deliberante","ordenanza","decreto municipal",
-    "vecinos de tres","ciudad de tres","el municipio"
-  ];
-
-  // Estrategia 1: rss2json.com — mejor soporte CORS, devuelve JSON limpio
-  // Estrategia 2: allorigins.win — devuelve XML crudo dentro de JSON
-  // Estrategia 3: corsproxy.io — proxy directo
+  const kws=["pablo garate","garate","intendente","municipalidad","municipio","gobierno municipal",
+    "tres arroyos","3 arroyos","secretaría de","dirección de","inauguró","inauguración",
+    "obra municipal","licitación","concejo deliberante","ordenanza","decreto municipal",
+    "vecinos de tres","ciudad de tres","el municipio","comuna","intendencia"];
+  const parseXML=(xmlStr)=>{
+    const xml=new DOMParser().parseFromString(xmlStr,"text/xml");
+    return[...xml.querySelectorAll("item")].map(n=>({
+      title:(n.querySelector("title")?.textContent||"").replace(/<[^>]*>/g,"").trim(),
+      link:n.querySelector("link")?.textContent||n.querySelector("guid")?.textContent||"",
+      pubDate:n.querySelector("pubDate")?.textContent||"",
+      desc:(n.querySelector("description")?.textContent||"").replace(/<[^>]*>/g,"").slice(0,300)
+    }));
+  };
   const estrategias=[
     async()=>{
-      const url=`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}&count=30&api_key=ypgdorqztijpxhnm3p7bxckqlw7jcyvdl4yuzlf`;
-      const r=await fetch(url,{signal:AbortSignal.timeout(15000)});
-      if(!r.ok)return[];
+      const r=await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}&count=50`,{signal:AbortSignal.timeout(12000)});
+      if(!r.ok)throw new Error("HTTP "+r.status);
       const d=await r.json();
-      if(d.status!=="ok"||!d.items?.length)return[];
-      return d.items.map(i=>({
-        title:(i.title||"").replace(/<[^>]*>/g,"").trim(),
-        link:i.link||i.guid||"",
-        pubDate:i.pubDate||"",
-        description:(i.description||i.content||"").replace(/<[^>]*>/g,"").slice(0,200)
-      }));
+      if(!d.items?.length)throw new Error(d.message||"sin items");
+      return d.items.map(i=>({title:(i.title||"").replace(/<[^>]*>/g,"").trim(),link:i.link||"",pubDate:i.pubDate||"",desc:(i.description||i.content||"").replace(/<[^>]*>/g,"").slice(0,300)}));
     },
     async()=>{
-      const url=`https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}`;
-      const r=await fetch(url,{signal:AbortSignal.timeout(15000)});
-      if(!r.ok)return[];
+      const r=await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}&t=${Date.now()}`,{signal:AbortSignal.timeout(15000)});
+      if(!r.ok)throw new Error("HTTP "+r.status);
       const d=await r.json();
-      const xmlStr=d.contents||"";
-      if(xmlStr.length<200)return[];
-      const xml=new DOMParser().parseFromString(xmlStr,"text/xml");
-      return[...xml.querySelectorAll("item")].map(n=>({
-        title:(n.querySelector("title")?.textContent||"").replace(/<[^>]*>/g,"").trim(),
-        link:n.querySelector("link")?.textContent||n.querySelector("guid")?.textContent||"",
-        pubDate:n.querySelector("pubDate")?.textContent||"",
-        description:(n.querySelector("description")?.textContent||"").replace(/<[^>]*>/g,"").slice(0,200)
-      }));
+      if(!d.contents||d.contents.length<100)throw new Error("respuesta vacía");
+      return parseXML(d.contents);
     },
     async()=>{
-      const url=`https://corsproxy.io/?${encodeURIComponent(rssUrl)}`;
-      const r=await fetch(url,{signal:AbortSignal.timeout(15000)});
-      if(!r.ok)return[];
-      const xml=new DOMParser().parseFromString(await r.text(),"text/xml");
-      return[...xml.querySelectorAll("item")].map(n=>({
-        title:(n.querySelector("title")?.textContent||"").replace(/<[^>]*>/g,"").trim(),
-        link:n.querySelector("link")?.textContent||n.querySelector("guid")?.textContent||"",
-        pubDate:n.querySelector("pubDate")?.textContent||"",
-        description:(n.querySelector("description")?.textContent||"").replace(/<[^>]*>/g,"").slice(0,200)
-      }));
+      const r=await fetch(`https://corsproxy.io/?url=${encodeURIComponent(rssUrl)}`,{signal:AbortSignal.timeout(15000)});
+      if(!r.ok)throw new Error("HTTP "+r.status);
+      return parseXML(await r.text());
+    },
+    async()=>{
+      const r=await fetch(`https://thingproxy.freeboard.io/fetch/${rssUrl}`,{signal:AbortSignal.timeout(15000)});
+      if(!r.ok)throw new Error("HTTP "+r.status);
+      return parseXML(await r.text());
     }
   ];
-
   for(let i=0;i<estrategias.length;i++){
     try{
-      const items=await estrategias[i]();
-      if(!items.length)continue;
-      const cutoff=new Date(TODAY);cutoff.setDate(cutoff.getDate()-7);
+      const raw=await estrategias[i]();
+      if(!raw?.length){console.log(`${medio.n} E${i+1}: sin items`);continue;}
+      const cutoff=new Date(TODAY);cutoff.setDate(cutoff.getDate()-14);
       const results=[];
-      for(const item of items.slice(0,30)){
-        const tit=item.title;
-        if(!tit)continue;
-        const text=(tit+" "+item.description).toLowerCase();
+      for(const item of raw){
+        const tit=item.title;if(!tit)continue;
+        const text=(tit+" "+item.desc).toLowerCase();
         if(!kws.some(k=>text.includes(k)))continue;
         let fechaISO=isoToday;
-        try{const fd=new Date(item.pubDate);if(!isNaN(fd)&&fd>=cutoff)fechaISO=iso(fd);else if(!isNaN(fd)&&fd<cutoff)continue;}catch(e){}
+        try{const fd=new Date(item.pubDate);if(!isNaN(fd)){if(fd<cutoff)continue;fechaISO=iso(fd);}}catch(e){}
         const tl=tit.toLowerCase();
-        const tono=tl.includes("probl")||tl.includes("critic")||tl.includes("denuncia")||tl.includes("protest")?"negativo":tl.includes("inaugur")||tl.includes("obra")||tl.includes("benefi")||tl.includes("logro")||tl.includes("entreg")?"positivo":"neutral";
-        results.push({titulo:tit.slice(0,200),url:item.link,fecha:fechaISO,resumen:item.description.slice(0,150),tono,menciona_municipio:text.includes("municipio")||text.includes("municipalidad")||text.includes("tres arroyos"),menciona_pablo:text.includes("pablo garate")||text.includes("garate")});
+        const tono=tl.includes("probl")||tl.includes("critic")||tl.includes("denuncia")||tl.includes("protest")?"negativo":
+          tl.includes("inaugur")||tl.includes("obra")||tl.includes("benefi")||tl.includes("logro")||tl.includes("entreg")?"positivo":"neutral";
+        results.push({titulo:tit.slice(0,200),url:item.link,fecha:fechaISO,resumen:item.desc.slice(0,200),tono,
+          menciona_municipio:text.includes("municipio")||text.includes("municipalidad")||text.includes("tres arroyos"),
+          menciona_pablo:text.includes("pablo garate")||text.includes("garate")});
       }
-      if(results.length>0){console.log(`✓ ${medio.n}: ${results.length} noticias (estrategia ${i+1})`);return results;}
-      console.log(`${medio.n} estrategia ${i+1}: ${items.length} items pero sin keywords`);
-    }catch(e){console.warn(`${medio.n} estrategia ${i+1}:`,e.message);}
+      if(results.length){console.log(`✓ ${medio.n}: ${results.length} noticias (E${i+1}/${raw.length} items)`);return results;}
+      console.log(`${medio.n} E${i+1}: ${raw.length} items, 0 con keywords`);
+    }catch(e){console.warn(`✗ ${medio.n} E${i+1}:`,e.message);}
   }
-  console.warn(`✗ ${medio.n}: sin resultados`);
+  console.warn(`✗ ${medio.n}: todos los proxies fallaron`);
   return[];
 }
 
