@@ -969,7 +969,7 @@ async function syncGCal(){
     const tMin=new Date(TODAY.getFullYear(),TODAY.getMonth()-2,1).toISOString();
     const tMax=new Date(TODAY.getFullYear()+1,TODAY.getMonth()+2,1).toISOString();
     do{
-      const url=`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(GCAL_ID)}/events?key=${encodeURIComponent(GCAL_KEY)}&timeMin=${tMin}&timeMax=${tMax}&singleEvents=true&orderBy=startTime&maxResults=2500${next?"&pageToken="+next:""}`;
+      const url=`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(GCAL_ID)}/events?key=${encodeURIComponent(GCAL_KEY)}&timeMin=${tMin}&timeMax=${tMax}&singleEvents=true&orderBy=startTime&maxResults=2500&fields=nextPageToken,items(id,summary,start,end,location,status,colorId,description)${next?"&pageToken="+next:""}`;
       const res=await fetch(url);
       if(!res.ok){const e=await res.json();throw new Error(e.error?.message||"Error API")}
       const data=await res.json();
@@ -988,17 +988,24 @@ async function syncGCal(){
       const lugar=(item.location||"").slice(0,200);
       const dl=desc.toLowerCase();
       // Broad prensa detection
+      // Google Calendar colorId: flamingo=4, tomato=11, banana=5, sage=2, basil=10
+      // Pink/red colorIds indicate prensa events
+      const colorId=item.colorId||"";
+      const esColorPrensaId=["4","11","3","6","1"].includes(colorId); // flamingo, tomato, tangerine, grape, lavender
+      const esColorPrensaName=(item.color||"").toLowerCase().includes("pink")||(item.color||"").toLowerCase().includes("flamingo")||(item.color||"").toLowerCase().includes("tomato");
       const esPrensaKW=dl.includes("radio")||dl.includes("entrevista")||dl.includes("prensa")||
         dl.includes("lu24")||dl.includes("la voz")||dl.includes("onda")||dl.includes("diario")||
         dl.includes("nota")||dl.includes("medio")||dl.includes("canal")||dl.includes("tv")||
         dl.includes("fm ")||dl.includes(" am ")||dl.includes("programa")||dl.includes("ciclo")||
-        dl.includes("televis")||dl.includes("columna")||dl.includes("periodis")||dl.includes("senal")||
-        dl.includes("señal")||dl.includes("cobertura")||dl.includes("reportaje")||dl.includes("103")||
-        dl.includes("105")||dl.includes("107")||dl.includes("98.")||dl.includes("91.")||
+        dl.includes("televis")||dl.includes("columna")||dl.includes("periodis")||dl.includes("señal")||
+        dl.includes("senal")||dl.includes("cobertura")||dl.includes("reportaje")||dl.includes("105")||
+        dl.includes("103")||dl.includes("107")||dl.includes("98.")||dl.includes("91.")||
         dl.includes("frecuencia")||dl.includes("locutor")||dl.includes("conductor")||
-        dl.includes("entrevistar")||dl.includes("periodico")||dl.includes("reporter")||
-        dl.includes("micro")||dl.includes("bloque")||dl.includes("segmento")||dl.includes("emisor");
-      const tipo=esPrensaKW?"prensa":"intendente";
+        dl.includes("micro")||dl.includes("bloque")||dl.includes("emisor")||
+        dl.includes("olivera")||dl.includes("scarabotti")||dl.includes("voz del pueblo")||
+        dl.includes("ciclo informativo")||dl.includes("laporte")||dl.includes("peco")||
+        dl.includes("entrevistar")||dl.includes("periodico")||dl.includes("reporter");
+      const tipo=(esColorPrensaId||esColorPrensaName||esPrensaKW)?"prensa":"intendente";
       gcalEvs.push({id:"gc_"+item.id,fecha,hora,descripcion:desc,lugar,tipo,cancelado:false,gcal:true});
     }
     gcalOk=true;btn.className="gcbtn ok";txt.textContent=`Calendar · ${gcalEvs.length}`;
@@ -1138,8 +1145,19 @@ function openEmMod(id){
 }
 async function saveMember(){
   const id=document.getElementById("emid").value;
-  await db.from("usuarios").update({email:document.getElementById("ememail").value.trim(),telefono:document.getElementById("emtel").value.trim().replace(/[^0-9]/g,""),rol:document.getElementById("emrol").value,cobertura:document.getElementById("emcob").value==="1"}).eq("id",id);
-  closeMod("modEquipo");toast("✓ Guardado");
+  if(!id){toast("Error: sin ID","err");return;}
+  const tel=document.getElementById("emtel").value.trim().replace(/[^0-9+]/g,"");
+  const email=document.getElementById("ememail").value.trim();
+  const rol=document.getElementById("emrol").value;
+  const cobertura=document.getElementById("emcob").value==="1";
+  try{
+    const{error}=await db.from("usuarios").update({email,telefono:tel,rol,cobertura}).eq("id",id);
+    if(error)throw new Error(error.message);
+    closeMod("modEquipo");toast("✓ Guardado correctamente");
+    const r=await db.from("usuarios").select("*").order("nombre");
+    if(r.data)teams=r.data;
+    renderTeam();
+  }catch(e){toast("Error guardando: "+e.message,"err");console.error("saveMember:",e);}
 }
 function sendAlert(nombre){
   const m=gm(nombre);if(!m?.email){toast("Sin correo","warn");return;}
