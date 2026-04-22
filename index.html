@@ -717,10 +717,12 @@ function fmtN(n){if(!n)return"0";if(n>=1000000)return(n/1000000).toFixed(1)+"M";
 function mail(nombre,sub,body){
   const c=getContact(nombre);
   if(!c.email){toast(`${nombre} sin correo`,"warn");return;}
-  const a=document.createElement("a");
-  a.href=`mailto:${c.email}?subject=${encodeURIComponent(sub)}&body=${encodeURIComponent(body)}`;
-  a.style.display="none";document.body.appendChild(a);a.click();setTimeout(()=>a.remove(),300);
-  toast(`✓ Mail → ${nombre}`);
+  // Intentar mailto primero, si falla abrir Gmail web
+  const mailtoUrl=`mailto:${c.email}?subject=${encodeURIComponent(sub)}&body=${encodeURIComponent(body)}`;
+  const gmailUrl=`https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(c.email)}&su=${encodeURIComponent(sub)}&body=${encodeURIComponent(body)}`;
+  // Abrir Gmail web directamente (más confiable que mailto en contextos web)
+  window.open(gmailUrl,"_blank");
+  toast(`✓ Gmail abierto → ${nombre}`);
 }
 
 function popSelects(){
@@ -820,9 +822,15 @@ function renderAll(){
 function updateBadges(){
   const p=tasks.filter(t=>t.estado!=="Completo").length;
   const m=tasks.filter(t=>t.estado==="Listo s/publicar").length;
-  // FIX: contador calendario = agendas + gcalEvs SIN duplicados por id
+  // Mostrar solo eventos de los próximos 30 días
+  const futuro=iso(addD(TODAY,30));
   const allEvIds=new Set();
-  const allEvCount=[...agendas,...gcalEvs].filter(a=>{if(a.cancelado||allEvIds.has(a.id))return false;allEvIds.add(a.id);return true;}).length;
+  const allEvCount=[...agendas,...gcalEvs].filter(a=>{
+    if(a.cancelado||allEvIds.has(a.id))return false;
+    allEvIds.add(a.id);
+    const f=String(a.fecha).slice(0,10);
+    return f>=isoToday&&f<=futuro;
+  }).length;
   document.getElementById("sbt").textContent=p;
   document.getElementById("sbt").className="sbadge"+(p>5?" hot":"");
   document.getElementById("sbm").textContent=m;
@@ -1233,7 +1241,7 @@ function renderCal(){
   // FIX: mostrar contador REAL de gcalEvs (sin contar duplicados de agenda)
   const totalEvs=gcalEvs.filter(e=>!e.cancelado).length + agendas.filter(a=>!a.cancelado).length;
   const sel=document.getElementById("calsub");
-  if(sel)sel.textContent=gcalOk?`Sincronizado · ${gcalEvs.length} eventos GCal · ${agendas.length} manuales`:"Sin sincronización activa";
+  if(sel)sel.textContent=gcalOk?`Sincronizado · ${gcalEvs.length} eventos GCal`:"Sin sincronización activa";
   const ban=document.getElementById("calbanner");
   if(ban)ban.innerHTML=!gcalOk?`<div class="ibanner">📅 Sincronizá el calendario del Intendente para ver todos los eventos.<button class="btn p sm" style="margin-left:auto" onclick="syncGCal()">Sincronizar</button></div>`:"";
   buildWeek("calwhdr","calwscroll",calWO,false,true);
@@ -1481,7 +1489,7 @@ function renderGuardias(){
     const d=addD(mon,i),ds=iso(d),isWE=i>=5,isTd=ds===isoToday;
     const g=getGuardia(ds);
     const gc=g.length>0?(gm(g[0])||{color:"#e5e7eb"}).color:"#e5e7eb";
-    const evs=[...agendas,...gcalEvs].filter(a=>String(a.fecha).slice(0,10)===ds&&!a.cancelado);
+    const evs=[...agendas,...gcalEvs,...(window._pubGuardia||[])].filter(a=>String(a.fecha).slice(0,10)===ds&&!a.cancelado);
     // Eventos marcados para cobertura (desde calendario) + eventos +15hs sin marcar
     const coberturas=evs.filter(e=>cobSel[e.id]);
     const evsTarde=evs.filter(e=>{if(!e.hora)return false;const h=parseInt(String(e.hora).split(":")[0]);return h>=15;});
@@ -1551,9 +1559,7 @@ function notifyDay(ds){
     }
     const sub=`🗓️ Guardia — ${dia}`;
     const body=`Hola ${n},\n\nTenés guardia el ${dia} como ${gi===0?"titular":"soporte"}.\nCompañero/a: ${partner}${evtxt}\n\nPanel: https://marianelahut-lang.github.io/panel-comunicacion/\n\nSaludos,\nDpto. Comunicación — Municipalidad de Tres Arroyos`;
-    const a=document.createElement("a");
-    a.href=`mailto:${c.email}?subject=${encodeURIComponent(sub)}&body=${encodeURIComponent(body)}`;
-    a.style.display="none";document.body.appendChild(a);a.click();setTimeout(()=>a.remove(),400);
+    window.open(`https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(c.email)}&su=${encodeURIComponent(sub)}&body=${encodeURIComponent(body)}`,"_blank");
     sent++;
   });
   if(sent){
@@ -1584,9 +1590,7 @@ function notifyWeek(){
       }
       const sub=`🗓️ Guardias semana del ${mon.getDate()} de ${MNF[mon.getMonth()]}`;
       const body=`Hola ${n},\n\nTu rotación esta semana:\n\n${dias.join("\n")}\n\nPanel: https://marianelahut-lang.github.io/panel-comunicacion/\n\nSaludos,\nDpto. Comunicación — Municipalidad de Tres Arroyos`;
-      const a=document.createElement("a");
-      a.href=`mailto:${c.email}?subject=${encodeURIComponent(sub)}&body=${encodeURIComponent(body)}`;
-      a.style.display="none";document.body.appendChild(a);a.click();setTimeout(()=>a.remove(),400);
+      window.open(`https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(c.email)}&su=${encodeURIComponent(sub)}&body=${encodeURIComponent(body)}`,"_blank");
       sent++;
     });
   }
