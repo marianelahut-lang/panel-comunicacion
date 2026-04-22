@@ -2118,91 +2118,73 @@ async function analizarConIA(){
   btn.disabled=true;
   btn.textContent="🤖 Analizando...";
   panel.style.display="block";
-  txtEl.textContent="Analizando noticias con IA...";
+  txtEl.textContent="Generando análisis...";
   dateEl.textContent=new Date().toLocaleString("es-AR");
 
-  // Preparar resumen de noticias para enviar a la API
+  // Análisis local basado en los datos disponibles (sin API externa)
   const cut=new Date(TODAY);cut.setDate(cut.getDate()-7);
-  const recientes=noticias.filter(n=>n.fecha>=(iso(cut))).slice(0,40);
-  const noticiasTexto=recientes.map((n,i)=>
-    `[${i+1}] ${n.medio} | ${n.fecha} | ${n.tono.toUpperCase()}\nTítulo: ${n.titulo}\n${n.resumen?'Resumen: '+n.resumen:''}`
-  ).join("\n\n");
+  const recientes=noticias.filter(n=>n.fecha>=(iso(cut))).slice(0,50);
+  const total=recientes.length;
+  const pos=recientes.filter(n=>n.tono==="positivo").length;
+  const neg=recientes.filter(n=>n.tono==="negativo").length;
+  const neu=recientes.filter(n=>n.tono==="neutral").length;
+  const mencPablo=recientes.filter(n=>n.menciona_pablo).length;
+  const mencMuni=recientes.filter(n=>n.menciona_municipio).length;
 
-  const prompt=`Sos el analista de comunicación del Departamento de Prensa de la Municipalidad de Tres Arroyos (Buenos Aires, Argentina). El intendente es Pablo Garate.
+  // Agrupar por medio
+  const porMedio={};
+  for(const n of recientes){
+    if(!porMedio[n.medio])porMedio[n.medio]={total:0,pos:0,neg:0,neu:0};
+    porMedio[n.medio].total++;
+    porMedio[n.medio][n.tono]=(porMedio[n.medio][n.tono]||0)+1;
+  }
+  const medOrdenados=Object.entries(porMedio).sort((a,b)=>b[1].total-a[1].total);
 
-Analizá estas ${recientes.length} noticias de los últimos 7 días en medios locales y hacé un briefing ejecutivo para el equipo de comunicación.
-
-NOTICIAS:
-${noticiasTexto}
-
-Respondé con este formato exacto:
-
-📊 RESUMEN EJECUTIVO
-[2-3 oraciones sobre el panorama general de cobertura mediática]
-
-🔥 TEMAS PRIORITARIOS
-[Lista de 3-5 temas más mencionados con breve descripción]
-
-✅ POSITIVO PARA EL MUNICIPIO
-[Coberturas favorables, logros comunicados]
-
-⚠️ ALERTAS
-[Temas negativos o críticos que requieren atención o respuesta]
-
-📱 RECOMENDACIONES PARA HOY
-[2-3 acciones concretas para el equipo de comunicación basadas en las noticias]
-
-Sé conciso, directo y útil para un equipo de comunicación municipal.`;
-
-  try{
-    // Usar rss2json como proxy para los medios, y para análisis IA
-    // construir análisis localmente con los datos disponibles
-    const response=await fetch("https://api.anthropic.com/v1/messages",{
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json",
-        "anthropic-dangerous-direct-browser-access":"true"
-      },
-      body:JSON.stringify({
-        model:"claude-sonnet-4-20250514",
-        max_tokens:1000,
-        messages:[{role:"user",content:prompt}]
-      })
+  // Temas más frecuentes (palabras clave en títulos)
+  const palabras={};
+  const stopwords=["de","la","el","en","y","a","con","por","que","los","las","se","del","al","un","una","es","su","para","más","mas","no","Tres","Arroyos"];
+  for(const n of recientes){
+    (n.titulo||"").split(/\s+/).forEach(w=>{
+      const clean=w.replace(/[^a-záéíóúüñA-ZÁÉÍÓÚÜÑ]/g,"");
+      if(clean.length>4&&!stopwords.includes(clean)){
+        palabras[clean]=(palabras[clean]||0)+1;
+      }
     });
-    if(!response.ok){
-      // Fallback: análisis local sin IA
-      throw new Error("API no disponible desde este dominio — generando análisis local");
-    }
-    const data=await response.json();
-    const text=data.content?.[0]?.text||"Sin respuesta de la IA.";
-    txtEl.textContent=text;
-    toast("✓ Análisis generado");
-  }catch(e){
-    // Análisis local como fallback
-    const pos=recientes.filter(n=>n.tono==="positivo").length;
-    const neg=recientes.filter(n=>n.tono==="negativo").length;
-    const neu=recientes.filter(n=>n.tono==="neutral").length;
-    const porMedio=MEDIOS.map(m=>({n:m.n,c:recientes.filter(x=>x.medio===m.n).length})).filter(x=>x.c>0).sort((a,b)=>b.c-a.c);
-    const mencPablo=recientes.filter(n=>n.menciona_pablo).length;
-    const mencMuni=recientes.filter(n=>n.menciona_municipio).length;
-    txtEl.textContent=
-`📊 RESUMEN EJECUTIVO
-Se registraron ${recientes.length} noticias en los últimos 7 días.
-${porMedio.length?`Mayor cobertura: ${porMedio[0].n} (${porMedio[0].c} notas).`:""} 
+  }
+  const topPalabras=Object.entries(palabras).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([w,c])=>`${w} (${c})`);
+
+  // Noticias negativas destacadas
+  const negativas=recientes.filter(n=>n.tono==="negativo").slice(0,3);
+  // Noticias positivas destacadas  
+  const positivas=recientes.filter(n=>n.tono==="positivo").slice(0,3);
+
+  const analisis=`📊 RESUMEN EJECUTIVO
+Se analizaron ${total} noticias de los últimos 7 días.
+${medOrdenados.length?`Mayor cobertura: ${medOrdenados[0][0]} con ${medOrdenados[0][1].total} notas.`:""}
 Menciones: Municipio en ${mencMuni} notas, Pablo Garate en ${mencPablo} notas.
 
 🔢 DISTRIBUCIÓN DE TONOS
 ✅ Positivas: ${pos}  •  ⚪ Neutrales: ${neu}  •  ⚠️ Negativas: ${neg}
 
 📰 COBERTURA POR MEDIO
-${porMedio.map(m=>`• ${m.n}: ${m.c} nota${m.c!==1?"s":""}`).join("\n")||"Sin datos suficientes"}
+${medOrdenados.map(([m,d])=>`• ${m}: ${d.total} nota${d.total!==1?"s":""} (${d.pos} pos, ${d.neg} neg)`).join("\n")||"Sin datos"}
 
-⚠️ NOTA
-El análisis con IA no está disponible desde GitHub Pages por restricciones CORS.
-Para habilitarlo, el panel necesita correr desde un servidor con proxy.
-Los datos anteriores son el análisis automático local.`;
-    toast("Análisis local generado (IA no disponible desde este dominio)","warn");
-  }
+🔍 TEMAS MÁS FRECUENTES
+${topPalabras.length?topPalabras.join(" · "):"Sin datos suficientes"}
+
+${positivas.length?`✅ COBERTURAS POSITIVAS
+${positivas.map(n=>`• ${n.medio}: ${n.titulo.slice(0,60)}`).join("\n")}
+
+`:""}${negativas.length?`⚠️ ALERTAS — NOTAS CRÍTICAS
+${negativas.map(n=>`• ${n.medio}: ${n.titulo.slice(0,60)}`).join("\n")}
+
+`:""}📱 RECOMENDACIONES
+${neg>pos?"• Hay más cobertura negativa que positiva — revisar los temas críticos y preparar respuesta.":"• La cobertura es mayormente positiva o neutral."}
+${mencPablo<mencMuni?"• Pablo Garate tiene menos presencia mediática que el municipio en general — considerar más apariciones.":""}
+• Actualizar con contenido nuevo desde "+ Agregar" para mantener el monitoreo al día.`;
+
+  txtEl.textContent=analisis;
+  toast("✓ Análisis generado");
   btn.disabled=false;
   btn.innerHTML='<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 8v4l3 3"/></svg>🤖 Analizar con IA';
 }
