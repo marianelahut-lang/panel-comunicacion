@@ -459,7 +459,7 @@ html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111
     <div class="fg"><label>Responsable</label><select id="presp"><option value="">Sin asignar</option></select></div>
   </div>
   <div class="fr">
-    <div class="fg"><label>Colaboración</label><select id="pcolab"><option value="">Sin colaboración</option></select></div>
+    <div class="fg"><label>Colaboración (secretaría, dirección, área)</label><input type="text" id="pcolab" placeholder="Ej: Secretaría de Obras, Dirección de Salud..."></div>
     <div class="fg"><label>Estado</label><select id="pest"><option>Pendiente</option><option>En producción</option><option>Listo</option><option>Publicado</option></select></div>
   </div>
   <div class="mft"><button class="btn" onclick="closeMod('modPub')">Cancelar</button><button class="btn p" onclick="savePub()">Guardar</button></div>
@@ -618,7 +618,7 @@ function mail(nombre,sub,body){
   toast(`✓ Mail → ${m.nombre}`);
 }
 function popSelects(){
-  ["fresp","agresp","presp","pcolab","progresp"].forEach(id=>{
+  ["fresp","agresp","presp","progresp"].forEach(id=>{
     const s=document.getElementById(id);if(!s)return;
     const v=s.value;while(s.options.length>1)s.remove(1);
     const list=id==="agresp"?teams.filter(m=>m.cobertura):teams;
@@ -760,7 +760,10 @@ function renderKanban(){
         ${ct.map(t=>{
           const m=gm(t.responsable);const a=dayAge(t.created_at);const ac=a>14?"a2":a>7?"a1":"";
           return`<div class="tc ${ac}" onclick="editTask('${t.id}')">
-            <div class="tc-t">${t.descripcion}</div>
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:4px">
+              <div class="tc-t" style="flex:1">${t.descripcion}</div>
+              <button onclick="event.stopPropagation();deleteTask('${t.id}','${t.descripcion.replace(/'/g,"\'").slice(0,30)}')" style="background:none;border:none;cursor:pointer;color:#d1d5db;font-size:13px;padding:0;line-height:1;flex-shrink:0" title="Borrar tarea">✕</button>
+            </div>
             ${t.observaciones?`<div style="font-size:9px;color:#9ca3af;margin-bottom:3px;font-style:italic">${t.observaciones}</div>`:""}
             <div class="tc-f">
               <span class="tg ${t.prioridad==="Alta"?"tga":t.prioridad==="Baja"?"tgb":"tgm"}">${t.prioridad}</span>
@@ -784,6 +787,16 @@ function openTaskMod(id=null,def=null){
   else{["fdesc","fobs"].forEach(i=>document.getElementById(i).value="");document.getElementById("fresp").value="";document.getElementById("fprio").value="Alta";document.getElementById("fest").value=def||"Pendiente";}
   document.getElementById("modTask").classList.add("open");
 }
+async function deleteTask(id, desc){
+  if(!confirm("¿Borrar la tarea: "+desc+"...?"))return;
+  try{
+    const{error}=await db.from("tareas").delete().eq("id",id);
+    if(error)throw new Error(error.message);
+    toast("✓ Tarea borrada");
+  }catch(e){toast("Error: "+e.message,"err");}
+}
+
+
 function editTask(id){openTaskMod(id)}
 async function saveTask(){
   const desc=document.getElementById("fdesc").value.trim();if(!desc){alert("Descripción obligatoria");return}
