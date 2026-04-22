@@ -10,6 +10,45 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111827;font-size:13px;overflow:hidden}
+/* DARK MODE */
+body.dark{background:#0f0f1a;color:#e5e7eb}
+body.dark .sb{background:#1a1a2e;border-color:#2d2d44}
+body.dark .sb-sec{color:#6b7280}
+body.dark .sbi{color:#9ca3af}
+body.dark .sbi:hover{background:#2d2d44}
+body.dark .sbi.on{background:#2d1b69;color:#a78bfa;border-color:#7c3aed}
+body.dark .sbadge{background:#2d2d44;color:#9ca3af}
+body.dark .content{background:#0f0f1a}
+body.dark .wshell{background:#1a1a2e;border-color:#2d2d44}
+body.dark .whdr{background:#1a1a2e;border-color:#2d2d44}
+body.dark .hrow{border-color:#1e1e30}
+body.dark .hc{border-color:#1e1e30}
+body.dark .hc:hover{background:#1e1e30}
+body.dark .hc.hct{background:rgba(102,126,234,.08)}
+body.dark .hl{background:#151525;color:#6b7280;border-color:#2d2d44}
+body.dark .wleg{background:#151525;border-color:#2d2d44}
+body.dark .kcol{background:#1a1a2e;border-color:#2d2d44}
+body.dark .khdr.p1{background:#2d1515;border-color:#7f1d1d}
+body.dark .khdr.p2{background:#2d2515;border-color:#78350f}
+body.dark .khdr.p3{background:#151a2d;border-color:#1e3a8a}
+body.dark .tc{background:#1a1a2e;border-color:#2d2d44}
+body.dark .mod{background:#1a1a2e;color:#e5e7eb}
+body.dark .fg input,.dark .fg select,.dark .fg textarea{background:#0f0f1a;border-color:#2d2d44;color:#e5e7eb}
+body.dark .btn{background:#2d2d44;border-color:#3d3d54;color:#e5e7eb}
+body.dark .mcard{background:#1a1a2e;border-color:#2d2d44}
+body.dark .tmcard{background:#1a1a2e;border-color:#2d2d44}
+body.dark .gwtbl,.dark .gwd{background:#1a1a2e;border-color:#2d2d44}
+body.dark .nrow{border-color:#2d2d44}
+body.dark .cbox{background:#1a1a2e;border-color:#2d2d44}
+body.dark .met{background:#1a1a2e;border-color:#2d2d44}
+body.dark .meds{background:#1a1a2e;border-color:#2d2d44}
+body.dark .met-v{color:#e5e7eb}
+body.dark .ntitle a{color:#a5b4fc}
+body.dark .div{background:#2d2d44}
+body.dark .sbp:hover{background:#1e1e30}
+body.dark .ptitle{color:#f3f4f6}
+body.dark .kadd{border-color:#3d3d54;color:#6b7280}
+body.dark .kadd:hover{border-color:#7c3aed;color:#a78bfa}
 #login{position:fixed;inset:0;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);display:flex;align-items:center;justify-content:center;z-index:9999}
 .lbox{background:rgba(255,255,255,.07);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:40px 44px;width:min(400px,92vw);text-align:center}
 .llogo{width:56px;height:56px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:16px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:22px;color:#fff;margin:0 auto 16px}
@@ -277,6 +316,8 @@ html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111
       <div class="live"><div class="ldot" id="ldot"></div><span id="ltxt">Conectando...</span></div>
       <button class="gcbtn" id="gcbtn" onclick="syncGCal()"><div class="gcdot" id="gcdot"></div><span id="gctxt">Sincronizar Calendar</span></button>
       <div class="upill"><div class="uav" id="uav"></div><span class="un" id="uname"></span></div>
+      <button onclick="toggleDark()" id="darkbtn" style="padding:4px 8px;border-radius:6px;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.5);font-size:13px;cursor:pointer" title="Modo oscuro/claro">🌙</button>
+      <button onclick="openSettings()" style="padding:4px 8px;border-radius:6px;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.5);font-size:13px;cursor:pointer" title="Configuración">⚙️</button>
       <button class="outbtn" onclick="doLogout()">Salir</button>
       <button id="notifbtn" onclick="activarNotificaciones()" style="padding:4px 8px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,200,0,.1);color:#fbbf24;font-size:10px;cursor:pointer;font-family:Inter,sans-serif" title="Activar notificaciones push">🔔</button>
     </div>
@@ -635,6 +676,39 @@ html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111
   <div class="mft"><button class="btn" onclick="closeMod('modNoticia')">Cancelar</button><button class="btn p" onclick="saveNoticia()">Guardar</button></div>
 </div></div>
 
+<div class="ov" id="modSettings"><div class="mod" style="max-width:400px">
+  <div class="mod-t">⚙️ Configuración</div>
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <!-- Modo oscuro -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 13px;background:#f9fafb;border-radius:9px;border:1px solid #e5e7eb">
+      <div>
+        <div style="font-size:12px;font-weight:600">🌙 Modo oscuro</div>
+        <div style="font-size:10px;color:#9ca3af;margin-top:1px">Cambia el tema visual del panel</div>
+      </div>
+      <button id="darkToggleBtn" onclick="toggleDark()" style="padding:5px 14px;border-radius:20px;border:none;font-size:11px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;background:#667eea;color:#fff">Activar</button>
+    </div>
+    <!-- Cambiar contraseña -->
+    <div style="padding:10px 13px;background:#f9fafb;border-radius:9px;border:1px solid #e5e7eb">
+      <div style="font-size:12px;font-weight:600;margin-bottom:8px">🔑 Cambiar contraseña del panel</div>
+      <div class="fg" style="margin-bottom:8px"><label>Contraseña actual</label><input type="password" id="passActual" placeholder="••••••••"></div>
+      <div class="fg" style="margin-bottom:8px"><label>Nueva contraseña</label><input type="password" id="passNueva" placeholder="Mínimo 6 caracteres"></div>
+      <div class="fg" style="margin-bottom:10px"><label>Confirmar nueva</label><input type="password" id="passConfirm" placeholder="Repetí la nueva contraseña"></div>
+      <button onclick="cambiarPassword()" class="btn p" style="width:100%">Cambiar contraseña</button>
+      <div id="passerr" style="font-size:11px;color:#dc2626;margin-top:6px;min-height:16px"></div>
+    </div>
+    <!-- Info -->
+    <div style="padding:10px 13px;background:#f9fafb;border-radius:9px;border:1px solid #e5e7eb">
+      <div style="font-size:12px;font-weight:600;margin-bottom:4px">ℹ️ Información</div>
+      <div style="font-size:10px;color:#6b7280;line-height:1.6">
+        Panel de Comunicación · Municipalidad de Tres Arroyos<br>
+        Usuario actual: <span id="settingsUser" style="font-weight:600;color:#374151"></span><br>
+        Versión: 2026.04
+      </div>
+    </div>
+  </div>
+  <div class="mft"><button class="btn" onclick="closeMod('modSettings')">Cerrar</button></div>
+</div></div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -763,7 +837,10 @@ function doLogin(){
   const u=document.getElementById("lu").value,p=document.getElementById("lp").value;
   const e=document.getElementById("lerr");
   if(!u){e.textContent="Seleccioná tu nombre";return}
-  if(p!==PASS){e.textContent="Contraseña incorrecta";return}
+  // Check custom password first, then default
+  let passOk=p===PASS;
+  try{const cp=localStorage.getItem("panelPass");if(cp)passOk=p===cp;}catch(ex){}
+  if(!passOk){e.textContent="Contraseña incorrecta";return}
   e.textContent="";cu=u;
   document.getElementById("login").style.display="none";
   document.getElementById("app").classList.add("on");
@@ -785,6 +862,7 @@ async function initApp(){
     db=supabase.createClient(SB_URL,SB_KEY);
     await loadAll();
     setLive(true);
+    initDarkMode();
     popSelects();
     renderAll();
     setupRealtime();
@@ -2187,6 +2265,49 @@ ${mencPablo<mencMuni?"• Pablo Garate tiene menos presencia mediática que el m
   toast("✓ Análisis generado");
   btn.disabled=false;
   btn.innerHTML='<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 8v4l3 3"/></svg>🤖 Analizar con IA';
+}
+
+// ═══ CONFIGURACIÓN Y MODO OSCURO ═══
+let darkMode=false;
+function initDarkMode(){
+  try{const saved=localStorage.getItem("darkMode");if(saved==="1"){darkMode=true;applyDark();}}catch(e){}
+}
+function applyDark(){
+  document.body.classList.toggle("dark",darkMode);
+  const btn=document.getElementById("darkbtn");
+  const tb=document.getElementById("darkToggleBtn");
+  if(btn)btn.textContent=darkMode?"☀️":"🌙";
+  if(tb)tb.textContent=darkMode?"Desactivar":"Activar";
+  try{localStorage.setItem("darkMode",darkMode?"1":"0");}catch(e){}
+}
+function toggleDark(){
+  darkMode=!darkMode;applyDark();
+  toast(darkMode?"🌙 Modo oscuro activado":"☀️ Modo claro activado");
+}
+function openSettings(){
+  const u=document.getElementById("settingsUser");if(u)u.textContent=cu||"";
+  const tb=document.getElementById("darkToggleBtn");if(tb)tb.textContent=darkMode?"Desactivar":"Activar";
+  ["passActual","passNueva","passConfirm"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
+  const pe=document.getElementById("passerr");if(pe){pe.textContent="";pe.style.color="#dc2626";}
+  document.getElementById("modSettings").classList.add("open");
+}
+function cambiarPassword(){
+  const actual=document.getElementById("passActual").value;
+  const nueva=document.getElementById("passNueva").value;
+  const confirm=document.getElementById("passConfirm").value;
+  const errEl=document.getElementById("passerr");
+  // Obtener pass actual (custom o default)
+  let passActualOk=actual===PASS;
+  try{const cp=localStorage.getItem("panelPass");if(cp)passActualOk=actual===cp;}catch(e){}
+  if(!passActualOk){errEl.textContent="La contraseña actual es incorrecta";return;}
+  if(nueva.length<6){errEl.textContent="Mínimo 6 caracteres";return;}
+  if(nueva!==confirm){errEl.textContent="Las contraseñas no coinciden";return;}
+  try{
+    localStorage.setItem("panelPass",nueva);
+    errEl.style.color="#16a34a";errEl.textContent="✓ Contraseña cambiada";
+    ["passActual","passNueva","passConfirm"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
+    setTimeout(()=>{if(errEl)errEl.textContent="";},3000);
+  }catch(e){errEl.textContent="Error: "+e.message;}
 }
 
 function getFilteredStats(){
