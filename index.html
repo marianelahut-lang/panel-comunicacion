@@ -146,15 +146,15 @@ html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111
 .gwhi{padding:7px 4px;font-size:9px;font-weight:700;text-transform:uppercase;color:#6b7280;text-align:center;border-right:1px solid #e5e7eb}
 .gwhi:last-child{border-right:none}
 .gwb{display:grid;grid-template-columns:repeat(7,1fr)}
-.gwd{padding:8px 5px;border-right:1px solid #f3f4f6;border-bottom:1px solid #f3f4f6;text-align:center;min-height:90px}
+.gwd{padding:10px 6px;border-right:1px solid #f3f4f6;border-bottom:1px solid #f3f4f6;text-align:center;min-height:110px}
 .gwd:last-child{border-right:none}
 .gwd.gwt{background:#eff6ff}
 .gwd.gwwe{background:#fffbeb}
-.gwdate{font-size:11px;font-weight:600;margin-bottom:4px;color:#374151}
+.gwdate{font-size:13px;font-weight:700;margin-bottom:5px;color:#111827}
 .gwags{display:flex;flex-direction:column;gap:3px;align-items:center;margin-bottom:4px}
-.gwag{display:flex;align-items:center;gap:3px;font-size:9px}
-.gwevs{font-size:8px;color:#1e40af;line-height:1.5;margin-top:3px;text-align:left}
-.gwnb{margin-top:4px;width:100%;padding:3px;border-radius:4px;border:1px solid #e5e7eb;background:#fff;font-size:8px;color:#6b7280;cursor:pointer;font-family:Inter,sans-serif}
+.gwag{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:500}
+.gwevs{font-size:9px;color:#1e40af;line-height:1.6;margin-top:4px;text-align:left}
+.gwnb{margin-top:5px;width:100%;padding:4px;border-radius:5px;border:1px solid #e5e7eb;background:#fff;font-size:9px;color:#6b7280;cursor:pointer;font-family:Inter,sans-serif;font-weight:500}
 .gwnb:hover{background:#667eea;color:#fff;border-color:#667eea}
 /* METRICAS */
 .metrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
@@ -1039,6 +1039,281 @@ async function syncGCal(){
 }
 
 // Auto-sync: Pablo + prensa events after 15:00 → publicaciones
+async function autoSyncPubs(){
+  if(!db||!gcalEvs.length)return;
+  const todayStr=iso(TODAY);
+  const nextStr=iso(addD(TODAY,14));
+  const targets=gcalEvs.filter(e=>{
+    if(e.fecha<todayStr||e.fecha>nextStr)return false;
+    if(!e.hora)return false;
+    const h=parseInt(String(e.hora).split(":")[0]);
+    if(h<15)return false;
+    const esPablo=e.descripcion.toLowerCase().includes("pablo")||e.descripcion.toLowerCase().includes("garate");
+    return esPablo||e.tipo==="prensa";
+  });
+  if(!targets.length)return;
+  try{
+    const ex=await db.from("publicaciones").select("descripcion,fecha").gte("fecha",todayStr);
+    const keys=new Set((ex.data||[]).map(p=>p.fecha+"|"+p.descripcion.slice(0,30)));
+    let added=0;
+    for(const ev of targets){
+      const k=ev.fecha+"|"+ev.descripcion.slice(0,30);
+      if(keys.has(k))continue;
+      const esPablo=ev.descripcion.toLowerCase().includes("pablo")||ev.descripcion.toLowerCase().includes("garate");
+      const g=getGuardia(ev.fecha);const resp=g.length>0?(gm(g[0])||{nombre:""}).nombre:"";
+      await db.from("publicaciones").insert({fecha:ev.fecha,hora:ev.hora,descripcion:ev.descripcion+(ev.lugar?" — "+ev.lugar:""),cuenta:esPablo?"ig-p":"ig-m",tipo:"Streaming",responsable:resp,colaboracion:"",estado:"Pendiente"});
+      added++;
+    }
+    if(added>0){toast(`✓ ${added} publicaciones auto-sincronizadas`);renderWeek();}
+  }catch(e){console.warn("autoSyncPubs:",e);}
+}
+
+// ═══ GUARDIAS ═══
+function initGuardias(){
+  const sel=document.getElementById("gwsel");if(!sel)return;
+  sel.innerHTML="";
+  for(let w=0;w<20;w++){
+    const mon=addD(START,w*7),sun=addD(mon,6);
+    const opt=new Option(`${mon.getDate()} ${MNS[mon.getMonth()]} — ${sun.getDate()} ${MNS[sun.getMonth()]}`,w);
+    if(TODAY>=mon&&TODAY<=addD(mon,6))opt.selected=true;
+    sel.appendChild(opt);
+  }
+  renderGuardias();
+}
+function renderGuardias(){
+  const wo=parseInt(document.getElementById("gwsel")?.value)||0;
+  const mon=addD(START,wo*7);
+  const DN=["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"];
+  let days="";
+  for(let i=0;i<7;i++){
+    const d=addD(mon,i),ds=iso(d),isWE=i>=5,isTd=ds===isoToday;
+    const g=getGuardia(ds);
+    const gc=g.length>0?(gm(g[0])||{color:"#e5e7eb"}).color:"#e5e7eb";
+    const evs=[...agendas,...gcalEvs].filter(a=>String(a.fecha).slice(0,10)===ds&&!a.cancelado);
+    days+=`<div class="gwd${isWE?" gwwe":""}${isTd?" gwt":""}" style="border-top:3px solid ${gc}">
+      <div class="gwdate">${d.getDate()} ${MNS[d.getMonth()]}</div>
+      <div class="gwags">
+        ${g.map((n,gi)=>{const m=gm(n);return m?`<div class="gwag">${av(m,16)}<span style="font-size:9px;line-height:1.2">${m.nombre}<br><span style="color:#9ca3af;font-size:8px">${gi===0?"titular":"soporte"}</span></span></div>`:""}).join("")||`<span style="font-size:9px;color:#d1d5db">—</span>`}
+      </div>
+      ${evs.filter(e=>{if(!e.hora)return false;const h=parseInt(String(e.hora).split(":")[0]);return h>=15;}).length?`<div class="gwevs" style="border-top:1px dashed #e5e7eb;padding-top:3px;margin-top:2px"><div style="font-size:7px;color:#9ca3af;margin-bottom:1px">+15hs:</div>${evs.filter(e=>{if(!e.hora)return false;const h=parseInt(String(e.hora).split(":")[0]);return h>=15;}).slice(0,4).map(e=>`${e.tipo==="prensa"?"📻":"🗓"} ${e.hora?e.hora.slice(0,5)+" ":""}${e.descripcion.slice(0,18)}`).join("<br>")}</div>`:""}
+      <button class="gwnb" onclick="notifyDay('${ds}')">📧 Mail</button>
+      <button class="gwnb" style="background:#25d366;color:#fff;border-color:#25d366;margin-top:2px" onclick="notifyWA('${ds}')">📱 WhatsApp</button>
+    </div>`;
+  }
+  document.getElementById("gwcontent").innerHTML=`<div class="gwtbl"><div class="gwh">${DN.map(d=>`<div class="gwhi">${d.slice(0,3)}</div>`).join("")}</div><div class="gwb">${days}</div></div>`;
+}
+function notifyWA(ds){
+  const g=getGuardia(ds);
+  const d=parseD(ds);
+  const nl="\n";
+  const dia=DNF[d.getDay()]+" "+d.getDate()+" de "+MNF[d.getMonth()];
+  const evs=[...agendas,...gcalEvs].filter(a=>String(a.fecha).slice(0,10)===ds&&!a.cancelado);
+  let sent=0,notel=[];
+  g.forEach((n,gi)=>{
+    const m=gm(n);if(!m)return;
+    const partner=g.filter(x=>x!==n).join(", ")||"solo/a";
+    let msg="Guardia "+dia+nl+"Rol: "+(gi===0?"titular":"soporte")+". Comp: "+partner;
+    if(evs.length)msg+=nl+"Eventos:"+nl+evs.slice(0,5).map(e=>"- "+(e.hora?e.hora+" ":"")+e.descripcion).join(nl);
+    msg+=nl+"Panel: https://marianelahut-lang.github.io/panel-comunicacion/";
+    if(m.telefono){const tel=m.telefono.replace(/[^0-9]/g,"");window.open("https://wa.me/"+tel+"?text="+encodeURIComponent(msg),"_blank");sent++;}
+    else notel.push(m.nombre);
+  });
+  if(sent)toast("WhatsApp enviado");
+  if(notel.length)toast("Sin tel: "+notel.join(", "),"warn");
+}
+function notifyDay(ds){
+  const g=getGuardia(ds),d=parseD(ds);
+  const dia=`${DNF[d.getDay()]} ${d.getDate()} de ${MNF[d.getMonth()]}`;
+  const evs=[...agendas,...gcalEvs].filter(a=>String(a.fecha).slice(0,10)===ds&&!a.cancelado);
+  let sent=0,nomail=[];
+  g.forEach((n,gi)=>{
+    const m=gm(n);if(!m)return;
+    const partner=g.filter(x=>x!==n).join(", ")||"solo/a";
+    const evtxt=evs.length?"\n\nEventos:\n"+evs.map(e=>`• ${e.hora||""} ${e.descripcion}`).join("\n"):"\nSin eventos.";
+    if(m.email){mail(m.nombre,`🗓️ Guardia — ${dia}`,`Hola ${m.nombre},\n\nGuardia el ${dia} como ${gi===0?"titular":"soporte"}.\nCompañero/a: ${partner}${evtxt}\n\nPanel: https://marianelahut-lang.github.io/panel-comunicacion/\n\nSaludos,\nDpto. Comunicación — Municipalidad de Tres Arroyos`);sent++;}
+    else nomail.push(m.nombre);
+  });
+  if(sent)toast(`✓ Notificado — ${dia}`);
+  if(nomail.length)toast(`Sin correo: ${nomail.join(", ")}`,"warn");
+}
+function notifyWeek(){
+  const wo=parseInt(document.getElementById("gwsel")?.value)||0;
+  const mon=addD(START,wo*7);
+  const DN=["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"];
+  const done=new Set();let sent=0,nomail=[];
+  for(let i=0;i<7;i++){
+    const d=addD(mon,i),ds=iso(d);
+    getGuardia(ds).forEach(n=>{
+      const m=gm(n);if(!m||done.has(n))return;done.add(n);
+      const dias=[];
+      for(let j=0;j<7;j++){const dj=addD(mon,j),dsj=iso(dj),gj=getGuardia(dsj);if(gj.includes(n)){const ej=[...agendas,...gcalEvs].filter(a=>String(a.fecha).slice(0,10)===dsj&&!a.cancelado);dias.push(`• ${DN[j]} ${dj.getDate()}/${dj.getMonth()+1}${ej.length?" — "+ej.map(e=>e.descripcion.slice(0,20)).join(", "):""}`)}}
+      if(m.email){mail(m.nombre,`🗓️ Guardias semana del ${mon.getDate()} de ${MNF[mon.getMonth()]}`,`Hola ${m.nombre},\n\nTu rotación esta semana:\n\n${dias.join("\n")}\n\nPanel: https://marianelahut-lang.github.io/panel-comunicacion/\n\nSaludos,\nDpto. Comunicación — Municipalidad de Tres Arroyos`);sent++;}
+      else nomail.push(m.nombre);
+    });
+  }
+  if(sent)toast(`✓ Enviado a ${sent} integrante${sent!==1?"s":""}`);
+  if(nomail.length)toast(`Sin correo: ${nomail.join(", ")}`,"warn");
+}
+
+// ═══ EQUIPO ═══
+function renderTeam(){
+  document.getElementById("teamgrid").innerHTML=teams.map(m=>{
+    const act=tasks.filter(t=>t.responsable===m.nombre&&t.estado!=="Completo").length;
+    return`<div class="tmcard" onclick="openEmMod('${m.id}')">
+      ${av(m,46)}
+      <div style="font-size:13px;font-weight:700;margin-top:8px">${m.nombre}</div>
+      <div style="font-size:10px;padding:2px 8px;border-radius:7px;background:#ede9fe;color:#6d28d9;font-weight:600;margin:3px 0;display:inline-block">${m.rol}</div>
+      ${!m.cobertura?`<div style="font-size:9px;color:#d97706;background:#fffbeb;padding:2px 6px;border-radius:6px;margin-top:2px">Sin coberturas</div>`:""}
+      ${m.email?`<div style="font-size:9px;color:#9ca3af;margin-top:3px;word-break:break-all">${m.email}</div>`:`<div style="font-size:9px;color:#dc2626;margin-top:3px">Sin correo ⚠</div>`}
+      ${m.telefono?`<a href="https://wa.me/${m.telefono}" target="_blank" style="display:inline-flex;align-items:center;gap:3px;margin-top:5px;padding:3px 9px;background:#25d366;color:#fff;border-radius:20px;font-size:9px;font-weight:600;text-decoration:none">📱 WhatsApp</a>`:""}
+      <div style="font-size:10px;color:#6b7280;margin-top:3px">${act} tareas activas</div>
+      <button onclick="event.stopPropagation();sendAlert('${m.nombre}')" style="margin-top:5px;padding:3px 9px;border-radius:20px;border:none;background:${m.telefono?'#25d366':'#667eea'};color:#fff;font-size:9px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">${m.telefono?'📱 WA':'📧 Mail'}</button>
+    </div>`;
+  }).join("");
+}
+function openEmMod(id){
+  const m=teams.find(x=>x.id===id);if(!m)return;
+  document.getElementById("emtitle").textContent="Editar — "+m.nombre;
+  document.getElementById("emid").value=id;document.getElementById("emnombre").value=m.nombre;
+  document.getElementById("ememail").value=m.email||"";document.getElementById("emtel").value=m.telefono||"";
+  document.getElementById("emrol").value=m.rol;document.getElementById("emcob").value=m.cobertura?"1":"0";
+  document.getElementById("modEquipo").classList.add("open");
+}
+async function saveMember(){
+  const id=document.getElementById("emid").value;
+  if(!id){toast("Error: sin ID","err");return;}
+  const telRaw=document.getElementById("emtel").value.trim();
+  const tel=telRaw.replace(/[^0-9]/g,""); // keep only digits, remove spaces/dashes
+  const email=document.getElementById("ememail").value.trim();
+  const rol=document.getElementById("emrol").value;
+  const cobertura=document.getElementById("emcob").value==="1";
+  try{
+    // Try with telefono first, fallback without if column missing
+    let res=await db.from("usuarios").update({email,telefono:tel,rol,cobertura}).eq("id",id);
+    if(res.error&&res.error.message.includes("telefono")){
+      // Column doesn't exist yet - save without it
+      res=await db.from("usuarios").update({email,rol,cobertura}).eq("id",id);
+      if(res.error)throw new Error(res.error.message);
+      toast("✓ Guardado (sin tel — ejecutá el SQL para agregar la columna)","warn");
+    } else {
+      if(res.error)throw new Error(res.error.message);
+      toast("✓ Guardado correctamente");
+    }
+    closeMod("modEquipo");
+    const r=await db.from("usuarios").select("*").order("nombre");
+    if(r.data)teams=r.data;
+    renderTeam();
+  }catch(e){toast("Error: "+e.message,"err");console.error("saveMember:",e);}
+}
+function sendAlert(nombre){
+  const m=gm(nombre);
+  if(!m){toast("Agente no encontrado","err");return;}
+  const evs=[...agendas,...gcalEvs].filter(a=>String(a.fecha).slice(0,10)===isoToday&&!a.cancelado);
+  const ps=pubs.filter(p=>String(p.fecha).slice(0,10)===isoToday&&p.responsable===nombre);
+  const mt=tasks.filter(t=>t.responsable===m.nombre&&t.estado!=="Completo");
+  const d=parseD(isoToday);
+  const dia=DNF[d.getDay()]+" "+d.getDate()+" de "+MNF[d.getMonth()];
+  const nl="\n";
+  let msg="Alerta del dia - "+dia+nl+nl+"Hola "+m.nombre+"!";
+  if(evs.length)msg+=nl+nl+"Eventos hoy:"+nl+evs.map(e=>"- "+(e.hora||"")+" "+e.descripcion).join(nl);
+  if(ps.length)msg+=nl+nl+"Publicaciones:"+nl+ps.map(p=>{const ct=getCta(p.cuenta);return"- "+(ct?ct.label:p.cuenta)+": "+p.descripcion.slice(0,50);}).join(nl);
+  if(mt.length)msg+=nl+nl+"Tareas ("+mt.length+"):"+nl+mt.slice(0,3).map(t=>"- ["+t.prioridad+"] "+t.descripcion.slice(0,50)).join(nl);
+  msg+=nl+nl+"Panel: https://marianelahut-lang.github.io/panel-comunicacion/";
+  if(m.telefono){const tel=m.telefono.replace(/[^0-9]/g,"");window.open("https://wa.me/"+tel+"?text="+encodeURIComponent(msg),"_blank");toast("WA -> "+m.nombre);}
+  else if(m.email){mail(m.nombre,"Alerta dia - "+dia,msg);}
+  else{toast(m.nombre+" sin WA ni correo","warn");}
+}
+
+
+async function scanMedios(){
+  const btn=document.getElementById("scanbtn");
+  if(btn)btn.disabled=true;
+  const statusEl=document.getElementById("scanstatus");
+  if(statusEl)statusEl.innerHTML='<div class="sbar scan"><div class="spin"></div><span>Buscando noticias en todos los medios...</span></div>';
+  let total=0;
+  const promises=MEDIOS.map(async m=>{
+    try{
+      const items=await fetchMedioRSS(m);
+      let cnt=0;
+      for(const n of items){
+        const ex=noticias.find(x=>x.url&&x.url===n.url);
+        if(!ex&&n.titulo){
+          try{
+            await db.from("noticias_medios").insert({...n,medio:m.n});
+            cnt++;total++;
+          }catch(e){console.warn("Insert "+m.n+":",e.message);}
+        }
+      }
+      return{n:m.n,cnt,ok:true};
+    }catch(e){console.warn(m.n,":",e.message);return{n:m.n,cnt:0,ok:false};}
+  });
+  await Promise.all(promises);
+  if(statusEl){
+    if(total>0){
+      statusEl.innerHTML='<div class="sbar done">✓ '+total+' noticias nuevas encontradas</div>';
+    }else{
+      statusEl.innerHTML='<div class="sbar fail">Sin noticias nuevas — usá "+ Agregar" para cargar manualmente</div>';
+    }
+    setTimeout(()=>{if(statusEl)statusEl.innerHTML="";},8000);
+  }
+  if(btn){
+    btn.disabled=false;
+    btn.innerHTML='<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg> Escanear medios';
+  }
+  if(total>0)toast(total+" noticias nuevas");
+  else toast("Sin noticias nuevas","warn");
+}
+
+
+async function fetchMedioRSS(medio){
+  const rssOpts={
+    "La Voz del Pueblo":["https://www.lavozdelpueblo.com.ar/feed/","https://lavozdelpueblo.com.ar/feed/"],
+    "LU24":["https://lu24.com.ar/feed/","https://www.lu24.com.ar/feed/","https://lu24.com.ar/rss.xml"],
+    "Diario 3":["https://www.diario3.com.ar/feed/","https://diario3.com.ar/feed/"],
+    "Via País":["https://viapais.com.ar/feed/","https://viapais.com.ar/tres-arroyos/feed/"],
+    "Onda Uno":["https://ondauno.com.ar/feed/","https://www.ondauno.com.ar/feed/"]
+  };
+  const urls=rssOpts[medio.n]||[];
+  const kws=["pablo garate","garate","intendente","tres arroyos","municipio","municipalidad","gobierno local","pablo","tresarroyos"];
+  const proxies=["https://api.allorigins.win/get?url=","https://corsproxy.io/?"];
+  for(const rssUrl of urls){
+    for(const proxy of proxies){
+      try{
+        const proxyUrl=proxy+encodeURIComponent(rssUrl);
+        const resp=await fetch(proxyUrl,{signal:AbortSignal.timeout(10000)});
+        if(!resp.ok)continue;
+        const raw=await resp.json();
+        const xmlStr=raw.contents||raw.body||"";
+        if(!xmlStr)continue;
+        const parser=new DOMParser();
+        const xml=parser.parseFromString(xmlStr,"text/xml");
+        const items=[...xml.querySelectorAll("item")];
+        if(!items.length)continue;
+        const cutoff=new Date(TODAY);cutoff.setDate(cutoff.getDate()-7);
+        const results=[];
+        for(const item of items.slice(0,25)){
+          const tit=(item.querySelector("title")?.textContent||"").replace(/<[^>]*>/g,"").trim();
+          const link=item.querySelector("link")?.textContent||item.querySelector("guid")?.textContent||"";
+          const pubDate=item.querySelector("pubDate")?.textContent||"";
+          const desc=(item.querySelector("description")?.textContent||"").replace(/<[^>]*>/g,"").slice(0,150);
+          if(!tit)continue;
+          const text=(tit+" "+desc).toLowerCase();
+          if(!kws.some(k=>text.includes(k)))continue;
+          let fechaISO=isoToday;
+          try{const fd=new Date(pubDate);if(!isNaN(fd)){if(fd<cutoff)continue;fechaISO=iso(fd);}}catch(e){}
+          const tl=tit.toLowerCase();
+          const tono=tl.includes("probl")||tl.includes("critic")||tl.includes("denuncia")||tl.includes("protest")?"negativo":tl.includes("inaugur")||tl.includes("obra")||tl.includes("benefi")||tl.includes("logro")?"positivo":"neutral";
+          results.push({titulo:tit.slice(0,200),url:link,fecha:fechaISO,resumen:desc,tono,menciona_municipio:text.includes("municipio")||text.includes("municipalidad")||text.includes("tres arroyos"),menciona_pablo:text.includes("pablo garate")||text.includes("pablo")||text.includes("garate")});
+        }
+        console.log(medio.n+": "+results.length+" noticias via "+proxy);
+        return results;
+      }catch(e){console.warn(medio.n+" proxy "+proxy+":",e.message);}
+    }
+  }
+  return[];
+}
+
+
 async function autoSyncPubs(){
   if(!db||!gcalEvs.length)return;
   const todayStr=iso(TODAY);
