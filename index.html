@@ -411,7 +411,7 @@ html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111
         <div class="ptop">
           <div><div class="ptitle">Monitoreo de medios</div><div class="psub">Noticias sobre el municipio y Pablo Garate</div></div>
           <div class="acts">
-            <select id="mfilt" onchange="renderNoticias()" style="font-size:11px;padding:5px 8px;border-radius:6px;border:1.5px solid #e5e7eb;font-family:Inter,sans-serif;outline:none"><option value="">Todos los medios</option><option>La Voz del Pueblo</option><option>LU24</option><option>Diario 3</option><option>Via País</option><option>Onda Uno</option></select>
+            <select id="mfilt" onchange="renderNoticias()" style="font-size:11px;padding:5px 8px;border-radius:6px;border:1.5px solid #e5e7eb;font-family:Inter,sans-serif;outline:none"><option value="">Todos los medios</option><option>La Voz del Pueblo</option><option>LU24</option><option>Via País</option><option>Onda Uno</option><option>Provincia Noticias</option></select>
             <select id="tfilt" onchange="renderNoticias()" style="font-size:11px;padding:5px 8px;border-radius:6px;border:1.5px solid #e5e7eb;font-family:Inter,sans-serif;outline:none"><option value="">Todos los tonos</option><option value="positivo">Positivo</option><option value="neutral">Neutral</option><option value="negativo">Negativo</option></select>
             <button class="btn g" id="scanbtn" onclick="scanMedios()"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>Escanear medios</button>
             <button class="btn" id="aibtn" onclick="analizarConIA()" style="background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border-color:#667eea"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 8v4l3 3"/></svg>🤖 Analizar con IA</button>
@@ -468,12 +468,15 @@ html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111
     <div class="evp-cob" id="evp-cobbtn" onclick="toggleCobertura()">
       <div class="evp-cob-ico">📋</div>
       <div class="evp-cob-txt">
-        <div class="evp-cob-lbl">Cubrir prensa</div>
+        <div class="evp-cob-lbl">Cubrir con prensa</div>
         <div class="evp-cob-sub" id="evp-cobsub">Marcar para cobertura de guardia</div>
       </div>
       <div class="evp-check" id="evp-cobcheck"></div>
     </div>
-    <button onclick="openAgMod(evPanel_ev?.fecha||'')" style="width:100%;padding:8px;border-radius:7px;border:1px solid #e5e7eb;background:#fff;color:#374151;font-size:11px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif">✏️ Editar evento</button>
+    <div style="display:flex;gap:6px">
+      <button onclick="closeEvPanel();openAgMod(evPanel_ev?.fecha||'',cobSel[evPanel_ev?.id]||false)" style="flex:1;padding:8px;border-radius:7px;border:1px solid #e5e7eb;background:#fff;color:#374151;font-size:11px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif">✏️ Editar</button>
+      <button onclick="closeEvPanel();nav('guardias',null,document.querySelectorAll('.sbi')[4])" style="flex:1;padding:8px;border-radius:7px;border:1px solid #667eea;background:#ede9fe;color:#6d28d9;font-size:11px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif">👥 Ver guardia</button>
+    </div>
   </div>
 </div>
 
@@ -514,7 +517,8 @@ html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111
 </div></div>
 
 <div class="ov" id="modAg"><div class="mod">
-  <div class="mod-t">Nuevo evento</div>
+  <div class="mod-t" id="agmodt">Nuevo evento</div>
+  <input type="hidden" id="ageditid">
   <div class="fr">
     <div class="fg"><label>Fecha</label><input type="date" id="agfecha"></div>
     <div class="fg"><label>Hora</label><input type="time" id="aghora"></div>
@@ -522,8 +526,19 @@ html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111
   <div class="fg"><label>Descripción</label><input type="text" id="agdesc"></div>
   <div class="fg"><label>Lugar</label><input type="text" id="aglugar"></div>
   <div class="fr">
-    <div class="fg"><label>Tipo</label><select id="agtipo"><option value="intendente">Agenda Intendente</option><option value="prensa">Prensa / Medio</option><option value="municipal">Municipal</option></select></div>
+    <div class="fg"><label>Tipo</label><select id="agtipo" onchange="onAgTipoChange()"><option value="intendente">Agenda Intendente</option><option value="prensa">Prensa / Medio</option><option value="municipal">Municipal</option></select></div>
     <div class="fg"><label>Responsable</label><select id="agresp"><option value="">Sin asignar</option></select></div>
+  </div>
+  <!-- Cobertura de prensa -->
+  <div id="agcobrow" style="margin-top:4px">
+    <div id="agcobbtn" onclick="toggleAgCob()" style="display:flex;align-items:center;gap:10px;padding:10px 13px;border-radius:9px;border:2px solid #e5e7eb;background:#f9fafb;cursor:pointer;transition:all .15s">
+      <div style="font-size:20px">📋</div>
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:700;color:#374151" id="agcoblbl">Cubrir con prensa</div>
+        <div style="font-size:10px;color:#9ca3af" id="agcobsub">Activar para asignar cobertura a la guardia del día</div>
+      </div>
+      <div id="agcobcheck" style="width:20px;height:20px;border-radius:50%;border:2px solid #d1d5db;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0"></div>
+    </div>
   </div>
   <div class="mft"><button class="btn" onclick="closeMod('modAg')">Cancelar</button><button class="btn p" onclick="saveAg()">Guardar</button></div>
 </div></div>
@@ -572,7 +587,7 @@ html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111
   <div class="mod-t">Agregar noticia</div>
   <div class="fg"><label>Título</label><input type="text" id="ntit"></div>
   <div class="fr">
-    <div class="fg"><label>Medio</label><select id="nmedio"><option>La Voz del Pueblo</option><option>LU24</option><option>Diario 3</option><option>Via País</option><option>Onda Uno</option></select></div>
+    <div class="fg"><label>Medio</label><select id="nmedio"><option>La Voz del Pueblo</option><option>LU24</option><option>Via País</option><option>Onda Uno</option><option>Provincia Noticias</option></select></div>
     <div class="fg"><label>Fecha</label><input type="date" id="nfecha"></div>
   </div>
   <div class="fg"><label>URL</label><input type="url" id="nurl" placeholder="https://..."></div>
@@ -606,11 +621,11 @@ const CUENTAS=[
   {id:"wa-p",label:"WhatsApp",sub:"Pablo Garate",dot:"#25d366",cls:"ewap"},
 ];
 const MEDIOS=[
-  {n:"La Voz del Pueblo",c:"#1d4e7a",s:"LVP"},
-  {n:"LU24",c:"#7c2d12",s:"LU24"},
-  {n:"Diario 3",c:"#065f46",s:"D3"},
-  {n:"Via País",c:"#5b21b6",s:"VP"},
-  {n:"Onda Uno",c:"#92400e",s:"O1"},
+  {n:"La Voz del Pueblo",c:"#1d4e7a",s:"LVP",rss:"https://www.lavozdelpueblo.com.ar/feed/"},
+  {n:"LU24",c:"#7c2d12",s:"LU24",rss:"https://www.lu24.com.ar/feed/"},
+  {n:"Via País",c:"#5b21b6",s:"VP",rss:"https://viapais.com.ar/tres-arroyos/feed/"},
+  {n:"Onda Uno",c:"#92400e",s:"O1",rss:"https://ondauno.com.ar/feed/"},
+  {n:"Provincia Noticias",c:"#0f5ca8",s:"PN",rss:"https://provincianoticias.com.ar/feed/"},
 ];
 const MNS=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
 const MNF=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
@@ -943,11 +958,13 @@ function buildWeek(hdrId,scrollId,off,showPubs,showAg){
           seen.add(a.id);
           return matchH(a.hora,hr);
         }).forEach(e=>{
-          const cls=e.tipo==="prensa"?"ep":e.tipo==="municipal"?"em":"ei";
-          const icon=e.tipo==="prensa"?"📻":e.tipo==="municipal"?"🏛":"🗓";
           const isCob=cobSel[e.id]||false;
-          const cobBadge=isCob?`<span style="font-size:8px;background:#667eea;color:#fff;padding:1px 4px;border-radius:3px;margin-left:3px">📋</span>`:"";
-          evs+=`<div class="ev ${cls}" onclick="event.stopPropagation();openEvPanel(${JSON.stringify(e).replace(/"/g,'&quot;')})" style="cursor:pointer${isCob?';border-left-color:#667eea':''}">
+          // Color base por tipo, override violeta si tiene cobertura
+          const cls=isCob?"ep":e.tipo==="prensa"?"ep":e.tipo==="municipal"?"em":"ei";
+          const icon=e.tipo==="prensa"?"📻":e.tipo==="municipal"?"🏛":"🗓";
+          const cobBadge=isCob?`<span style="font-size:8px;background:#6d28d9;color:#fff;padding:1px 4px;border-radius:3px;margin-left:2px;vertical-align:middle">📋</span>`:"";
+          const cobStyle=isCob?"background:#ede9fe;border-left:3px solid #6d28d9;color:#4c1d95;font-weight:700":"";
+          evs+=`<div class="ev ${cls}" onclick="event.stopPropagation();openEvPanel(${JSON.stringify(e).replace(/"/g,'&quot;')})" style="cursor:pointer;${cobStyle}">
             <div class="ev-t">${icon} ${e.descripcion}${cobBadge}</div>
             <div class="ev-s">${e.hora?e.hora.slice(0,5)+" ":""}${e.lugar||""}${e.responsable?" · "+e.responsable:""}</div>
           </div>`;
@@ -1056,16 +1073,74 @@ function renderCal(){
   if(ban)ban.innerHTML=!gcalOk?`<div class="ibanner">📅 Sincronizá el calendario del Intendente para ver todos los eventos.<button class="btn p sm" style="margin-left:auto" onclick="syncGCal()">Sincronizar</button></div>`:"";
   buildWeek("calwhdr","calwscroll",calWO,true,true);
 }
-function openAgMod(fecha=""){
+let agCobActivo=false;
+
+function onAgTipoChange(){
+  // Si selecciona "prensa", auto-activar cobertura
+  const tipo=document.getElementById("agtipo").value;
+  if(tipo==="prensa"&&!agCobActivo){agCobActivo=true;_refreshAgCob();}
+}
+
+function toggleAgCob(){
+  agCobActivo=!agCobActivo;
+  _refreshAgCob();
+}
+
+function _refreshAgCob(){
+  const btn=document.getElementById("agcobbtn");
+  const lbl=document.getElementById("agcoblbl");
+  const sub=document.getElementById("agcobsub");
+  const chk=document.getElementById("agcobcheck");
+  if(!btn)return;
+  if(agCobActivo){
+    btn.style.borderColor="#667eea";btn.style.background="#ede9fe";
+    lbl.style.color="#6d28d9";lbl.textContent="✓ Cobertura de prensa activada";
+    sub.style.color="#8b5cf6";sub.textContent="El evento aparecerá en la sección de Guardias";
+    chk.style.background="#667eea";chk.style.borderColor="#667eea";chk.style.color="#fff";chk.textContent="✓";
+  }else{
+    btn.style.borderColor="#e5e7eb";btn.style.background="#f9fafb";
+    lbl.style.color="#374151";lbl.textContent="Cubrir con prensa";
+    sub.style.color="#9ca3af";sub.textContent="Activar para asignar cobertura a la guardia del día";
+    chk.style.background="";chk.style.borderColor="#d1d5db";chk.style.color="";chk.textContent="";
+  }
+}
+
+function openAgMod(fecha="",prefillCob=false){
+  agCobActivo=prefillCob;
+  document.getElementById("agmodt").textContent="Nuevo evento";
+  document.getElementById("ageditid").value="";
   ["aghora","agdesc","aglugar"].forEach(i=>document.getElementById(i).value="");
-  document.getElementById("agfecha").value=fecha;document.getElementById("agresp").value="";
+  document.getElementById("agfecha").value=fecha;
+  document.getElementById("agresp").value="";
+  document.getElementById("agtipo").value="intendente";
+  _refreshAgCob();
   document.getElementById("modAg").classList.add("open");
 }
+
 async function saveAg(){
   const fecha=document.getElementById("agfecha").value,desc=document.getElementById("agdesc").value.trim();
   if(!fecha||!desc){alert("Fecha y descripción obligatorias");return}
-  await db.from("agenda").insert({fecha,hora:document.getElementById("aghora").value||null,descripcion:desc,lugar:document.getElementById("aglugar").value.trim(),tipo:document.getElementById("agtipo").value,responsable:document.getElementById("agresp").value,cancelado:false});
-  closeMod("modAg");toast("✓ Evento agregado");
+  const tipo=document.getElementById("agtipo").value;
+  const eid=document.getElementById("ageditid").value;
+  let savedId=eid;
+  if(eid){
+    await db.from("agenda").update({fecha,hora:document.getElementById("aghora").value||null,descripcion:desc,lugar:document.getElementById("aglugar").value.trim(),tipo,responsable:document.getElementById("agresp").value}).eq("id",eid);
+  }else{
+    const r=await db.from("agenda").insert({fecha,hora:document.getElementById("aghora").value||null,descripcion:desc,lugar:document.getElementById("aglugar").value.trim(),tipo,responsable:document.getElementById("agresp").value,cancelado:false}).select();
+    if(r.data&&r.data[0])savedId=r.data[0].id;
+  }
+  // Aplicar cobertura si está activo
+  if(agCobActivo&&savedId){
+    cobSel[savedId]=true;
+    // Si es evento de prensa y hora +15hs → cobSel activo ya lo pone en guardias
+  }else if(!agCobActivo&&savedId){
+    delete cobSel[savedId];
+  }
+  closeMod("modAg");
+  toast(agCobActivo?"✓ Evento guardado con cobertura de prensa 📋":"✓ Evento agregado");
+  // Refresh
+  const r2=await db.from("agenda").select("*").order("fecha");if(r2.data)agendas=r2.data;
+  renderCal();if(document.getElementById("p-guardias").style.display!=="none")renderGuardias();
 }
 
 // ═══ GOOGLE CALENDAR ═══
@@ -1468,52 +1543,78 @@ async function scanMedios(){
 }
 
 async function fetchMedioRSS(medio){
-  const rssOpts={
-    "La Voz del Pueblo":["https://www.lavozdelpueblo.com.ar/feed/"],
-    "LU24":["https://lu24.com.ar/feed/","https://www.lu24.com.ar/feed/"],
-    "Diario 3":["https://www.diario3.com.ar/feed/","https://diario3.com.ar/feed/"],
-    "Via País":["https://viapais.com.ar/feed/","https://viapais.com.ar/tres-arroyos/feed/"],
-    "Onda Uno":["https://ondauno.com.ar/feed/","https://www.ondauno.com.ar/feed/"]
-  };
+  const rssUrl=medio.rss;
+  if(!rssUrl)return[];
   const kws=["pablo garate","garate","intendente","tres arroyos","municipio","municipalidad"];
-  const proxies=[
-    u=>`https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
-    u=>`https://corsproxy.io/?${encodeURIComponent(u)}`,
-    u=>`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`
-  ];
-  const urls=rssOpts[medio.n]||[];
-  for(const rssUrl of urls){
-    for(const makeProxy of proxies){
-      try{
-        const resp=await fetch(makeProxy(rssUrl),{signal:AbortSignal.timeout(10000)});
-        if(!resp.ok)continue;
-        const raw=await resp.json();
-        const xmlStr=raw.contents||raw.body||"";
-        if(!xmlStr||xmlStr.length<200)continue;
-        const xml=new DOMParser().parseFromString(xmlStr,"text/xml");
-        const items=[...xml.querySelectorAll("item")];
-        if(!items.length)continue;
-        const cutoff=new Date(TODAY);cutoff.setDate(cutoff.getDate()-7);
-        const results=[];
-        for(const item of items.slice(0,30)){
-          const tit=(item.querySelector("title")?.textContent||"").replace(/<[^>]*>/g,"").trim();
-          const link=item.querySelector("link")?.textContent||item.querySelector("guid")?.textContent||"";
-          const pubDate=item.querySelector("pubDate")?.textContent||"";
-          const desc=(item.querySelector("description")?.textContent||"").replace(/<[^>]*>/g,"").slice(0,200);
-          if(!tit)continue;
-          const text=(tit+" "+desc).toLowerCase();
-          if(!kws.some(k=>text.includes(k)))continue;
-          let fechaISO=isoToday;
-          try{const fd=new Date(pubDate);if(!isNaN(fd)&&fd>=cutoff)fechaISO=iso(fd);else if(!isNaN(fd)&&fd<cutoff)continue;}catch(e){}
-          const tl=tit.toLowerCase();
-          const tono=tl.includes("probl")||tl.includes("critic")||tl.includes("denuncia")||tl.includes("protest")?"negativo":tl.includes("inaugur")||tl.includes("obra")||tl.includes("benefi")||tl.includes("logro")?"positivo":"neutral";
-          results.push({titulo:tit.slice(0,200),url:link,fecha:fechaISO,resumen:desc.slice(0,150),tono,menciona_municipio:text.includes("municipio")||text.includes("municipalidad")||text.includes("tres arroyos"),menciona_pablo:text.includes("pablo garate")||text.includes("garate")});
-        }
-        if(results.length>0){console.log(medio.n+": "+results.length+" noticias");return results;}
-      }catch(e){console.warn(medio.n+" proxy:",e.message);}
+
+  // Estrategia 1: rss2json.com — mejor soporte CORS, devuelve JSON limpio
+  // Estrategia 2: allorigins.win — devuelve XML crudo dentro de JSON
+  // Estrategia 3: corsproxy.io — proxy directo
+  const estrategias=[
+    async()=>{
+      const url=`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}&count=30&api_key=ypgdorqztijpxhnm3p7bxckqlw7jcyvdl4yuzlf`;
+      const r=await fetch(url,{signal:AbortSignal.timeout(15000)});
+      if(!r.ok)return[];
+      const d=await r.json();
+      if(d.status!=="ok"||!d.items?.length)return[];
+      return d.items.map(i=>({
+        title:(i.title||"").replace(/<[^>]*>/g,"").trim(),
+        link:i.link||i.guid||"",
+        pubDate:i.pubDate||"",
+        description:(i.description||i.content||"").replace(/<[^>]*>/g,"").slice(0,200)
+      }));
+    },
+    async()=>{
+      const url=`https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}`;
+      const r=await fetch(url,{signal:AbortSignal.timeout(15000)});
+      if(!r.ok)return[];
+      const d=await r.json();
+      const xmlStr=d.contents||"";
+      if(xmlStr.length<200)return[];
+      const xml=new DOMParser().parseFromString(xmlStr,"text/xml");
+      return[...xml.querySelectorAll("item")].map(n=>({
+        title:(n.querySelector("title")?.textContent||"").replace(/<[^>]*>/g,"").trim(),
+        link:n.querySelector("link")?.textContent||n.querySelector("guid")?.textContent||"",
+        pubDate:n.querySelector("pubDate")?.textContent||"",
+        description:(n.querySelector("description")?.textContent||"").replace(/<[^>]*>/g,"").slice(0,200)
+      }));
+    },
+    async()=>{
+      const url=`https://corsproxy.io/?${encodeURIComponent(rssUrl)}`;
+      const r=await fetch(url,{signal:AbortSignal.timeout(15000)});
+      if(!r.ok)return[];
+      const xml=new DOMParser().parseFromString(await r.text(),"text/xml");
+      return[...xml.querySelectorAll("item")].map(n=>({
+        title:(n.querySelector("title")?.textContent||"").replace(/<[^>]*>/g,"").trim(),
+        link:n.querySelector("link")?.textContent||n.querySelector("guid")?.textContent||"",
+        pubDate:n.querySelector("pubDate")?.textContent||"",
+        description:(n.querySelector("description")?.textContent||"").replace(/<[^>]*>/g,"").slice(0,200)
+      }));
     }
+  ];
+
+  for(let i=0;i<estrategias.length;i++){
+    try{
+      const items=await estrategias[i]();
+      if(!items.length)continue;
+      const cutoff=new Date(TODAY);cutoff.setDate(cutoff.getDate()-7);
+      const results=[];
+      for(const item of items.slice(0,30)){
+        const tit=item.title;
+        if(!tit)continue;
+        const text=(tit+" "+item.description).toLowerCase();
+        if(!kws.some(k=>text.includes(k)))continue;
+        let fechaISO=isoToday;
+        try{const fd=new Date(item.pubDate);if(!isNaN(fd)&&fd>=cutoff)fechaISO=iso(fd);else if(!isNaN(fd)&&fd<cutoff)continue;}catch(e){}
+        const tl=tit.toLowerCase();
+        const tono=tl.includes("probl")||tl.includes("critic")||tl.includes("denuncia")||tl.includes("protest")?"negativo":tl.includes("inaugur")||tl.includes("obra")||tl.includes("benefi")||tl.includes("logro")||tl.includes("entreg")?"positivo":"neutral";
+        results.push({titulo:tit.slice(0,200),url:item.link,fecha:fechaISO,resumen:item.description.slice(0,150),tono,menciona_municipio:text.includes("municipio")||text.includes("municipalidad")||text.includes("tres arroyos"),menciona_pablo:text.includes("pablo garate")||text.includes("garate")});
+      }
+      if(results.length>0){console.log(`✓ ${medio.n}: ${results.length} noticias (estrategia ${i+1})`);return results;}
+      console.log(`${medio.n} estrategia ${i+1}: ${items.length} items pero sin keywords`);
+    }catch(e){console.warn(`${medio.n} estrategia ${i+1}:`,e.message);}
   }
-  console.warn(medio.n+": sin resultados");
+  console.warn(`✗ ${medio.n}: sin resultados`);
   return[];
 }
 
@@ -1525,7 +1626,7 @@ function renderNoticias(){
   if(mf)data=data.filter(n=>n.medio===mf);
   if(tf)data=data.filter(n=>n.tono===tf);
   document.getElementById("ncount").textContent=`${data.length} noticias`;
-  const MC={"La Voz del Pueblo":"#1d4e7a","LU24":"#7c2d12","Diario 3":"#065f46","Via País":"#5b21b6","Onda Uno":"#92400e"};
+  const MC={"La Voz del Pueblo":"#1d4e7a","LU24":"#7c2d12","Via País":"#5b21b6","Onda Uno":"#92400e","Provincia Noticias":"#0f5ca8"};
   if(!data.length){document.getElementById("nlist").innerHTML=`<div style="text-align:center;padding:2rem;color:#9ca3af">No hay noticias. Hacé clic en <strong>"Escanear medios"</strong> o usá <strong>"+ Agregar"</strong> para cargar manualmente.</div>`;return;}
   document.getElementById("nlist").innerHTML=data.slice(0,50).map(n=>`
     <div class="nrow">
@@ -1636,22 +1737,53 @@ Respondé con este formato exacto:
 Sé conciso, directo y útil para un equipo de comunicación municipal.`;
 
   try{
+    // Usar rss2json como proxy para los medios, y para análisis IA
+    // construir análisis localmente con los datos disponibles
     const response=await fetch("https://api.anthropic.com/v1/messages",{
       method:"POST",
-      headers:{"Content-Type":"application/json"},
+      headers:{
+        "Content-Type":"application/json",
+        "anthropic-dangerous-direct-browser-access":"true"
+      },
       body:JSON.stringify({
         model:"claude-sonnet-4-20250514",
         max_tokens:1000,
         messages:[{role:"user",content:prompt}]
       })
     });
+    if(!response.ok){
+      // Fallback: análisis local sin IA
+      throw new Error("API no disponible desde este dominio — generando análisis local");
+    }
     const data=await response.json();
     const text=data.content?.[0]?.text||"Sin respuesta de la IA.";
     txtEl.textContent=text;
     toast("✓ Análisis generado");
   }catch(e){
-    txtEl.textContent="Error al conectar con la IA: "+e.message+"\n\nVerificá la conexión e intentá nuevamente.";
-    toast("Error IA: "+e.message,"err");
+    // Análisis local como fallback
+    const pos=recientes.filter(n=>n.tono==="positivo").length;
+    const neg=recientes.filter(n=>n.tono==="negativo").length;
+    const neu=recientes.filter(n=>n.tono==="neutral").length;
+    const porMedio=MEDIOS.map(m=>({n:m.n,c:recientes.filter(x=>x.medio===m.n).length})).filter(x=>x.c>0).sort((a,b)=>b.c-a.c);
+    const mencPablo=recientes.filter(n=>n.menciona_pablo).length;
+    const mencMuni=recientes.filter(n=>n.menciona_municipio).length;
+    txtEl.textContent=
+`📊 RESUMEN EJECUTIVO
+Se registraron ${recientes.length} noticias en los últimos 7 días.
+${porMedio.length?`Mayor cobertura: ${porMedio[0].n} (${porMedio[0].c} notas).`:""} 
+Menciones: Municipio en ${mencMuni} notas, Pablo Garate en ${mencPablo} notas.
+
+🔢 DISTRIBUCIÓN DE TONOS
+✅ Positivas: ${pos}  •  ⚪ Neutrales: ${neu}  •  ⚠️ Negativas: ${neg}
+
+📰 COBERTURA POR MEDIO
+${porMedio.map(m=>`• ${m.n}: ${m.c} nota${m.c!==1?"s":""}`).join("\n")||"Sin datos suficientes"}
+
+⚠️ NOTA
+El análisis con IA no está disponible desde GitHub Pages por restricciones CORS.
+Para habilitarlo, el panel necesita correr desde un servidor con proxy.
+Los datos anteriores son el análisis automático local.`;
+    toast("Análisis local generado (IA no disponible desde este dominio)","warn");
   }
   btn.disabled=false;
   btn.innerHTML='<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 8v4l3 3"/></svg>🤖 Analizar con IA';
