@@ -1131,7 +1131,7 @@ function renderTeam(){
       ${m.email?`<div style="font-size:9px;color:#9ca3af;margin-top:3px;word-break:break-all">${m.email}</div>`:`<div style="font-size:9px;color:#dc2626;margin-top:3px">Sin correo ⚠</div>`}
       ${m.telefono?`<a href="https://wa.me/${m.telefono}" target="_blank" style="display:inline-flex;align-items:center;gap:3px;margin-top:5px;padding:3px 9px;background:#25d366;color:#fff;border-radius:20px;font-size:9px;font-weight:600;text-decoration:none">📱 WhatsApp</a>`:""}
       <div style="font-size:10px;color:#6b7280;margin-top:3px">${act} tareas activas</div>
-      ${m.email?`<button onclick="event.stopPropagation();sendAlert('${m.nombre}')" style="margin-top:5px;padding:3px 9px;border-radius:20px;border:none;background:#667eea;color:#fff;font-size:9px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">📧 Alertar hoy</button>`:""}
+      <button onclick="event.stopPropagation();sendAlert('${m.nombre}')" style="margin-top:5px;padding:3px 9px;border-radius:20px;border:none;background:${m.telefono?'#25d366':'#667eea'};color:#fff;font-size:9px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">${m.telefono?'📱 WA':'📧 Mail'}</button>
     </div>`;
   }).join("");
 }
@@ -1146,7 +1146,8 @@ function openEmMod(id){
 async function saveMember(){
   const id=document.getElementById("emid").value;
   if(!id){toast("Error: sin ID","err");return;}
-  const tel=document.getElementById("emtel").value.trim().replace(/[^0-9+]/g,"");
+  const telRaw=document.getElementById("emtel").value.trim();
+  const tel=telRaw.replace(/[^0-9]/g,""); // keep only digits, remove spaces/dashes
   const email=document.getElementById("ememail").value.trim();
   const rol=document.getElementById("emrol").value;
   const cobertura=document.getElementById("emcob").value==="1";
@@ -1160,7 +1161,41 @@ async function saveMember(){
   }catch(e){toast("Error guardando: "+e.message,"err");console.error("saveMember:",e);}
 }
 function sendAlert(nombre){
-  const m=gm(nombre);if(!m?.email){toast("Sin correo","warn");return;}
+  const m=gm(nombre);
+  if(!m){toast("Agente no encontrado","err");return;}
+  // Try WhatsApp first if phone available
+  if(m.telefono){
+    const tel=m.telefono.replace(/[^0-9]/g,"");
+    const evs=[...agendas,...gcalEvs].filter(a=>String(a.fecha).slice(0,10)===isoToday&&!a.cancelado);
+    const ps=pubs.filter(p=>String(p.fecha).slice(0,10)===isoToday&&p.responsable===nombre);
+    const mt=tasks.filter(t=>t.responsable===m.nombre&&t.estado!=="Completo");
+    const d=parseD(isoToday);
+    let msg=`🗓️ *Alerta del día — ${DNF[d.getDay()]} ${d.getDate()} de ${MNF[d.getMonth()]}*
+
+Hola ${m.nombre}!`;
+    if(evs.length)msg+="
+
+📅 *Eventos hoy:*
+"+evs.map(e=>`• ${e.hora||""} ${e.descripcion}`).join("
+");
+    if(ps.length)msg+="
+
+📱 *Publicaciones:*
+"+ps.map(p=>{const ct=getCta(p.cuenta);return`• ${ct?.label}: ${p.descripcion.slice(0,50)}`}).join("
+");
+    if(mt.length)msg+="
+
+📋 *Tareas ("+mt.length+"):*
+"+mt.slice(0,3).map(t=>`• [${t.prioridad}] ${t.descripcion.slice(0,50)}`).join("
+");
+    msg+="
+
+🔗 Panel: https://marianelahut-lang.github.io/panel-comunicacion/";
+    window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`,"_blank");
+    toast(`✓ WhatsApp → ${m.nombre}`);
+    return;
+  }
+  if(!m.email){toast(`${nombre} sin WhatsApp ni correo`,"warn");return;}
   const g=getGuardia(isoToday);const gi=g.indexOf(nombre);
   const evs=[...agendas,...gcalEvs].filter(a=>String(a.fecha).slice(0,10)===isoToday&&!a.cancelado);
   const ps=pubs.filter(p=>String(p.fecha).slice(0,10)===isoToday&&p.responsable===nombre);
@@ -1223,23 +1258,26 @@ async function scanMedios(){
   btn.textContent="Escaneando...";
   const statusEl=document.getElementById("scanstatus");
   statusEl.innerHTML=`<div class="sbar scan"><div class="spin"></div><span>Buscando noticias en medios locales... (30-60 seg)</span></div>`;
-  // Escanea UN medio a la vez - La Voz del Pueblo por defecto
-  const mSelFilt=document.getElementById("mfilt")?.value;
-  const medioTarget=mSelFilt?MEDIOS.find(m=>m.n===mSelFilt):MEDIOS[0]; // La Voz del Pueblo
+  // Escanea todos los medios en paralelo
   let total=0,errors=0;
-  if(medioTarget){
-    statusEl.innerHTML=`<div class="sbar scan"><div class="spin"></div><span>Analizando ${medioTarget.n}...</span></div>`;
+  const promises=MEDIOS.map(async m=>{
     try{
-      const items=await fetchMedioRSS(medioTarget);
+      const items=await fetchMedioRSS(m);
+      let cnt=0;
       for(const n of items){
         const ex=noticias.find(x=>x.url&&x.url===n.url);
         if(!ex&&n.titulo){
-          try{await db.from("noticias_medios").insert({...n,medio:medioTarget.n});total++;}
-          catch(e){console.warn("Insert:",e.message);}
+          try{await db.from("noticias_medios").insert({...n,medio:m.n});cnt++;total++;}
+          catch(e){console.warn("Insert "+m.n+":",e.message);}
         }
       }
-    }catch(e){errors++;console.warn(medioTarget.n,":",e.message);}
-  }
+      return{n:m.n,cnt,ok:true};
+    }catch(e){errors++;console.warn(m.n,":",e.message);return{n:m.n,cnt:0,ok:false};}
+  });
+  statusEl.innerHTML=`<div class="sbar scan"><div class="spin"></div><span>Analizando todos los medios en paralelo...</span></div>`;
+  const results=await Promise.all(promises);
+  const summary=results.map(r=>`${r.n.split(" ")[0]}: ${r.cnt}`).join(" | ");
+  console.log("Scan results:",summary);
   if(total>0){
     statusEl.innerHTML=`<div class="sbar done">✓ ${total} noticias nuevas encontradas</div>`;
     toast(`✓ ${total} noticias nuevas`);
@@ -1253,8 +1291,18 @@ async function scanMedios(){
 
 async function fetchMedioRSS(medio){
   // Use allorigins.win to bypass CORS and parse RSS XML
-  const rssMap={"La Voz del Pueblo":"https://www.lavozdelpueblo.com.ar/feed/","LU24":"https://www.lu24.com.ar/feed/","Diario 3":"https://www.diario3.com.ar/feed/","Via País":"https://viapais.com.ar/tres-arroyos/feed/","Onda Uno":"https://ondauno.com.ar/feed/"};
-  const rssUrl=rssMap[medio.n];if(!rssUrl)return[];
+  // Multiple URL options per medio for reliability
+  const rssOptions={
+    "La Voz del Pueblo":["https://www.lavozdelpueblo.com.ar/feed/","https://www.lavozdelpueblo.com.ar/feed/rss2/"],
+    "LU24":["https://www.lu24.com.ar/feed/","https://lu24.com.ar/feed/","https://www.lu24.com.ar/rss/"],
+    "Diario 3":["https://www.diario3.com.ar/feed/","https://diario3.com.ar/feed/"],
+    "Via País":["https://viapais.com.ar/tres-arroyos/feed/","https://viapais.com.ar/feed/"],
+    "Onda Uno":["https://ondauno.com.ar/feed/","https://www.ondauno.com.ar/feed/"]
+  };
+  const urls=rssOptions[medio.n]||[];
+  if(!urls.length)return[];
+  // Try each URL until one works
+  for(const rssUrl of urls){
   const proxy=`https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}`;
   const resp=await fetch(proxy,{signal:AbortSignal.timeout(12000)});
   if(!resp.ok)throw new Error("HTTP "+resp.status);
@@ -1281,7 +1329,9 @@ async function fetchMedioRSS(medio){
     const tono=tl.includes("probl")||tl.includes("critic")||tl.includes("denuncia")||tl.includes("protest")?"negativo":tl.includes("inaugur")||tl.includes("obra")||tl.includes("benefi")||tl.includes("logro")?"positivo":"neutral";
     results.push({titulo:tit.slice(0,200),url:link,fecha:fechaISO,resumen:desc,tono,menciona_municipio:text.includes("municipio")||text.includes("municipalidad")||text.includes("tres arroyos"),menciona_pablo:text.includes("pablo garate")||text.includes("garate")});
   }
-  return results;
+  if(results.length>0)return results;
+  } // end for urls
+  return[];
 }
 
 function renderNoticias(){
