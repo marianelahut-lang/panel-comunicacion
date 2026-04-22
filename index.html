@@ -694,10 +694,17 @@ function setupRealtime(){
     .subscribe();
 }
 function renderAll(){
-  updateBadges();renderPersons();renderKanban();renderMaterial();renderWeek();renderCal();renderTeam();initGuardias();
-  if(typeof renderMetricas==='function')renderMetricas();
-  if(typeof renderNoticias==='function')renderNoticias();
-  if(typeof renderMedioSum==='function')renderMedioSum();
+  try{updateBadges();}catch(e){}
+  try{renderPersons();}catch(e){}
+  try{renderKanban();}catch(e){}
+  try{renderMaterial();}catch(e){}
+  try{renderWeek();}catch(e){}
+  try{renderCal();}catch(e){}
+  try{renderTeam();}catch(e){}
+  try{initGuardias();}catch(e){}
+  try{if(typeof renderMetricas==='function')renderMetricas();}catch(e){}
+  try{if(typeof renderNoticias==='function')renderNoticias();}catch(e){}
+  try{if(typeof renderMedioSum==='function')renderMedioSum();}catch(e){}
 }
 function updateBadges(){
   const p=tasks.filter(t=>t.estado!=="Completo").length;
@@ -1309,7 +1316,7 @@ async function saveNoticia(){
 }
 
 // METRICAS
-function getFilteredStats(){const days=parseInt(document.getElementById("mrange")?.value||7);const cut=new Date(TODAY);cut.setDate(cut.getDate()-days);const cutStr=iso(cut);let data=stats.filter(s=>s.fecha>=cutStr);if(mAccTab!=="todas"){const[cnt,red]=mAccTab.split("-");data=data.filter(s=>s.cuenta===cnt&&s.red===red);}return data;}
+function getFilteredStats(){const mrEl=document.getElementById("mrange");const days=parseInt(mrEl?.value||7);const cut=new Date(TODAY);cut.setDate(cut.getDate()-days);const cutStr=iso(cut);let data=stats.filter(s=>s.fecha>=cutStr);if(mAccTab!=="todas"){const[cnt,red]=mAccTab.split("-");data=data.filter(s=>s.cuenta===cnt&&s.red===red);}return data;}
 function renderMetricas(){
   if(!document.getElementById("metcards"))return;
   const data=getFilteredStats();
