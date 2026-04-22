@@ -486,7 +486,7 @@ html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111
   <div class="fg"><label>Nombre</label><input type="text" id="emnombre" readonly style="background:#f9fafb"></div>
   <div class="fg"><label>Correo</label><input type="email" id="ememail"></div>
   <div class="fg"><label>WhatsApp (con código país)</label><input type="tel" id="emtel" placeholder="5492983000000"></div>
-  <div class="fg"><label>Rol</label><select id="emrol"><option>Jefe/a de área</option><option>Responsable de equipo</option><option>Comunicador/a</option><option>Diseñador/a</option><option>Editor/a de video</option></select></div>
+  <div class="fg"><label>Rol</label><select id="emrol"><option>Jefe/a de área</option><option>Responsable de equipo</option><option>Comunicador/a</option><option>Diseñador/a</option><option>Editor/a de video</option><option>Community Manager</option><option>Camarógrafo/a</option><option>Fotógrafo/a</option></select></div>
   <div class="fg"><label>¿Hace coberturas?</label><select id="emcob"><option value="1">Sí</option><option value="0">No</option></select></div>
   <div class="mft"><button class="btn" onclick="closeMod('modEquipo')">Cancelar</button><button class="btn p" onclick="saveMember()">Guardar</button></div>
 </div></div>
@@ -566,7 +566,7 @@ const MEDIOS=[
 const MNS=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
 const MNF=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
 const DNF=["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
-const HOURS=[7,8,9,10,11,12,13,14,15,16,17,18,19,20];
+const HOURS=[8,9,10,11,12,13,14,15,16,17,18,19,20];
 const ACC_CLR={"Municipalidad-Facebook":"#1877f2","Municipalidad-Instagram":"#e1306c","Municipalidad-YouTube":"#ef4444","Pablo Garate-Facebook":"#0f5ca8","Pablo Garate-Instagram":"#c13584"};
 
 // State
@@ -602,13 +602,13 @@ function toast(m,t="ok"){
 }
 function closeMod(id){document.getElementById(id).classList.remove("open")}
 function matchH(h,hr){
-  if(!h||h===null||h===""||h==="null"||h==="undefined")return hr===9; // all-day → 9am
+  if(!h||h===null||h===""||h==="null"||h==="undefined")return hr===9;
   const str=String(h).trim();
-  if(!str||str==="null")return hr===9;
+  if(!str||str==="null"||str==="undefined")return hr===9;
   const n=parseInt(str.split(":")[0]);
   if(isNaN(n))return hr===9;
-  // If hour is outside our range (7-20), show at 9am
-  if(n<7||n>20)return hr===9;
+  if(n<8)return hr===8;   // before 8am → show at 8am
+  if(n>20)return hr===20; // after 8pm → show at 20
   return n===hr;
 }
 function fmtN(n){if(!n)return"0";if(n>=1000000)return(n/1000000).toFixed(1)+"M";if(n>=1000)return(n/1000).toFixed(1)+"K";return String(n)}
@@ -883,7 +883,7 @@ function renderWeek(){
   const lbl=`${mon.getDate()} ${MNS[mon.getMonth()]} — ${sun.getDate()} ${MNS[sun.getMonth()]} ${sun.getFullYear()}`;
   const lel=document.getElementById("pwlbl");if(lel)lel.textContent=lbl;
   const sel=document.getElementById("pubsub");if(sel)sel.textContent=`Semana del ${mon.getDate()} de ${MNF[mon.getMonth()]}`;
-  if(document.getElementById("whdr"))buildWeek("whdr","wscroll",pwO,true,true);
+  if(document.getElementById("whdr"))buildWeek("whdr","wscroll",pwO,true,false);
 }
 function openPubMod(fecha="",hora=""){
   document.getElementById("pubmodt").textContent="Nueva publicación";
@@ -1015,8 +1015,6 @@ async function syncGCal(){
     }
     gcalOk=true;btn.className="gcbtn ok";txt.textContent=`Calendar · ${gcalEvs.length}`;
     renderCal();renderWeek();updateBadges();
-    // Auto-sync Pablo + prensa after 15:00 to publicaciones
-    await autoSyncPubs();
     toast(`✓ ${gcalEvs.length} eventos sincronizados`);
     // Auto-resync every 5 min
     if(!syncGCal._iv)syncGCal._iv=setInterval(syncGCal,5*60*1000);
