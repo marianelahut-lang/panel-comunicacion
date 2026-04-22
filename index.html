@@ -840,9 +840,10 @@ function buildWeek(hdrId,scrollId,off,showPubs,showAg){
         }).forEach(e=>{
           const cls=e.tipo==="prensa"?"ep":e.tipo==="municipal"?"em":"ei";
           const icon=e.tipo==="prensa"?"📻":e.tipo==="municipal"?"🏛":"🗓";
-          evs+=`<div class="ev ${cls}" title="${e.descripcion}${e.lugar?" — "+e.lugar:""}">
+          const gcid=e.gcal?e.id.replace("gc_",""):"";
+          evs+=`<div class="ev ${cls}" title="${e.descripcion}${e.lugar?" — "+e.lugar:""}${e.gcal?" [GCal]":""}">
             <div class="ev-t">${icon} ${e.descripcion}</div>
-            <div class="ev-s">${e.lugar||""}${e.responsable?" · "+e.responsable:""}</div>
+            <div class="ev-s">${e.hora?e.hora+" ":""}${e.lugar||""}${e.responsable?" · "+e.responsable:""}</div>
           </div>`;
         });
       }
@@ -993,7 +994,10 @@ async function syncGCal(){
         dl.includes("fm ")||dl.includes(" am ")||dl.includes("programa")||dl.includes("ciclo")||
         dl.includes("televis")||dl.includes("columna")||dl.includes("periodis")||dl.includes("senal")||
         dl.includes("señal")||dl.includes("cobertura")||dl.includes("reportaje")||dl.includes("103")||
-        dl.includes("105")||dl.includes("107")||dl.includes("98.5")||dl.includes("91.3");
+        dl.includes("105")||dl.includes("107")||dl.includes("98.")||dl.includes("91.")||
+        dl.includes("frecuencia")||dl.includes("locutor")||dl.includes("conductor")||
+        dl.includes("entrevistar")||dl.includes("periodico")||dl.includes("reporter")||
+        dl.includes("micro")||dl.includes("bloque")||dl.includes("segmento")||dl.includes("emisor");
       const tipo=esPrensaKW?"prensa":"intendente";
       gcalEvs.push({id:"gc_"+item.id,fecha,hora,descripcion:desc,lugar,tipo,cancelado:false,gcal:true});
     }
@@ -1068,7 +1072,7 @@ function renderGuardias(){
       <div class="gwags">
         ${g.map((n,gi)=>{const m=gm(n);return m?`<div class="gwag">${av(m,16)}<span style="font-size:9px;line-height:1.2">${m.nombre}<br><span style="color:#9ca3af;font-size:8px">${gi===0?"titular":"soporte"}</span></span></div>`:""}).join("")||`<span style="font-size:9px;color:#d1d5db">—</span>`}
       </div>
-      ${evs.length?`<div class="gwevs">${evs.slice(0,3).map(e=>`${e.tipo==="prensa"?"📻":"🗓"} ${e.descripcion.slice(0,20)}`).join("<br>")}</div>`:""}
+      ${evs.filter(e=>{if(!e.hora)return false;const h=parseInt(String(e.hora).split(":")[0]);return h>=15;}).length?`<div class="gwevs" style="border-top:1px dashed #e5e7eb;padding-top:3px;margin-top:2px"><div style="font-size:7px;color:#9ca3af;margin-bottom:1px">+15hs:</div>${evs.filter(e=>{if(!e.hora)return false;const h=parseInt(String(e.hora).split(":")[0]);return h>=15;}).slice(0,4).map(e=>`${e.tipo==="prensa"?"📻":"🗓"} ${e.hora?e.hora.slice(0,5)+" ":""}${e.descripcion.slice(0,18)}`).join("<br>")}</div>`:""}
       <button class="gwnb" onclick="notifyDay('${ds}')">Notificar</button>
     </div>`;
   }
@@ -1201,19 +1205,22 @@ async function scanMedios(){
   btn.textContent="Escaneando...";
   const statusEl=document.getElementById("scanstatus");
   statusEl.innerHTML=`<div class="sbar scan"><div class="spin"></div><span>Buscando noticias en medios locales... (30-60 seg)</span></div>`;
+  // Escanea UN medio a la vez - La Voz del Pueblo por defecto
+  const mSelFilt=document.getElementById("mfilt")?.value;
+  const medioTarget=mSelFilt?MEDIOS.find(m=>m.n===mSelFilt):MEDIOS[0]; // La Voz del Pueblo
   let total=0,errors=0;
-  for(const m of MEDIOS){
-    statusEl.innerHTML=`<div class="sbar scan"><div class="spin"></div><span>Analizando ${m.n}...</span></div>`;
+  if(medioTarget){
+    statusEl.innerHTML=`<div class="sbar scan"><div class="spin"></div><span>Analizando ${medioTarget.n}...</span></div>`;
     try{
-      const items=await fetchMedioRSS(m);
+      const items=await fetchMedioRSS(medioTarget);
       for(const n of items){
         const ex=noticias.find(x=>x.url&&x.url===n.url);
         if(!ex&&n.titulo){
-          try{await db.from("noticias_medios").insert({...n,medio:m.n});total++;}
+          try{await db.from("noticias_medios").insert({...n,medio:medioTarget.n});total++;}
           catch(e){console.warn("Insert:",e.message);}
         }
       }
-    }catch(e){errors++;console.warn(m.n,":",e.message);}
+    }catch(e){errors++;console.warn(medioTarget.n,":",e.message);}
   }
   if(total>0){
     statusEl.innerHTML=`<div class="sbar done">✓ ${total} noticias nuevas encontradas</div>`;
