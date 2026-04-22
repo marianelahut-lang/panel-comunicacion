@@ -981,16 +981,16 @@ async function syncGCal(){
   btn.className="gcbtn go";txt.textContent="Sincronizando...";
   try{
     let all=[],next=null;
-    const tMin=new Date(TODAY.getFullYear(),TODAY.getMonth()-2,1).toISOString();
-    const tMax=new Date(TODAY.getFullYear()+1,TODAY.getMonth()+2,1).toISOString();
+    const tMin=new Date(TODAY.getFullYear(),TODAY.getMonth()-3,1).toISOString();
+    const tMax=new Date(TODAY.getFullYear()+1,TODAY.getMonth()+3,1).toISOString();
     do{
-      const url=`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(GCAL_ID)}/events?key=${encodeURIComponent(GCAL_KEY)}&timeMin=${tMin}&timeMax=${tMax}&singleEvents=true&orderBy=startTime&maxResults=2500&fields=nextPageToken,items(id,summary,start,end,location,status,colorId,description)${next?"&pageToken="+next:""}`;
+      const url=`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(GCAL_ID)}/events?key=${encodeURIComponent(GCAL_KEY)}&timeMin=${tMin}&timeMax=${tMax}&singleEvents=true&orderBy=startTime&maxResults=2500${next?"&pageToken="+next:""}`;
       const res=await fetch(url);
       if(!res.ok){const e=await res.json();throw new Error(e.error?.message||"Error API")}
       const data=await res.json();
       all=[...all,...(data.items||[])];
       next=data.nextPageToken||null;
-      txt.textContent=`Cargando... ${all.length}`;
+      txt.textContent=`Cargando... ${all.length} eventos`;
     }while(next);
     // Store in memory — NO Supabase writes
     gcalEvs=[];
@@ -1024,6 +1024,9 @@ async function syncGCal(){
       gcalEvs.push({id:"gc_"+item.id,fecha,hora,descripcion:desc,lugar,tipo,cancelado:false,gcal:true});
     }
     gcalOk=true;btn.className="gcbtn ok";txt.textContent=`Calendar · ${gcalEvs.length}`;
+    console.log("GCal sync: "+gcalEvs.length+" eventos en memoria");
+    console.log("Prensa events:", gcalEvs.filter(e=>e.tipo==="prensa").length);
+    console.log("Fechas únicas:", [...new Set(gcalEvs.map(e=>e.fecha))].sort().join(", "));
     renderCal();renderWeek();updateBadges();
     toast(`✓ ${gcalEvs.length} eventos sincronizados`);
     // Auto-resync every 5 min
