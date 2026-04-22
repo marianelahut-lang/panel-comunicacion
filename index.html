@@ -278,6 +278,7 @@ html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111
       <button class="gcbtn" id="gcbtn" onclick="syncGCal()"><div class="gcdot" id="gcdot"></div><span id="gctxt">Sincronizar Calendar</span></button>
       <div class="upill"><div class="uav" id="uav"></div><span class="un" id="uname"></span></div>
       <button class="outbtn" onclick="doLogout()">Salir</button>
+      <button id="notifbtn" onclick="activarNotificaciones()" style="padding:4px 8px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,200,0,.1);color:#fbbf24;font-size:10px;cursor:pointer;font-family:Inter,sans-serif" title="Activar notificaciones push">🔔</button>
     </div>
   </div>
 
@@ -747,11 +748,13 @@ async function initApp(){
     db=supabase.createClient(SB_URL,SB_KEY);
     await loadAll();
     setLive(true);
-    // FIX: popSelects y renderTeam DESPUÉS de cargar teams
     popSelects();
     renderAll();
     setupRealtime();
     setTimeout(syncGCal,1500);
+    // Notificaciones
+    initNotif();
+    if(Notification.permission==="granted")document.getElementById("notifbtn")?.remove();
   }catch(e){
     setLive(false);
     toast("Error DB: "+e.message,"err");
@@ -924,9 +927,10 @@ function weekMon(off){return addD(START,off*7)}
 function buildWeek(hdrId,scrollId,off,showPubs,showAg){
   const mon=weekMon(off);
   const DN=["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
+  const HORAS=[7,8,9,10,11,12,13,14,15,16,17,18,19,20,21];
 
-  // Header con guardia
-  let hdr=`<div class="wgut"></div>`;
+  // ── HEADER ──
+  let hdr=`<div class="wgut" style="background:#f9fafb;border-right:1px solid #e5e7eb"></div>`;
   for(let i=0;i<7;i++){
     const d=addD(mon,i),ds=iso(d);
     const isT=ds===isoToday,isWE=i>=5;
@@ -941,60 +945,83 @@ function buildWeek(hdrId,scrollId,off,showPubs,showAg){
   }
   document.getElementById(hdrId).innerHTML=hdr;
 
-  // Body: columnas por dia, TODOS los eventos ordenados por hora
-  const dayEvs=[];
+  // ── RECOLECTAR EVENTOS POR DÍA ──
+  const dayMap={};
   for(let i=0;i<7;i++){
     const d=addD(mon,i),ds=iso(d);
     const seen=new Set();
-    const evList=[];
+    const evs=[];
     if(showAg){
       [...agendas,...gcalEvs].filter(a=>{
         const af=String(a.fecha).slice(0,10);
         if(af!==ds||a.cancelado||seen.has(a.id))return false;
         seen.add(a.id);return true;
       }).forEach(e=>{
+        const hr=e.hora?parseInt(String(e.hora).split(":")[0]):null;
+        const min=e.hora?parseInt(String(e.hora).split(":")[1]||0):0;
         const isCob=cobSel[e.id]||false;
         const cls=isCob?"ep":e.tipo==="prensa"?"ep":e.tipo==="municipal"?"em":"ei";
         const icon=e.tipo==="prensa"?"📻":e.tipo==="municipal"?"🏛":"🗓";
         const cobBadge=isCob?`<span style="font-size:8px;background:#6d28d9;color:#fff;padding:1px 4px;border-radius:3px;margin-left:2px">📋</span>`:"";
         const cobStyle=isCob?"background:#ede9fe;border-left:3px solid #6d28d9;color:#4c1d95;":"";
-        const hp=e.hora?String(e.hora).split(":"):[""," "];
-        const horaSort=e.hora?(parseInt(hp[0])||0)*60+(parseInt(hp[1])||0):0;
-        evList.push({horaSort,html:`<div class="ev ${cls}" onclick="event.stopPropagation();openEvPanel(${JSON.stringify(e).replace(/"/g,'&quot;')})" style="cursor:pointer;${cobStyle}">
+        evs.push({hr,min,sort:(hr||0)*60+(min||0),html:`<div class="ev ${cls}" onclick="event.stopPropagation();openEvPanel(${JSON.stringify(e).replace(/"/g,'&quot;')})" style="cursor:pointer;margin-bottom:2px;${cobStyle}">
           <div class="ev-t">${icon} ${e.descripcion}${cobBadge}</div>
-          <div class="ev-s">${e.hora?e.hora.slice(0,5)+" ":""}${e.lugar||""}${e.responsable?" · "+e.responsable:""}</div>
+          <div class="ev-s" style="font-weight:600;color:inherit;opacity:.8">${e.hora?`🕐 ${e.hora.slice(0,5)}`:""} ${e.lugar?`📍 ${e.lugar}`:""}</div>
         </div>`});
       });
     }
     if(showPubs){
       pubs.filter(p=>String(p.fecha).slice(0,10)===ds).forEach(p=>{
+        const hr=p.hora?parseInt(String(p.hora).split(":")[0]):null;
+        const min=p.hora?parseInt(String(p.hora).split(":")[1]||0):0;
         const ct=getCta(p.cuenta)||{cls:"efbm",label:p.cuenta};
-        const hp=p.hora?String(p.hora).split(":"):[""," "];
-        const horaSort=p.hora?(parseInt(hp[0])||0)*60+(parseInt(hp[1])||0):0;
-        evList.push({horaSort,html:`<div class="ev ${ct.cls}" onclick="editPubItem('${p.id}')">
+        evs.push({hr,min,sort:(hr||0)*60+(min||0),html:`<div class="ev ${ct.cls}" onclick="editPubItem('${p.id}')" style="margin-bottom:2px">
           <div class="ev-t">${ct.label} · ${p.tipo}</div>
-          <div class="ev-s">${p.hora?p.hora.slice(0,5)+" ":""}${p.descripcion.slice(0,20)}${p.descripcion.length>20?"…":""}${p.responsable?" · "+p.responsable:""}</div>
+          <div class="ev-s" style="font-weight:600">${p.hora?`🕐 ${p.hora.slice(0,5)}`:""} ${p.descripcion.slice(0,22)}${p.descripcion.length>22?"…":""}</div>
         </div>`});
       });
     }
-    evList.sort((a,b)=>a.horaSort-b.horaSort);
-    dayEvs.push({ds,evList,isT:ds===isoToday,isWE:i>=5});
+    evs.sort((a,b)=>a.sort-b.sort);
+    dayMap[iso(addD(mon,i))]=evs;
   }
 
-  const maxEvs=Math.max(3,...dayEvs.map(d=>d.evList.length));
-  let body=`<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:0;min-height:${Math.max(200,maxEvs*36+20)}px">`;
-  for(const {ds,evList,isT,isWE} of dayEvs){
-    const guards=getGuardia(ds);
-    const gbg=guards.length>0?(gm(guards[0])||{color:"transparent"}).color+"08":"transparent";
-    body+=`<div style="border-right:1px solid #f3f4f6;padding:3px 2px;background:${isT?"rgba(102,126,234,.04)":gbg}" onclick="openPubFromCell('${ds}','09:00')">
-      ${evList.length?evList.map(e=>e.html).join(""):
-        `<div style="text-align:center;padding:20px 4px;color:#e5e7eb;font-size:18px">—</div>`}
-      <button class="hadd" style="display:flex;margin:3px auto 0;position:static;opacity:.5" onclick="event.stopPropagation();openPubFromCell('${ds}','09:00')">+</button>
-    </div>`;
+  // ── BODY: filas por hora, CELDAS GRANDES ──
+  let body="";
+  for(const hr of HORAS){
+    const hl=`${String(hr).padStart(2,"0")}:00`;
+    let row=`<div class="hrow" style="min-height:80px"><div class="hl" style="padding-top:6px;font-size:12px;font-weight:700;color:#6b7280">${hl}</div>`;
+    for(let i=0;i<7;i++){
+      const d=addD(mon,i),ds=iso(d);
+      const isT=ds===isoToday;
+      const guards=getGuardia(ds);
+      const gbg=guards.length>0?(gm(guards[0])||{color:"transparent"}).color+"08":"transparent";
+      const dayEvs=dayMap[ds]||[];
+      // Eventos de esta franja horaria (hr exacto O sin hora en la fila 9)
+      const cellEvs=dayEvs.filter(e=>{
+        if(e.hr===null)return hr===9;
+        return e.hr===hr;
+      });
+      row+=`<div class="hc${isT?" hct":""}" style="background:${gbg};min-height:80px;padding:4px 3px;vertical-align:top" onclick="openPubFromCell('${ds}','${hl}')">
+        <div class="ci">${cellEvs.map(e=>e.html).join("")}</div>
+        <button class="hadd" onclick="event.stopPropagation();openPubFromCell('${ds}','${hl}')">+</button>
+      </div>`;
+    }
+    row+=`</div>`;
+    body+=row;
   }
-  body+=`</div>`;
   const sc=document.getElementById(scrollId);
-  if(sc){sc.innerHTML=body;setTimeout(()=>{sc.scrollTop=0;},30);}
+  if(sc){
+    sc.innerHTML=body;
+    // Scroll a hora 8 / hora actual
+    setTimeout(()=>{
+      const nowH=new Date().getHours();
+      const targetH=Math.max(7,Math.min(20,nowH-1));
+      const rows=sc.querySelectorAll(".hrow");
+      const idx=HORAS.indexOf(targetH);
+      if(rows[idx])rows[idx].scrollIntoView({block:"start"});
+      else sc.scrollTop=0;
+    },50);
+  }
 }
 
 // ═══ PUBLICACIONES ═══
@@ -1142,6 +1169,8 @@ async function saveAg(){
   }
   closeMod("modAg");
   toast(agCobActivo?"✓ Evento guardado con cobertura de prensa 📋":"✓ Evento agregado");
+  // Notificación push
+  notifEventoGuardado(desc,fecha,document.getElementById("aghora").value||null,tipo);
   // Refresh
   const r2=await db.from("agenda").select("*").order("fecha");if(r2.data)agendas=r2.data;
   renderCal();if(document.getElementById("p-guardias").style.display!=="none")renderGuardias();
@@ -1285,6 +1314,7 @@ function toggleCobertura(){
   if(!evPanel_ev)return;
   cobSel[evPanel_ev.id]=!cobSel[evPanel_ev.id];
   _refreshCobBtn();
+  if(cobSel[evPanel_ev.id])notifCobertura(evPanel_ev.descripcion,evPanel_ev.fecha);
   // Refrescar calendario para mostrar badge azul
   renderCal();
   // Refrescar guardias si está visible
@@ -1392,7 +1422,10 @@ function notifyDay(ds){
     a.style.display="none";document.body.appendChild(a);a.click();setTimeout(()=>a.remove(),400);
     sent++;
   });
-  if(sent)toast(`✓ Mail guardia — ${dia}`);
+  if(sent){
+    toast(`✓ Mail guardia — ${dia}`);
+    pushNotif(`📧 Guardia notificada`,`${dia} — mail enviado a ${sent} integrante${sent!==1?"s":""}`);
+  }
   if(nomail.length)toast(`Sin correo: ${nomail.join(", ")}}`,"warn");
 }
 
@@ -1690,6 +1723,67 @@ async function saveNoticia(){
   if(r.data&&r.data[0])noticias.unshift(r.data[0]);
   closeMod("modNoticia");toast("✓ Noticia agregada");
   renderNoticias();renderMedioSum();
+}
+
+// ═══ NOTIFICACIONES PUSH ═══
+// Pide permiso y envía notificación al navegador del usuario
+async function pedirPermisoNotif(){
+  if(!("Notification" in window)){toast("Tu navegador no soporta notificaciones","warn");return false;}
+  if(Notification.permission==="granted")return true;
+  if(Notification.permission==="denied"){toast("Notificaciones bloqueadas — habilitálas en la configuración del navegador","warn");return false;}
+  const p=await Notification.requestPermission();
+  return p==="granted";
+}
+
+function pushNotif(titulo,cuerpo,icono="🗓️"){
+  if(Notification.permission!=="granted")return;
+  try{
+    new Notification(titulo,{
+      body:cuerpo,
+      icon:"https://marianelahut-lang.github.io/panel-comunicacion/favicon.ico",
+      badge:"https://marianelahut-lang.github.io/panel-comunicacion/favicon.ico",
+      tag:titulo, // evita duplicados
+      requireInteraction:false
+    });
+  }catch(e){console.warn("Notif:",e);}
+}
+
+// Notifica al usuario actual cuando se guarda un evento
+function notifEventoGuardado(desc,fecha,hora,tipo){
+  if(Notification.permission!=="granted")return;
+  const icon=tipo==="prensa"?"📻":tipo==="municipal"?"🏛":"🗓";
+  const d=parseD(fecha);
+  const diaStr=`${DNF[d.getDay()]} ${d.getDate()} de ${MNF[d.getMonth()]}`;
+  pushNotif(`${icon} Evento agregado al calendario`,`${desc}\n${diaStr}${hora?" · "+hora:""}`);
+}
+
+// Notifica al usuario cuando se asigna cobertura
+function notifCobertura(desc,fecha){
+  if(Notification.permission!=="granted")return;
+  const d=parseD(fecha);
+  pushNotif(`📋 Cobertura asignada`,`${desc}\n${DNF[d.getDay()]} ${d.getDate()} de ${MNF[d.getMonth()]} → aparece en Guardias`);
+}
+
+// Botón para activar notificaciones — se muestra en la topbar
+async function activarNotificaciones(){
+  const ok=await pedirPermisoNotif();
+  if(ok){
+    toast("✓ Notificaciones activadas");
+    document.getElementById("notifbtn")?.remove();
+    // Notif de bienvenida
+    pushNotif("🔔 Notificaciones activadas","Vas a recibir alertas de eventos y guardias en este dispositivo");
+    // Guardar preferencia
+    try{localStorage.setItem("notif_enabled","1");}catch(e){}
+  }
+}
+
+// Auto-pedir permiso si ya lo activó antes
+function initNotif(){
+  try{
+    if(localStorage.getItem("notif_enabled")==="1"&&Notification.permission!=="granted"){
+      pedirPermisoNotif();
+    }
+  }catch(e){}
 }
 
 // ═══ ANÁLISIS IA DE MEDIOS ═══
