@@ -502,7 +502,7 @@ html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111
   <input type="hidden" id="pubeid">
   <div class="fr">
     <div class="fg"><label>Fecha</label><input type="date" id="pfecha"></div>
-    <div class="fg"><label>Hora</label><input type="time" id="phora"></div>
+    <div class="fg"><label>Hora</label><input type="time" id="phora" onchange="onPestChange()"></div>
   </div>
   <div class="fg"><label>Descripción</label><textarea id="pdesc" rows="2"></textarea></div>
   <div class="fg"><label>Cuenta</label><div class="cuentas" id="cuentasgrid"></div></div>
@@ -512,7 +512,17 @@ html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111
   </div>
   <div class="fr">
     <div class="fg"><label>Colaboración</label><input type="text" id="pcolab" placeholder="Ej: Secretaría de Obras..."></div>
-    <div class="fg"><label>Estado</label><select id="pest"><option>Pendiente</option><option>En producción</option><option>Listo</option><option>Publicado</option></select></div>
+    <div class="fg"><label>Estado</label>
+      <select id="pest" onchange="onPestChange()">
+        <option value="Pendiente">Pendiente</option>
+        <option value="En producción">En producción</option>
+        <option value="Listo para publicar">✅ Listo para publicar</option>
+        <option value="Publicado">Publicado</option>
+      </select>
+    </div>
+  </div>
+  <div id="pubguardiabanner" style="display:none;background:#ede9fe;border:1px solid #c4b5fd;border-radius:7px;padding:8px 11px;font-size:11px;color:#6d28d9;margin-top:4px">
+    📋 <strong>Pasa a Guardias</strong> — esta publicación es después de las 15hs y está lista para publicar
   </div>
   <div class="mft"><button class="btn" onclick="closeMod('modPub')">Cancelar</button><button class="btn p" onclick="savePub()">Guardar</button></div>
 </div></div>
@@ -1092,6 +1102,7 @@ function openPubMod(fecha="",hora=""){
   document.getElementById("presp").value="";document.getElementById("pcolab").value="";document.getElementById("pest").value="Pendiente";
   buildCuentasGrid("cuentasgrid",null);
   document.getElementById("modPub").classList.add("open");
+  setTimeout(onPestChange,50);
 }
 function openPubFromCell(fecha,hora){openPubMod(fecha,hora);const g=getGuardia(fecha);if(g.length){const m=gm(g[0]);if(m)document.getElementById("presp").value=m.nombre;}}
 function editPubItem(id){
@@ -1103,71 +1114,91 @@ function editPubItem(id){
   document.getElementById("pcolab").value=p.colaboracion||"";document.getElementById("pest").value=p.estado||"Pendiente";
   buildCuentasGrid("cuentasgrid",p.cuenta);
   document.getElementById("modPub").classList.add("open");
+  setTimeout(onPestChange,50);
 }
+// Muestra/oculta el banner de guardia según hora y estado
+function onPestChange(){
+  const hora=document.getElementById("phora")?.value||"";
+  const estado=document.getElementById("pest")?.value||"";
+  const h=hora?parseInt(hora.split(":")[0]):-1;
+  const esG=h>=15&&estado!=="Publicado";
+  const b=document.getElementById("pubguardiabanner");
+  if(b)b.style.display=esG?"block":"none";
+}
+
 async function savePub(){
-  const fecha=document.getElementById("pfecha").value,desc=document.getElementById("pdesc").value.trim();
-  if(!fecha||!desc){alert("Fecha y descripción obligatorias");return}
-  const cuenta=getSelCuenta("cuentasgrid");if(!cuenta){alert("Seleccioná una cuenta");return}
+  const fecha=document.getElementById("pfecha").value;
+  const desc=document.getElementById("pdesc").value.trim();
+  if(!fecha){alert("Seleccioná una fecha");return;}
+  if(!desc){alert("Escribí una descripción");return;}
+  const cuenta=getSelCuenta("cuentasgrid");
+  if(!cuenta){alert("Seleccioná una cuenta");return;}
   const hora=document.getElementById("phora").value||null;
   const estado=document.getElementById("pest").value;
-  const data={fecha,hora,descripcion:desc,cuenta,tipo:document.getElementById("ptipo").value,responsable:document.getElementById("presp").value,colaboracion:document.getElementById("pcolab").value,estado};
-  const eid=document.getElementById("pubeid").value;
-  let savedId=eid;
-  if(eid){
-    await db.from("publicaciones").update({...data,updated_at:new Date().toISOString()}).eq("id",eid);
-  }else{
-    const r=await db.from("publicaciones").insert(data).select();
-    if(r.data&&r.data[0])savedId=r.data[0].id;
+  const data={fecha,hora,descripcion:desc,cuenta,
+    tipo:document.getElementById("ptipo").value,
+    responsable:document.getElementById("presp").value,
+    colaboracion:document.getElementById("pcolab").value||"",estado};
+  try{
+    const eid=document.getElementById("pubeid").value;
+    let savedId=null;
+    if(eid){
+      const{error}=await db.from("publicaciones").update({...data,updated_at:new Date().toISOString()}).eq("id",eid);
+      if(error)throw error;
+      savedId=eid;
+    }else{
+      const{data:rows,error}=await db.from("publicaciones").insert(data).select();
+      if(error)throw error;
+      savedId=rows?.[0]?.id||null;
+    }
+    closeMod("modPub");
+    toast("✓ Publicación guardada");
+    _syncPubToGuardia(savedId,hora,desc,fecha,estado);
+  }catch(e){
+    toast("Error al guardar: "+e.message,"err");
+    console.error("savePub:",e);
   }
-  // Sincronizar con guardias si es +15hs y pendiente/en producción/listo
-  _syncPubToGuardia(savedId,hora,desc,fecha,estado);
-  closeMod("modPub");
 }
 
 async function saveProgram(){
-  const fecha=document.getElementById("progfecha").value;if(!fecha){alert("Seleccioná fecha");return}
-  const cuenta=getSelCuenta("progcuentas");if(!cuenta){alert("Seleccioná cuenta");return}
+  const fecha=document.getElementById("progfecha").value;
+  if(!fecha){alert("Seleccioná fecha");return;}
+  const cuenta=getSelCuenta("progcuentas");
+  if(!cuenta){alert("Seleccioná cuenta");return;}
   const hora=document.getElementById("proghora").value||null;
   const desc=document.getElementById("proginfo").textContent.replace("📋 ","");
-  const r=await db.from("publicaciones").insert({fecha,hora,descripcion:desc,cuenta,tipo:document.getElementById("progtipo")?.value||"Reel/Video",responsable:document.getElementById("progresp").value,colaboracion:"",estado:"Pendiente",tarea_id:document.getElementById("progtid").value}).select();
-  const savedId=r.data?.[0]?.id;
-  _syncPubToGuardia(savedId,hora,desc,fecha,"Pendiente");
-  closeMod("modProgram");toast("✓ Publicación programada");
+  try{
+    const{data:rows,error}=await db.from("publicaciones").insert({
+      fecha,hora,descripcion:desc,cuenta,
+      tipo:document.getElementById("progtipo")?.value||"Reel/Video",
+      responsable:document.getElementById("progresp").value,
+      colaboracion:"",estado:"Pendiente",
+      tarea_id:document.getElementById("progtid").value
+    }).select();
+    if(error)throw error;
+    closeMod("modProgram");
+    toast("✓ Publicación programada");
+    _syncPubToGuardia(rows?.[0]?.id,hora,desc,fecha,"Pendiente");
+  }catch(e){
+    toast("Error: "+e.message,"err");
+    console.error("saveProgram:",e);
+  }
 }
 
-// Sincroniza publicación con guardia si es +15hs y no está publicada
 function _syncPubToGuardia(id,hora,desc,fecha,estado){
-  if(!id||!hora)return;
-  if(estado==="Publicado")return; // ya publicado, no aplica
+  if(!hora)return;
+  if(estado==="Publicado")return;
   const h=parseInt(String(hora).split(":")[0]);
-  if(h<15)return; // antes de las 15, no aplica
-  // Crear entrada en cobSel con id de pub (prefijado para distinguir de agenda)
-  const pubKey="pub_"+id;
+  if(isNaN(h)||h<15)return;
+  if(!window._pubGuardia)window._pubGuardia=[];
+  const pubKey="pub_"+(id||fecha+"_"+hora);
   cobSel[pubKey]=true;
-  // Crear objeto compatible con guardias
-  const pubEv={
-    id:pubKey,
-    fecha,
-    hora,
-    descripcion:`📱 ${desc}`,
-    lugar:"",
-    tipo:"publicacion",
-    cancelado:false,
-    gcal:false,
-    esPub:true
-  };
-  // Agregar a gcalEvs temporalmente si no existe
-  if(!gcalEvs.find(e=>e.id===pubKey)&&!agendas.find(e=>e.id===pubKey)){
-    // Usamos un array separado para pubs en guardia
-    if(!window._pubGuardia)window._pubGuardia=[];
-    const exists=window._pubGuardia.find(e=>e.id===pubKey);
-    if(!exists)window._pubGuardia.push(pubEv);
-  }
-  // Refrescar guardias
+  window._pubGuardia=window._pubGuardia.filter(e=>e.id!==pubKey);
+  window._pubGuardia.push({id:pubKey,fecha,hora,descripcion:"📱 "+desc,lugar:"",tipo:"publicacion",cancelado:false,gcal:false});
   if(document.getElementById("p-guardias")?.style.display!=="none")renderGuardias();
-  toast("📋 Publicación +15hs agregada a la guardia del día");
-  notifEventoGuardado(desc,fecha,hora,"publicacion");
+  toast("📋 Guardado en Guardia del "+fecha.slice(8,10)+"/"+fecha.slice(5,7));
 }
+
 function buildCuentasGrid(cid,selected){
   document.getElementById(cid).innerHTML=CUENTAS.map(c=>`
     <div class="copt${selected===c.id?" sel":""}" onclick="selCta('${cid}','${c.id}')">
