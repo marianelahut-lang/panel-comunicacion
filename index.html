@@ -63,18 +63,34 @@ body.dark .hc:hover{background:#2d3140}
 body.dark .hc.hct{background:rgba(102,126,234,.06)}
 body.dark .hl{background:#2a2d38;color:#94a3b8;border-color:#373b47;font-weight:600}
 /* Forzar textos en calendario inline */
+/* Override inline styles for dark mode */
 body.dark [style*="color:#111827"]{color:#e2e8f0 !important}
 body.dark [style*="color:#374151"]{color:#cbd5e1 !important}
+body.dark [style*="color:#1f2937"]{color:#e2e8f0 !important}
+body.dark [style*="color:#4b5563"]{color:#94a3b8 !important}
 body.dark [style*="color:#6b7280"]{color:#94a3b8 !important}
-body.dark [style*="color:#9ca3af"]{color:#8892a4 !important}
-body.dark [style*="background:#fff"]{background:#252830 !important}
+body.dark [style*="color:#9ca3af"]{color:#6b7280 !important}
+body.dark [style*="background-color:#fff"]{background-color:#252830 !important}
+body.dark [style*="background-color:#f9fafb"]{background-color:#2a2d38 !important}
+body.dark [style*="background-color:#f3f4f6"]{background-color:#2e3140 !important}
+body.dark [style*="background-color:#f0f2f5"]{background-color:#1e2028 !important}
+body.dark [style*="background:#fff;"]{background:#252830 !important}
 body.dark [style*="background:#f9fafb"]{background:#2a2d38 !important}
 body.dark [style*="background:#f3f4f6"]{background:#2e3140 !important}
 body.dark [style*="background:#e5e7eb"]{background:#373b47 !important}
+body.dark [style*="background:#ffffff"]{background:#252830 !important}
 body.dark [style*="border:1px solid #e5e7eb"]{border-color:#373b47 !important}
 body.dark [style*="border-bottom:1px solid #f0f0f0"]{border-color:#2e3140 !important}
+body.dark [style*="border-bottom:1px solid #e5e7eb"]{border-color:#2e3140 !important}
 body.dark [style*="border-right:1px solid #e5e7eb"]{border-color:#373b47 !important}
 body.dark [style*="border-right:1px solid #f3f4f6"]{border-color:#2e3140 !important}
+/* Calendar specific */
+body.dark .wshell *{color:inherit}
+body.dark .wscroll{background:#252830}
+body.dark .hrow{background:#252830;color:#e2e8f0}
+body.dark .hrow>div{border-color:#2e3140;color:#e2e8f0}
+body.dark .hl{background:#2a2d38 !important;color:#94a3b8 !important;border-color:#373b47 !important}
+body.dark .wdc *:not(.evblk):not(.evblk *){color:#e2e8f0}
 
 /* Guardias */
 body.dark .gwtbl{background:#252830;border-color:#373b47}
@@ -464,6 +480,7 @@ body.dark .lfg select,body.dark .lfg input{color:#fff}
       <button class="sbi" onclick="nav('equipo',null,this)"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>Equipo</button>
       <button class="sbi" onclick="nav('metricas',null,this)"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Métricas redes</button>
       <button class="sbi" onclick="nav('medios',null,this)"><svg viewBox="0 0 24 24"><path d="M4 22h16a2 2 0 002-2V4a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 01-2 2zm0 0a2 2 0 01-2-2v-9c0-1.1.9-2 2-2h2"/></svg>Monitoreo medios</button>
+      <button class="sbi" onclick="nav('entrevistas',null,this)"><svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>Entrevistas</button>
       <div class="div"></div>
       <div class="sb-sec">Filtrar persona</div>
       <!-- Panel de persona seleccionada -->
@@ -572,6 +589,17 @@ body.dark .lfg select,body.dark .lfg input{color:#fff}
         <div class="tgrid" id="teamgrid"></div>
       </div>
 
+
+      <!-- ENTREVISTAS -->
+      <div id="p-entrevistas" style="display:none">
+        <div class="ptop">
+          <div><div class="ptitle">🎙 Entrevistas</div><div class="psub">Gestión de entrevistas con medios y funcionarios</div></div>
+          <div class="acts">
+            <button class="btn p" onclick="openNuevaEntrevista()">+ Nueva entrevista</button>
+          </div>
+        </div>
+        <div id="entrevistas-list" style="padding:0 4px"></div>
+      </div>
       <div id="p-metricas" style="display:none">
         <div class="ptop">
           <div><div class="ptitle">Métricas de redes sociales</div><div class="psub">Municipalidad y Pablo Garate</div></div>
@@ -853,6 +881,86 @@ body.dark .lfg select,body.dark .lfg input{color:#fff}
   <div class="mft"><button class="btn" onclick="closeMod('modSettings')">Cerrar</button></div>
 </div></div>
 
+<div class="ov" id="modEntrevista"><div class="mod" style="max-width:540px">
+  <div class="mod-t" id="entrevista-title">Nueva entrevista</div>
+  <input type="hidden" id="eid-entrevista">
+  <div class="fr">
+    <div class="fg"><label>Fecha</label><input type="date" id="efecha"></div>
+    <div class="fg"><label>Hora</label><input type="time" id="ehora"></div>
+  </div>
+  <div class="fg"><label>Medio</label>
+    <select id="emedio">
+      <option value="">— Seleccioná un medio —</option>
+      <option>LU24</option>
+<option>La Voz del Pueblo</option>
+<option>Diario 3</option>
+<option>Via País</option>
+<option>Grupo 105</option>
+<option>Julio Scarabotti</option>
+<option>Adriana Gaitán</option>
+<option>Milena Marcovecchio</option>
+<option>Dengue</option>
+      <option value="__otro__">Otro medio...</option>
+    </select>
+  </div>
+  <div class="fg" id="emedio-otro-wrap" style="display:none"><label>Nombre del medio</label><input type="text" id="emedio-otro" placeholder="Ingresá el nombre del medio"></div>
+  <div class="fg"><label>Funcionario</label>
+    <select id="efuncionario" onchange="actualizarTelFuncionario()">
+      <option value="">— Seleccioná un funcionario —</option>
+      <option value="5492983642913" data-nombre="Pablo Garate">Pablo Garate — Intendente Municipal</option>
+<option value="5492983460846" data-nombre="Santiago Garate">Santiago Garate — Sub Secretario de Gabinete</option>
+<option value="5492983570209" data-nombre="Julio Federico">Julio Federico — Jefe de gabinete</option>
+<option value="5492983447249" data-nombre="Tomas Paniga">Tomas Paniga — Director de Cultura</option>
+<option value="5492983382366" data-nombre="Facundo Liebana">Facundo Liebana — Director de Deporte</option>
+<option value="5492983507745" data-nombre="Juan Moizzi">Juan Moizzi — Dir. Oficina de Empleo / Parque Industrial</option>
+<option value="5492983305218" data-nombre="Julian Tornini">Julian Tornini — Coordinador de Juventud y Deporte</option>
+<option value="5492983449098" data-nombre="Carolina Goicoechea">Carolina Goicoechea — Directora de Turismo</option>
+<option value="5492983446264" data-nombre="Mauro Dadario">Mauro Dadario — Director de Emprendedurismo</option>
+<option value="5492983414390" data-nombre="Margarita Tour">Margarita Tour — Directora de Impulsar</option>
+<option value="5492983611597" data-nombre="Paola Salerno">Paola Salerno — Secretaria de Planeamiento Urbano</option>
+<option value="5492983412126" data-nombre="Nicolas Franganillo">Nicolas Franganillo — Director de Obras Publicas</option>
+<option value="5492983459048" data-nombre="Luis Juarez">Luis Juarez — Director de Planeamiento Urbano</option>
+<option value="5492983615881" data-nombre="Ignacio Quintas">Ignacio Quintas — Director de Obras Sanitarias</option>
+<option value="5492983409217" data-nombre="Juan Apolonio">Juan Apolonio — Secretario de Seguridad</option>
+<option value="5492983608016" data-nombre="Martin Legarreta">Martin Legarreta — Director de Seguridad Operativo</option>
+<option value="5492983419402" data-nombre="Maria Paz Lopez Peralta">Maria Paz Lopez Peralta — Dir. Administrativa de Seguridad</option>
+<option value="5492983413996" data-nombre="Martin Garate">Martin Garate — Secretario de Desarrollo Social</option>
+<option value="5492983650085" data-nombre="Damian Almeira">Damian Almeira — Director de Accion Social</option>
+<option value="5492983602937" data-nombre="Emiliano Capandegui">Emiliano Capandegui — Director Tecnico del Hospital</option>
+<option value="5492983447789" data-nombre="Mercedes Moreno">Mercedes Moreno — Directora de Salud Integral</option>
+<option value="5492983640486" data-nombre="Juan Manuel Serna">Juan Manuel Serna — Director de CAPS</option>
+<option value="5492216379206" data-nombre="Juan Cruz Lopez">Juan Cruz Lopez — Director Administrativo</option>
+<option value="5492983505668" data-nombre="Eliana Rossi">Eliana Rossi — Directora de Bromatologia y Zoonosis</option>
+<option value="5492983385858" data-nombre="Gabriel Francia">Gabriel Francia — Sub Secretario de Gestion Ambiental</option>
+
+      <option value="__otro__">Otro funcionario...</option>
+    </select>
+  </div>
+  <div class="fg" id="efunc-otro-wrap" style="display:none">
+    <label>Nombre</label><input type="text" id="efunc-otro-nombre" placeholder="Nombre del funcionario">
+    <label style="margin-top:6px">Teléfono (con código país)</label><input type="tel" id="efunc-otro-tel" placeholder="5492983000000">
+  </div>
+  <div class="fg"><label>Tema / Descripción</label><textarea id="etema" rows="2" placeholder="De qué trata la entrevista..."></textarea></div>
+  <div class="fr">
+    <div class="fg"><label>Duración</label><select id="eduracion"><option>15 min</option><option>30 min</option><option>45 min</option><option>60 min</option><option>Indefinida</option></select></div>
+    <div class="fg"><label>Tipo</label><select id="etipo"><option>Nota periodística</option><option>Editorial</option><option>Columna</option><option>Radio en vivo</option><option>TV en vivo</option><option>Grabado</option><option>Comunicado</option></select></div>
+  </div>
+  <div class="fg"><label>Observaciones</label><input type="text" id="eobs" placeholder="Notas adicionales..."></div>
+  <!-- Notificación al funcionario -->
+  <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 12px;margin-top:4px">
+    <div style="font-size:11px;font-weight:700;color:#166534;margin-bottom:6px">📱 Notificar al funcionario</div>
+    <div id="efunc-tel-preview" style="font-size:10px;color:#6b7280;margin-bottom:6px"></div>
+    <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer">
+      <input type="checkbox" id="enotificar" checked style="width:14px;height:14px">
+      Enviar confirmación por WhatsApp al guardar
+    </label>
+  </div>
+  <div class="mft">
+    <button class="btn r" id="edelbtn" onclick="deleteEntrevista()" style="display:none;margin-right:auto">🗑 Eliminar</button>
+    <button class="btn" onclick="closeMod('modEntrevista')">Cancelar</button>
+    <button class="btn p" onclick="saveEntrevista()">Guardar</button>
+  </div>
+</div></div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1149,7 +1257,7 @@ function updateBadges(){
 }
 
 // ═══ NAVIGATION ═══
-const PAGES=["tablero","material","publicaciones","calendario","guardias","equipo","metricas","medios"];
+const PAGES=["tablero","material","publicaciones","calendario","guardias","equipo","metricas","medios","entrevistas"];
 function nav(id,tab,sb){
   PAGES.forEach(p=>{const el=document.getElementById("p-"+p);if(el)el.style.display=p===id?(["publicaciones","calendario"].includes(p)?"flex":"block"):"none";});
   document.querySelectorAll(".ntab,.sbi").forEach(b=>b.classList.remove("on"));
@@ -2256,7 +2364,7 @@ async function scanMedios(){
   const btn=document.getElementById("scanbtn");
   const statusEl=document.getElementById("scanstatus");
   if(btn)btn.disabled=true;
-  console.log("scanMedios v4 iniciado");
+  console.log("scanMedios v4 iniciado — BUILD 2026-04-23");
 
   const RSS2JSON_KEY="nqbghjlpahb6cmzwxstjfnlrxwpqiefmkydvncvg";
 
@@ -2608,6 +2716,257 @@ ${mencPablo<mencMuni?"• Pablo Garate tiene menos presencia mediática que el m
   toast("✓ Análisis generado");
   btn.disabled=false;
   btn.innerHTML='<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 8v4l3 3"/></svg>🤖 Analizar con IA';
+}
+
+
+// ═══ ENTREVISTAS ═══
+const MEDIOS_LISTA=["LU24","La Voz del Pueblo","Diario 3","Via País","Grupo 105","Julio Scarabotti","Adriana Gaitán","Milena Marcovecchio","Dengue"];
+const FUNCIONARIOS=[
+  {nombre:"Pablo Garate",cargo:"Intendente Municipal",tel:"5492983642913"},
+  {nombre:"Santiago Garate",cargo:"Sub Secretario de Gabinete",tel:"5492983460846"},
+  {nombre:"Julio Federico",cargo:"Jefe de gabinete",tel:"5492983570209"},
+  {nombre:"Tomas Paniga",cargo:"Director de Cultura",tel:"5492983447249"},
+  {nombre:"Facundo Liebana",cargo:"Director de Deporte",tel:"5492983382366"},
+  {nombre:"Juan Moizzi",cargo:"Dir. Oficina de Empleo / Parque Industrial",tel:"5492983507745"},
+  {nombre:"Julian Tornini",cargo:"Coordinador de Juventud y Deporte",tel:"5492983305218"},
+  {nombre:"Carolina Goicoechea",cargo:"Directora de Turismo",tel:"5492983449098"},
+  {nombre:"Mauro Dadario",cargo:"Director de Emprendedurismo",tel:"5492983446264"},
+  {nombre:"Margarita Tour",cargo:"Directora de Impulsar",tel:"5492983414390"},
+  {nombre:"Paola Salerno",cargo:"Secretaria de Planeamiento Urbano",tel:"5492983611597"},
+  {nombre:"Nicolas Franganillo",cargo:"Director de Obras Publicas",tel:"5492983412126"},
+  {nombre:"Luis Juarez",cargo:"Director de Planeamiento Urbano",tel:"5492983459048"},
+  {nombre:"Ignacio Quintas",cargo:"Director de Obras Sanitarias",tel:"5492983615881"},
+  {nombre:"Juan Apolonio",cargo:"Secretario de Seguridad",tel:"5492983409217"},
+  {nombre:"Martin Legarreta",cargo:"Director de Seguridad Operativo",tel:"5492983608016"},
+  {nombre:"Maria Paz Lopez Peralta",cargo:"Dir. Administrativa de Seguridad",tel:"5492983419402"},
+  {nombre:"Martin Garate",cargo:"Secretario de Desarrollo Social",tel:"5492983413996"},
+  {nombre:"Damian Almeira",cargo:"Director de Accion Social",tel:"5492983650085"},
+  {nombre:"Emiliano Capandegui",cargo:"Director Tecnico del Hospital",tel:"5492983602937"},
+  {nombre:"Mercedes Moreno",cargo:"Directora de Salud Integral",tel:"5492983447789"},
+  {nombre:"Juan Manuel Serna",cargo:"Director de CAPS",tel:"5492983640486"},
+  {nombre:"Juan Cruz Lopez",cargo:"Director Administrativo",tel:"5492216379206"},
+  {nombre:"Eliana Rossi",cargo:"Directora de Bromatologia y Zoonosis",tel:"5492983505668"},
+  {nombre:"Gabriel Francia",cargo:"Sub Secretario de Gestion Ambiental",tel:"5492983385858"}
+];
+let entrevistas=[];
+
+async function loadEntrevistas(){
+  try{
+    const{data}=await db.from("entrevistas").select("*").order("fecha,hora");
+    if(data)entrevistas=data;
+  }catch(e){
+    // Si no existe la tabla, usar localStorage
+    try{const s=localStorage.getItem("entrevistas");if(s)entrevistas=JSON.parse(s);}catch(e2){}
+  }
+  renderEntrevistas();
+}
+
+function saveEntrevistasLocal(){
+  try{localStorage.setItem("entrevistas",JSON.stringify(entrevistas));}catch(e){}
+}
+
+function renderEntrevistas(){
+  const list=document.getElementById("entrevistas-list");
+  if(!list)return;
+  if(!entrevistas.length){
+    list.innerHTML=`<div style="text-align:center;padding:60px 20px;color:#9ca3af">
+      <div style="font-size:48px;margin-bottom:12px">🎙</div>
+      <div style="font-size:14px;font-weight:600">Sin entrevistas agendadas</div>
+      <div style="font-size:12px;margin-top:4px">Usá "+ Nueva entrevista" para agendar una</div>
+    </div>`;
+    return;
+  }
+  // Agrupar por fecha
+  const grupos={};
+  entrevistas.forEach(e=>{
+    if(!grupos[e.fecha])grupos[e.fecha]=[];
+    grupos[e.fecha].push(e);
+  });
+  list.innerHTML=Object.entries(grupos).sort().map(([fecha,evs])=>{
+    const d=parseD(fecha);
+    const isHoy=fecha===isoToday;
+    const isPasado=fecha<isoToday;
+    return`<div style="margin-bottom:16px">
+      <div style="font-size:11px;font-weight:700;color:${isHoy?"#6d28d9":isPasado?"#9ca3af":"#374151"};padding:6px 0;border-bottom:2px solid ${isHoy?"#7c3aed":"#e5e7eb"};margin-bottom:8px;display:flex;align-items:center;gap:6px">
+        ${isHoy?'<span style="background:#7c3aed;color:#fff;padding:1px 7px;border-radius:10px;font-size:9px">HOY</span>':""}
+        ${DNF[d.getDay()]} ${d.getDate()} de ${MNF[d.getMonth()]} de ${d.getFullYear()}
+      </div>
+      ${evs.map(e=>renderEntrevistaCard(e)).join("")}
+    </div>`;
+  }).join("");
+}
+
+function renderEntrevistaCard(e){
+  const isPasado=e.fecha<isoToday;
+  return`<div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:12px 14px;margin-bottom:8px;border-left:4px solid #667eea;opacity:${isPasado?0.65:1}" onclick="editEntrevista('${e.id||e._lid}')">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+      <div style="flex:1">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap">
+          <span style="background:#ede9fe;color:#6d28d9;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">📻 ${e.medio}</span>
+          ${e.hora?`<span style="font-size:11px;color:#6b7280">🕐 ${e.hora.slice(0,5)}</span>`:""}
+          <span style="background:#f0fdf4;color:#166534;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600">${e.tipo||"Nota"}</span>
+        </div>
+        <div style="font-size:13px;font-weight:700;color:#111827;margin-bottom:2px">${e.funcionario||"Sin funcionario"}</div>
+        ${e.cargo?`<div style="font-size:10px;color:#9ca3af">${e.cargo}</div>`:""}
+        ${e.tema?`<div style="font-size:11px;color:#4b5563;margin-top:4px">${e.tema}</div>`:""}
+        ${e.obs?`<div style="font-size:10px;color:#9ca3af;margin-top:2px;font-style:italic">${e.obs}</div>`:""}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">
+        ${e.tel_funcionario?`<a href="https://wa.me/${e.tel_funcionario}?text=${encodeURIComponent('Hola '+e.funcionario+', confirmo la entrevista con '+e.medio+' para el '+e.fecha+(e.hora?' a las '+e.hora.slice(0,5):'')+'. Tema: '+(e.tema||'')+'. Saludos, Comunicacion Municipalidad de Tres Arroyos.')}" target="_blank" onclick="event.stopPropagation()" style="background:#25d366;color:#fff;border-radius:6px;padding:4px 8px;font-size:9px;font-weight:700;text-decoration:none;text-align:center">📱 WA</a>`:""}
+      </div>
+    </div>
+  </div>`;
+}
+
+function actualizarTelFuncionario(){
+  const sel=document.getElementById("efuncionario");
+  const val=sel.value;
+  const otroWrap=document.getElementById("efunc-otro-wrap");
+  const preview=document.getElementById("efunc-tel-preview");
+  if(val==="__otro__"){
+    otroWrap.style.display="block";
+    if(preview)preview.textContent="";
+  }else{
+    otroWrap.style.display="none";
+    const f=FUNCIONARIOS.find(x=>x.tel===val);
+    if(f&&preview)preview.textContent=`Tel: ${f.tel} · ${f.cargo}`;
+    else if(preview)preview.textContent="";
+  }
+}
+
+function openNuevaEntrevista(){
+  document.getElementById("entrevista-title").textContent="Nueva entrevista";
+  document.getElementById("eid-entrevista").value="";
+  document.getElementById("efecha").value=isoToday;
+  document.getElementById("ehora").value="";
+  document.getElementById("emedio").value="";
+  document.getElementById("emedio-otro-wrap").style.display="none";
+  document.getElementById("emedio-otro").value="";
+  document.getElementById("efuncionario").value="";
+  document.getElementById("efunc-otro-wrap").style.display="none";
+  document.getElementById("efunc-otro-nombre").value="";
+  document.getElementById("efunc-otro-tel").value="";
+  document.getElementById("etema").value="";
+  document.getElementById("eduracion").value="30 min";
+  document.getElementById("etipo").value="Nota periodística";
+  document.getElementById("eobs").value="";
+  document.getElementById("enotificar").checked=true;
+  document.getElementById("efunc-tel-preview").textContent="";
+  document.getElementById("edelbtn").style.display="none";
+  // Medio otro listener
+  document.getElementById("emedio").onchange=function(){
+    document.getElementById("emedio-otro-wrap").style.display=this.value==="__otro__"?"block":"none";
+  };
+  document.getElementById("modEntrevista").classList.add("open");
+}
+
+function editEntrevista(id){
+  const e=entrevistas.find(x=>(x.id||x._lid)===id||x.id===id);
+  if(!e)return;
+  document.getElementById("entrevista-title").textContent="Editar entrevista";
+  document.getElementById("eid-entrevista").value=id;
+  document.getElementById("efecha").value=e.fecha||isoToday;
+  document.getElementById("ehora").value=e.hora||"";
+  // Medio
+  const medioSel=document.getElementById("emedio");
+  medioSel.value=MEDIOS_LISTA.includes(e.medio)?e.medio:"__otro__";
+  document.getElementById("emedio-otro-wrap").style.display=MEDIOS_LISTA.includes(e.medio)?"none":"block";
+  document.getElementById("emedio-otro").value=MEDIOS_LISTA.includes(e.medio)?"":e.medio;
+  medioSel.onchange=function(){document.getElementById("emedio-otro-wrap").style.display=this.value==="__otro__"?"block":"none";};
+  // Funcionario
+  const funcSel=document.getElementById("efuncionario");
+  const f=FUNCIONARIOS.find(x=>x.nombre===e.funcionario);
+  funcSel.value=f?f.tel:"__otro__";
+  document.getElementById("efunc-otro-wrap").style.display=f?"none":"block";
+  document.getElementById("efunc-otro-nombre").value=f?"":e.funcionario||"";
+  document.getElementById("efunc-otro-tel").value=f?"":e.tel_funcionario||"";
+  const preview=document.getElementById("efunc-tel-preview");
+  if(f&&preview)preview.textContent=`Tel: ${f.tel} · ${f.cargo}`;
+  document.getElementById("etema").value=e.tema||"";
+  document.getElementById("eduracion").value=e.duracion||"30 min";
+  document.getElementById("etipo").value=e.tipo||"Nota periodística";
+  document.getElementById("eobs").value=e.obs||"";
+  document.getElementById("enotificar").checked=false;
+  document.getElementById("edelbtn").style.display="inline-flex";
+  document.getElementById("modEntrevista").classList.add("open");
+}
+
+async function saveEntrevista(){
+  const fecha=document.getElementById("efecha").value;
+  const medioRaw=document.getElementById("emedio").value;
+  if(!fecha){toast("La fecha es obligatoria","err");return;}
+  if(!medioRaw){toast("Seleccioná un medio","err");return;}
+  const medio=medioRaw==="__otro__"?document.getElementById("emedio-otro").value.trim():medioRaw;
+  if(!medio){toast("Ingresá el nombre del medio","err");return;}
+  // Funcionario
+  const funcRaw=document.getElementById("efuncionario").value;
+  let funcionario="",cargo="",tel_funcionario="";
+  if(funcRaw==="__otro__"){
+    funcionario=document.getElementById("efunc-otro-nombre").value.trim();
+    tel_funcionario=document.getElementById("efunc-otro-tel").value.trim().replace(/[^0-9]/g,"");
+  }else if(funcRaw){
+    const f=FUNCIONARIOS.find(x=>x.tel===funcRaw);
+    if(f){funcionario=f.nombre;cargo=f.cargo;tel_funcionario=f.tel;}
+  }
+  const data={
+    fecha,
+    hora:document.getElementById("ehora").value||null,
+    medio,
+    funcionario,
+    cargo,
+    tel_funcionario,
+    tema:document.getElementById("etema").value.trim(),
+    duracion:document.getElementById("eduracion").value,
+    tipo:document.getElementById("etipo").value,
+    obs:document.getElementById("eobs").value.trim()
+  };
+  const eid=document.getElementById("eid-entrevista").value;
+  try{
+    // Intentar guardar en Supabase
+    if(eid){
+      const{error}=await db.from("entrevistas").update(data).eq("id",eid);
+      if(error)throw new Error(error.message);
+      const idx=entrevistas.findIndex(x=>x.id===eid);
+      if(idx>=0)entrevistas[idx]={...entrevistas[idx],...data};
+    }else{
+      const{data:rows,error}=await db.from("entrevistas").insert(data).select();
+      if(error)throw new Error(error.message);
+      if(rows?.[0])entrevistas.unshift(rows[0]);
+    }
+  }catch(e){
+    // Fallback: localStorage
+    if(eid){
+      const idx=entrevistas.findIndex(x=>(x.id||x._lid)===eid);
+      if(idx>=0)entrevistas[idx]={...entrevistas[idx],...data};
+    }else{
+      const lid="_"+Date.now();
+      entrevistas.unshift({...data,_lid:lid});
+    }
+    saveEntrevistasLocal();
+  }
+  closeMod("modEntrevista");
+  renderEntrevistas();
+  toast("✓ Entrevista guardada");
+  // Notificar al funcionario
+  if(document.getElementById("enotificar").checked&&tel_funcionario){
+    const d2=parseD(fecha);
+    const msg=`Hola ${funcionario||""}! Te confirmo una entrevista:\n\n📻 Medio: ${medio}\n📅 Fecha: ${DNF[d2.getDay()]} ${d2.getDate()} de ${MNF[d2.getMonth()]}${data.hora?" · "+data.hora.slice(0,5):""}\n📋 Tema: ${data.tema||"A confirmar"}\n⏱ Duración: ${data.duracion}\n\nSaludos,\nDpto. Comunicación — Municipalidad de Tres Arroyos`;
+    window.open(`https://wa.me/${tel_funcionario}?text=${encodeURIComponent(msg)}`,"_blank");
+    toast(`📱 WA enviado a ${funcionario}`);
+  }
+}
+
+async function deleteEntrevista(){
+  const eid=document.getElementById("eid-entrevista").value;
+  if(!eid)return;
+  const e=entrevistas.find(x=>(x.id||x._lid)===eid);
+  if(!confirm(`¿Eliminar entrevista con ${e?.funcionario||"este funcionario"} en ${e?.medio||""}?`))return;
+  try{await db.from("entrevistas").delete().eq("id",eid);}catch(err){}
+  entrevistas=entrevistas.filter(x=>(x.id||x._lid)!==eid);
+  saveEntrevistasLocal();
+  closeMod("modEntrevista");
+  renderEntrevistas();
+  toast("✓ Entrevista eliminada");
 }
 
 // ═══ CONFIGURACIÓN Y MODO OSCURO ═══
