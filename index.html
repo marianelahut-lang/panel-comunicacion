@@ -51,7 +51,7 @@ body.dark .kadd:hover{border-color:#7c3aed;color:#a78bfa;background:#2d2d5e}
 body.dark .wshell{background:#252830;border-color:#373b47}
 body.dark .whdr{background:#252830;border-color:#373b47}
 body.dark .wgut{background:#2a2d38;border-color:#373b47}
-body.dark .wdc{background:#252830}
+body.dark .wdc{background:#252830;color:#e2e8f0}
 body.dark .wdc.wdt{background:#252845}
 body.dark .wdc.wdw{background:#28252e}
 body.dark .wnum{color:#e2e8f0}
@@ -61,7 +61,20 @@ body.dark .hrow{border-color:#2e3140}
 body.dark .hc{border-color:#2e3140;background:transparent}
 body.dark .hc:hover{background:#2d3140}
 body.dark .hc.hct{background:rgba(102,126,234,.06)}
-body.dark .hl{background:#2a2d38;color:#8892a4;border-color:#373b47}
+body.dark .hl{background:#2a2d38;color:#94a3b8;border-color:#373b47;font-weight:600}
+/* Forzar textos en calendario inline */
+body.dark [style*="color:#111827"]{color:#e2e8f0 !important}
+body.dark [style*="color:#374151"]{color:#cbd5e1 !important}
+body.dark [style*="color:#6b7280"]{color:#94a3b8 !important}
+body.dark [style*="color:#9ca3af"]{color:#8892a4 !important}
+body.dark [style*="background:#fff"]{background:#252830 !important}
+body.dark [style*="background:#f9fafb"]{background:#2a2d38 !important}
+body.dark [style*="background:#f3f4f6"]{background:#2e3140 !important}
+body.dark [style*="background:#e5e7eb"]{background:#373b47 !important}
+body.dark [style*="border:1px solid #e5e7eb"]{border-color:#373b47 !important}
+body.dark [style*="border-bottom:1px solid #f0f0f0"]{border-color:#2e3140 !important}
+body.dark [style*="border-right:1px solid #e5e7eb"]{border-color:#373b47 !important}
+body.dark [style*="border-right:1px solid #f3f4f6"]{border-color:#2e3140 !important}
 
 /* Guardias */
 body.dark .gwtbl{background:#252830;border-color:#373b47}
@@ -230,8 +243,8 @@ body.dark .lfg select,body.dark .lfg input{color:#fff}
 .ptitle{font-size:17px;font-weight:700;color:#111827}
 .psub{font-size:11px;color:#6b7280;margin-top:2px}
 .acts{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-.kanban{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;align-items:flex-start}
-.kcol{flex:0 0 220px;border-radius:10px;overflow:hidden;background:#f9fafb;border:1px solid #e5e7eb}
+.kanban{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;align-items:flex-start;min-height:calc(100vh - 200px)}
+.kcol{flex:1;min-width:200px;border-radius:10px;overflow:hidden;background:#f9fafb;border:1px solid #e5e7eb}
 .khdr{padding:9px 11px;display:flex;align-items:center;justify-content:space-between}
 .khdr.p1{background:#fef2f2;border-bottom:2px solid #fca5a5}
 .khdr.p2{background:#fffbeb;border-bottom:2px solid #fde68a}
@@ -242,7 +255,7 @@ body.dark .lfg select,body.dark .lfg input{color:#fff}
 .p1 .kd{background:#ef4444}.p2 .kd{background:#f59e0b}.p3 .kd{background:#3b82f6}
 .kc{font-size:9px;padding:1px 6px;border-radius:8px;font-weight:700}
 .p1 .kc{background:#fca5a5;color:#7f1d1d}.p2 .kc{background:#fde68a;color:#78350f}.p3 .kc{background:#93c5fd;color:#1e3a8a}
-.kbody{padding:6px;display:flex;flex-direction:column;gap:4px;overflow-y:auto;max-height:calc(100vh - 280px)}
+.kbody{padding:6px;display:flex;flex-direction:column;gap:4px;overflow-y:auto;max-height:calc(100vh - 220px)}
 .kadd{padding:6px;border-radius:6px;border:1.5px dashed #d1d5db;background:transparent;color:#9ca3af;font-size:11px;cursor:pointer;width:100%;text-align:left;font-family:Inter,sans-serif}
 .kadd:hover{border-color:#667eea;color:#667eea}
 .tc{background:#fff;border-radius:7px;padding:8px 9px;cursor:pointer;border:1px solid #e5e7eb;border-left:4px solid #22c55e}
@@ -400,11 +413,7 @@ body.dark .lfg select,body.dark .lfg input{color:#fff}
     <div class="ltitle">Panel de Comunicación</div>
     <div class="lsub">Municipalidad de Tres Arroyos</div>
     <div class="lfg"><label>¿Quién sos?</label>
-      <select id="lu"><option value="">— seleccioná —</option>
-        <option>Santiago</option><option>Marianela</option><option>Debora</option>
-        <option>Lina</option><option>Maiten</option><option>Yesi</option>
-        <option>Guada</option><option>Nadia</option>
-      </select>
+      <select id="lu"><option value="">— seleccioná —</option></select>
     </div>
     <div class="lfg"><label>Contraseña</label>
       <input type="password" id="lp" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
@@ -457,6 +466,7 @@ body.dark .lfg select,body.dark .lfg input{color:#fff}
       <button class="sbi" onclick="nav('medios',null,this)"><svg viewBox="0 0 24 24"><path d="M4 22h16a2 2 0 002-2V4a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 01-2 2zm0 0a2 2 0 01-2-2v-9c0-1.1.9-2 2-2h2"/></svg>Monitoreo medios</button>
       <div class="div"></div>
       <div class="sb-sec">Filtrar persona</div>
+      <div id="alertpending" style="display:none;padding:4px 12px 6px"><button onclick="alertarPendientesPersona()" style="width:100%;padding:5px 8px;border-radius:6px;border:1px solid #667eea;background:#ede9fe;color:#6d28d9;font-size:10px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">📋 Alertar pendientes</button></div>
       <div id="sbpersons"></div>
     </aside>
 
@@ -878,7 +888,28 @@ const CONTACTOS_FB={
   "Santiago":{email:"santiagogarate96@gmail.com",tel:""}
 };
 
-// FIX: getContact ahora prioriza DB, cae a fallback si está vacío
+// Cargar contactos extras guardados en localStorage
+function loadLocalContacts(){
+  try{
+    const saved=localStorage.getItem("panelContactos");
+    if(saved){
+      const extra=JSON.parse(saved);
+      Object.assign(CONTACTOS_FB,extra);
+    }
+  }catch(e){}
+}
+function saveLocalContact(nombre,email,tel){
+  try{
+    const saved=localStorage.getItem("panelContactos");
+    const extra=saved?JSON.parse(saved):{};
+    extra[nombre]={email,tel};
+    localStorage.setItem("panelContactos",JSON.stringify(extra));
+    CONTACTOS_FB[nombre]={email,tel};
+  }catch(e){}
+}
+loadLocalContacts();
+
+// getContact: prioriza DB → localStorage → hardcoded
 function getContact(nombre){
   const m=gm(nombre);
   const fb=CONTACTOS_FB[nombre]||{email:"",tel:""};
@@ -898,7 +929,7 @@ let teams=[],tasks=[],agendas=[],pubs=[],stats=[],noticias=[];
 function iso(d){return d.toISOString().split("T")[0]}
 function addD(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r}
 function parseD(s){return new Date(s+"T00:00:00")}
-function dayAge(c){if(!c)return 0;return Math.floor((TODAY-parseD(c))/86400000)}
+function dayAge(c){if(!c)return 0;try{const d=new Date(c);if(isNaN(d))return 0;return Math.floor((TODAY-d)/86400000);}catch(e){return 0;}}
 function ini(n){return(n||"?").slice(0,2).toUpperCase()}
 function gm(n){return teams.find(m=>m.nombre===(n||"").trim())}
 function av(m,sz=20){if(!m)return`<div style="width:${sz}px;height:${sz}px;border-radius:50%;background:#e5e7eb;flex-shrink:0"></div>`;return`<div style="width:${sz}px;height:${sz}px;border-radius:50%;background:${m.color};color:${m.color_texto};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:${Math.floor(sz*.42)}px;flex-shrink:0">${ini(m.nombre)}</div>`}
@@ -952,6 +983,21 @@ function popSelects(){
 }
 
 // ═══ LOGIN ═══
+// Load team names for login dropdown (before login)
+async function loadLoginTeams(){
+  try{
+    const tmp=supabase.createClient(SB_URL,SB_KEY);
+    const{data}=await tmp.from("usuarios").select("nombre").order("nombre");
+    const sel=document.getElementById("lu");
+    if(data&&data.length){
+      sel.innerHTML='<option value="">— seleccioná —</option>';
+      data.forEach(m=>sel.appendChild(new Option(m.nombre,m.nombre)));
+    }
+  }catch(e){console.warn("loadLoginTeams:",e);}
+}
+// Load teams when page opens
+loadLoginTeams();
+
 function doLogin(){
   const u=document.getElementById("lu").value,p=document.getElementById("lp").value;
   const e=document.getElementById("lerr");
@@ -1109,7 +1155,12 @@ function renderPersons(){
       <span style="margin-left:auto;font-size:9px;color:#9ca3af">${tasks.filter(t=>t.responsable===m.nombre&&t.estado!=="Completo").length}</span>
     </div>`).join("");
 }
-function setFP(n){fp=fp===n?"":n;renderPersons();renderKanban();}
+function setFP(n){
+  fp=fp===n?"":n;
+  renderPersons();renderKanban();
+  const ab=document.getElementById("alertpending");
+  if(ab)ab.style.display=fp?"block":"none";
+}
 
 // ═══ KANBAN ═══
 function renderKanban(){
@@ -2008,10 +2059,8 @@ async function saveMember(){
     if(selEl){color=selEl.dataset.color||"#667eea";color_texto=selEl.dataset.txt||"#fff";}
   }catch(e){}
 
-  // Guardar en CONTACTOS_FB como fallback local inmediato
-  if(CONTACTOS_FB[nombre]!==undefined||!id){
-    CONTACTOS_FB[nombre]={email,tel};
-  }
+  // Guardar en localStorage siempre (persiste entre sesiones)
+  saveLocalContact(nombre, email, tel);
 
   // Intentar guardar con telefono, sin telefono como fallback
   const baseData={email,rol,cobertura,color,color_texto};
@@ -2068,6 +2117,38 @@ async function deleteMember(){
 }
 
 // FIX: sendAlert usa getContact()
+function alertarPendientesPersona(){
+  if(!fp){toast("Seleccioná una persona primero","warn");return;}
+  const pendientes=tasks.filter(t=>t.responsable===fp&&t.estado!=="Completo");
+  if(!pendientes.length){toast(`${fp} no tiene tareas pendientes`,"warn");return;}
+  const c=getContact(fp);
+  const altas=pendientes.filter(t=>t.prioridad==="Alta");
+  const nl="\n";
+  let msg=`📋 Resumen de tareas pendientes — ${fp}${nl}${nl}`;
+  msg+=`Total: ${pendientes.length} tarea${pendientes.length!==1?"s":""} activa${pendientes.length!==1?"s":""}${nl}`;
+  if(altas.length)msg+=`🔴 ${altas.length} de alta prioridad${nl}`;
+  msg+=nl;
+  const grupos={Alta:"🔴",Media:"🟡",Baja:"🟢"};
+  ["Alta","Media","Baja"].forEach(p=>{
+    const ts=pendientes.filter(t=>t.prioridad===p);
+    if(!ts.length)return;
+    msg+=`${grupos[p]} ${p}:${nl}`;
+    ts.forEach(t=>msg+=`• ${t.descripcion.slice(0,50)}${t.descripcion.length>50?"…":""}${nl}`);
+    msg+=nl;
+  });
+  msg+=`Panel: https://marianelahut-lang.github.io/panel-comunicacion/`;
+  const sub=`📋 Tareas pendientes — ${fp} (${pendientes.length})`;
+  let sent=[];
+  if(c.tel){window.open(`https://wa.me/${c.tel}?text=${encodeURIComponent(msg)}`,"_blank");sent.push("📱 WA");}
+  if(c.email){
+    setTimeout(()=>{window.open(`https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(c.email)}&su=${encodeURIComponent(sub)}&body=${encodeURIComponent(msg)}`,"_blank");},c.tel?800:0);
+    sent.push("📧 Mail");
+  }
+  if(sent.length)toast(`Alerta enviada a ${fp}: ${sent.join(" + ")}`);
+  else toast(`${fp} sin WA ni correo configurado`,"warn");
+  pushNotif(`📋 Alerta enviada a ${fp}`,`${pendientes.length} tareas pendientes`);
+}
+
 function sendAlert(nombre){
   const m=gm(nombre);
   if(!m){toast("Agente no encontrado","err");return;}
@@ -2111,12 +2192,13 @@ async function scanMedios(){
     "concejo","ordenanza","decreto","licitación","subsidio","vecinos","ciudad","hospital",
     "parque industrial","agua potable","recolección","tránsito","transito","empleo"];
 
+  // Solo los medios con RSS funcional verificado
   const mediosRSS=[
     {n:"LU24",c:"#7c2d12",rss:"https://www.lu24.com.ar/feed/"},
     {n:"La Voz del Pueblo",c:"#1d4e7a",rss:"https://www.lavozdelpueblo.com.ar/feed/"},
-    {n:"Via País",c:"#5b21b6",rss:"https://viapais.com.ar/tres-arroyos/feed/"},
-    {n:"Onda Uno",c:"#92400e",rss:"https://ondauno.com.ar/feed/"},
-    {n:"Provincia Noticias",c:"#0f5ca8",rss:"https://provincianoticias.com.ar/feed/"},
+    {n:"Via País",c:"#5b21b6",rss:"https://viapais.com.ar/feed/"},
+    {n:"Onda Uno",c:"#92400e",rss:"https://www.ondauno.com.ar/feed/"},
+    {n:"Provincia Noticias",c:"#0f5ca8",rss:"https://provincianoticias.com.ar/seccion/municipios/"},
   ];
 
   let total=0;
@@ -2129,7 +2211,7 @@ async function scanMedios(){
       let items=[];
       try{
         const r=await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(medio.rss)}&api_key=${RSS2JSON_KEY}&count=30`,
-          {signal:AbortSignal.timeout(12000)});
+          {signal:AbortSignal.timeout(20000)});
         const d=await r.json();
         if(d.status==="ok"&&d.items?.length){
           items=d.items.map(i=>({
