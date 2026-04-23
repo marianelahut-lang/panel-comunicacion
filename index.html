@@ -466,7 +466,16 @@ body.dark .lfg select,body.dark .lfg input{color:#fff}
       <button class="sbi" onclick="nav('medios',null,this)"><svg viewBox="0 0 24 24"><path d="M4 22h16a2 2 0 002-2V4a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 01-2 2zm0 0a2 2 0 01-2-2v-9c0-1.1.9-2 2-2h2"/></svg>Monitoreo medios</button>
       <div class="div"></div>
       <div class="sb-sec">Filtrar persona</div>
-      <div id="alertpending" style="display:none;padding:4px 12px 6px"><button onclick="alertarPendientesPersona()" style="width:100%;padding:5px 8px;border-radius:6px;border:1px solid #667eea;background:#ede9fe;color:#6d28d9;font-size:10px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">📋 Alertar pendientes</button></div>
+      <div id="alertpending" style="display:none;padding:6px 10px 8px">
+  <div style="background:linear-gradient(135deg,#667eea,#764ba2);border-radius:8px;padding:8px 10px;cursor:pointer" onclick="alertarPendientesPersona()">
+    <div style="font-size:10px;font-weight:700;color:#fff;margin-bottom:2px">🔔 Notificar a <span id="alertpendingname" style="font-weight:800"></span></div>
+    <div style="font-size:9px;color:rgba(255,255,255,.75)">Enviar tareas pendientes por WA y Mail</div>
+    <div style="margin-top:6px;display:flex;gap:5px">
+      <span style="background:rgba(255,255,255,.2);border-radius:4px;padding:2px 7px;font-size:9px;color:#fff;font-weight:600">📱 WhatsApp</span>
+      <span style="background:rgba(255,255,255,.2);border-radius:4px;padding:2px 7px;font-size:9px;color:#fff;font-weight:600">📧 Gmail</span>
+    </div>
+  </div>
+</div>
       <div id="sbpersons"></div>
     </aside>
 
@@ -1148,18 +1157,27 @@ function nav(id,tab,sb){
   if(id==="equipo")renderTeam();
 }
 function renderPersons(){
-  document.getElementById("sbpersons").innerHTML=teams.map(m=>`
-    <div class="sbp${fp===m.nombre?" sel":""}" onclick="setFP('${m.nombre}')">
+  document.getElementById("sbpersons").innerHTML=teams.map(m=>{
+    const pend=tasks.filter(t=>t.responsable===m.nombre&&t.estado!=="Completo").length;
+    const isSelected=fp===m.nombre;
+    return`<div class="sbp${isSelected?" sel":""}" onclick="setFP('${m.nombre}')" style="${isSelected?"background:#ede9fe;border-left:3px solid #6d28d9":""}">
       ${av(m,18)}
-      <span style="font-size:11px;font-weight:${fp===m.nombre?700:400};color:${fp===m.nombre?"#6d28d9":"#4b5563"}">${m.nombre}</span>
-      <span style="margin-left:auto;font-size:9px;color:#9ca3af">${tasks.filter(t=>t.responsable===m.nombre&&t.estado!=="Completo").length}</span>
-    </div>`).join("");
+      <span style="font-size:11px;font-weight:${isSelected?700:400};color:${isSelected?"#6d28d9":"#4b5563"};flex:1">${m.nombre}</span>
+      <span style="font-size:9px;color:${pend>0?"#dc2626":"#9ca3af"};font-weight:${pend>0?700:400}">${pend}</span>
+    </div>`;
+  }).join("");
 }
 function setFP(n){
   fp=fp===n?"":n;
   renderPersons();renderKanban();
   const ab=document.getElementById("alertpending");
-  if(ab)ab.style.display=fp?"block":"none";
+  if(ab){
+    ab.style.display=fp?"block":"none";
+    if(fp){
+      const fpName=document.getElementById("alertpendingname");
+      if(fpName)fpName.textContent=fp;
+    }
+  }
 }
 
 // ═══ KANBAN ═══
@@ -1173,14 +1191,24 @@ function renderKanban(){
     return true;
   });
   const COLS=[{id:"Pendiente",cls:"p1",lbl:"Pendiente"},{id:"En proceso",cls:"p2",lbl:"En proceso"},{id:"Listo s/publicar",cls:"p3",lbl:"Listo"}];
+  // Update subtitle to show filter
+  const tsubEl=document.getElementById("tsub");
+  if(tsubEl){
+    const ftCount=ft.length;
+    tsubEl.innerHTML=fp
+      ?`Filtrando: <strong style="color:#6d28d9">${fp}</strong> · ${ftCount} tarea${ftCount!==1?"s":""} · <button onclick="alertarPendientesPersona()" style="background:#667eea;color:#fff;border:none;border-radius:5px;padding:2px 8px;font-size:10px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;margin-left:4px">🔔 Notificar</button>`
+      :`${tasks.filter(t=>t.estado!=="Completo").length} activas`;
+  }
   document.getElementById("kanban").innerHTML=COLS.map(col=>{
     const ct=ft.filter(t=>t.estado===col.id);
-    const a=dayAge;
     return`<div class="kcol">
       <div class="khdr ${col.cls}"><div class="kt"><div class="kd"></div>${col.lbl}</div><span class="kc">${ct.length}</span></div>
       <div class="kbody">
         ${ct.map(t=>{
-          const m=gm(t.responsable);const age=dayAge(t.created_at);const ac=age>14?"a2":age>7?"a1":"";
+          const m=gm(t.responsable);
+          const age=t.created_at?Math.max(0,Math.floor((TODAY-new Date(t.created_at))/86400000)):0;
+          const ac=age>14?"a2":age>7?"a1":"";
+          const ageLbl=isNaN(age)?"":age+"d";
           return`<div class="tc ${ac}" onclick="editTask('${t.id}')">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:4px">
               <div class="tc-t" style="flex:1">${t.descripcion}</div>
@@ -1190,7 +1218,7 @@ function renderKanban(){
             <div class="tc-f">
               <span class="tg ${t.prioridad==="Alta"?"tga":t.prioridad==="Baja"?"tgb":"tgm"}">${t.prioridad}</span>
               <div style="display:flex;align-items:center;gap:4px">
-                <span style="font-size:9px;color:#9ca3af">${age}d</span>
+                <span style="font-size:9px;color:#9ca3af">${ageLbl}</span>
                 ${m?av(m,18):`<span style="font-size:9px;color:#d97706;background:#fffbeb;padding:1px 5px;border-radius:4px">Sin asig.</span>`}
               </div>
             </div>
