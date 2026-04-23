@@ -466,16 +466,22 @@ body.dark .lfg select,body.dark .lfg input{color:#fff}
       <button class="sbi" onclick="nav('medios',null,this)"><svg viewBox="0 0 24 24"><path d="M4 22h16a2 2 0 002-2V4a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 01-2 2zm0 0a2 2 0 01-2-2v-9c0-1.1.9-2 2-2h2"/></svg>Monitoreo medios</button>
       <div class="div"></div>
       <div class="sb-sec">Filtrar persona</div>
-      <div id="alertpending" style="display:none;padding:6px 10px 8px">
-  <div style="background:linear-gradient(135deg,#667eea,#764ba2);border-radius:8px;padding:8px 10px;cursor:pointer" onclick="alertarPendientesPersona()">
-    <div style="font-size:10px;font-weight:700;color:#fff;margin-bottom:2px">🔔 Notificar a <span id="alertpendingname" style="font-weight:800"></span></div>
-    <div style="font-size:9px;color:rgba(255,255,255,.75)">Enviar tareas pendientes por WA y Mail</div>
-    <div style="margin-top:6px;display:flex;gap:5px">
-      <span style="background:rgba(255,255,255,.2);border-radius:4px;padding:2px 7px;font-size:9px;color:#fff;font-weight:600">📱 WhatsApp</span>
-      <span style="background:rgba(255,255,255,.2);border-radius:4px;padding:2px 7px;font-size:9px;color:#fff;font-weight:600">📧 Gmail</span>
-    </div>
-  </div>
-</div>
+      <!-- Panel de persona seleccionada -->
+      <div id="fpanel" style="display:none;margin:4px 8px 6px">
+        <div style="background:#ede9fe;border-radius:8px;padding:8px 10px;border:1px solid #c4b5fd">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <span style="font-size:11px;font-weight:700;color:#6d28d9" id="fpanel-name"></span>
+            <button onclick="limpiarFiltro()" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:13px;padding:0;line-height:1" title="Ver todos">✕</button>
+          </div>
+          <div style="font-size:9px;color:#7c3aed;margin-bottom:6px" id="fpanel-count"></div>
+          <!-- Botones de notificación -->
+          <div style="display:flex;gap:4px">
+            <button onclick="alertarPendientesPor('wa')" id="fpbtn-wa" style="flex:1;padding:5px 4px;border-radius:6px;border:none;background:#25d366;color:#fff;font-size:9px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;display:flex;align-items:center;justify-content:center;gap:3px">📱 WA</button>
+            <button onclick="alertarPendientesPor('mail')" id="fpbtn-mail" style="flex:1;padding:5px 4px;border-radius:6px;border:none;background:#667eea;color:#fff;font-size:9px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;display:flex;align-items:center;justify-content:center;gap:3px">📧 Mail</button>
+            <button onclick="alertarPendientesPor('ambos')" style="flex:1;padding:5px 4px;border-radius:6px;border:none;background:#374151;color:#fff;font-size:9px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;display:flex;align-items:center;justify-content:center;gap:2px">📲 Ambos</button>
+          </div>
+        </div>
+      </div>
       <div id="sbpersons"></div>
     </aside>
 
@@ -1156,28 +1162,48 @@ function nav(id,tab,sb){
   // FIX: forzar renderTeam al entrar a equipo
   if(id==="equipo")renderTeam();
 }
+function limpiarFiltro(){
+  fp="";
+  renderPersons();
+  renderKanban();
+  const panel=document.getElementById("fpanel");
+  if(panel)panel.style.display="none";
+}
+
 function renderPersons(){
-  const clearBtn=fp?`<div style="padding:3px 12px 6px"><button onclick="setFP('${fp}')" style="width:100%;padding:4px 8px;border-radius:6px;border:1px solid #d1d5db;background:#f9fafb;color:#374151;font-size:10px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;display:flex;align-items:center;justify-content:center;gap:4px">✕ Mostrar todos</button></div>`:"";
-  document.getElementById("sbpersons").innerHTML=clearBtn+teams.map(m=>{
+  document.getElementById("sbpersons").innerHTML=teams.map(m=>{
     const pend=tasks.filter(t=>t.responsable===m.nombre&&t.estado!=="Completo").length;
     const isSelected=fp===m.nombre;
-    return`<div class="sbp${isSelected?" sel":""}" onclick="setFP('${m.nombre}')" style="${isSelected?"background:#ede9fe;border-left:3px solid #6d28d9":""}">
+    return`<div class="sbp${isSelected?" sel":""}" onclick="setFP(this,'${m.nombre.replace(/'/g,"\\'")}')">
       ${av(m,18)}
       <span style="font-size:11px;font-weight:${isSelected?700:400};color:${isSelected?"#6d28d9":"#4b5563"};flex:1">${m.nombre}</span>
-      <span style="font-size:9px;color:${pend>0?"#dc2626":"#9ca3af"};font-weight:${pend>0?700:400}">${pend}</span>
+      <span style="font-size:9px;color:${pend>0?"#dc2626":"#9ca3af"};font-weight:${pend>0?700:400};min-width:14px;text-align:right">${pend||""}</span>
     </div>`;
   }).join("");
 }
-function setFP(n){
-  fp=fp===n?"":n;
-  renderPersons();renderKanban();
-  const ab=document.getElementById("alertpending");
-  if(ab){
-    ab.style.display=fp?"block":"none";
-    if(fp){
-      const fpName=document.getElementById("alertpendingname");
-      if(fpName)fpName.textContent=fp;
-    }
+
+function setFP(el,n){
+  fp=(fp===n)?"":n;
+  renderPersons();
+  renderKanban();
+  const panel=document.getElementById("fpanel");
+  if(!panel)return;
+  if(fp){
+    panel.style.display="block";
+    const nameEl=document.getElementById("fpanel-name");
+    const countEl=document.getElementById("fpanel-count");
+    const pend=tasks.filter(t=>t.responsable===fp&&t.estado!=="Completo");
+    const altas=pend.filter(t=>t.prioridad==="Alta").length;
+    if(nameEl)nameEl.textContent=fp;
+    if(countEl)countEl.innerHTML=`${pend.length} tarea${pend.length!==1?"s":""} activa${pend.length!==1?"s":""}${altas?` · <span style="color:#dc2626;font-weight:700">${altas} urgente${altas!==1?"s":""}</span>`:""}`;
+    // Deshabilitar botones si no tiene contacto
+    const c=getContact(fp);
+    const waBtn=document.getElementById("fpbtn-wa");
+    const mailBtn=document.getElementById("fpbtn-mail");
+    if(waBtn){waBtn.style.opacity=c.tel?"1":"0.4";waBtn.title=c.tel?"Enviar por WhatsApp":"Sin teléfono cargado";}
+    if(mailBtn){mailBtn.style.opacity=c.email?"1":"0.4";mailBtn.title=c.email?"Enviar por Gmail":"Sin correo cargado";}
+  }else{
+    panel.style.display="none";
   }
 }
 
@@ -1199,8 +1225,7 @@ function renderKanban(){
     tsubEl.innerHTML=fp
       ?`<span style="display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap">
           <span>Mostrando: <strong style="color:#6d28d9">${fp}</strong> · ${ftCount} tarea${ftCount!==1?"s":""}</span>
-          <button onclick="setFP('${fp}')" style="background:#f3f4f6;color:#374151;border:1px solid #d1d5db;border-radius:5px;padding:2px 8px;font-size:10px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">✕ Ver todos</button>
-          <button onclick="alertarPendientesPersona()" style="background:#667eea;color:#fff;border:none;border-radius:5px;padding:2px 8px;font-size:10px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">🔔 Notificar</button>
+          <button onclick="limpiarFiltro()" style="background:#f3f4f6;color:#374151;border:1px solid #d1d5db;border-radius:5px;padding:2px 9px;font-size:10px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">✕ Ver todo</button>
         </span>`
       :`${tasks.filter(t=>t.estado!=="Completo").length} activas`;
   }
@@ -2150,37 +2175,46 @@ async function deleteMember(){
 }
 
 // FIX: sendAlert usa getContact()
-function alertarPendientesPersona(){
+function alertarPendientesPor(canal){
   if(!fp){toast("Seleccioná una persona primero","warn");return;}
   const pendientes=tasks.filter(t=>t.responsable===fp&&t.estado!=="Completo");
   if(!pendientes.length){toast(`${fp} no tiene tareas pendientes`,"warn");return;}
   const c=getContact(fp);
-  const altas=pendientes.filter(t=>t.prioridad==="Alta");
+  const prioEmoji={Alta:"🔴",Media:"🟡",Baja:"🟢"};
   const nl="\n";
-  let msg=`📋 Resumen de tareas pendientes — ${fp}${nl}${nl}`;
-  msg+=`Total: ${pendientes.length} tarea${pendientes.length!==1?"s":""} activa${pendientes.length!==1?"s":""}${nl}`;
-  if(altas.length)msg+=`🔴 ${altas.length} de alta prioridad${nl}`;
-  msg+=nl;
-  const grupos={Alta:"🔴",Media:"🟡",Baja:"🟢"};
+  let msg=`📋 Tareas pendientes — ${fp}${nl}${nl}`;
+  msg+=`Total: ${pendientes.length} tarea${pendientes.length!==1?"s":""}${nl}${nl}`;
   ["Alta","Media","Baja"].forEach(p=>{
     const ts=pendientes.filter(t=>t.prioridad===p);
     if(!ts.length)return;
-    msg+=`${grupos[p]} ${p}:${nl}`;
-    ts.forEach(t=>msg+=`• ${t.descripcion.slice(0,50)}${t.descripcion.length>50?"…":""}${nl}`);
+    msg+=`${prioEmoji[p]} ${p}:${nl}`;
+    ts.forEach(t=>msg+=`• ${t.descripcion.slice(0,55)}${t.descripcion.length>55?"…":""}${nl}`);
     msg+=nl;
   });
   msg+=`Panel: https://marianelahut-lang.github.io/panel-comunicacion/`;
   const sub=`📋 Tareas pendientes — ${fp} (${pendientes.length})`;
-  let sent=[];
-  if(c.tel){window.open(`https://wa.me/${c.tel}?text=${encodeURIComponent(msg)}`,"_blank");sent.push("📱 WA");}
-  if(c.email){
-    setTimeout(()=>{window.open(`https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(c.email)}&su=${encodeURIComponent(sub)}&body=${encodeURIComponent(msg)}`,"_blank");},c.tel?800:0);
-    sent.push("📧 Mail");
+
+  if((canal==="wa"||canal==="ambos")&&c.tel){
+    window.open(`https://wa.me/${c.tel}?text=${encodeURIComponent(msg)}`,"_blank");
+    toast(`📱 WhatsApp abierto para ${fp}`);
+  } else if(canal==="wa"&&!c.tel){
+    toast(`${fp} no tiene teléfono cargado`,"warn");return;
   }
-  if(sent.length)toast(`Alerta enviada a ${fp}: ${sent.join(" + ")}`);
-  else toast(`${fp} sin WA ni correo configurado`,"warn");
+
+  if((canal==="mail"||canal==="ambos")&&c.email){
+    setTimeout(()=>{
+      window.open(`https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(c.email)}&su=${encodeURIComponent(sub)}&body=${encodeURIComponent(msg)}`,"_blank");
+      if(canal==="mail")toast(`📧 Gmail abierto para ${fp}`);
+      if(canal==="ambos")toast(`📱 WA + 📧 Mail enviados a ${fp}`);
+    },canal==="ambos"?800:0);
+  } else if(canal==="mail"&&!c.email){
+    toast(`${fp} no tiene correo cargado`,"warn");return;
+  }
   pushNotif(`📋 Alerta enviada a ${fp}`,`${pendientes.length} tareas pendientes`);
 }
+
+// Mantener compatibilidad con llamadas anteriores
+function alertarPendientesPersona(){alertarPendientesPor("ambos");}
 
 function sendAlert(nombre){
   const m=gm(nombre);
