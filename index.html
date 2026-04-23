@@ -8,35 +8,30 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: system-ui, -apple-system, sans-serif; background: #0f0e17; color: #e8e6f0; min-height: 100vh; color-scheme: dark; }
 
-    /* Scrollbar */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #13121f; }
     ::-webkit-scrollbar-thumb { background: #3a3660; border-radius: 3px; }
     ::-webkit-scrollbar-thumb:hover { background: #6c5ce7; }
 
-    /* NAV */
-    .nav { display: flex; align-items: center; gap: 2px; padding: 8px 14px; border-bottom: 1px solid #2a2840; flex-wrap: wrap; gap: 4px; background: #12111e; }
+    .nav { display: flex; align-items: center; padding: 8px 14px; border-bottom: 1px solid #2a2840; flex-wrap: wrap; gap: 4px; background: #12111e; }
     .tb { padding: 5px 11px; border-radius: 6px; cursor: pointer; border: none; background: transparent; color: #9993b8; font-size: 12px; font-family: inherit; white-space: nowrap; }
     .tb.active { background: #2d2a5e; color: #a89cf7; font-weight: 500; }
     .tb:hover:not(.active) { background: #1e1d2e; }
 
     .main { padding: 20px; max-width: 1100px; margin: 0 auto; }
 
-    /* BUTTONS */
     .btn-p { padding: 6px 14px; border-radius: 6px; border: none; background: #6c5ce7; color: white; cursor: pointer; font-size: 12px; font-family: inherit; font-weight: 500; }
     .btn-p:hover { background: #5a4bd1; }
     .btn-s { padding: 5px 12px; border-radius: 6px; border: 1px solid #3a3660; background: transparent; color: #c0bcdc; cursor: pointer; font-size: 12px; font-family: inherit; }
     .btn-s:hover { background: #1e1d2e; }
 
-    /* KANBAN */
     .kanban { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
     .col { background: #1a1929; border-radius: 10px; padding: 12px; min-height: 160px; }
     .tc { background: #201f33; border: 1px solid #2e2c4a; border-radius: 6px; padding: 10px; margin-bottom: 7px; cursor: pointer; }
     .tc:hover { border-color: #4a4780; }
     .bdg { font-size: 10px; padding: 2px 7px; border-radius: 8px; font-weight: 500; }
 
-    /* MODAL OVERLAY */
-    .ov { position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.7); display: flex; align-items: flex-start; justify-content: center; padding: 40px 16px 60px; overflow-y: auto; }
+    .ov { position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.75); display: flex; align-items: flex-start; justify-content: center; padding: 40px 16px 60px; overflow-y: auto; }
     .mdl { background: #1a1929; border: 1px solid #2e2c4a; border-radius: 12px; width: 100%; max-width: 540px; }
     .mh { padding: 14px 18px 11px; border-bottom: 1px solid #2e2c4a; display: flex; justify-content: space-between; align-items: center; }
     .mb { padding: 18px; display: flex; flex-direction: column; gap: 14px; max-height: 72vh; overflow-y: auto; }
@@ -44,13 +39,12 @@
     .fld { display: flex; flex-direction: column; gap: 5px; }
     .lbl { font-size: 10px; font-weight: 500; color: #7c78a0; text-transform: uppercase; letter-spacing: 0.07em; }
 
-    /* FORM ELEMENTS */
     input, select, textarea {
-      width: 100%; padding: 6px 9px;
+      width: 100%; padding: 7px 10px;
       border: 1px solid #3a3660;
       border-radius: 6px;
-      background: #13121f;
-      color: #e8e6f0;
+      background: #13121f !important;
+      color: #e8e6f0 !important;
       font-size: 12px;
       font-family: inherit;
       color-scheme: dark;
@@ -58,640 +52,397 @@
       appearance: none;
     }
     select {
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239993b8' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 9px center;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239993b8' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+      background-repeat: no-repeat !important;
+      background-position: right 9px center !important;
       padding-right: 28px;
     }
-    input[type="date"], input[type="time"] {
-      background-image: none;
-    }
-    input::placeholder, textarea::placeholder { color: #5a5778; }
-    input:focus, select:focus, textarea:focus { outline: none; border-color: #6c5ce7; box-shadow: 0 0 0 2px #6c5ce722; }
+    input[type="date"], input[type="time"] { background-image: none !important; }
+    input::placeholder, textarea::placeholder { color: #5a5778; opacity: 1; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #6c5ce7; box-shadow: 0 0 0 2px #6c5ce730; }
     textarea { resize: vertical; min-height: 64px; }
     input[type="date"]::-webkit-calendar-picker-indicator,
     input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(0.6); cursor: pointer; }
+    option { background: #1a1929 !important; color: #e8e6f0 !important; }
 
-    option { background: #1a1929; color: #e8e6f0; }
-
-    /* CHIPS */
     .chip { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 8px; background: #2d2a5e; color: #a89cf7; font-size: 11px; }
     .chip button { border: none; background: none; cursor: pointer; color: inherit; padding: 0 0 0 1px; font-size: 12px; }
 
-    /* ENTREVISTA CARD */
     .ec { background: #1a1929; border: 1px solid #2e2c4a; border-radius: 10px; padding: 14px; margin-bottom: 10px; }
     .ec:hover { border-color: #4a4780; }
 
-    /* WHATSAPP BUTTON */
-    .wa { display: inline-flex; align-items: center; gap: 4px; padding: 4px 9px; background: #25D366; color: white; border-radius: 6px; font-size: 11px; text-decoration: none; font-family: inherit; }
+    .wa { display: inline-flex; align-items: center; gap: 4px; padding: 4px 9px; background: #25D366; color: white !important; border-radius: 6px; font-size: 11px; text-decoration: none; font-family: inherit; }
     .wa:hover { background: #1db954; }
 
-    /* MISC */
     .r2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .sep { height: 1px; background: #2a2840; margin: 4px 0; }
     .empty-state { text-align: center; padding: 48px 20px; color: #5a5778; border: 1px dashed #2e2c4a; border-radius: 10px; }
+    .info-box { padding: 8px 10px; background: #13121f; border-radius: 6px; font-size: 11px; margin-top: 6px; display: flex; justify-content: space-between; align-items: center; gap: 8px; border: 1px solid #2e2c4a; }
   </style>
 </head>
 <body>
-
 <div id="ca">
   <nav class="nav" id="nav"></nav>
   <div class="main" id="main"></div>
   <div id="ov-root"></div>
 </div>
-
 <script>
-// ============================================================
-// DATOS — editá aquí para agregar/modificar funcionarios
-// ============================================================
 const FUNCS = [
-  { n: "Pablo Garate",            c: "Intendente Municipal",                      t: "5492983642913" },
-  { n: "Santiago Garate",         c: "Sub Secretario de Gabinete",                t: "5492983460846" },
-  { n: "Julio Federico",          c: "Jefe de Gabinete",                          t: "5492983570209" },
-  { n: "Tomas Paniga",            c: "Director de Cultura",                       t: "5492983447249" },
-  { n: "Facundo Liebana",         c: "Director de Deporte",                       t: "5492983382366" },
-  { n: "Juan Moizzi",             c: "Director de Empleo y Parque Industrial",    t: "5492983507745" },
-  { n: "Julian Tornini",          c: "Coordinador Juventud y Deporte",            t: "5492983305218" },
-  { n: "Carolina Goicoechea",     c: "Directora de Turismo",                      t: "5492983449098" },
-  { n: "Mauro Dadario",           c: "Director de Emprendedurismo",               t: "5492983446264" },
-  { n: "Margarita Tour",          c: "Directora de Impulsar",                     t: "5492983414390" },
-  { n: "Paola Salerno",           c: "Secretaria de Planeamiento Urbano",         t: "5492983611597" },
-  { n: "Nicolas Franganillo",     c: "Director de Obras Públicas",                t: "5492983412126" },
-  { n: "Luis Juarez",             c: "Director de Planeamiento Urbano",           t: "5492983459048" },
-  { n: "Ignacio Quintas",         c: "Director de Obras Sanitarias",              t: "5492983615881" },
-  { n: "Juan Apolonio",           c: "Secretario de Seguridad",                   t: "5492983409217" },
-  { n: "Martin Legarreta",        c: "Director Seguridad Operativo",              t: "5492983608016" },
-  { n: "Maria Paz Lopez Peralta", c: "Directora Administrativa Seguridad",        t: "5492983419402" },
-  { n: "Martin Garate",           c: "Secretario Desarrollo Social",              t: "5492983413996" },
-  { n: "Damian Almeira",          c: "Director Acción Social",                    t: "5492983650085" },
-  { n: "Emiliano Capandegui",     c: "Director Técnico Hospital",                 t: "5492983602937" },
-  { n: "Mercedes Moreno",         c: "Directora Salud Integral",                  t: "5492983447789" },
-  { n: "Juan Manuel Serna",       c: "Director de CAPS",                          t: "5492983640486" },
-  { n: "Juan Cruz Lopez",         c: "Director Administrativo",                   t: "5492216379206" },
-  { n: "Eliana Rossi",            c: "Directora Bromatología y Zoonosis",         t: "5492983505668" },
-  { n: "Gabriel Francia",         c: "Sub Secretario Gestión Ambiental",          t: "5492983385858" }
+  { n:"Pablo Garate",            c:"Intendente Municipal",                     t:"5492983642913" },
+  { n:"Santiago Garate",         c:"Sub Secretario de Gabinete",               t:"5492983460846" },
+  { n:"Julio Federico",          c:"Jefe de Gabinete",                         t:"5492983570209" },
+  { n:"Tomas Paniga",            c:"Director de Cultura",                      t:"5492983447249" },
+  { n:"Facundo Liebana",         c:"Director de Deporte",                      t:"5492983382366" },
+  { n:"Juan Moizzi",             c:"Director de Empleo y Parque Industrial",   t:"5492983507745" },
+  { n:"Julian Tornini",          c:"Coordinador Juventud y Deporte",           t:"5492983305218" },
+  { n:"Carolina Goicoechea",     c:"Directora de Turismo",                     t:"5492983449098" },
+  { n:"Mauro Dadario",           c:"Director de Emprendedurismo",              t:"5492983446264" },
+  { n:"Margarita Tour",          c:"Directora de Impulsar",                    t:"5492983414390" },
+  { n:"Paola Salerno",           c:"Secretaria de Planeamiento Urbano",        t:"5492983611597" },
+  { n:"Nicolas Franganillo",     c:"Director de Obras Públicas",               t:"5492983412126" },
+  { n:"Luis Juarez",             c:"Director de Planeamiento Urbano",          t:"5492983459048" },
+  { n:"Ignacio Quintas",         c:"Director de Obras Sanitarias",             t:"5492983615881" },
+  { n:"Juan Apolonio",           c:"Secretario de Seguridad",                  t:"5492983409217" },
+  { n:"Martin Legarreta",        c:"Director Seguridad Operativo",             t:"5492983608016" },
+  { n:"Maria Paz Lopez Peralta", c:"Directora Administrativa Seguridad",       t:"5492983419402" },
+  { n:"Martin Garate",           c:"Secretario Desarrollo Social",             t:"5492983413996" },
+  { n:"Damian Almeira",          c:"Director Acción Social",                   t:"5492983650085" },
+  { n:"Emiliano Capandegui",     c:"Director Técnico Hospital",                t:"5492983602937" },
+  { n:"Mercedes Moreno",         c:"Directora Salud Integral",                 t:"5492983447789" },
+  { n:"Juan Manuel Serna",       c:"Director de CAPS",                         t:"5492983640486" },
+  { n:"Juan Cruz Lopez",         c:"Director Administrativo",                  t:"5492216379206" },
+  { n:"Eliana Rossi",            c:"Directora Bromatología y Zoonosis",        t:"5492983505668" },
+  { n:"Gabriel Francia",         c:"Sub Secretario Gestión Ambiental",         t:"5492983385858" }
 ];
-
-// Medios de comunicación
-const MEDIOS = [
-  "LU24", "La Voz del Pueblo", "Diario 3", "Via País",
-  "Grupo 105", "Julio Scarabotti", "Adriana Gaitan",
-  "Milena Marcovecchio", "Dengue"
-];
-
-// Equipo interno
-const EQ = ["Debora", "Guada", "Lina", "Maiten", "Marianela", "Nadia", "Santiago", "Sofia", "Yesi"];
-
-// Pestañas de navegación
+const MEDIOS = ["LU24","La Voz del Pueblo","Diario 3","Via País","Grupo 105","Julio Scarabotti","Adriana Gaitan","Milena Marcovecchio","Dengue"];
+const EQ = ["Debora","Guada","Lina","Maiten","Marianela","Nadia","Santiago","Sofia","Yesi"];
 const TABS = [
-  { id: 'tablero',      l: 'Tablero'        },
-  { id: 'entrevistas',  l: 'Entrevistas'    },
-  { id: 'material',     l: 'Material'       },
-  { id: 'publicaciones',l: 'Publicaciones'  },
-  { id: 'calendario',   l: 'Calendario'     },
-  { id: 'medios',       l: 'Monitoreo'      }
+  {id:'tablero',l:'Tablero'},{id:'entrevistas',l:'Entrevistas'},{id:'material',l:'Material'},
+  {id:'publicaciones',l:'Publicaciones'},{id:'calendario',l:'Calendario'},{id:'medios',l:'Monitoreo'}
 ];
 
-// ============================================================
-// ESTADO DE LA APP
-// ============================================================
 let S = {
-  tab: 'tablero',
-  tasks: [
-    { id: 'd1', titulo: 'Hospital: ampliación APS 12hs→24hs', desc: 'Pase de médicos Generales de APS para fortalecer los CAPS', estado: 'Pendiente', prioridad: 'Alta', responsables: ['Guada'], adjuntos: [], notif: [], obs: '' },
-    { id: 'd2', titulo: 'Corte de agua jueves 23', desc: 'La Municipalidad informa corte en suministro de agua potable en el marco de trabajos de conexión', estado: 'En proceso', prioridad: 'Media', responsables: ['Marianela'], adjuntos: [], notif: ['mail'], obs: '' },
-    { id: 'd3', titulo: 'Torneo Bochas 1° categoría', desc: 'El 25 y 26 de abril Tres Arroyos será sede del Torneo Especial', estado: 'Listo', prioridad: 'Baja', responsables: ['Santiago'], adjuntos: [], notif: [], obs: '' },
+  tab:'tablero',
+  tasks:[
+    {id:'d1',titulo:'Hospital: ampliación APS 12hs→24hs',desc:'Pase de médicos Generales de APS para fortalecer los CAPS',estado:'Pendiente',prioridad:'Alta',responsables:['Guada'],adjuntos:[],notif:[],obs:''},
+    {id:'d2',titulo:'Corte de agua jueves 23',desc:'Corte en suministro de agua potable en el marco de trabajos de conexión',estado:'En proceso',prioridad:'Media',responsables:['Marianela'],adjuntos:[],notif:['mail'],obs:''},
+    {id:'d3',titulo:'Torneo Bochas 1° categoría',desc:'El 25 y 26 de abril Tres Arroyos será sede del Torneo Especial',estado:'Listo',prioridad:'Baja',responsables:['Santiago'],adjuntos:[],notif:[],obs:''},
   ],
-  entrevistas: [],
-  cFuncs: [],   // Funcionarios personalizados agregados por el usuario
-  modal: null,
-  tf: null,     // Task form
-  ef: null,     // Entrevista form
-  cff: null     // Custom funcionario form
+  entrevistas:[],cFuncs:[],modal:null,tf:null,ef:null,cff:null
 };
 
-// ============================================================
-// UTILIDADES
-// ============================================================
-function gid()  { return Date.now() + '_' + Math.floor(Math.random() * 9999); }
-function e(s)   { return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function t(s)   { return (s || '').replace(/\D/g, ''); }
-function aF()   { return [...FUNCS, ...S.cFuncs.map(f => ({ ...f, custom: true }))]; }
-function waLink(ph, msg) { return `https://wa.me/${t(ph)}?text=${encodeURIComponent(msg)}`; }
-function waSvg() {
-  return `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
-  </svg>`;
+function gid()  { return Date.now()+'_'+Math.floor(Math.random()*9999); }
+function e(s)   { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function cl(s)  { return (s||'').replace(/\D/g,''); }
+function aF()   { return [...FUNCS,...S.cFuncs.map(f=>({...f,custom:true}))]; }
+function waLink(ph,msg){ return 'https://wa.me/'+cl(ph)+'?text='+encodeURIComponent(msg); }
+function waSvg(){ return '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>'; }
+
+function loadData(){
+  try{
+    const a=localStorage.getItem('ta_tasks'),b=localStorage.getItem('ta_ents'),c=localStorage.getItem('ta_cf');
+    if(a)S.tasks=JSON.parse(a); if(b)S.entrevistas=JSON.parse(b); if(c)S.cFuncs=JSON.parse(c);
+  }catch(_){}
+}
+function saveData(){
+  try{
+    localStorage.setItem('ta_tasks',JSON.stringify(S.tasks));
+    localStorage.setItem('ta_ents',JSON.stringify(S.entrevistas));
+    localStorage.setItem('ta_cf',JSON.stringify(S.cFuncs));
+  }catch(_){}
 }
 
-// ============================================================
-// PERSISTENCIA (localStorage)
-// ============================================================
-function loadData() {
-  try {
-    const tasks = localStorage.getItem('ta_tasks');
-    const ents  = localStorage.getItem('ta_ents');
-    const cf    = localStorage.getItem('ta_cf');
-    if (tasks) S.tasks   = JSON.parse(tasks);
-    if (ents)  S.entrevistas = JSON.parse(ents);
-    if (cf)    S.cFuncs  = JSON.parse(cf);
-  } catch (_) {}
-}
-
-function saveData() {
-  try {
-    localStorage.setItem('ta_tasks', JSON.stringify(S.tasks));
-    localStorage.setItem('ta_ents',  JSON.stringify(S.entrevistas));
-    localStorage.setItem('ta_cf',    JSON.stringify(S.cFuncs));
-  } catch (_) {}
-}
-
-// ============================================================
-// RENDER PRINCIPAL
-// ============================================================
-function render() {
-  const pend = S.tasks.filter(tt => tt.estado === 'Pendiente').length;
-
-  // NAV
-  document.getElementById('nav').innerHTML =
-    TABS.map(tb =>
-      `<button class="tb ${S.tab === tb.id ? 'active' : ''}" onclick="setTab('${tb.id}')">
-        ${tb.l}
-        ${tb.id === 'tablero' && pend > 0
-          ? `<span style="background:#ef444422;color:#ef4444;padding:0 5px;border-radius:6px;font-size:10px">${pend}</span>`
-          : ''}
-      </button>`
-    ).join('') +
+function render(){
+  const pend=S.tasks.filter(t=>t.estado==='Pendiente').length;
+  document.getElementById('nav').innerHTML=
+    TABS.map(tb=>`<button class="tb ${S.tab===tb.id?'active':''}" onclick="setTab('${tb.id}')">${tb.l}${tb.id==='tablero'&&pend>0?`<span style="background:#ef444422;color:#ef4444;padding:0 5px;border-radius:6px;font-size:10px;margin-left:3px">${pend}</span>`:''}</button>`).join('')+
     `<button class="btn-p" style="margin-left:auto;font-size:11px" onclick="openTM(null)">+ Nueva tarea</button>`;
-
-  // MAIN CONTENT
-  const main = document.getElementById('main');
-  if      (S.tab === 'tablero')     main.innerHTML = buildTablero();
-  else if (S.tab === 'entrevistas') main.innerHTML = buildEntrevistas();
-  else    main.innerHTML = `<div class="empty-state"><div style="font-size:28px;margin-bottom:8px">⚙</div><div>Sección en desarrollo</div></div>`;
-
-  // MODAL
-  const ov = document.getElementById('ov-root');
-  if      (S.modal === 'task') ov.innerHTML = buildTaskModal();
-  else if (S.modal === 'ent')  ov.innerHTML = buildEntModal();
-  else if (S.modal === 'cf')   ov.innerHTML = buildCFModal();
-  else    ov.innerHTML = '';
+  const main=document.getElementById('main');
+  if(S.tab==='tablero') main.innerHTML=buildTablero();
+  else if(S.tab==='entrevistas') main.innerHTML=buildEntrevistas();
+  else main.innerHTML=`<div class="empty-state"><div style="font-size:28px;margin-bottom:8px">⚙</div><div>Sección en desarrollo</div></div>`;
+  const ov=document.getElementById('ov-root');
+  if(S.modal==='task') ov.innerHTML=buildTaskModal();
+  else if(S.modal==='ent') ov.innerHTML=buildEntModal();
+  else if(S.modal==='cf') ov.innerHTML=buildCFModal();
+  else ov.innerHTML='';
 }
 
-// ============================================================
-// TABLERO
-// ============================================================
-function buildTablero() {
-  const cols = [
-    ['Pendiente',  '#ef4444'],
-    ['En proceso', '#f59e0b'],
-    ['Listo',      '#22c55e']
-  ];
-  return `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-      <span style="font-size:15px;font-weight:500">Tablero de tareas</span>
-      <span style="font-size:12px;color:#7c78a0">${S.tasks.length} tarea${S.tasks.length !== 1 ? 's' : ''}</span>
+function buildTablero(){
+  const cols=[['Pendiente','#ef4444'],['En proceso','#f59e0b'],['Listo','#22c55e']];
+  return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <span style="font-size:15px;font-weight:500">Tablero de tareas</span>
+    <span style="font-size:12px;color:#7c78a0">${S.tasks.length} tarea${S.tasks.length!==1?'s':''}</span>
+  </div>
+  <div class="kanban">${cols.map(([col,cl2])=>{
+    const tasks=S.tasks.filter(tt=>tt.estado===col);
+    return `<div class="col">
+      <div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:${cl2};margin-bottom:10px">${col} <span style="background:${cl2}22;padding:1px 6px;border-radius:6px">${tasks.length}</span></div>
+      ${tasks.length===0?`<div style="font-size:11px;color:#5a5778;text-align:center;padding:16px 0">Sin tareas</div>`:
+        tasks.map(tt=>`<div class="tc" onclick="openTM('${tt.id}')">
+          <div style="font-size:12px;font-weight:500;margin-bottom:5px">${e(tt.titulo)}</div>
+          ${tt.desc?`<div style="font-size:11px;color:#9993b8;margin-bottom:6px;line-height:1.4">${e(tt.desc.substring(0,90))}${tt.desc.length>90?'...':''}</div>`:''}
+          <div style="display:flex;gap:3px;flex-wrap:wrap;align-items:center">
+            <span class="bdg" style="background:${tt.prioridad==='Alta'?'#3b0d0d':tt.prioridad==='Media'?'#3b2500':'#0d2b18'};color:${tt.prioridad==='Alta'?'#f87171':tt.prioridad==='Media'?'#fbbf24':'#4ade80'}">${tt.prioridad}</span>
+            ${tt.responsables.map(r=>`<span class="bdg" style="background:#2d2a5e;color:#a89cf7">${r}</span>`).join('')}
+            ${tt.adjuntos&&tt.adjuntos.length>0?`<span class="bdg" style="background:#1e1d2e;color:#7c78a0">📎 ${tt.adjuntos.length}</span>`:''}
+            ${(tt.notif||[]).includes('whatsapp')?`<span style="font-size:10px;color:#25D366;font-weight:500">WA</span>`:''}
+            ${(tt.notif||[]).includes('mail')?`<span style="font-size:10px;color:#a89cf7">✉</span>`:''}
+          </div>
+        </div>`).join('')}
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function buildEntrevistas(){
+  const funcs=aF();
+  return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <span style="font-size:15px;font-weight:500">Entrevistas pactadas</span>
+    <button class="btn-p" onclick="openEM(null)">+ Nueva entrevista</button>
+  </div>
+  ${S.entrevistas.length===0
+    ?`<div class="empty-state"><div style="font-size:28px;margin-bottom:8px">🎙</div><div style="font-weight:500;margin-bottom:4px">Sin entrevistas registradas</div><div style="font-size:12px">Agendá entrevistas con funcionarios y medios de comunicación</div></div>`
+    :S.entrevistas.map(ee=>{
+      const fn=funcs.find(f=>f.n===ee.funcionario);
+      const ph=fn?fn.t:ee.telCustom;
+      const ml=ee.medio==='otro'?(ee.medioCustom||'Otro'):ee.medio;
+      const msg=`Hola ${ee.funcionario}, le informamos que tiene una entrevista pactada con ${ml} el ${ee.fecha||'próximamente'}${ee.hora?' a las '+ee.hora:''}.${ee.notas?' Tema: '+ee.notas+'.':''} Saludos, Dirección de Comunicación — Municipalidad de Tres Arroyos.`;
+      return `<div class="ec">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:500;margin-bottom:2px">${e(ml)}</div>
+            <div style="font-size:12px;color:#9993b8">${e(ee.funcionario)}${fn?.custom?`<span style="font-size:9px;background:#2b2200;color:#fbbf24;padding:1px 4px;border-radius:3px;margin-left:4px">personaliz.</span>`:''}</div>
+            ${fn?.c?`<div style="font-size:11px;color:#5a5778">${e(fn.c)}</div>`:''}
+          </div>
+          <div style="display:flex;gap:5px;align-items:center;flex-shrink:0">
+            ${ph?`<a class="wa" href="${waLink(ph,msg)}" target="_blank" rel="noopener">${waSvg()} Notificar</a>`:''}
+            <button class="btn-s" style="font-size:11px;padding:3px 9px" onclick="openEM('${ee.id}')">Editar</button>
+            <button onclick="delE('${ee.id}')" style="background:none;border:none;cursor:pointer;color:#f87171;font-size:18px;padding:0 2px">×</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:14px;margin-top:8px;font-size:11px;color:#7c78a0">
+          ${ee.fecha?`<span>📅 ${ee.fecha}</span>`:''}
+          ${ee.hora?`<span>🕐 ${ee.hora}</span>`:''}
+          ${ee.lugar?`<span>📍 ${e(ee.lugar)}</span>`:''}
+          ${ph?`<span>📱 +${cl(ph)}</span>`:''}
+        </div>
+        ${ee.notas?`<div style="margin-top:7px;font-size:11px;color:#9993b8;background:#13121f;padding:6px 9px;border-radius:6px;border:1px solid #2e2c4a">${e(ee.notas)}</div>`:''}
+      </div>`;
+    }).join('')}
+  <div style="margin-top:28px">
+    <div class="sep"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:14px 0 10px">
+      <span style="font-size:13px;font-weight:500">Funcionarios personalizados</span>
+      <button class="btn-s" style="font-size:11px" onclick="openCF()">+ Agregar</button>
     </div>
-    <div class="kanban">
-      ${cols.map(([col, cl]) => {
-        const tasks = S.tasks.filter(tt => tt.estado === col);
-        return `
-          <div class="col">
-            <div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:${cl};margin-bottom:10px">
-              ${col}
-              <span style="background:${cl}22;padding:1px 6px;border-radius:6px">${tasks.length}</span>
-            </div>
-            ${tasks.length === 0
-              ? `<div style="font-size:11px;color:#5a5778;text-align:center;padding:16px 0">Sin tareas</div>`
-              : tasks.map(tt => `
-                  <div class="tc" onclick="openTM('${tt.id}')">
-                    <div style="font-size:12px;font-weight:500;margin-bottom:5px">${e(tt.titulo)}</div>
-                    ${tt.desc ? `<div style="font-size:11px;color:#9993b8;margin-bottom:6px;line-height:1.4">${e(tt.desc.substring(0, 90))}${tt.desc.length > 90 ? '...' : ''}</div>` : ''}
-                    <div style="display:flex;gap:3px;flex-wrap:wrap;align-items:center">
-                      <span class="bdg" style="background:${tt.prioridad==='Alta'?'#3b0d0d':tt.prioridad==='Media'?'#3b2500':'#0d2b18'};color:${tt.prioridad==='Alta'?'#f87171':tt.prioridad==='Media'?'#fbbf24':'#4ade80'}">${tt.prioridad}</span>
-                      ${tt.responsables.map(r => `<span class="bdg" style="background:#2d2a5e;color:#a89cf7">${r}</span>`).join('')}
-                      ${tt.adjuntos.length > 0 ? `<span class="bdg" style="background:#1e1d2e;color:#7c78a0">+${tt.adjuntos.length} adj</span>` : ''}
-                      ${tt.notif.includes('whatsapp') ? `<span style="font-size:10px;color:#25D366;font-weight:500">WA</span>` : ''}
-                      ${tt.notif.includes('mail')     ? `<span style="font-size:10px;color:#a89cf7">✉</span>` : ''}
-                    </div>
-                  </div>
-                `).join('')
-            }
-          </div>`;
-      }).join('')}
-    </div>`;
+    ${S.cFuncs.length===0
+      ?`<div style="font-size:12px;color:#5a5778">Agregá funcionarios que no figuren en el listado oficial.</div>`
+      :S.cFuncs.map((f,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:#13121f;border-radius:6px;margin-bottom:5px;border:1px solid #2e2c4a">
+          <div><span style="font-size:12px;font-weight:500">${e(f.n)}</span>${f.c?`<span style="font-size:11px;color:#7c78a0;margin-left:7px">${e(f.c)}</span>`:''}</div>
+          <div style="display:flex;gap:6px;align-items:center">
+            ${f.t?`<a class="wa" href="${waLink(f.t,'Hola '+f.n+', le contactamos desde la Municipalidad de Tres Arroyos.')}" target="_blank" rel="noopener" style="font-size:10px;padding:3px 7px">${waSvg()} WA</a>`:''}
+            ${f.t?`<span style="font-size:10px;color:#5a5778">+${cl(f.t)}</span>`:''}
+            <button onclick="dCF(${i})" style="background:none;border:none;cursor:pointer;color:#f87171;font-size:17px;padding:0">×</button>
+          </div>
+        </div>`).join('')}
+  </div>`;
 }
 
-// ============================================================
-// ENTREVISTAS
-// ============================================================
-function buildEntrevistas() {
-  const funcs = aF();
-  return `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-      <span style="font-size:15px;font-weight:500">Entrevistas pactadas</span>
-      <button class="btn-p" onclick="openEM(null)">+ Nueva entrevista</button>
+function buildTaskModal(){
+  const f=S.tf; const isEdit=f.id!=null;
+  return `<div class="ov" onclick="if(event.target===this)closeM()">
+    <div class="mdl" onclick="event.stopPropagation()">
+      <div class="mh">
+        <span style="font-size:14px;font-weight:500">${isEdit?'Editar tarea':'Nueva tarea'}</span>
+        <button onclick="closeM()" style="background:none;border:none;cursor:pointer;color:#7c78a0;font-size:20px;padding:0;line-height:1">×</button>
+      </div>
+      <div class="mb">
+        <div class="fld"><label class="lbl">Título</label>
+          <input type="text" value="${e(f.titulo||'')}" placeholder="Título de la tarea" oninput="S.tf.titulo=this.value"></div>
+        <div class="fld"><label class="lbl">Descripción</label>
+          <textarea placeholder="Descripción..." oninput="S.tf.desc=this.value">${e(f.desc||'')}</textarea></div>
+        <div class="r2">
+          <div class="fld"><label class="lbl">Estado</label>
+            <select onchange="S.tf.estado=this.value">${['Pendiente','En proceso','Listo'].map(s=>`<option value="${s}" ${f.estado===s?'selected':''}>${s}</option>`).join('')}</select></div>
+          <div class="fld"><label class="lbl">Prioridad</label>
+            <select onchange="S.tf.prioridad=this.value">${['Alta','Media','Baja'].map(p=>`<option value="${p}" ${f.prioridad===p?'selected':''}>${p}</option>`).join('')}</select></div>
+        </div>
+        <div class="fld">
+          <label class="lbl">Responsables (podés elegir varios)</label>
+          <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px">
+            ${EQ.map(m=>`<button onclick="tResp('${m}')" style="padding:3px 9px;border-radius:8px;border:1px solid ${f.responsables.includes(m)?'#6c5ce7':'#3a3660'};font-size:11px;cursor:pointer;font-family:inherit;background:${f.responsables.includes(m)?'#6c5ce7':'transparent'};color:${f.responsables.includes(m)?'white':'#9993b8'}">${m}</button>`).join('')}
+          </div>
+          ${f.responsables.length>0?`<div style="display:flex;flex-wrap:wrap;gap:4px">${f.responsables.map(r=>`<span class="chip">${r}<button onclick="tResp('${r}')">×</button></span>`).join('')}</div>`:''}
+        </div>
+        <div class="fld">
+          <label class="lbl">Notificar responsables por</label>
+          <div style="display:flex;gap:7px;flex-wrap:wrap">
+            <button onclick="tNotif('whatsapp')" style="padding:5px 11px;border-radius:6px;border:1px solid ${f.notif.includes('whatsapp')?'#25D366':'#3a3660'};background:${f.notif.includes('whatsapp')?'#25D366':'transparent'};color:${f.notif.includes('whatsapp')?'white':'#9993b8'};cursor:pointer;font-size:11px;font-family:inherit;display:flex;align-items:center;gap:4px">${waSvg()} WhatsApp</button>
+            <button onclick="tNotif('mail')" style="padding:5px 11px;border-radius:6px;border:1px solid ${f.notif.includes('mail')?'#6c5ce7':'#3a3660'};background:${f.notif.includes('mail')?'#2d2a5e':'transparent'};color:${f.notif.includes('mail')?'#a89cf7':'#9993b8'};cursor:pointer;font-size:11px;font-family:inherit">✉ Email</button>
+            <button onclick="tNotif('sin')" style="padding:5px 11px;border-radius:6px;border:1px solid ${f.notif.includes('sin')?'#3a3660':'#2a2840'};background:${f.notif.includes('sin')?'#1e1d2e':'transparent'};color:#7c78a0;cursor:pointer;font-size:11px;font-family:inherit">Sin notif.</button>
+          </div>
+        </div>
+        <div class="fld">
+          <label class="lbl">Adjuntos — imágenes, links, documentos</label>
+          <div style="display:flex;gap:6px;margin-bottom:7px">
+            <select id="atipo" style="flex:0 0 auto;width:105px">
+              <option value="link">Enlace</option>
+              <option value="imagen">Imagen</option>
+              <option value="doc">Documento</option>
+            </select>
+            <input type="text" id="aval" placeholder="URL o nombre del archivo" style="flex:1">
+            <button class="btn-s" style="font-size:11px;flex-shrink:0;white-space:nowrap" onclick="addAdj()">+ Agregar</button>
+          </div>
+          ${f.adjuntos.map((a,i)=>`<div style="display:flex;align-items:center;gap:7px;padding:5px 9px;background:#13121f;border-radius:6px;margin-bottom:3px;border:1px solid #2e2c4a">
+            <span style="font-size:9px;font-weight:500;color:#7c78a0;text-transform:uppercase;flex-shrink:0">${a.tipo}</span>
+            <span style="flex:1;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#c0bcdc">${e(a.val)}</span>
+            <button onclick="rmAdj(${i})" style="background:none;border:none;cursor:pointer;color:#f87171;font-size:15px;padding:0;flex-shrink:0">×</button>
+          </div>`).join('')}
+        </div>
+        <div class="fld"><label class="lbl">Observaciones</label>
+          <textarea placeholder="Notas adicionales..." style="min-height:50px" oninput="S.tf.obs=this.value">${e(f.obs||'')}</textarea></div>
+      </div>
+      <div class="mf">
+        ${isEdit?`<button onclick="delT('${f.id}')" style="margin-right:auto;background:none;border:none;cursor:pointer;color:#f87171;font-size:12px;font-family:inherit">Eliminar tarea</button>`:''}
+        <button class="btn-s" onclick="closeM()">Cancelar</button>
+        <button class="btn-p" onclick="svT()">Guardar tarea</button>
+      </div>
     </div>
-
-    ${S.entrevistas.length === 0
-      ? `<div class="empty-state">
-           <div style="font-size:28px;margin-bottom:8px">🎙</div>
-           <div style="font-weight:500;margin-bottom:4px">Sin entrevistas registradas</div>
-           <div style="font-size:12px">Agendá entrevistas con funcionarios y medios de comunicación</div>
-         </div>`
-      : S.entrevistas.map(ee => {
-          const fn  = funcs.find(f => f.n === ee.funcionario);
-          const ph  = fn ? fn.t : ee.telCustom;
-          const ml  = ee.medio === 'otro' ? (ee.medioCustom || 'Otro') : ee.medio;
-          const msg = `Hola ${ee.funcionario}, le informamos que tiene una entrevista pactada con ${ml} el ${ee.fecha || 'próximamente'}${ee.hora ? ' a las ' + ee.hora : ''}.${ee.notas ? ' Tema: ' + ee.notas + '.' : ''} Saludos, Dirección de Comunicación — Municipalidad de Tres Arroyos.`;
-          return `
-            <div class="ec">
-              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
-                <div style="flex:1">
-                  <div style="font-size:14px;font-weight:500;margin-bottom:2px">${e(ml)}</div>
-                  <div style="font-size:12px;color:#9993b8">
-                    ${e(ee.funcionario)}
-                    ${fn?.custom ? `<span style="font-size:9px;background:#2b2200;color:#fbbf24;padding:1px 4px;border-radius:3px;margin-left:4px">personaliz.</span>` : ''}
-                  </div>
-                  ${fn?.c ? `<div style="font-size:11px;color:#5a5778">${e(fn.c)}</div>` : ''}
-                </div>
-                <div style="display:flex;gap:5px;align-items:center;flex-shrink:0">
-                  ${ph ? `<a class="wa" href="${waLink(ph, msg)}" target="_blank" rel="noopener">${waSvg()} Notificar</a>` : ''}
-                  <button class="btn-s" style="font-size:11px;padding:3px 9px" onclick="openEM('${ee.id}')">Editar</button>
-                  <button onclick="delE('${ee.id}')" style="background:none;border:none;cursor:pointer;color:#f87171;font-size:18px;padding:0 2px">×</button>
-                </div>
-              </div>
-              <div style="display:flex;gap:14px;margin-top:8px;font-size:11px;color:#7c78a0">
-                ${ee.fecha  ? `<span>${ee.fecha}</span>`          : ''}
-                ${ee.hora   ? `<span>${ee.hora}</span>`           : ''}
-                ${ee.lugar  ? `<span>${e(ee.lugar)}</span>`       : ''}
-                ${ph        ? `<span>+${t(ph)}</span>`            : ''}
-              </div>
-              ${ee.notas ? `<div style="margin-top:7px;font-size:11px;color:#9993b8;background:#13121f;padding:6px 9px;border-radius:6px">${e(ee.notas)}</div>` : ''}
-            </div>`;
-        }).join('')
-    }
-
-    <!-- Funcionarios personalizados -->
-    <div style="margin-top:28px">
-      <div class="sep"></div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin:14px 0 10px">
-        <span style="font-size:13px;font-weight:500">Funcionarios personalizados</span>
-        <button class="btn-s" style="font-size:11px" onclick="openCF()">+ Agregar</button>
-      </div>
-      ${S.cFuncs.length === 0
-        ? `<div style="font-size:12px;color:#5a5778">Agregá funcionarios que no figuren en el listado oficial.</div>`
-        : S.cFuncs.map((f, i) => `
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:#13121f;border-radius:6px;margin-bottom:5px">
-              <div>
-                <span style="font-size:12px;font-weight:500">${e(f.n)}</span>
-                ${f.c ? `<span style="font-size:11px;color:#7c78a0;margin-left:7px">${e(f.c)}</span>` : ''}
-              </div>
-              <div style="display:flex;gap:6px;align-items:center">
-                ${f.t ? `<a class="wa" href="${waLink(f.t, 'Hola ' + f.n + ', le contactamos desde la Municipalidad de Tres Arroyos.')}" target="_blank" rel="noopener" style="font-size:10px;padding:3px 7px">${waSvg()} WA</a>` : ''}
-                ${f.t ? `<span style="font-size:10px;color:#5a5778">+${t(f.t)}</span>` : ''}
-                <button onclick="dCF(${i})" style="background:none;border:none;cursor:pointer;color:#f87171;font-size:17px;padding:0">×</button>
-              </div>
-            </div>`
-          ).join('')
-      }
-    </div>`;
+  </div>`;
 }
 
-// ============================================================
-// MODAL — NUEVA / EDITAR TAREA
-// ============================================================
-function buildTaskModal() {
-  const f = S.tf;
-  const isEdit = f.id != null;
-  return `
-    <div class="ov" onclick="if(event.target===this)closeM()">
-      <div class="mdl" onclick="event.stopPropagation()">
-        <div class="mh">
-          <span style="font-size:14px;font-weight:500">${isEdit ? 'Editar tarea' : 'Nueva tarea'}</span>
-          <button onclick="closeM()" style="background:none;border:none;cursor:pointer;color:#7c78a0;font-size:19px;padding:0">×</button>
-        </div>
-        <div class="mb">
-
-          <!-- Título -->
-          <div class="fld">
-            <label class="lbl">Título</label>
-            <input type="text" value="${e(f.titulo || '')}" placeholder="Título de la tarea" oninput="S.tf.titulo=this.value">
-          </div>
-
-          <!-- Descripción -->
-          <div class="fld">
-            <label class="lbl">Descripción</label>
-            <textarea placeholder="Descripción..." oninput="S.tf.desc=this.value">${e(f.desc || '')}</textarea>
-          </div>
-
-          <!-- Estado + Prioridad -->
-          <div class="r2">
-            <div class="fld">
-              <label class="lbl">Estado</label>
-              <select onchange="S.tf.estado=this.value">
-                ${['Pendiente','En proceso','Listo'].map(s => `<option value="${s}" ${f.estado === s ? 'selected' : ''}>${s}</option>`).join('')}
-              </select>
-            </div>
-            <div class="fld">
-              <label class="lbl">Prioridad</label>
-              <select onchange="S.tf.prioridad=this.value">
-                ${['Alta','Media','Baja'].map(p => `<option value="${p}" ${f.prioridad === p ? 'selected' : ''}>${p}</option>`).join('')}
-              </select>
-            </div>
-          </div>
-
-          <!-- Responsables múltiples -->
-          <div class="fld">
-            <label class="lbl">Responsables (podés elegir varios)</label>
-            <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px">
-              ${EQ.map(m => `
-                <button onclick="tResp('${m}')"
-                  style="padding:3px 9px;border-radius:8px;border:1px solid ${f.responsables.includes(m) ? '#6c5ce7' : '#3a3660'};font-size:11px;cursor:pointer;font-family:inherit;background:${f.responsables.includes(m) ? '#6c5ce7' : 'transparent'};color:${f.responsables.includes(m) ? 'white' : '#9993b8'}">
-                  ${m}
-                </button>`).join('')}
-            </div>
-            ${f.responsables.length > 0
-              ? `<div style="display:flex;flex-wrap:wrap;gap:4px">${f.responsables.map(r => `<span class="chip">${r}<button onclick="tResp('${r}')">×</button></span>`).join('')}</div>`
-              : ''}
-          </div>
-
-          <!-- Notificaciones -->
-          <div class="fld">
-            <label class="lbl">Notificar responsables por</label>
-            <div style="display:flex;gap:7px;flex-wrap:wrap">
-              <button onclick="tNotif('whatsapp')"
-                style="padding:5px 11px;border-radius:6px;border:1px solid ${f.notif.includes('whatsapp') ? '#25D366' : '#3a3660'};background:${f.notif.includes('whatsapp') ? '#25D366' : 'transparent'};color:${f.notif.includes('whatsapp') ? 'white' : '#9993b8'};cursor:pointer;font-size:11px;font-family:inherit;display:flex;align-items:center;gap:4px">
-                ${waSvg()} WhatsApp
-              </button>
-              <button onclick="tNotif('mail')"
-                style="padding:5px 11px;border-radius:6px;border:1px solid ${f.notif.includes('mail') ? '#6c5ce7' : '#3a3660'};background:${f.notif.includes('mail') ? '#2d2a5e' : 'transparent'};color:${f.notif.includes('mail') ? '#a89cf7' : '#9993b8'};cursor:pointer;font-size:11px;font-family:inherit">
-                ✉ Email
-              </button>
-              <button onclick="tNotif('sin')"
-                style="padding:5px 11px;border-radius:6px;border:1px solid ${f.notif.includes('sin') ? '#3a3660' : '#2a2840'};background:${f.notif.includes('sin') ? '#1e1d2e' : 'transparent'};color:#7c78a0;cursor:pointer;font-size:11px;font-family:inherit">
-                Sin notif.
-              </button>
-            </div>
-          </div>
-
-          <!-- Adjuntos -->
-          <div class="fld">
-            <label class="lbl">Adjuntos — imágenes, links, documentos</label>
-            <div style="display:flex;gap:6px;margin-bottom:7px">
-              <select id="atipo" style="flex:0 0 auto;width:105px">
-                <option value="link">Enlace</option>
-                <option value="imagen">Imagen</option>
-                <option value="doc">Documento</option>
-              </select>
-              <input type="text" id="aval" placeholder="URL o nombre del archivo" style="flex:1">
-              <button class="btn-s" style="font-size:11px;flex-shrink:0" onclick="addAdj()">+ Agregar</button>
-            </div>
-            ${f.adjuntos.map((a, i) => `
-              <div style="display:flex;align-items:center;gap:7px;padding:5px 9px;background:#13121f;border-radius:6px;margin-bottom:3px">
-                <span style="font-size:9px;font-weight:500;color:#7c78a0;text-transform:uppercase;flex-shrink:0">${a.tipo}</span>
-                <span style="flex:1;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e(a.val)}</span>
-                <button onclick="rmAdj(${i})" style="background:none;border:none;cursor:pointer;color:#f87171;font-size:15px;padding:0">×</button>
-              </div>`).join('')}
-          </div>
-
-          <!-- Observaciones -->
-          <div class="fld">
-            <label class="lbl">Observaciones</label>
-            <textarea placeholder="Notas adicionales..." style="min-height:50px" oninput="S.tf.obs=this.value">${e(f.obs || '')}</textarea>
-          </div>
-
-        </div>
-        <div class="mf">
-          ${isEdit ? `<button onclick="delT('${f.id}')" style="margin-right:auto;background:none;border:none;cursor:pointer;color:#f87171;font-size:12px;font-family:inherit">Eliminar tarea</button>` : ''}
-          <button class="btn-s" onclick="closeM()">Cancelar</button>
-          <button class="btn-p" onclick="svT()">Guardar tarea</button>
-        </div>
-      </div>
-    </div>`;
-}
-
-// ============================================================
-// MODAL — NUEVA / EDITAR ENTREVISTA
-// ============================================================
-function buildEntModal() {
-  const f = S.ef;
-  const funcs = aF();
-  const fn = f.funcionario && f.funcionario !== '__otro__' ? funcs.find(ff => ff.n === f.funcionario) : null;
-  return `
-    <div class="ov" onclick="if(event.target===this)closeM()">
-      <div class="mdl" onclick="event.stopPropagation()">
-        <div class="mh">
-          <span style="font-size:14px;font-weight:500">${f.id ? 'Editar entrevista' : 'Nueva entrevista'}</span>
-          <button onclick="closeM()" style="background:none;border:none;cursor:pointer;color:#7c78a0;font-size:19px;padding:0">×</button>
-        </div>
-        <div class="mb">
-
-          <!-- Medio -->
-          <div class="fld">
-            <label class="lbl">Medio de comunicación</label>
-            <select onchange="uEF('medio',this.value)">
-              <option value="">— Seleccionar medio —</option>
-              ${MEDIOS.map(m => `<option value="${m}" ${f.medio === m ? 'selected' : ''}>${m}</option>`).join('')}
-              <option value="otro" ${f.medio === 'otro' ? 'selected' : ''}>Otro...</option>
-            </select>
-            ${f.medio === 'otro' ? `<input type="text" placeholder="Nombre del medio" value="${e(f.medioCustom || '')}" oninput="S.ef.medioCustom=this.value" style="margin-top:7px">` : ''}
-          </div>
-
-          <!-- Funcionario -->
-          <div class="fld">
-            <label class="lbl">Funcionario</label>
-            <select onchange="uEF('funcionario',this.value)">
-              <option value="">— Seleccionar funcionario —</option>
-              ${funcs.map(ff => `<option value="${e(ff.n)}" ${f.funcionario === ff.n ? 'selected' : ''}>${e(ff.n)} — ${e(ff.c || '')}${ff.custom ? ' ✦' : ''}</option>`).join('')}
-              <option value="__otro__" ${f.funcionario === '__otro__' ? 'selected' : ''}>+ Otro (no en lista)</option>
-            </select>
-            ${f.funcionario === '__otro__' ? `
-              <input type="text" placeholder="Nombre del funcionario *" value="${e(f.otroNombre || '')}" oninput="S.ef.otroNombre=this.value" style="margin-top:7px">
-              <input type="text" placeholder="Cargo (opcional)" value="${e(f.otroCargo || '')}" oninput="S.ef.otroCargo=this.value" style="margin-top:6px">
-              <input type="tel" placeholder="Teléfono WhatsApp (ej: 5492983123456)" value="${e(f.otroTel || '')}" oninput="S.ef.otroTel=this.value" style="margin-top:6px">` : ''}
-            ${fn && fn.t ? `
-              <div style="padding:7px 9px;background:#13121f;border-radius:6px;font-size:11px;margin-top:6px;display:flex;justify-content:space-between;align-items:center;gap:8px">
-                <div style="display:flex;align-items:center;gap:6px">
-                  <span style="color:#7c78a0">Contacto:</span>
-                  <span style="font-weight:500">+${t(fn.t)}</span>
-                </div>
-                <a id="wa-preview-link" class="wa" href="#" target="_blank" rel="noopener" onclick="return updateWaLink(this)" style="font-size:10px;padding:3px 8px;flex-shrink:0">${waSvg()} Enviar por WA</a>
-              </div>` : ''}
-          </div>
-
-          <!-- Fecha + Hora -->
-          <div class="r2">
-            <div class="fld">
-              <label class="lbl">Fecha</label>
-              <input type="date" value="${e(f.fecha || '')}" onchange="S.ef.fecha=this.value">
-            </div>
-            <div class="fld">
-              <label class="lbl">Hora</label>
-              <input type="time" value="${e(f.hora || '')}" onchange="S.ef.hora=this.value">
-            </div>
-          </div>
-
-          <!-- Lugar -->
-          <div class="fld">
-            <label class="lbl">Lugar (opcional)</label>
-            <input type="text" placeholder="Sala de prensa, municipio, estudio..." value="${e(f.lugar || '')}" oninput="S.ef.lugar=this.value">
-          </div>
-
-          <!-- Notas -->
-          <div class="fld">
-            <label class="lbl">Tema / Notas</label>
-            <textarea placeholder="Tema a tratar, puntos clave, contexto..." oninput="S.ef.notas=this.value">${e(f.notas || '')}</textarea>
-          </div>
-
-        </div>
-        <div class="mf">
-          <button class="btn-s" onclick="closeM()">Cancelar</button>
-          <button class="btn-p" onclick="svE()">Guardar entrevista</button>
-        </div>
-      </div>
-    </div>`;
-}
-
-// ============================================================
-// MODAL — AGREGAR FUNCIONARIO PERSONALIZADO
-// ============================================================
-function buildCFModal() {
-  const f = S.cff || {};
-  return `
-    <div class="ov" onclick="if(event.target===this)closeM()">
-      <div class="mdl" style="max-width:380px" onclick="event.stopPropagation()">
-        <div class="mh">
-          <span style="font-size:14px;font-weight:500">Agregar funcionario</span>
-          <button onclick="closeM()" style="background:none;border:none;cursor:pointer;color:#7c78a0;font-size:19px;padding:0">×</button>
-        </div>
-        <div class="mb">
-          <div class="fld">
-            <label class="lbl">Nombre y apellido *</label>
-            <input type="text" placeholder="Nombre completo" value="${e(f.n || '')}" oninput="S.cff.n=this.value">
-          </div>
-          <div class="fld">
-            <label class="lbl">Cargo</label>
-            <input type="text" placeholder="Cargo / función" value="${e(f.c || '')}" oninput="S.cff.c=this.value">
-          </div>
-          <div class="fld">
-            <label class="lbl">Teléfono WhatsApp</label>
-            <input type="tel" placeholder="5492983..." value="${e(f.t || '')}" oninput="S.cff.t=this.value">
-            <span style="font-size:10px;color:#5a5778">Sin espacios ni símbolos. Ej: 5492983642913</span>
-          </div>
-        </div>
-        <div class="mf">
-          <button class="btn-s" onclick="closeM()">Cancelar</button>
-          <button class="btn-p" onclick="svCF()">Guardar</button>
-        </div>
-      </div>
-    </div>`;
-}
-
-// ============================================================
-// ACCIONES
-// ============================================================
-function setTab(x)     { S.tab = x; render(); }
-
-function openTM(id) {
-  if (id) {
-    const tt = S.tasks.find(x => x.id === id);
-    S.tf = { ...tt, responsables: [...tt.responsables], adjuntos: [...tt.adjuntos], notif: [...(tt.notif || [])] };
-  } else {
-    S.tf = { id: null, titulo: '', desc: '', estado: 'Pendiente', prioridad: 'Media', responsables: [], adjuntos: [], notif: [], obs: '' };
+function buildEntModal(){
+  const f=S.ef; const funcs=aF();
+  const fn=f.funcionario&&f.funcionario!=='__otro__'?funcs.find(ff=>ff.n===f.funcionario):null;
+  // Construir link WA con datos actuales del formulario
+  let waPreviewHref='#';
+  if(fn&&fn.t){
+    const ml=f.medio==='otro'?(f.medioCustom||'Otro'):f.medio;
+    const partes=[];
+    if(ml) partes.push('Medio: '+ml);
+    if(f.fecha) partes.push('Fecha: '+f.fecha);
+    if(f.hora) partes.push('Hora: '+f.hora);
+    if(f.lugar) partes.push('Lugar: '+f.lugar);
+    if(f.notas) partes.push('Tema: '+f.notas);
+    const msg='Hola '+f.funcionario+', le informamos que tiene una entrevista pactada'+(partes.length?':\n'+partes.join('\n'):'')+'\n\nSaludos, Dirección de Comunicación — Municipalidad de Tres Arroyos.';
+    waPreviewHref=waLink(fn.t,msg);
   }
-  S.modal = 'task'; render();
+  return `<div class="ov" onclick="if(event.target===this)closeM()">
+    <div class="mdl" onclick="event.stopPropagation()">
+      <div class="mh">
+        <span style="font-size:14px;font-weight:500">${f.id?'Editar entrevista':'Nueva entrevista'}</span>
+        <button onclick="closeM()" style="background:none;border:none;cursor:pointer;color:#7c78a0;font-size:20px;padding:0;line-height:1">×</button>
+      </div>
+      <div class="mb">
+        <div class="fld"><label class="lbl">Medio de comunicación</label>
+          <select onchange="uEF('medio',this.value)">
+            <option value="">— Seleccionar medio —</option>
+            ${MEDIOS.map(m=>`<option value="${m}" ${f.medio===m?'selected':''}>${m}</option>`).join('')}
+            <option value="otro" ${f.medio==='otro'?'selected':''}>Otro...</option>
+          </select>
+          ${f.medio==='otro'?`<input type="text" placeholder="Nombre del medio" value="${e(f.medioCustom||'')}" oninput="S.ef.medioCustom=this.value" style="margin-top:7px">`:''}</div>
+        <div class="fld"><label class="lbl">Funcionario</label>
+          <select onchange="uEF('funcionario',this.value)">
+            <option value="">— Seleccionar funcionario —</option>
+            ${funcs.map(ff=>`<option value="${e(ff.n)}" ${f.funcionario===ff.n?'selected':''}>${e(ff.n)} — ${e(ff.c||'')}${ff.custom?' ✦':''}</option>`).join('')}
+            <option value="__otro__" ${f.funcionario==='__otro__'?'selected':''}>+ Otro (no en lista)</option>
+          </select>
+          ${f.funcionario==='__otro__'?`
+            <input type="text" placeholder="Nombre del funcionario *" value="${e(f.otroNombre||'')}" oninput="S.ef.otroNombre=this.value" style="margin-top:7px">
+            <input type="text" placeholder="Cargo (opcional)" value="${e(f.otroCargo||'')}" oninput="S.ef.otroCargo=this.value" style="margin-top:6px">
+            <input type="tel" placeholder="Teléfono WhatsApp (ej: 5492983123456)" value="${e(f.otroTel||'')}" oninput="S.ef.otroTel=this.value" style="margin-top:6px">`:''}
+          ${fn&&fn.t?`<div class="info-box">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="color:#7c78a0">Contacto:</span>
+              <span style="font-weight:500;color:#e8e6f0">+${cl(fn.t)}</span>
+            </div>
+            <a class="wa" href="${waPreviewHref}" target="_blank" rel="noopener" style="font-size:10px;padding:4px 10px;white-space:nowrap">${waSvg()} Enviar por WA</a>
+          </div>`:''}</div>
+        <div class="r2">
+          <div class="fld"><label class="lbl">Fecha</label>
+            <input type="date" value="${e(f.fecha||'')}" onchange="uEF('fecha',this.value)"></div>
+          <div class="fld"><label class="lbl">Hora</label>
+            <input type="time" value="${e(f.hora||'')}" onchange="uEF('hora',this.value)"></div>
+        </div>
+        <div class="fld"><label class="lbl">Lugar (opcional)</label>
+          <input type="text" placeholder="Sala de prensa, municipio, estudio..." value="${e(f.lugar||'')}" oninput="S.ef.lugar=this.value"></div>
+        <div class="fld"><label class="lbl">Tema / Notas</label>
+          <textarea placeholder="Tema a tratar, puntos clave, contexto..." oninput="S.ef.notas=this.value">${e(f.notas||'')}</textarea></div>
+      </div>
+      <div class="mf">
+        <button class="btn-s" onclick="closeM()">Cancelar</button>
+        <button class="btn-p" onclick="svE()">Guardar entrevista</button>
+      </div>
+    </div>
+  </div>`;
 }
 
-function openEM(id) {
-  if (id) { const ee = S.entrevistas.find(x => x.id === id); S.ef = { ...ee }; }
-  else    { S.ef = { id: null, medio: '', medioCustom: '', funcionario: '', otroNombre: '', otroCargo: '', otroTel: '', fecha: '', hora: '', lugar: '', notas: '', telCustom: '' }; }
-  S.modal = 'ent'; render();
+function buildCFModal(){
+  const f=S.cff||{};
+  return `<div class="ov" onclick="if(event.target===this)closeM()">
+    <div class="mdl" style="max-width:380px" onclick="event.stopPropagation()">
+      <div class="mh">
+        <span style="font-size:14px;font-weight:500">Agregar funcionario</span>
+        <button onclick="closeM()" style="background:none;border:none;cursor:pointer;color:#7c78a0;font-size:20px;padding:0;line-height:1">×</button>
+      </div>
+      <div class="mb">
+        <div class="fld"><label class="lbl">Nombre y apellido *</label>
+          <input type="text" placeholder="Nombre completo" value="${e(f.n||'')}" oninput="S.cff.n=this.value"></div>
+        <div class="fld"><label class="lbl">Cargo</label>
+          <input type="text" placeholder="Cargo / función" value="${e(f.c||'')}" oninput="S.cff.c=this.value"></div>
+        <div class="fld"><label class="lbl">Teléfono WhatsApp</label>
+          <input type="tel" placeholder="5492983..." value="${e(f.t||'')}" oninput="S.cff.t=this.value">
+          <span style="font-size:10px;color:#5a5778">Sin espacios ni símbolos. Ej: 5492983642913</span></div>
+      </div>
+      <div class="mf">
+        <button class="btn-s" onclick="closeM()">Cancelar</button>
+        <button class="btn-p" onclick="svCF()">Guardar</button>
+      </div>
+    </div>
+  </div>`;
 }
 
-function openCF() { S.cff = { n: '', c: '', t: '' }; S.modal = 'cf'; render(); }
-function closeM() { S.modal = null; S.tf = null; S.ef = null; S.cff = null; render(); }
+function setTab(x){S.tab=x;render();}
+function openTM(id){
+  if(id){const tt=S.tasks.find(x=>x.id===id);S.tf={...tt,responsables:[...tt.responsables],adjuntos:[...(tt.adjuntos||[])],notif:[...(tt.notif||[])]};}
+  else{S.tf={id:null,titulo:'',desc:'',estado:'Pendiente',prioridad:'Media',responsables:[],adjuntos:[],notif:[],obs:''};}
+  S.modal='task';render();
+}
+function openEM(id){
+  if(id){const ee=S.entrevistas.find(x=>x.id===id);S.ef={...ee};}
+  else{S.ef={id:null,medio:'',medioCustom:'',funcionario:'',otroNombre:'',otroCargo:'',otroTel:'',fecha:'',hora:'',lugar:'',notas:'',telCustom:''};}
+  S.modal='ent';render();
+}
+function openCF(){S.cff={n:'',c:'',t:''};S.modal='cf';render();}
+function closeM(){S.modal=null;S.tf=null;S.ef=null;S.cff=null;render();}
+function tResp(n){const i=S.tf.responsables.indexOf(n);if(i===-1)S.tf.responsables.push(n);else S.tf.responsables.splice(i,1);render();}
+function tNotif(x){const i=S.tf.notif.indexOf(x);if(i===-1)S.tf.notif.push(x);else S.tf.notif.splice(i,1);render();}
+function addAdj(){const tipo=document.getElementById('atipo')?.value;const val=(document.getElementById('aval')?.value||'').trim();if(!val||!S.tf)return;S.tf.adjuntos.push({tipo,val});render();}
+function rmAdj(i){S.tf.adjuntos.splice(i,1);render();}
+function svT(){
+  const f=S.tf;if(!f.titulo.trim()){alert('El título es requerido');return;}
+  if(f.id){const i=S.tasks.findIndex(x=>x.id===f.id);if(i!==-1)S.tasks[i]={...f};}
+  else{S.tasks.push({...f,id:gid()});}
+  closeM();saveData();
+}
+function delT(id){if(!confirm('¿Eliminar esta tarea?'))return;S.tasks=S.tasks.filter(x=>x.id!==id);closeM();saveData();}
+function uEF(k,v){if(S.ef){S.ef[k]=v;render();}}
+function svE(){
+  const f=S.ef;
+  if(!f.medio){alert('Seleccioná un medio de comunicación');return;}
+  if(f.medio==='otro'&&!f.medioCustom?.trim()){alert('Ingresá el nombre del medio');return;}
+  let fn=f.funcionario;
+  if(fn==='__otro__'){if(!f.otroNombre?.trim()){alert('Ingresá el nombre del funcionario');return;}fn=f.otroNombre.trim();}
+  else if(!fn){alert('Seleccioná un funcionario');return;}
+  const ent={id:f.id||gid(),medio:f.medio,medioCustom:f.medioCustom||'',funcionario:fn,telCustom:f.otroTel||f.telCustom||'',fecha:f.fecha||'',hora:f.hora||'',lugar:f.lugar||'',notas:f.notas||''};
+  if(f.id){const i=S.entrevistas.findIndex(x=>x.id===f.id);if(i!==-1)S.entrevistas[i]=ent;}
+  else{S.entrevistas.unshift(ent);}
+  closeM();saveData();
+}
+function delE(id){S.entrevistas=S.entrevistas.filter(x=>x.id!==id);render();saveData();}
+function svCF(){const f=S.cff;if(!f.n?.trim()){alert('El nombre es requerido');return;}S.cFuncs.push({n:f.n.trim(),c:f.c?.trim()||'',t:f.t?.trim()||''});closeM();saveData();}
+function dCF(i){S.cFuncs.splice(i,1);render();saveData();}
 
-function tResp(n) {
-  const i = S.tf.responsables.indexOf(n);
-  if (i === -1) S.tf.responsables.push(n); else S.tf.responsables.splice(i, 1);
-  render();
-}
-function tNotif(x) {
-  const i = S.tf.notif.indexOf(x);
-  if (i === -1) S.tf.notif.push(x); else S.tf.notif.splice(i, 1);
-  render();
-}
-function addAdj() {
-  const tipo = document.getElementById('atipo')?.value;
-  const val  = (document.getElementById('aval')?.value || '').trim();
-  if (!val || !S.tf) return;
-  S.tf.adjuntos.push({ tipo, val }); render();
-}
-function rmAdj(i) { S.tf.adjuntos.splice(i, 1); render(); }
-
-function svT() {
-  const f = S.tf;
-  if (!f.titulo.trim()) { alert('El título es requerido'); return; }
-  if (f.id) { const i = S.tasks.findIndex(x => x.id === f.id); if (i !== -1) S.tasks[i] = { ...f }; }
-  else      { S.tasks.push({ ...f, id: gid() }); }
-  closeM(); saveData();
-}
-function delT(id) {
-  if (!confirm('¿Eliminar esta tarea?')) return;
-  S.tasks = S.tasks.filter(x => x.id !== id);
-  closeM(); saveData();
-}
-
-function uEF(k, v) { if (S.ef) { S.ef[k] = v; render(); } }
-
-function updateWaLink(el) {
-  const f = S.ef;
-  if (!f) return false;
-  const funcs = aF();
-  const fn = funcs.find(ff => ff.n === f.funcionario);
-  const ph = fn ? fn.t : f.telCustom;
-  if (!ph) return false;
-  const ml = f.medio === 'otro' ? (f.medioCustom || 'Otro') : f.medio;
-  const nombre = f.funcionario !== '__otro__' ? f.funcionario : (f.otroNombre || '');
-  const partes = [];
-  if (ml)       partes.push(`Medio: ${ml}`);
-  if (f.fecha)  partes.push(`Fecha: ${f.fecha}`);
-  if (f.hora)   partes.push(`Hora: ${f.hora}`);
-  if (f.lugar)  partes.push(`Lugar: ${f.lugar}`);
-  if (f.notas)  partes.push(`Tema: ${f.notas}`);
-  const msg = `Hola ${nombre}, le informamos que tiene una entrevista pactada:\n${partes.join('\n')}\n\nSaludos, Dirección de Comunicación — Municipalidad de Tres Arroyos.`;
-  el.href = waLink(ph, msg);
-  return true;
-}
-
-function svE() {
-  const f = S.ef;
-  if (!f.medio) { alert('Seleccioná un medio de comunicación'); return; }
-  if (f.medio === 'otro' && !f.medioCustom?.trim()) { alert('Ingresá el nombre del medio'); return; }
-  let fn = f.funcionario;
-  if (fn === '__otro__') {
-    if (!f.otroNombre?.trim()) { alert('Ingresá el nombre del funcionario'); return; }
-    fn = f.otroNombre.trim();
-  } else if (!fn) { alert('Seleccioná un funcionario'); return; }
-  const ent = { id: f.id || gid(), medio: f.medio, medioCustom: f.medioCustom || '', funcionario: fn, telCustom: f.otroTel || f.telCustom || '', fecha: f.fecha || '', hora: f.hora || '', lugar: f.lugar || '', notas: f.notas || '' };
-  if (f.id) { const i = S.entrevistas.findIndex(x => x.id === f.id); if (i !== -1) S.entrevistas[i] = ent; }
-  else      { S.entrevistas.unshift(ent); }
-  closeM(); saveData();
-}
-function delE(id) { S.entrevistas = S.entrevistas.filter(x => x.id !== id); render(); saveData(); }
-
-function svCF() {
-  const f = S.cff;
-  if (!f.n?.trim()) { alert('El nombre es requerido'); return; }
-  S.cFuncs.push({ n: f.n.trim(), c: f.c?.trim() || '', t: f.t?.trim() || '' });
-  closeM(); saveData();
-}
-function dCF(i) { S.cFuncs.splice(i, 1); render(); saveData(); }
-
-// ============================================================
-// INICIO
-// ============================================================
 loadData();
 render();
 </script>
