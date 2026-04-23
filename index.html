@@ -1168,24 +1168,32 @@ function limpiarFiltro(){
   renderKanban();
   const panel=document.getElementById("fpanel");
   if(panel)panel.style.display="none";
+  // Limpiar también el dropdown del kanban
+  const kfr=document.getElementById("kfr");
+  if(kfr)kfr.value="";
 }
 
 function renderPersons(){
   document.getElementById("sbpersons").innerHTML=teams.map(m=>{
     const pend=tasks.filter(t=>t.responsable===m.nombre&&t.estado!=="Completo").length;
-    const isSelected=fp===m.nombre;
-    return`<div class="sbp${isSelected?" sel":""}" onclick="setFP(this,'${m.nombre.replace(/'/g,"\\'")}')">
+    const isSel=fp===m.nombre;
+    const safeName=m.nombre.replace(/\\/g,"\\\\").replace(/'/g,"\\'");
+    return`<div class="sbp${isSel?" sel":""}" onclick="clickPersona('${safeName}')" style="${isSel?"border-left:3px solid #6d28d9;background:#ede9fe":""}">
       ${av(m,18)}
-      <span style="font-size:11px;font-weight:${isSelected?700:400};color:${isSelected?"#6d28d9":"#4b5563"};flex:1">${m.nombre}</span>
-      <span style="font-size:9px;color:${pend>0?"#dc2626":"#9ca3af"};font-weight:${pend>0?700:400};min-width:14px;text-align:right">${pend||""}</span>
+      <span style="font-size:11px;font-weight:${isSel?700:400};color:${isSel?"#6d28d9":"#4b5563"};flex:1">${m.nombre}</span>
+      <span style="font-size:9px;background:${pend>0?"#fee2e2":"#f3f4f6"};color:${pend>0?"#dc2626":"#9ca3af"};font-weight:700;border-radius:10px;padding:0 5px;min-width:18px;text-align:center">${pend||""}</span>
     </div>`;
   }).join("");
 }
 
-function setFP(el,n){
+function clickPersona(n){
   fp=(fp===n)?"":n;
   renderPersons();
   renderKanban();
+  actualizarFPanel();
+}
+
+function actualizarFPanel(){
   const panel=document.getElementById("fpanel");
   if(!panel)return;
   if(fp){
@@ -1196,16 +1204,17 @@ function setFP(el,n){
     const altas=pend.filter(t=>t.prioridad==="Alta").length;
     if(nameEl)nameEl.textContent=fp;
     if(countEl)countEl.innerHTML=`${pend.length} tarea${pend.length!==1?"s":""} activa${pend.length!==1?"s":""}${altas?` · <span style="color:#dc2626;font-weight:700">${altas} urgente${altas!==1?"s":""}</span>`:""}`;
-    // Deshabilitar botones si no tiene contacto
     const c=getContact(fp);
     const waBtn=document.getElementById("fpbtn-wa");
     const mailBtn=document.getElementById("fpbtn-mail");
-    if(waBtn){waBtn.style.opacity=c.tel?"1":"0.4";waBtn.title=c.tel?"Enviar por WhatsApp":"Sin teléfono cargado";}
-    if(mailBtn){mailBtn.style.opacity=c.email?"1":"0.4";mailBtn.title=c.email?"Enviar por Gmail":"Sin correo cargado";}
+    if(waBtn){waBtn.style.opacity=c.tel?"1":"0.4";waBtn.title=c.tel?"Enviar por WhatsApp":"Sin teléfono";}
+    if(mailBtn){mailBtn.style.opacity=c.email?"1":"0.4";mailBtn.title=c.email?"Enviar por Gmail":"Sin correo";}
   }else{
     panel.style.display="none";
   }
 }
+
+function setFP(el,n){clickPersona(n);}
 
 // ═══ KANBAN ═══
 function renderKanban(){
