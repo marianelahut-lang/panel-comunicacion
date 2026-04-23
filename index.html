@@ -1121,14 +1121,18 @@ function mail(nombre,sub,body){
 
 function popSelects(){
   ["fresp","agresp","presp","progresp"].forEach(id=>{
-    const s=document.getElementById(id);if(!s)return;
+    const s=document.getElementById(id);
+    if(!s||s.tagName!=="SELECT")return; // skip non-select elements (inputs, etc)
     const v=s.value;while(s.options.length>1)s.remove(1);
     const list=id==="agresp"?teams.filter(m=>m.cobertura):teams;
     list.forEach(m=>s.appendChild(new Option(m.nombre,m.nombre)));
     s.value=v;
   });
   const kfr=document.getElementById("kfr");
-  if(kfr){const v=kfr.value;while(kfr.options.length>1)kfr.remove(1);teams.forEach(m=>kfr.appendChild(new Option(m.nombre,m.nombre)));kfr.value=v;}
+  if(kfr&&kfr.tagName==="SELECT"){const v=kfr.value;while(kfr.options.length>1)kfr.remove(1);teams.forEach(m=>kfr.appendChild(new Option(m.nombre,m.nombre)));kfr.value=v;}
+  // Populate fresp datalist if it exists
+  const dl=document.getElementById("fresp-list");
+  if(dl){dl.innerHTML=teams.map(m=>`<option value="${m.nombre}">`).join("");}
 }
 
 // ═══ LOGIN ═══
