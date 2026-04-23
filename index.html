@@ -6,7 +6,13 @@
   <title>Panel de Comunicación — Municipalidad de Tres Arroyos</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: system-ui, -apple-system, sans-serif; background: #0f0e17; color: #e8e6f0; min-height: 100vh; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #0f0e17; color: #e8e6f0; min-height: 100vh; color-scheme: dark; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #13121f; }
+    ::-webkit-scrollbar-thumb { background: #3a3660; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #6c5ce7; }
 
     /* NAV */
     .nav { display: flex; align-items: center; gap: 2px; padding: 8px 14px; border-bottom: 1px solid #2a2840; flex-wrap: wrap; gap: 4px; background: #12111e; }
@@ -47,9 +53,26 @@
       color: #e8e6f0;
       font-size: 12px;
       font-family: inherit;
+      color-scheme: dark;
+      -webkit-appearance: none;
+      appearance: none;
     }
-    input:focus, select:focus, textarea:focus { outline: none; border-color: #6c5ce7; }
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239993b8' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 9px center;
+      padding-right: 28px;
+    }
+    input[type="date"], input[type="time"] {
+      background-image: none;
+    }
+    input::placeholder, textarea::placeholder { color: #5a5778; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #6c5ce7; box-shadow: 0 0 0 2px #6c5ce722; }
     textarea { resize: vertical; min-height: 64px; }
+    input[type="date"]::-webkit-calendar-picker-indicator,
+    input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(0.6); cursor: pointer; }
+
+    option { background: #1a1929; color: #e8e6f0; }
 
     /* CHIPS */
     .chip { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 8px; background: #2d2a5e; color: #a89cf7; font-size: 11px; }
@@ -488,9 +511,12 @@ function buildEntModal() {
               <input type="text" placeholder="Cargo (opcional)" value="${e(f.otroCargo || '')}" oninput="S.ef.otroCargo=this.value" style="margin-top:6px">
               <input type="tel" placeholder="Teléfono WhatsApp (ej: 5492983123456)" value="${e(f.otroTel || '')}" oninput="S.ef.otroTel=this.value" style="margin-top:6px">` : ''}
             ${fn && fn.t ? `
-              <div style="padding:7px 9px;background:#13121f;border-radius:6px;font-size:11px;margin-top:6px;display:flex;justify-content:space-between;align-items:center">
-                <span style="color:#7c78a0">Contacto guardado:</span>
-                <span style="font-weight:500">+${t(fn.t)}</span>
+              <div style="padding:7px 9px;background:#13121f;border-radius:6px;font-size:11px;margin-top:6px;display:flex;justify-content:space-between;align-items:center;gap:8px">
+                <div style="display:flex;align-items:center;gap:6px">
+                  <span style="color:#7c78a0">Contacto:</span>
+                  <span style="font-weight:500">+${t(fn.t)}</span>
+                </div>
+                <a id="wa-preview-link" class="wa" href="#" target="_blank" rel="noopener" onclick="return updateWaLink(this)" style="font-size:10px;padding:3px 8px;flex-shrink:0">${waSvg()} Enviar por WA</a>
               </div>` : ''}
           </div>
 
@@ -618,6 +644,26 @@ function delT(id) {
 }
 
 function uEF(k, v) { if (S.ef) { S.ef[k] = v; render(); } }
+
+function updateWaLink(el) {
+  const f = S.ef;
+  if (!f) return false;
+  const funcs = aF();
+  const fn = funcs.find(ff => ff.n === f.funcionario);
+  const ph = fn ? fn.t : f.telCustom;
+  if (!ph) return false;
+  const ml = f.medio === 'otro' ? (f.medioCustom || 'Otro') : f.medio;
+  const nombre = f.funcionario !== '__otro__' ? f.funcionario : (f.otroNombre || '');
+  const partes = [];
+  if (ml)       partes.push(`Medio: ${ml}`);
+  if (f.fecha)  partes.push(`Fecha: ${f.fecha}`);
+  if (f.hora)   partes.push(`Hora: ${f.hora}`);
+  if (f.lugar)  partes.push(`Lugar: ${f.lugar}`);
+  if (f.notas)  partes.push(`Tema: ${f.notas}`);
+  const msg = `Hola ${nombre}, le informamos que tiene una entrevista pactada:\n${partes.join('\n')}\n\nSaludos, Dirección de Comunicación — Municipalidad de Tres Arroyos.`;
+  el.href = waLink(ph, msg);
+  return true;
+}
 
 function svE() {
   const f = S.ef;
