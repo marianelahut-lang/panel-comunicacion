@@ -444,7 +444,7 @@ body.dark .lfg select,body.dark .lfg input{color:#fff}
   <div class="topbar">
     <div class="logo">
       <div class="logo-b">TA</div>
-      <div><div class="logo-n">Comunicación</div><div class="logo-s">Muni · Tres Arroyos · v3</div></div>
+      <div><div class="logo-n">Comunicación</div><div class="logo-s">Muni · Tres Arroyos · v4</div></div>
     </div>
     <div class="ntabs">
       <button class="ntab on" onclick="nav('tablero',this)">Tablero</button>
@@ -700,19 +700,41 @@ body.dark .lfg select,body.dark .lfg input{color:#fff}
 </div>
 
 <!-- MODALS -->
-<div class="ov" id="modTask"><div class="mod">
+<div class="ov" id="modTask"><div class="mod" style="max-width:520px">
   <div class="mod-t" id="taskmodt">Nueva tarea</div>
   <input type="hidden" id="editTid">
-  <div class="fg"><label>Descripción</label><textarea id="fdesc" rows="3"></textarea></div>
+  <div class="fg"><label>Descripción</label><textarea id="fdesc" rows="3" placeholder="Descripción de la tarea..."></textarea></div>
+  <!-- Responsables múltiples -->
+  <div class="fg">
+    <label>Responsables <span style="font-size:9px;color:#9ca3af;font-weight:400">(podés elegir más de uno)</span></label>
+    <div id="fresp-chips" style="display:flex;flex-wrap:wrap;gap:4px;min-height:28px;padding:4px;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:4px;cursor:pointer" onclick="document.getElementById('fresp-dd').style.display=document.getElementById('fresp-dd').style.display==='none'?'block':'none'">
+      <span style="font-size:10px;color:#9ca3af;padding:2px 4px" id="fresp-placeholder">Clic para asignar responsables...</span>
+    </div>
+    <div id="fresp-dd" style="display:none;border:1px solid #e5e7eb;border-radius:8px;background:#fff;max-height:160px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.1)">
+      <div id="fresp-options"></div>
+    </div>
+    <input type="hidden" id="fresp">
+  </div>
   <div class="fr">
-    <div class="fg"><label>Responsable</label><select id="fresp"><option value="">Sin asignar</option></select></div>
     <div class="fg"><label>Prioridad</label><select id="fprio"><option>Alta</option><option selected>Media</option><option>Baja</option></select></div>
-  </div>
-  <div class="fr">
     <div class="fg"><label>Estado</label><select id="fest"><option>Pendiente</option><option>En proceso</option><option>Listo s/publicar</option></select></div>
-    <div class="fg"><label>Observaciones</label><input type="text" id="fobs"></div>
   </div>
-  <div class="mft"><button class="btn" onclick="closeMod('modTask')">Cancelar</button><button class="btn p" onclick="saveTask()">Guardar</button></div>
+  <div class="fg"><label>Observaciones / Link</label><input type="text" id="fobs" placeholder="Notas, link de Canva, Drive..."></div>
+  <!-- Notificación -->
+  <div style="background:#f5f3ff;border:1px solid #ddd6fe;border-radius:8px;padding:10px 12px;margin-top:2px">
+    <div style="font-size:11px;font-weight:700;color:#5b21b6;margin-bottom:7px">🔔 Notificar al asignar</div>
+    <div style="display:flex;gap:6px">
+      <button type="button" id="tnotif-wa" onclick="toggleNotifTarea('wa')" style="flex:1;padding:5px;border-radius:6px;border:2px solid #25d366;background:#25d366;color:#fff;font-size:10px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">📱 WA</button>
+      <button type="button" id="tnotif-mail" onclick="toggleNotifTarea('mail')" style="flex:1;padding:5px;border-radius:6px;border:2px solid #667eea;background:#667eea;color:#fff;font-size:10px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">📧 Mail</button>
+      <button type="button" id="tnotif-none" onclick="toggleNotifTarea('none')" style="flex:1;padding:5px;border-radius:6px;border:2px solid #e5e7eb;background:#f9fafb;color:#6b7280;font-size:10px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">🔕 No</button>
+    </div>
+    <input type="hidden" id="tnotif-mode" value="wa">
+  </div>
+  <div class="mft">
+    <button class="btn r" id="taskdelbtn" onclick="deleteTask()" style="display:none;margin-right:auto">🗑 Eliminar</button>
+    <button class="btn" onclick="closeMod('modTask')">Cancelar</button>
+    <button class="btn p" onclick="saveTask()">Guardar</button>
+  </div>
 </div></div>
 
 <div class="ov" id="modPub"><div class="mod">
@@ -949,7 +971,10 @@ body.dark .lfg select,body.dark .lfg input{color:#fff}
   <!-- Notificación al funcionario -->
   <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 12px;margin-top:4px">
     <div style="font-size:11px;font-weight:700;color:#166534;margin-bottom:6px">📱 Notificar al funcionario</div>
-    <div id="efunc-tel-preview" style="font-size:10px;color:#6b7280;margin-bottom:6px"></div>
+    <div id="efunc-tel-preview" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <span id="efunc-tel-txt" style="font-size:10px;color:#6b7280"></span>
+      <a id="efunc-wa-btn" href="#" target="_blank" style="display:none;background:#25d366;color:#fff;border-radius:6px;padding:3px 9px;font-size:10px;font-weight:700;text-decoration:none">📱 WA</a>
+    </div>
     <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer">
       <input type="checkbox" id="enotificar" checked style="width:14px;height:14px">
       Enviar confirmación por WhatsApp al guardar
@@ -1380,8 +1405,27 @@ function renderKanban(){
 function openTaskMod(id=null,def=null){
   document.getElementById("editTid").value=id||"";
   document.getElementById("taskmodt").textContent=id?"Editar tarea":"Nueva tarea";
-  if(id){const t=tasks.find(x=>x.id===id);document.getElementById("fdesc").value=t.descripcion;document.getElementById("fresp").value=t.responsable||"";document.getElementById("fprio").value=t.prioridad;document.getElementById("fest").value=t.estado;document.getElementById("fobs").value=t.observaciones||"";}
-  else{["fdesc","fobs"].forEach(i=>document.getElementById(i).value="");document.getElementById("fresp").value="";document.getElementById("fprio").value="Alta";document.getElementById("fest").value=def||"Pendiente";}
+  // Populate multi-responsible dropdown
+  buildRespOptions();
+  const delbtn=document.getElementById("taskdelbtn");
+  if(id){
+    const t=tasks.find(x=>x.id===id);
+    document.getElementById("fdesc").value=t.descripcion;
+    document.getElementById("fprio").value=t.prioridad;
+    document.getElementById("fest").value=t.estado;
+    document.getElementById("fobs").value=t.observaciones||"";
+    // Multi-resp: responsable puede ser "A, B" o solo "A"
+    const resps=t.responsable?t.responsable.split(",").map(r=>r.trim()).filter(Boolean):[];
+    setRespChips(resps);
+    if(delbtn)delbtn.style.display="inline-flex";
+  }else{
+    ["fdesc","fobs"].forEach(i=>document.getElementById(i).value="");
+    setRespChips([]);
+    document.getElementById("fprio").value="Alta";
+    document.getElementById("fest").value=def||"Pendiente";
+    if(delbtn)delbtn.style.display="none";
+  }
+  toggleNotifTarea("wa");
   document.getElementById("modTask").classList.add("open");
 }
 async function deleteTask(id,desc){
@@ -2364,7 +2408,7 @@ async function scanMedios(){
   const btn=document.getElementById("scanbtn");
   const statusEl=document.getElementById("scanstatus");
   if(btn)btn.disabled=true;
-  console.log("scanMedios v4 iniciado — BUILD 2026-04-23");
+  console.log("✅ PANEL v4 — BUILD 2026-04-23 — ENTREVISTAS ACTIVAS");
 
   const RSS2JSON_KEY="nqbghjlpahb6cmzwxstjfnlrxwpqiefmkydvncvg";
 
@@ -2822,15 +2866,22 @@ function actualizarTelFuncionario(){
   const sel=document.getElementById("efuncionario");
   const val=sel.value;
   const otroWrap=document.getElementById("efunc-otro-wrap");
-  const preview=document.getElementById("efunc-tel-preview");
+  const txtEl=document.getElementById("efunc-tel-txt");
+  const waBtn=document.getElementById("efunc-wa-btn");
   if(val==="__otro__"){
     otroWrap.style.display="block";
-    if(preview)preview.textContent="";
+    if(txtEl)txtEl.textContent="";
+    if(waBtn)waBtn.style.display="none";
   }else{
     otroWrap.style.display="none";
     const f=FUNCIONARIOS.find(x=>x.tel===val);
-    if(f&&preview)preview.textContent=`Tel: ${f.tel} · ${f.cargo}`;
-    else if(preview)preview.textContent="";
+    if(f){
+      if(txtEl)txtEl.textContent=`📞 ${f.tel} · ${f.cargo}`;
+      if(waBtn){waBtn.style.display="inline-block";waBtn.href=`https://wa.me/${f.tel}`;}
+    }else{
+      if(txtEl)txtEl.textContent="";
+      if(waBtn)waBtn.style.display="none";
+    }
   }
 }
 
