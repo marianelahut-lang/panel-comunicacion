@@ -1157,7 +1157,8 @@ function nav(id,tab,sb){
   if(id==="equipo")renderTeam();
 }
 function renderPersons(){
-  document.getElementById("sbpersons").innerHTML=teams.map(m=>{
+  const clearBtn=fp?`<div style="padding:3px 12px 6px"><button onclick="setFP('${fp}')" style="width:100%;padding:4px 8px;border-radius:6px;border:1px solid #d1d5db;background:#f9fafb;color:#374151;font-size:10px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;display:flex;align-items:center;justify-content:center;gap:4px">✕ Mostrar todos</button></div>`:"";
+  document.getElementById("sbpersons").innerHTML=clearBtn+teams.map(m=>{
     const pend=tasks.filter(t=>t.responsable===m.nombre&&t.estado!=="Completo").length;
     const isSelected=fp===m.nombre;
     return`<div class="sbp${isSelected?" sel":""}" onclick="setFP('${m.nombre}')" style="${isSelected?"background:#ede9fe;border-left:3px solid #6d28d9":""}">
@@ -1196,7 +1197,11 @@ function renderKanban(){
   if(tsubEl){
     const ftCount=ft.length;
     tsubEl.innerHTML=fp
-      ?`Filtrando: <strong style="color:#6d28d9">${fp}</strong> · ${ftCount} tarea${ftCount!==1?"s":""} · <button onclick="alertarPendientesPersona()" style="background:#667eea;color:#fff;border:none;border-radius:5px;padding:2px 8px;font-size:10px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;margin-left:4px">🔔 Notificar</button>`
+      ?`<span style="display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <span>Mostrando: <strong style="color:#6d28d9">${fp}</strong> · ${ftCount} tarea${ftCount!==1?"s":""}</span>
+          <button onclick="setFP('${fp}')" style="background:#f3f4f6;color:#374151;border:1px solid #d1d5db;border-radius:5px;padding:2px 8px;font-size:10px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">✕ Ver todos</button>
+          <button onclick="alertarPendientesPersona()" style="background:#667eea;color:#fff;border:none;border-radius:5px;padding:2px 8px;font-size:10px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">🔔 Notificar</button>
+        </span>`
       :`${tasks.filter(t=>t.estado!=="Completo").length} activas`;
   }
   document.getElementById("kanban").innerHTML=COLS.map(col=>{
