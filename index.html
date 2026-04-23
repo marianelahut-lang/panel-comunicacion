@@ -1,450 +1,2702 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Panel de Comunicación — Municipalidad de Tres Arroyos</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: system-ui, -apple-system, sans-serif; background: #0f0e17; color: #e8e6f0; min-height: 100vh; color-scheme: dark; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Panel · Comunicación TA · 2026</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:Inter,sans-serif;background:#f0f2f5;color:#111827;font-size:13px;overflow:hidden}
+/* DARK MODE */
+body.dark{background:#1e2028;color:#e2e8f0}
+body.dark .sb{background:#252830;border-color:#373b47}
+body.dark .sb-sec{color:#8892a4}
+body.dark .sbi{color:#b0bac9;background:transparent}
+body.dark .sbi:hover{background:#2d3140}
+body.dark .sbi.on{background:#2d2d5e;color:#a78bfa;border-color:#7c3aed}
+body.dark .sbadge{background:#373b47;color:#b0bac9}
+body.dark .sbadge.hot{background:#4c1d1d;color:#fca5a5}
+body.dark .content{background:#1e2028}
+body.dark .ptitle{color:#f1f5f9;font-weight:700}
+body.dark .psub{color:#94a3b8}
+body.dark .ptop{color:#f1f5f9}
+body.dark .div{background:#373b47}
+body.dark .sbp:hover{background:#2d3140}
 
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #13121f; }
-    ::-webkit-scrollbar-thumb { background: #3a3660; border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: #6c5ce7; }
+/* Kanban */
+body.dark .kcol{background:#252830;border-color:#373b47}
+body.dark .khdr.p1{background:#3d1515;border-color:#991b1b}
+body.dark .khdr.p2{background:#3d2e10;border-color:#92400e}
+body.dark .khdr.p3{background:#152040;border-color:#1e3a8a}
+body.dark .p1 .kt{color:#fca5a5}
+body.dark .p2 .kt{color:#fcd34d}
+body.dark .p3 .kt{color:#93c5fd}
+body.dark .p1 .kd{background:#ef4444}
+body.dark .p2 .kd{background:#f59e0b}
+body.dark .p3 .kd{background:#3b82f6}
+body.dark .p1 .kc{background:#991b1b;color:#fecaca}
+body.dark .p2 .kc{background:#92400e;color:#fef3c7}
+body.dark .p3 .kc{background:#1e3a8a;color:#bfdbfe}
+body.dark .tc{background:#2a2d38;border-color:#373b47;color:#e2e8f0}
+body.dark .tc:hover{box-shadow:0 3px 10px rgba(0,0,0,.4);background:#2d3040}
+body.dark .tc-t{color:#e2e8f0}
+body.dark .tc-f span{color:#94a3b8}
+body.dark .kadd{border-color:#373b47;color:#8892a4}
+body.dark .kadd:hover{border-color:#7c3aed;color:#a78bfa;background:#2d2d5e}
 
-    .nav { display: flex; align-items: center; padding: 8px 14px; border-bottom: 1px solid #2a2840; flex-wrap: wrap; gap: 4px; background: #12111e; }
-    .tb { padding: 5px 11px; border-radius: 6px; cursor: pointer; border: none; background: transparent; color: #9993b8; font-size: 12px; font-family: inherit; white-space: nowrap; }
-    .tb.active { background: #2d2a5e; color: #a89cf7; font-weight: 500; }
-    .tb:hover:not(.active) { background: #1e1d2e; }
+/* Calendario / Publicaciones */
+body.dark .wshell{background:#252830;border-color:#373b47}
+body.dark .whdr{background:#252830;border-color:#373b47}
+body.dark .wgut{background:#2a2d38;border-color:#373b47}
+body.dark .wdc{background:#252830;color:#e2e8f0}
+body.dark .wdc.wdt{background:#252845}
+body.dark .wdc.wdw{background:#28252e}
+body.dark .wnum{color:#e2e8f0}
+body.dark .wdn{color:#8892a4}
+body.dark .wleg{background:#2a2d38;border-color:#373b47;color:#94a3b8}
+body.dark .hrow{border-color:#2e3140}
+body.dark .hc{border-color:#2e3140;background:transparent}
+body.dark .hc:hover{background:#2d3140}
+body.dark .hc.hct{background:rgba(102,126,234,.06)}
+body.dark .hl{background:#2a2d38;color:#94a3b8;border-color:#373b47;font-weight:600}
+/* Forzar textos en calendario inline */
+body.dark [style*="color:#111827"]{color:#e2e8f0 !important}
+body.dark [style*="color:#374151"]{color:#cbd5e1 !important}
+body.dark [style*="color:#6b7280"]{color:#94a3b8 !important}
+body.dark [style*="color:#9ca3af"]{color:#8892a4 !important}
+body.dark [style*="background:#fff"]{background:#252830 !important}
+body.dark [style*="background:#f9fafb"]{background:#2a2d38 !important}
+body.dark [style*="background:#f3f4f6"]{background:#2e3140 !important}
+body.dark [style*="background:#e5e7eb"]{background:#373b47 !important}
+body.dark [style*="border:1px solid #e5e7eb"]{border-color:#373b47 !important}
+body.dark [style*="border-bottom:1px solid #f0f0f0"]{border-color:#2e3140 !important}
+body.dark [style*="border-right:1px solid #e5e7eb"]{border-color:#373b47 !important}
+body.dark [style*="border-right:1px solid #f3f4f6"]{border-color:#2e3140 !important}
 
-    .main { padding: 20px; max-width: 1100px; margin: 0 auto; }
+/* Guardias */
+body.dark .gwtbl{background:#252830;border-color:#373b47}
+body.dark .gwh{background:#2a2d38;border-color:#373b47}
+body.dark .gwhi{color:#8892a4;border-color:#373b47}
+body.dark .gwd{background:#252830;border-color:#373b47}
+body.dark .gwd.gwt{background:#252845}
+body.dark .gwd.gwwe{background:#282530}
+body.dark .gwdate{color:#f1f5f9;font-weight:700}
+body.dark .gwag span{color:#cbd5e1}
+body.dark .gwevs{color:#93c5fd}
+body.dark .gwnb{background:#2a2d38;border-color:#373b47;color:#94a3b8}
+body.dark .gwnb:hover{background:#667eea;color:#fff;border-color:#667eea}
 
-    .btn-p { padding: 6px 14px; border-radius: 6px; border: none; background: #6c5ce7; color: white; cursor: pointer; font-size: 12px; font-family: inherit; font-weight: 500; }
-    .btn-p:hover { background: #5a4bd1; }
-    .btn-s { padding: 5px 12px; border-radius: 6px; border: 1px solid #3a3660; background: transparent; color: #c0bcdc; cursor: pointer; font-size: 12px; font-family: inherit; }
-    .btn-s:hover { background: #1e1d2e; }
+/* Equipo */
+body.dark .tmcard{background:#252830;border-color:#373b47;color:#e2e8f0}
+body.dark .tmcard:hover{box-shadow:0 4px 14px rgba(0,0,0,.4)}
 
-    .kanban { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-    .col { background: #1a1929; border-radius: 10px; padding: 12px; min-height: 160px; }
-    .tc { background: #201f33; border: 1px solid #2e2c4a; border-radius: 6px; padding: 10px; margin-bottom: 7px; cursor: pointer; }
-    .tc:hover { border-color: #4a4780; }
-    .bdg { font-size: 10px; padding: 2px 7px; border-radius: 8px; font-weight: 500; }
+/* Material */
+body.dark .mcard{background:#252830;border-color:#373b47;color:#e2e8f0}
 
-    .ov { position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.75); display: flex; align-items: flex-start; justify-content: center; padding: 40px 16px 60px; overflow-y: auto; }
-    .mdl { background: #1a1929; border: 1px solid #2e2c4a; border-radius: 12px; width: 100%; max-width: 540px; }
-    .mh { padding: 14px 18px 11px; border-bottom: 1px solid #2e2c4a; display: flex; justify-content: space-between; align-items: center; }
-    .mb { padding: 18px; display: flex; flex-direction: column; gap: 14px; max-height: 72vh; overflow-y: auto; }
-    .mf { padding: 11px 18px; border-top: 1px solid #2e2c4a; display: flex; justify-content: flex-end; gap: 8px; align-items: center; }
-    .fld { display: flex; flex-direction: column; gap: 5px; }
-    .lbl { font-size: 10px; font-weight: 500; color: #7c78a0; text-transform: uppercase; letter-spacing: 0.07em; }
+/* Métricas */
+body.dark .met{background:#252830;border-color:#373b47;color:#e2e8f0}
+body.dark .met-v{color:#f1f5f9}
+body.dark .met-l{color:#94a3b8}
+body.dark .cbox{background:#252830;border-color:#373b47}
+body.dark .cbox-t{color:#e2e8f0}
 
-    input, select, textarea {
-      width: 100%; padding: 7px 10px;
-      border: 1px solid #3a3660;
-      border-radius: 6px;
-      background: #13121f !important;
-      color: #e8e6f0 !important;
-      font-size: 12px;
-      font-family: inherit;
-      color-scheme: dark;
-      -webkit-appearance: none;
-      appearance: none;
-    }
-    select {
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239993b8' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
-      background-repeat: no-repeat !important;
-      background-position: right 9px center !important;
-      padding-right: 28px;
-    }
-    input[type="date"], input[type="time"] { background-image: none !important; }
-    input::placeholder, textarea::placeholder { color: #5a5778; opacity: 1; }
-    input:focus, select:focus, textarea:focus { outline: none; border-color: #6c5ce7; box-shadow: 0 0 0 2px #6c5ce730; }
-    textarea { resize: vertical; min-height: 64px; }
-    input[type="date"]::-webkit-calendar-picker-indicator,
-    input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(0.6); cursor: pointer; }
-    option { background: #1a1929 !important; color: #e8e6f0 !important; }
+/* Medios */
+body.dark .meds{background:#252830;border-color:#373b47}
+body.dark .nrow{border-color:#373b47}
+body.dark .ntitle{color:#e2e8f0}
+body.dark .ntitle a{color:#93c5fd}
+body.dark .nbadge{opacity:.95}
+body.dark .pill-neu{background:#2a2d38;color:#94a3b8}
+body.dark .pill-pos{background:#14291a;color:#86efac}
+body.dark .pill-neg{background:#2d1515;color:#fca5a5}
+body.dark .pill-muni{background:#152040;color:#93c5fd}
+body.dark .pill-pablo{background:#251540;color:#c4b5fd}
 
-    .chip { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 8px; background: #2d2a5e; color: #a89cf7; font-size: 11px; }
-    .chip button { border: none; background: none; cursor: pointer; color: inherit; padding: 0 0 0 1px; font-size: 12px; }
+/* Barras de estado */
+body.dark .sbar.scan{background:#252030;border-color:#7c3aed;color:#c4b5fd}
+body.dark .sbar.done{background:#142514;border-color:#22c55e;color:#86efac}
+body.dark .sbar.fail{background:#2d1515;border-color:#ef4444;color:#fca5a5}
+body.dark .ibanner{background:#1e2040;border-color:#3b82f6;color:#93c5fd}
 
-    .ec { background: #1a1929; border: 1px solid #2e2c4a; border-radius: 10px; padding: 14px; margin-bottom: 10px; }
-    .ec:hover { border-color: #4a4780; }
+/* Modales */
+body.dark .ov{background:rgba(0,0,0,.65)}
+body.dark .mod{background:#252830;color:#e2e8f0;border:1px solid #373b47}
+body.dark .mod-t{color:#f1f5f9}
+body.dark .fg label{color:#94a3b8}
+body.dark .fg input,body.dark .fg select,body.dark .fg textarea{background:#1e2028;border-color:#373b47;color:#e2e8f0}
+body.dark .fg input:focus,body.dark .fg select,body.dark .fg textarea:focus{border-color:#7c3aed}
+body.dark .fg input::placeholder,body.dark .fg textarea::placeholder{color:#4b5563}
+body.dark .mft{border-color:#373b47}
+body.dark .fr .fg input,body.dark .fr .fg select{background:#1e2028}
+body.dark .copt{background:#2a2d38;border-color:#373b47}
+body.dark .copt:hover{border-color:#7c3aed;background:#2d2d50}
+body.dark .copt.sel{border-color:#7c3aed;background:#2d2d5e}
+body.dark .clabel{color:#e2e8f0}
+body.dark .csub{color:#94a3b8}
 
-    .wa { display: inline-flex; align-items: center; gap: 4px; padding: 4px 9px; background: #25D366; color: white !important; border-radius: 6px; font-size: 11px; text-decoration: none; font-family: inherit; }
-    .wa:hover { background: #1db954; }
+/* Botones */
+body.dark .btn{background:#2a2d38;border-color:#373b47;color:#e2e8f0}
+body.dark .btn:hover{background:#373b47}
+body.dark .btn.p{background:#667eea;color:#fff;border-color:#667eea}
+body.dark .btn.g{background:#16a34a;color:#fff;border-color:#16a34a}
+body.dark .btn.r{background:#dc2626;color:#fff;border-color:#dc2626}
 
-    .r2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .sep { height: 1px; background: #2a2840; margin: 4px 0; }
-    .empty-state { text-align: center; padding: 48px 20px; color: #5a5778; border: 1px dashed #2e2c4a; border-radius: 10px; }
-    .info-box { padding: 8px 10px; background: #13121f; border-radius: 6px; font-size: 11px; margin-top: 6px; display: flex; justify-content: space-between; align-items: center; gap: 8px; border: 1px solid #2e2c4a; }
-  </style>
+/* Panel evento lateral */
+body.dark #evpanel{background:#252830;border-color:#373b47}
+body.dark .evp-hdr{border-color:#373b47}
+body.dark .evp-title{color:#f1f5f9}
+body.dark .evp-meta{color:#94a3b8}
+body.dark .evp-body{color:#cbd5e1}
+body.dark .evp-ftr{border-color:#373b47}
+body.dark .evp-cob{background:#2a2d38;border-color:#373b47}
+body.dark .evp-cob:hover{border-color:#7c3aed;background:#2d2d50}
+body.dark .evp-cob-lbl{color:#e2e8f0}
+body.dark .evp-cob-sub{color:#94a3b8}
+body.dark .evp-check{border-color:#4b5563}
+body.dark .evp-guardia{background:#142514;border-color:#22c55e}
+body.dark #evp-guardia-names{color:#86efac}
+
+/* Select options */
+body.dark select option{background:#252830;color:#e2e8f0}
+
+/* Topbar badges */
+body.dark .live{border-color:#373b47}
+body.dark .upill{border-color:#373b47}
+body.dark .outbtn{border-color:#373b47;color:#94a3b8}
+body.dark .gcbtn{border-color:#373b47;color:#94a3b8}
+body.dark .gcbtn.ok{border-color:rgba(34,197,94,.4);color:#4ade80}
+
+/* Settings */
+body.dark #modSettings .mod>div>div{background:#1e2028;border-color:#373b47}
+body.dark #modSettings .fg input{background:#1e2028;color:#e2e8f0}
+
+/* Tags prioridad */
+body.dark .tga{background:#3d1515;color:#fca5a5}
+body.dark .tgm{background:#3d2e10;color:#fcd34d}
+body.dark .tgb{background:#142514;color:#86efac}
+
+/* Inputs login */
+body.dark .lfg select,body.dark .lfg input{color:#fff}
+
+#login{position:fixed;inset:0;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);display:flex;align-items:center;justify-content:center;z-index:9999}
+.lbox{background:rgba(255,255,255,.07);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:40px 44px;width:min(400px,92vw);text-align:center}
+.llogo{width:56px;height:56px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:16px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:22px;color:#fff;margin:0 auto 16px}
+.ltitle{font-size:22px;font-weight:700;color:#fff;margin-bottom:3px}
+.lsub{font-size:12px;color:rgba(255,255,255,.4);margin-bottom:28px}
+.lfg{margin-bottom:13px;text-align:left}
+.lfg label{display:block;font-size:10px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}
+.lfg select,.lfg input{width:100%;padding:11px 13px;border-radius:9px;border:1.5px solid rgba(255,255,255,.12);background:rgba(255,255,255,.07);color:#fff;font-size:13px;font-family:Inter,sans-serif;outline:none}
+.lfg select option{background:#302b63}
+.lbtn{width:100%;padding:13px;border-radius:10px;background:linear-gradient(135deg,#667eea,#764ba2);border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;margin-top:4px}
+.lerr{color:#f87171;font-size:12px;margin-top:8px;min-height:18px;text-align:center}
+#app{display:none;height:100vh;flex-direction:column;overflow:hidden}
+#app.on{display:flex}
+.topbar{height:50px;background:#1a1a2e;display:flex;align-items:center;padding:0 14px;gap:6px;flex-shrink:0}
+.logo{display:flex;align-items:center;gap:7px;margin-right:6px;flex-shrink:0}
+.logo-b{width:28px;height:28px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:#fff}
+.logo-n{font-weight:700;font-size:12px;color:#fff}
+.logo-s{font-size:9px;color:rgba(255,255,255,.3)}
+.ntabs{display:flex;gap:1px;overflow-x:auto}
+.ntab{padding:5px 10px;border-radius:5px;font-size:11px;font-weight:500;cursor:pointer;color:rgba(255,255,255,.45);border:none;background:transparent;font-family:Inter,sans-serif;white-space:nowrap}
+.ntab:hover{color:#fff;background:rgba(255,255,255,.08)}
+.ntab.on{background:rgba(255,255,255,.14);color:#fff}
+.tr{margin-left:auto;display:flex;align-items:center;gap:7px;flex-shrink:0}
+.live{display:flex;align-items:center;gap:4px;padding:3px 8px;background:rgba(255,255,255,.06);border-radius:20px;border:1px solid rgba(255,255,255,.1);font-size:10px;color:rgba(255,255,255,.5)}
+.ldot{width:6px;height:6px;border-radius:50%;background:#6b7280;flex-shrink:0}
+.ldot.ok{background:#22c55e;animation:pulse 2s infinite}
+.ldot.err{background:#ef4444}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.gcbtn{display:flex;align-items:center;gap:4px;padding:4px 9px;border-radius:20px;font-size:10px;font-weight:500;cursor:pointer;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);font-family:Inter,sans-serif;white-space:nowrap}
+.gcbtn.ok{border-color:rgba(34,197,94,.4);color:#4ade80}
+.gcbtn.go{color:#fbbf24}
+.gcdot{width:5px;height:5px;border-radius:50%;background:#4b5563;flex-shrink:0}
+.gcbtn.ok .gcdot{background:#22c55e}
+.gcbtn.go .gcdot{background:#f59e0b;animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.upill{display:flex;align-items:center;gap:5px;padding:3px 9px 3px 4px;background:rgba(255,255,255,.07);border-radius:20px;border:1px solid rgba(255,255,255,.1)}
+.uav{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:9px;flex-shrink:0}
+.un{font-size:11px;color:rgba(255,255,255,.65);font-weight:500}
+.outbtn{padding:4px 8px;border-radius:6px;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.35);font-size:10px;cursor:pointer;font-family:Inter,sans-serif}
+.body{display:flex;flex:1;overflow:hidden;min-height:0}
+.sb{width:190px;flex-shrink:0;background:#fff;border-right:1px solid #e5e7eb;overflow-y:auto}
+.sb-sec{font-size:9px;font-weight:700;letter-spacing:.1em;color:#9ca3af;text-transform:uppercase;padding:10px 12px 3px}
+.sbi{display:flex;align-items:center;gap:7px;padding:6px 12px;cursor:pointer;color:#4b5563;font-size:11px;font-weight:500;border:none;background:transparent;width:100%;text-align:left;font-family:Inter,sans-serif}
+.sbi:hover{background:#f3f4f6}
+.sbi.on{background:#ede9fe;color:#6d28d9;border-right:3px solid #6d28d9}
+.sbi svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.sbadge{margin-left:auto;font-size:9px;padding:1px 5px;border-radius:7px;background:#e5e7eb;color:#6b7280;font-weight:700}
+.sbadge.hot{background:#fee2e2;color:#dc2626}
+.div{height:1px;background:#f3f4f6;margin:3px 0}
+.sbp{display:flex;align-items:center;gap:6px;padding:5px 12px;cursor:pointer}
+.sbp:hover{background:#f9fafb}
+.content{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;min-height:0}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:7px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid #d1d5db;background:#fff;color:#374151;font-family:Inter,sans-serif;white-space:nowrap}
+.btn.p{background:#667eea;color:#fff;border-color:#667eea}
+.btn.g{background:#16a34a;color:#fff;border-color:#16a34a}
+.btn.r{background:#dc2626;color:#fff;border-color:#dc2626}
+.btn.sm{padding:4px 9px;font-size:10px;border-radius:5px}
+.btn svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ptop{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px;flex-shrink:0}
+.ptitle{font-size:17px;font-weight:700;color:#111827}
+.psub{font-size:11px;color:#6b7280;margin-top:2px}
+.acts{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.kanban{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;align-items:flex-start;min-height:calc(100vh - 200px)}
+.kcol{flex:1;min-width:200px;border-radius:10px;overflow:hidden;background:#f9fafb;border:1px solid #e5e7eb}
+.khdr{padding:9px 11px;display:flex;align-items:center;justify-content:space-between}
+.khdr.p1{background:#fef2f2;border-bottom:2px solid #fca5a5}
+.khdr.p2{background:#fffbeb;border-bottom:2px solid #fde68a}
+.khdr.p3{background:#eff6ff;border-bottom:2px solid #bfdbfe}
+.kt{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700}
+.p1 .kt{color:#dc2626}.p2 .kt{color:#d97706}.p3 .kt{color:#2563eb}
+.kd{width:7px;height:7px;border-radius:50%}
+.p1 .kd{background:#ef4444}.p2 .kd{background:#f59e0b}.p3 .kd{background:#3b82f6}
+.kc{font-size:9px;padding:1px 6px;border-radius:8px;font-weight:700}
+.p1 .kc{background:#fca5a5;color:#7f1d1d}.p2 .kc{background:#fde68a;color:#78350f}.p3 .kc{background:#93c5fd;color:#1e3a8a}
+.kbody{padding:6px;display:flex;flex-direction:column;gap:4px;overflow-y:auto;max-height:calc(100vh - 220px)}
+.kadd{padding:6px;border-radius:6px;border:1.5px dashed #d1d5db;background:transparent;color:#9ca3af;font-size:11px;cursor:pointer;width:100%;text-align:left;font-family:Inter,sans-serif}
+.kadd:hover{border-color:#667eea;color:#667eea}
+.tc{background:#fff;border-radius:7px;padding:8px 9px;cursor:pointer;border:1px solid #e5e7eb;border-left:4px solid #22c55e}
+.tc:hover{box-shadow:0 3px 10px rgba(0,0,0,.08)}
+.tc.a1{border-left-color:#f59e0b}
+.tc.a2{border-left-color:#ef4444}
+.tc-t{font-size:11px;font-weight:500;color:#111827;line-height:1.4;margin-bottom:5px}
+.tc-f{display:flex;align-items:center;justify-content:space-between;gap:4px}
+.tg{font-size:9px;padding:2px 5px;border-radius:4px;font-weight:500}
+.tga{background:#fee2e2;color:#dc2626}.tgm{background:#fffbeb;color:#d97706}.tgb{background:#f0fdf4;color:#16a34a}
+.wshell{display:flex;flex-direction:column;background:#fff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;flex:1;min-height:500px}
+.whdr{display:flex;border-bottom:2px solid #e5e7eb;background:#fff;flex-shrink:0;overflow:hidden}
+.wgut{background:#f9fafb;border-right:1px solid #e5e7eb}
+.wdc{padding:6px 3px;text-align:center;border-right:1px solid #e5e7eb}
+.wdc:last-child{border-right:none}
+.wdc.wdt{background:#eff6ff}
+.wdc.wdw{background:#fafafa}
+.wdn{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af}
+.wnum{font-size:16px;font-weight:700;color:#111827}
+.wdc.wdt .wnum{display:inline-flex;width:22px;height:22px;background:#667eea;color:#fff;border-radius:50%;align-items:center;justify-content:center;font-size:12px}
+.wgav{display:flex;justify-content:center;gap:2px;margin-top:2px;flex-wrap:wrap}
+.gav{width:15px;height:15px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:6px;font-weight:700;border:1.5px solid #fff;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.wgt{font-size:8px;color:#9ca3af;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px}
+.wscroll{overflow-y:auto;flex:1;min-height:0}
+.hrow{display:grid;grid-template-columns:60px repeat(7,1fr);border-bottom:1px solid #f0f0f0;min-height:72px}
+.hl{padding:3px 6px 0;font-size:11px;font-weight:600;color:#9ca3af;text-align:right;border-right:1px solid #e5e7eb;background:#fafafa;white-space:nowrap}
+.hc{border-right:1px solid #f3f4f6;padding:2px;cursor:pointer;position:relative;min-height:50px}
+.hc:last-child{border-right:none}
+.hc:hover{background:#f5f3ff}
+.hc.hct{background:rgba(102,126,234,.04)}
+.ci{display:flex;flex-direction:column;gap:2px}
+.ev{border-radius:4px;padding:3px 6px;font-size:10px;cursor:pointer;line-height:1.4}
+.ev.ei{background:#dbeafe;border-left:3px solid #3b82f6;color:#1e40af}
+.ev.ep{background:#fce7f3;border-left:3px solid #ec4899;color:#9d174d}
+.ev.em{background:#dcfce7;border-left:3px solid #22c55e;color:#15803d}
+.ev.efbm{background:#eff6ff;border-left:3px solid #1877f2;color:#1e3a8a}
+.ev.eigm{background:#fdf2f8;border-left:3px solid #e1306c;color:#9d174d}
+.ev.etkm{background:#f3f4f6;border-left:3px solid #374151;color:#1f2937}
+.ev.efbp{background:#dbeafe;border-left:3px solid #0f5ca8;color:#1e3a8a}
+.ev.eigp{background:#fff0fb;border-left:3px solid #c13584;color:#701a75}
+.ev.etkp{background:#f0fdf4;border-left:3px solid #15803d;color:#14532d}
+.ev.ewap{background:#f0fdf4;border-left:3px solid #25d366;color:#15803d}
+.ev-t{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px}
+.ev-s{font-size:9px;opacity:.8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* EVENT DETAIL PANEL */
+#evpanel{position:fixed;right:0;top:50px;width:300px;height:calc(100vh - 50px);background:#fff;border-left:1px solid #e5e7eb;box-shadow:-4px 0 20px rgba(0,0,0,.1);z-index:400;display:none;flex-direction:column;overflow:hidden}
+#evpanel.open{display:flex}
+.evp-hdr{padding:14px 16px 12px;border-bottom:1px solid #f3f4f6;flex-shrink:0}
+.evp-tipo{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+.evp-title{font-size:15px;font-weight:700;color:#111827;line-height:1.3;margin-bottom:6px}
+.evp-meta{font-size:11px;color:#6b7280;display:flex;flex-direction:column;gap:3px}
+.evp-body{flex:1;overflow-y:auto;padding:14px 16px}
+.evp-ftr{padding:12px 16px;border-top:1px solid #f3f4f6;flex-shrink:0;display:flex;flex-direction:column;gap:6px}
+.evp-cob{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:9px;border:2px solid #e5e7eb;background:#f9fafb;cursor:pointer;font-family:Inter,sans-serif}
+.evp-cob:hover{border-color:#667eea;background:#f0f0ff}
+.evp-cob.activo{border-color:#667eea;background:#ede9fe}
+.evp-cob-ico{font-size:18px;flex-shrink:0}
+.evp-cob-txt{flex:1}
+.evp-cob-lbl{font-size:12px;font-weight:700;color:#374151}
+.evp-cob-sub{font-size:10px;color:#9ca3af;margin-top:1px}
+.evp-cob.activo .evp-cob-lbl{color:#6d28d9}
+.evp-cob.activo .evp-cob-sub{color:#8b5cf6}
+.evp-check{width:18px;height:18px;border-radius:50%;border:2px solid #d1d5db;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px}
+.evp-cob.activo .evp-check{background:#667eea;border-color:#667eea;color:#fff}
+.hadd{position:absolute;bottom:2px;right:2px;width:14px;height:14px;border-radius:50%;background:rgba(102,126,234,.15);border:none;color:#667eea;font-size:12px;line-height:1;cursor:pointer;display:none;align-items:center;justify-content:center;font-family:Inter,sans-serif}
+.hc:hover .hadd{display:flex}
+.wleg{display:flex;gap:8px;flex-wrap:wrap;padding:5px 10px;background:#fafafa;border-top:1px solid #f3f4f6;flex-shrink:0;font-size:9px;color:#6b7280}
+.leg{display:flex;align-items:center;gap:3px}
+.ld{width:7px;height:7px;border-radius:2px}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px}
+.tmcard{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:13px;text-align:center;cursor:pointer}
+.tmcard:hover{box-shadow:0 4px 14px rgba(0,0,0,.09)}
+.gwtbl{background:#fff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden}
+.gwh{display:grid;grid-template-columns:repeat(7,1fr);background:#f9fafb;border-bottom:1px solid #e5e7eb}
+.gwhi{padding:7px 4px;font-size:9px;font-weight:700;text-transform:uppercase;color:#6b7280;text-align:center;border-right:1px solid #e5e7eb}
+.gwhi:last-child{border-right:none}
+.gwb{display:grid;grid-template-columns:repeat(7,1fr)}
+.gwd{padding:10px 6px;border-right:1px solid #f3f4f6;border-bottom:1px solid #f3f4f6;text-align:center;min-height:110px}
+.gwd:last-child{border-right:none}
+.gwd.gwt{background:#eff6ff}
+.gwd.gwwe{background:#fffbeb}
+.gwdate{font-size:13px;font-weight:700;margin-bottom:5px;color:#111827}
+.gwags{display:flex;flex-direction:column;gap:3px;align-items:center;margin-bottom:4px}
+.gwag{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:500}
+.gwevs{font-size:9px;color:#1e40af;line-height:1.6;margin-top:4px;text-align:left}
+.gwnb{margin-top:5px;width:100%;padding:4px;border-radius:5px;border:1px solid #e5e7eb;background:#fff;font-size:9px;color:#6b7280;cursor:pointer;font-family:Inter,sans-serif;font-weight:500}
+.gwnb:hover{background:#667eea;color:#fff;border-color:#667eea}
+.metrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.met{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:12px}
+.met-ico{font-size:18px;margin-bottom:6px}
+.met-v{font-size:20px;font-weight:700;color:#111827}
+.met-l{font-size:10px;color:#6b7280;margin-top:2px}
+.cgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cbox{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:13px}
+.cbox-t{font-size:12px;font-weight:600;margin-bottom:10px}
+.ch{position:relative;height:200px}
+.meds{background:#fff;border:1px solid #e5e7eb;border-radius:9px;padding:10px 11px;display:flex;align-items:center;gap:10px}
+.meds-logo{width:36px;height:36px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
+.meds-bar{height:3px;background:#f3f4f6;border-radius:2px;margin-top:5px}
+.meds-fill{height:100%;border-radius:2px}
+.nrow{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid #f3f4f6;align-items:flex-start}
+.nrow:last-child{border-bottom:none}
+.nbadge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:5px;color:#fff;white-space:nowrap;display:inline-block}
+.ntitle{font-size:12px;font-weight:600;color:#111827;margin-bottom:3px}
+.ntitle a{color:inherit;text-decoration:none}
+.ntitle a:hover{color:#667eea;text-decoration:underline}
+.pill{font-size:9px;padding:2px 6px;border-radius:8px;font-weight:500}
+.pill-pos{background:#dcfce7;color:#16a34a}
+.pill-neg{background:#fee2e2;color:#dc2626}
+.pill-neu{background:#f3f4f6;color:#6b7280}
+.pill-muni{background:#dbeafe;color:#1e40af}
+.pill-pablo{background:#ede9fe;color:#6d28d9}
+.sbar{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;font-size:11px;margin-bottom:8px}
+.sbar.scan{background:#fffbeb;border:1px solid #fde68a;color:#92400e}
+.sbar.done{background:#f0fdf4;border:1px solid #86efac;color:#16a34a}
+.sbar.fail{background:#fef2f2;border:1px solid #fca5a5;color:#dc2626}
+.spin{width:13px;height:13px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:500;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(3px)}
+.ov.open{display:flex}
+.mod{background:#fff;border-radius:14px;padding:22px;width:min(480px,100%);max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.mod-t{font-size:16px;font-weight:700;color:#111827;margin-bottom:16px}
+.fg{margin-bottom:11px}
+.fg label{display:block;font-size:9px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.fg input,.fg select,.fg textarea{width:100%;font-size:12px;padding:8px 10px;border-radius:7px;border:1.5px solid #e5e7eb;background:#fff;color:#111827;font-family:Inter,sans-serif;outline:none}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:#667eea}
+.fg textarea{resize:vertical;min-height:60px}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.mft{display:flex;gap:7px;justify-content:flex-end;margin-top:14px;padding-top:12px;border-top:1px solid #f3f4f6}
+.cuentas{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:3px}
+.copt{display:flex;align-items:center;gap:6px;padding:7px 9px;border-radius:7px;border:1.5px solid #e5e7eb;cursor:pointer;background:#fff}
+.copt:hover{border-color:#667eea;background:#f5f3ff}
+.copt.sel{border-color:#667eea;background:#ede9fe}
+.cdot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.clabel{font-size:11px;font-weight:500;color:#374151}
+.csub{font-size:9px;color:#9ca3af}
+.ibanner{background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:8px 12px;font-size:11px;color:#1e40af;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:7px}
+.toast{position:fixed;bottom:16px;right:16px;padding:10px 15px;border-radius:9px;font-size:11px;font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,.15);z-index:9999;display:none;max-width:280px}
+.toast.show{display:block;animation:sup .2s ease}
+.toast.ok{background:#16a34a;color:#fff}
+.toast.warn{background:#d97706;color:#fff}
+.toast.err{background:#dc2626;color:#fff}
+@keyframes sup{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.mcard{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:13px;border-left:4px solid #22c55e}
+.api-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:7px;margin-bottom:8px}
+.apiitem{display:flex;align-items:center;gap:7px;padding:7px 10px;background:#fff;border:1px solid #e5e7eb;border-radius:7px}
+.apidot{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:#f59e0b}
+</style>
 </head>
 <body>
-<div id="ca">
-  <nav class="nav" id="nav"></nav>
-  <div class="main" id="main"></div>
-  <div id="ov-root"></div>
+<div id="login">
+  <div class="lbox">
+    <div class="llogo">TA</div>
+    <div class="ltitle">Panel de Comunicación</div>
+    <div class="lsub">Municipalidad de Tres Arroyos</div>
+    <div class="lfg"><label>¿Quién sos?</label>
+      <select id="lu"><option value="">— seleccioná —</option></select>
+    </div>
+    <div class="lfg"><label>Contraseña</label>
+      <input type="password" id="lp" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="lbtn" onclick="doLogin()">Ingresar</button>
+    <div class="lerr" id="lerr"></div>
+    <div style="color:rgba(255,255,255,.15);font-size:11px;margin-top:18px">Dpto. Comunicaciones · 2026</div>
+  </div>
 </div>
-<script>
-const FUNCS = [
-  { n:"Pablo Garate",            c:"Intendente Municipal",                     t:"5492983642913" },
-  { n:"Santiago Garate",         c:"Sub Secretario de Gabinete",               t:"5492983460846" },
-  { n:"Julio Federico",          c:"Jefe de Gabinete",                         t:"5492983570209" },
-  { n:"Tomas Paniga",            c:"Director de Cultura",                      t:"5492983447249" },
-  { n:"Facundo Liebana",         c:"Director de Deporte",                      t:"5492983382366" },
-  { n:"Juan Moizzi",             c:"Director de Empleo y Parque Industrial",   t:"5492983507745" },
-  { n:"Julian Tornini",          c:"Coordinador Juventud y Deporte",           t:"5492983305218" },
-  { n:"Carolina Goicoechea",     c:"Directora de Turismo",                     t:"5492983449098" },
-  { n:"Mauro Dadario",           c:"Director de Emprendedurismo",              t:"5492983446264" },
-  { n:"Margarita Tour",          c:"Directora de Impulsar",                    t:"5492983414390" },
-  { n:"Paola Salerno",           c:"Secretaria de Planeamiento Urbano",        t:"5492983611597" },
-  { n:"Nicolas Franganillo",     c:"Director de Obras Públicas",               t:"5492983412126" },
-  { n:"Luis Juarez",             c:"Director de Planeamiento Urbano",          t:"5492983459048" },
-  { n:"Ignacio Quintas",         c:"Director de Obras Sanitarias",             t:"5492983615881" },
-  { n:"Juan Apolonio",           c:"Secretario de Seguridad",                  t:"5492983409217" },
-  { n:"Martin Legarreta",        c:"Director Seguridad Operativo",             t:"5492983608016" },
-  { n:"Maria Paz Lopez Peralta", c:"Directora Administrativa Seguridad",       t:"5492983419402" },
-  { n:"Martin Garate",           c:"Secretario Desarrollo Social",             t:"5492983413996" },
-  { n:"Damian Almeira",          c:"Director Acción Social",                   t:"5492983650085" },
-  { n:"Emiliano Capandegui",     c:"Director Técnico Hospital",                t:"5492983602937" },
-  { n:"Mercedes Moreno",         c:"Directora Salud Integral",                 t:"5492983447789" },
-  { n:"Juan Manuel Serna",       c:"Director de CAPS",                         t:"5492983640486" },
-  { n:"Juan Cruz Lopez",         c:"Director Administrativo",                  t:"5492216379206" },
-  { n:"Eliana Rossi",            c:"Directora Bromatología y Zoonosis",        t:"5492983505668" },
-  { n:"Gabriel Francia",         c:"Sub Secretario Gestión Ambiental",         t:"5492983385858" }
-];
-const MEDIOS = ["LU24","La Voz del Pueblo","Diario 3","Via País","Grupo 105","Julio Scarabotti","Adriana Gaitan","Milena Marcovecchio","Dengue"];
-const EQ = ["Debora","Guada","Lina","Maiten","Marianela","Nadia","Santiago","Sofia","Yesi"];
-const TABS = [
-  {id:'tablero',l:'Tablero'},{id:'entrevistas',l:'Entrevistas'},{id:'material',l:'Material'},
-  {id:'publicaciones',l:'Publicaciones'},{id:'calendario',l:'Calendario'},{id:'medios',l:'Monitoreo'}
-];
 
-let S = {
-  tab:'tablero',
-  tasks:[
-    {id:'d1',titulo:'Hospital: ampliación APS 12hs→24hs',desc:'Pase de médicos Generales de APS para fortalecer los CAPS',estado:'Pendiente',prioridad:'Alta',responsables:['Guada'],adjuntos:[],notif:[],obs:''},
-    {id:'d2',titulo:'Corte de agua jueves 23',desc:'Corte en suministro de agua potable en el marco de trabajos de conexión',estado:'En proceso',prioridad:'Media',responsables:['Marianela'],adjuntos:[],notif:['mail'],obs:''},
-    {id:'d3',titulo:'Torneo Bochas 1° categoría',desc:'El 25 y 26 de abril Tres Arroyos será sede del Torneo Especial',estado:'Listo',prioridad:'Baja',responsables:['Santiago'],adjuntos:[],notif:[],obs:''},
-  ],
-  entrevistas:[],cFuncs:[],modal:null,tf:null,ef:null,cff:null
+<div id="app">
+  <div class="topbar">
+    <div class="logo">
+      <div class="logo-b">TA</div>
+      <div><div class="logo-n">Comunicación</div><div class="logo-s">Muni · Tres Arroyos · v3</div></div>
+    </div>
+    <div class="ntabs">
+      <button class="ntab on" onclick="nav('tablero',this)">Tablero</button>
+      <button class="ntab" onclick="nav('material',this)">Material</button>
+      <button class="ntab" onclick="nav('publicaciones',this)">Publicaciones</button>
+      <button class="ntab" onclick="nav('calendario',this)">Calendario</button>
+      <button class="ntab" onclick="nav('guardias',this)">Guardias</button>
+      <button class="ntab" onclick="nav('equipo',this)">Equipo</button>
+      <button class="ntab" onclick="nav('metricas',this)">📊 Métricas</button>
+      <button class="ntab" onclick="nav('medios',this)">📰 Medios</button>
+    </div>
+    <div class="tr">
+      <div class="live"><div class="ldot" id="ldot"></div><span id="ltxt">Conectando...</span></div>
+      <button class="gcbtn" id="gcbtn" onclick="syncGCal()"><div class="gcdot" id="gcdot"></div><span id="gctxt">Sincronizar Calendar</span></button>
+      <div class="upill"><div class="uav" id="uav"></div><span class="un" id="uname"></span></div>
+      <button onclick="toggleDark()" id="darkbtn" style="padding:4px 8px;border-radius:6px;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.5);font-size:13px;cursor:pointer" title="Modo oscuro/claro">🌙</button>
+      <button onclick="openSettings()" style="padding:4px 8px;border-radius:6px;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.5);font-size:13px;cursor:pointer" title="Configuración">⚙️</button>
+      <button class="outbtn" onclick="doLogout()">Salir</button>
+      <button id="notifbtn" onclick="activarNotificaciones()" style="padding:4px 8px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,200,0,.1);color:#fbbf24;font-size:10px;cursor:pointer;font-family:Inter,sans-serif" title="Activar notificaciones push">🔔</button>
+    </div>
+  </div>
+
+  <div class="body">
+    <aside class="sb">
+      <div class="sb-sec">Panel</div>
+      <button class="sbi on" onclick="nav('tablero',null,this)"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Tablero<span class="sbadge hot" id="sbt">0</span></button>
+      <button class="sbi" onclick="nav('material',null,this)"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Material<span class="sbadge" id="sbm">0</span></button>
+      <button class="sbi" onclick="nav('publicaciones',null,this)"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>Publicaciones</button>
+      <button class="sbi" onclick="nav('calendario',null,this)"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Calendario<span class="sbadge" id="sbag">0</span></button>
+      <div class="div"></div>
+      <div class="sb-sec">Equipo</div>
+      <button class="sbi" onclick="nav('guardias',null,this)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Guardias</button>
+      <button class="sbi" onclick="nav('equipo',null,this)"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>Equipo</button>
+      <button class="sbi" onclick="nav('metricas',null,this)"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Métricas redes</button>
+      <button class="sbi" onclick="nav('medios',null,this)"><svg viewBox="0 0 24 24"><path d="M4 22h16a2 2 0 002-2V4a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 01-2 2zm0 0a2 2 0 01-2-2v-9c0-1.1.9-2 2-2h2"/></svg>Monitoreo medios</button>
+      <div class="div"></div>
+      <div class="sb-sec">Filtrar persona</div>
+      <!-- Panel de persona seleccionada -->
+      <div id="fpanel" style="display:none;margin:4px 8px 6px">
+        <div style="background:#ede9fe;border-radius:8px;padding:8px 10px;border:1px solid #c4b5fd">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <span style="font-size:11px;font-weight:700;color:#6d28d9" id="fpanel-name"></span>
+            <button onclick="limpiarFiltro()" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:13px;padding:0;line-height:1" title="Ver todos">✕</button>
+          </div>
+          <div style="font-size:9px;color:#7c3aed;margin-bottom:6px" id="fpanel-count"></div>
+          <!-- Botones de notificación -->
+          <div style="display:flex;gap:4px">
+            <button onclick="alertarPendientesPor('wa')" id="fpbtn-wa" style="flex:1;padding:5px 4px;border-radius:6px;border:none;background:#25d366;color:#fff;font-size:9px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;display:flex;align-items:center;justify-content:center;gap:3px">📱 WA</button>
+            <button onclick="alertarPendientesPor('mail')" id="fpbtn-mail" style="flex:1;padding:5px 4px;border-radius:6px;border:none;background:#667eea;color:#fff;font-size:9px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;display:flex;align-items:center;justify-content:center;gap:3px">📧 Mail</button>
+            <button onclick="alertarPendientesPor('ambos')" style="flex:1;padding:5px 4px;border-radius:6px;border:none;background:#374151;color:#fff;font-size:9px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;display:flex;align-items:center;justify-content:center;gap:2px">📲 Ambos</button>
+          </div>
+        </div>
+      </div>
+      <div id="sbpersons"></div>
+    </aside>
+
+    <div class="content" id="main">
+      <div id="p-tablero">
+        <div class="ptop">
+          <div><div class="ptitle">Tablero de tareas</div><div class="psub" id="tsub"></div></div>
+          <div class="acts">
+            <select id="kfr" onchange="renderKanban()" style="font-size:11px;padding:5px 8px;border-radius:6px;border:1.5px solid #e5e7eb;font-family:Inter,sans-serif;outline:none"><option value="">Todos</option></select>
+            <select id="kfp" onchange="renderKanban()" style="font-size:11px;padding:5px 8px;border-radius:6px;border:1.5px solid #e5e7eb;font-family:Inter,sans-serif;outline:none"><option value="">Toda prioridad</option><option>Alta</option><option>Media</option><option>Baja</option></select>
+            <button class="btn p" onclick="openTaskMod()"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Nueva tarea</button>
+          </div>
+        </div>
+        <div class="kanban" id="kanban"></div>
+      </div>
+
+      <div id="p-material" style="display:none">
+        <div class="ptop"><div><div class="ptitle">Material disponible para publicar</div><div class="psub">Tareas listas — programalas en redes</div></div></div>
+        <div class="mgrid" id="matgrid"></div>
+      </div>
+
+      <div id="p-publicaciones" style="display:none;flex-direction:column;gap:10px;height:100%">
+        <div class="ptop">
+          <div><div class="ptitle">Publicaciones</div><div class="psub" id="pubsub"></div></div>
+          <div class="acts">
+            <button class="btn sm" onclick="changePW(-1)">← Ant</button>
+            <span id="pwlbl" style="font-size:11px;color:#6b7280;min-width:140px;text-align:center;font-weight:500"></span>
+            <button class="btn sm" onclick="changePW(1)">Sig →</button>
+            <button class="btn p" onclick="openPubMod()"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Nueva</button>
+          </div>
+        </div>
+        <div class="wshell">
+          <div class="whdr" id="whdr"></div>
+          <div class="wscroll" id="wscroll"></div>
+          <div class="wleg">
+            <span class="leg"><span class="ld" style="background:#1877f2"></span>FB Munici</span>
+            <span class="leg"><span class="ld" style="background:#e1306c"></span>IG Munici</span>
+            <span class="leg"><span class="ld" style="background:#374151"></span>TK Munici</span>
+            <span class="leg"><span class="ld" style="background:#0f5ca8"></span>FB Pablo</span>
+            <span class="leg"><span class="ld" style="background:#c13584"></span>IG Pablo</span>
+            <span class="leg"><span class="ld" style="background:#15803d"></span>TK Pablo</span>
+            <span class="leg"><span class="ld" style="background:#25d366"></span>WA Pablo</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="p-calendario" style="display:none;flex-direction:column;gap:10px;height:100%">
+        <div class="ptop">
+          <div><div class="ptitle">Calendario</div><div class="psub" id="calsub">Sin sincronización activa</div></div>
+          <div class="acts">
+            <button class="btn sm" onclick="changeCalW(-1)">← Ant</button>
+            <span id="callbl" style="font-size:12px;font-weight:600;min-width:170px;text-align:center"></span>
+            <button class="btn sm" onclick="changeCalW(1)">Sig →</button>
+            <button class="btn sm" onclick="calWO=0;renderCal()">Hoy</button>
+            <button class="btn p" onclick="openAgMod()"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Nuevo evento</button>
+          </div>
+        </div>
+        <div id="calbanner"></div>
+        <div class="wshell">
+          <div class="whdr" id="calwhdr"></div>
+          <div class="wscroll" id="calwscroll"></div>
+          <div class="wleg">
+            <span class="leg"><span class="ld" style="background:#3b82f6"></span>Intendente</span>
+            <span class="leg"><span class="ld" style="background:#ec4899"></span>Prensa</span>
+            <span class="leg"><span class="ld" style="background:#22c55e"></span>Municipal</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="p-guardias" style="display:none">
+        <div class="ptop">
+          <div><div class="ptitle">Guardias semanales</div><div class="psub">Santiago: gestión sin coberturas de campo</div></div>
+          <div class="acts">
+            <select id="gwsel" onchange="renderGuardias()" style="font-size:11px;padding:5px 8px;border-radius:6px;border:1.5px solid #e5e7eb;font-family:Inter,sans-serif;outline:none"></select>
+            <button class="btn p" onclick="notifyWeek()">📧 Notificar semana</button>
+          </div>
+        </div>
+        <div id="gwcontent"></div>
+      </div>
+
+      <div id="p-equipo" style="display:none">
+        <div class="ptop">
+          <div><div class="ptitle">Equipo</div><div class="psub">Clic en una persona para editar</div></div>
+          <div class="acts">
+            <button class="btn p" onclick="openNuevoMiembro()"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><path d="M12 5v14M5 12h14"/></svg>Agregar persona</button>
+          </div>
+        </div>
+        <div class="tgrid" id="teamgrid"></div>
+      </div>
+
+      <div id="p-metricas" style="display:none">
+        <div class="ptop">
+          <div><div class="ptitle">Métricas de redes sociales</div><div class="psub">Municipalidad y Pablo Garate</div></div>
+          <div class="acts">
+            <select id="mrange" onchange="renderMetricas()" style="font-size:11px;padding:5px 8px;border-radius:6px;border:1.5px solid #e5e7eb;font-family:Inter,sans-serif;outline:none"><option value="7">7 días</option><option value="14">14 días</option><option value="30">30 días</option></select>
+            <button class="btn p" onclick="openStatsMod()"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Cargar stats</button>
+          </div>
+        </div>
+        <div class="api-grid">
+          <div class="apiitem"><div class="apidot"></div><div><div style="font-size:11px;font-weight:500">Facebook Municipalidad</div><div style="font-size:9px;color:#9ca3af">Pendiente aprobación</div></div></div>
+          <div class="apiitem"><div class="apidot"></div><div><div style="font-size:11px;font-weight:500">Instagram Municipalidad</div><div style="font-size:9px;color:#9ca3af">Pendiente aprobación</div></div></div>
+          <div class="apiitem"><div class="apidot"></div><div><div style="font-size:11px;font-weight:500">Facebook Pablo Garate</div><div style="font-size:9px;color:#9ca3af">Pendiente aprobación</div></div></div>
+          <div class="apiitem"><div class="apidot"></div><div><div style="font-size:11px;font-weight:500">Instagram Pablo Garate</div><div style="font-size:9px;color:#9ca3af">Pendiente aprobación</div></div></div>
+        </div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px" id="acctabs"></div>
+        <div class="metrow" id="metcards"></div>
+        <div class="cgrid">
+          <div class="cbox"><div class="cbox-t">Alcance e impresiones</div><div class="ch"><canvas id="chartAlcance"></canvas></div></div>
+          <div class="cbox"><div class="cbox-t">Engagement</div><div class="ch"><canvas id="chartEng"></canvas></div></div>
+        </div>
+        <div class="cgrid">
+          <div class="cbox"><div class="cbox-t">Municipalidad vs Pablo Garate</div><div class="ch"><canvas id="chartRadar"></canvas></div></div>
+          <div class="cbox"><div class="cbox-t">Seguidores</div><div class="ch"><canvas id="chartSeg"></canvas></div></div>
+        </div>
+      </div>
+
+      <div id="p-medios" style="display:none">
+        <div class="ptop">
+          <div><div class="ptitle">Monitoreo de medios</div><div class="psub">Noticias sobre el municipio y Pablo Garate</div></div>
+          <div class="acts">
+            <select id="mfilt" onchange="renderNoticias()" style="font-size:11px;padding:5px 8px;border-radius:6px;border:1.5px solid #e5e7eb;font-family:Inter,sans-serif;outline:none"><option value="">Todos los medios</option><option>La Voz del Pueblo</option><option>LU24</option><option>Via País</option><option>Onda Uno</option><option>Provincia Noticias</option></select>
+            <select id="tfilt" onchange="renderNoticias()" style="font-size:11px;padding:5px 8px;border-radius:6px;border:1.5px solid #e5e7eb;font-family:Inter,sans-serif;outline:none"><option value="">Todos los tonos</option><option value="positivo">Positivo</option><option value="neutral">Neutral</option><option value="negativo">Negativo</option></select>
+            <button class="btn g" id="scanbtn" onclick="scanMedios()"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>Escanear medios</button>
+            <button class="btn" id="aibtn" onclick="analizarConIA()" style="background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border-color:#667eea"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 8v4l3 3"/></svg>🤖 Analizar con IA</button>
+            <button class="btn p" onclick="openNoticiaMod()"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>+ Agregar</button>
+          </div>
+        </div>
+        <div id="scanstatus"></div>
+        <div id="aianalysis" style="display:none;background:linear-gradient(135deg,#1a1a2e,#302b63);border-radius:10px;padding:16px;margin-bottom:10px;color:#fff">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="width:28px;height:28px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px">🤖</div>
+              <div>
+                <div style="font-size:13px;font-weight:700">Análisis IA — Monitoreo de medios</div>
+                <div id="aidate" style="font-size:10px;color:rgba(255,255,255,.4)"></div>
+              </div>
+            </div>
+            <button onclick="document.getElementById('aianalysis').style.display='none'" style="background:rgba(255,255,255,.1);border:none;color:rgba(255,255,255,.5);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:11px">✕ Cerrar</button>
+          </div>
+          <div id="aitext" style="font-size:12px;line-height:1.7;color:rgba(255,255,255,.85);white-space:pre-wrap"></div>
+        </div>
+        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:13px;margin-bottom:10px">
+          <div style="font-size:12px;font-weight:600;margin-bottom:8px;display:flex;justify-content:space-between"><span>Resumen semanal</span><span id="semlbl" style="font-size:10px;color:#9ca3af;font-weight:400"></span></div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px" id="mediosum"></div>
+        </div>
+        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:13px">
+          <div style="font-size:12px;font-weight:600;margin-bottom:8px;display:flex;justify-content:space-between"><span>Noticias</span><span id="ncount" style="font-size:10px;color:#9ca3af;font-weight:400"></span></div>
+          <div id="nlist"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EVENT DETAIL PANEL -->
+<div id="evpanel">
+  <div class="evp-hdr">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div style="flex:1">
+        <div class="evp-tipo" id="evp-tipo"></div>
+        <div class="evp-title" id="evp-title"></div>
+        <div class="evp-meta" id="evp-meta"></div>
+      </div>
+      <button onclick="closeEvPanel()" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:18px;padding:0;line-height:1;margin-left:8px">✕</button>
+    </div>
+  </div>
+  <div class="evp-body">
+    <div id="evp-guardia" style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px 12px;margin-bottom:10px;display:none">
+      <div style="font-size:10px;font-weight:700;color:#16a34a;margin-bottom:4px">👥 Guardia asignada</div>
+      <div id="evp-guardia-names" style="font-size:11px;color:#15803d"></div>
+    </div>
+    <div id="evp-desc" style="font-size:11px;color:#6b7280;line-height:1.6"></div>
+  </div>
+  <div class="evp-ftr">
+    <div class="evp-cob" id="evp-cobbtn" onclick="toggleCobertura()">
+      <div class="evp-cob-ico">📋</div>
+      <div class="evp-cob-txt">
+        <div class="evp-cob-lbl">Cubrir con prensa</div>
+        <div class="evp-cob-sub" id="evp-cobsub">Marcar para cobertura de guardia</div>
+      </div>
+      <div class="evp-check" id="evp-cobcheck"></div>
+    </div>
+    <div style="display:flex;gap:6px">
+      <button onclick="closeEvPanel();openAgMod(evPanel_ev?.fecha||'',cobSel[evPanel_ev?.id]||false)" style="flex:1;padding:8px;border-radius:7px;border:1px solid #e5e7eb;background:#fff;color:#374151;font-size:11px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif">✏️ Editar</button>
+      <button onclick="closeEvPanel();nav('guardias',null,document.querySelectorAll('.sbi')[4])" style="flex:1;padding:8px;border-radius:7px;border:1px solid #667eea;background:#ede9fe;color:#6d28d9;font-size:11px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif">👥 Ver guardia</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="ov" id="modTask"><div class="mod">
+  <div class="mod-t" id="taskmodt">Nueva tarea</div>
+  <input type="hidden" id="editTid">
+  <div class="fg"><label>Descripción</label><textarea id="fdesc" rows="3"></textarea></div>
+  <div class="fr">
+    <div class="fg"><label>Responsable</label><select id="fresp"><option value="">Sin asignar</option></select></div>
+    <div class="fg"><label>Prioridad</label><select id="fprio"><option>Alta</option><option selected>Media</option><option>Baja</option></select></div>
+  </div>
+  <div class="fr">
+    <div class="fg"><label>Estado</label><select id="fest"><option>Pendiente</option><option>En proceso</option><option>Listo s/publicar</option></select></div>
+    <div class="fg"><label>Observaciones</label><input type="text" id="fobs"></div>
+  </div>
+  <div class="mft"><button class="btn" onclick="closeMod('modTask')">Cancelar</button><button class="btn p" onclick="saveTask()">Guardar</button></div>
+</div></div>
+
+<div class="ov" id="modPub"><div class="mod">
+  <div class="mod-t" id="pubmodt">Nueva publicación</div>
+  <input type="hidden" id="pubeid">
+  <div class="fr">
+    <div class="fg"><label>Fecha</label><input type="date" id="pfecha"></div>
+    <div class="fg"><label>Hora</label><input type="time" id="phora" onchange="onPestChange()"></div>
+  </div>
+  <div class="fg"><label>Descripción</label><textarea id="pdesc" rows="2"></textarea></div>
+  <div class="fg"><label>Cuenta</label><div class="cuentas" id="cuentasgrid"></div></div>
+  <div class="fr">
+    <div class="fg"><label>Tipo</label><select id="ptipo"><option>Reel/Video</option><option>Foto</option><option>Carrusel</option><option>Historia</option><option>Gacetilla</option><option>Streaming</option><option>Pieza gráfica</option><option>Audio/WA</option></select></div>
+    <div class="fg"><label>Responsable</label><select id="presp"><option value="">Sin asignar</option></select></div>
+  </div>
+  <div class="fr">
+    <div class="fg"><label>Colaboración</label><input type="text" id="pcolab" placeholder="Ej: Secretaría de Obras..."></div>
+    <div class="fg"><label>Estado</label>
+      <select id="pest" onchange="onPestChange()">
+        <option value="Pendiente">Pendiente</option>
+        <option value="En producción">En producción</option>
+        <option value="Listo para publicar">✅ Listo para publicar</option>
+        <option value="Publicado">Publicado</option>
+      </select>
+    </div>
+  </div>
+  <div id="pubguardiabanner" style="display:none;background:#ede9fe;border:1px solid #c4b5fd;border-radius:7px;padding:8px 11px;font-size:11px;color:#6d28d9;margin-top:4px">
+    📋 <strong>Pasa a Guardias</strong> — esta publicación es después de las 15hs y está lista para publicar
+  </div>
+  <div class="mft">
+    <button class="btn r" id="pubdelbtn" onclick="deletePub()" style="display:none">🗑 Eliminar</button>
+    <button class="btn" onclick="closeMod('modPub')">Cancelar</button>
+    <button class="btn p" onclick="savePub()">Guardar</button>
+  </div>
+</div></div>
+
+<div class="ov" id="modAg"><div class="mod">
+  <div class="mod-t" id="agmodt">Nuevo evento</div>
+  <input type="hidden" id="ageditid">
+  <div class="fr">
+    <div class="fg"><label>Fecha</label><input type="date" id="agfecha"></div>
+    <div class="fg"><label>Hora</label><input type="time" id="aghora"></div>
+  </div>
+  <div class="fg"><label>Descripción</label><input type="text" id="agdesc"></div>
+  <div class="fg"><label>Lugar</label><input type="text" id="aglugar"></div>
+  <div class="fr">
+    <div class="fg"><label>Tipo</label><select id="agtipo" onchange="onAgTipoChange()"><option value="intendente">Agenda Intendente</option><option value="prensa">Prensa / Medio</option><option value="municipal">Municipal</option></select></div>
+    <div class="fg"><label>Responsable</label><select id="agresp"><option value="">Sin asignar</option></select></div>
+  </div>
+  <!-- Cobertura de prensa -->
+  <div id="agcobrow" style="margin-top:4px">
+    <div id="agcobbtn" onclick="toggleAgCob()" style="display:flex;align-items:center;gap:10px;padding:10px 13px;border-radius:9px;border:2px solid #e5e7eb;background:#f9fafb;cursor:pointer;transition:all .15s">
+      <div style="font-size:20px">📋</div>
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:700;color:#374151" id="agcoblbl">Cubrir con prensa</div>
+        <div style="font-size:10px;color:#9ca3af" id="agcobsub">Activar para asignar cobertura a la guardia del día</div>
+      </div>
+      <div id="agcobcheck" style="width:20px;height:20px;border-radius:50%;border:2px solid #d1d5db;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0"></div>
+    </div>
+  </div>
+  <div class="mft"><button class="btn" onclick="closeMod('modAg')">Cancelar</button><button class="btn p" onclick="saveAg()">Guardar</button></div>
+</div></div>
+
+<div class="ov" id="modEquipo"><div class="mod">
+  <div class="mod-t" id="emtitle">Editar integrante</div>
+  <input type="hidden" id="emid">
+  <div class="fg"><label>Nombre</label><input type="text" id="emnombre" placeholder="Nombre completo"></div>
+  <div class="fg"><label>Color</label>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px" id="emcolors">
+      <div class="copt sel" data-color="#667eea" data-txt="#fff" onclick="selEmColor(this)" style="padding:4px 10px;border-radius:20px;background:#667eea;color:#fff;font-size:11px;border:2px solid #667eea;cursor:pointer">Violeta</div>
+      <div class="copt" data-color="#ef4444" data-txt="#fff" onclick="selEmColor(this)" style="padding:4px 10px;border-radius:20px;background:#ef4444;color:#fff;font-size:11px;border:2px solid transparent;cursor:pointer">Rojo</div>
+      <div class="copt" data-color="#22c55e" data-txt="#fff" onclick="selEmColor(this)" style="padding:4px 10px;border-radius:20px;background:#22c55e;color:#fff;font-size:11px;border:2px solid transparent;cursor:pointer">Verde</div>
+      <div class="copt" data-color="#f59e0b" data-txt="#fff" onclick="selEmColor(this)" style="padding:4px 10px;border-radius:20px;background:#f59e0b;color:#fff;font-size:11px;border:2px solid transparent;cursor:pointer">Naranja</div>
+      <div class="copt" data-color="#3b82f6" data-txt="#fff" onclick="selEmColor(this)" style="padding:4px 10px;border-radius:20px;background:#3b82f6;color:#fff;font-size:11px;border:2px solid transparent;cursor:pointer">Azul</div>
+      <div class="copt" data-color="#ec4899" data-txt="#fff" onclick="selEmColor(this)" style="padding:4px 10px;border-radius:20px;background:#ec4899;color:#fff;font-size:11px;border:2px solid transparent;cursor:pointer">Rosa</div>
+      <div class="copt" data-color="#8b5cf6" data-txt="#fff" onclick="selEmColor(this)" style="padding:4px 10px;border-radius:20px;background:#8b5cf6;color:#fff;font-size:11px;border:2px solid transparent;cursor:pointer">Lila</div>
+      <div class="copt" data-color="#06b6d4" data-txt="#fff" onclick="selEmColor(this)" style="padding:4px 10px;border-radius:20px;background:#06b6d4;color:#fff;font-size:11px;border:2px solid transparent;cursor:pointer">Celeste</div>
+    </div>
+  </div>
+  <div class="fg"><label>Correo</label><input type="email" id="ememail"></div>
+  <div class="fg"><label>WhatsApp (con código país, solo números)</label><input type="tel" id="emtel" placeholder="Ej: 5492983569618"></div>
+  <div class="fg"><label>Rol</label><select id="emrol"><option>Jefe/a de área</option><option>Responsable de equipo</option><option>Comunicador/a</option><option>Diseñador/a</option><option>Editor/a de video</option><option>Community Manager</option><option>Camarógrafo/a</option><option>Fotógrafo/a</option></select></div>
+  <div class="fg"><label>¿Hace coberturas?</label><select id="emcob"><option value="1">Sí</option><option value="0">No</option></select></div>
+  <div class="mft">
+    <button class="btn r" id="emdelbtn" onclick="deleteMember()" style="display:none;margin-right:auto">🗑 Eliminar</button>
+    <button class="btn" onclick="closeMod('modEquipo')">Cancelar</button>
+    <button class="btn p" onclick="saveMember()">Guardar</button>
+  </div>
+</div></div>
+
+<div class="ov" id="modProgram"><div class="mod">
+  <div class="mod-t">Programar publicación</div>
+  <input type="hidden" id="progtid">
+  <div id="proginfo" style="background:#f0fdf4;border:1px solid #86efac;border-radius:7px;padding:9px 11px;font-size:11px;color:#166534;margin-bottom:12px"></div>
+  <div class="fr">
+    <div class="fg"><label>Fecha</label><input type="date" id="progfecha"></div>
+    <div class="fg"><label>Hora</label><input type="time" id="proghora"></div>
+  </div>
+  <div class="fg"><label>Cuenta</label><div class="cuentas" id="progcuentas"></div></div>
+  <div class="fr">
+    <div class="fg"><label>Tipo</label><select id="progtipo"><option>Reel/Video</option><option>Foto</option><option>Carrusel</option><option>Gacetilla</option><option>Pieza gráfica</option></select></div>
+    <div class="fg"><label>Responsable</label><select id="progresp"><option value="">Sin asignar</option></select></div>
+  </div>
+  <div class="mft"><button class="btn" onclick="closeMod('modProgram')">Cancelar</button><button class="btn p" onclick="saveProgram()">Programar</button></div>
+</div></div>
+
+<div class="ov" id="modStats"><div class="mod">
+  <div class="mod-t">Cargar estadísticas</div>
+  <div class="fr">
+    <div class="fg"><label>Fecha</label><input type="date" id="sfecha"></div>
+    <div class="fg"><label>Cuenta</label><select id="scuenta"><option value="Municipalidad|Facebook">FB Municipalidad</option><option value="Municipalidad|Instagram">IG Municipalidad</option><option value="Municipalidad|YouTube">YT Municipalidad</option><option value="Pablo Garate|Facebook">FB Pablo Garate</option><option value="Pablo Garate|Instagram">IG Pablo Garate</option></select></div>
+  </div>
+  <div class="fr"><div class="fg"><label>Alcance</label><input type="number" id="salcance" min="0"></div><div class="fg"><label>Impresiones</label><input type="number" id="simpres" min="0"></div></div>
+  <div class="fr"><div class="fg"><label>Likes</label><input type="number" id="slikes" min="0"></div><div class="fg"><label>Comentarios</label><input type="number" id="scoments" min="0"></div></div>
+  <div class="fr"><div class="fg"><label>Compartidos</label><input type="number" id="sshares" min="0"></div><div class="fg"><label>Reproducciones</label><input type="number" id="sviews" min="0"></div></div>
+  <div class="fr"><div class="fg"><label>Nuevos seguidores</label><input type="number" id="snew" min="0"></div><div class="fg"><label>Total seguidores</label><input type="number" id="stotal" min="0"></div></div>
+  <div class="mft"><button class="btn" onclick="closeMod('modStats')">Cancelar</button><button class="btn p" onclick="saveStats()">Guardar</button></div>
+</div></div>
+
+<div class="ov" id="modNoticia"><div class="mod">
+  <div class="mod-t">Agregar noticia</div>
+  <div class="fg"><label>Título</label><input type="text" id="ntit"></div>
+  <div class="fr">
+    <div class="fg"><label>Medio</label><select id="nmedio"><option>La Voz del Pueblo</option><option>LU24</option><option>Via País</option><option>Onda Uno</option><option>Provincia Noticias</option></select></div>
+    <div class="fg"><label>Fecha</label><input type="date" id="nfecha"></div>
+  </div>
+  <div class="fg"><label>URL</label><input type="url" id="nurl" placeholder="https://..."></div>
+  <div class="fg"><label>Resumen</label><textarea id="nresumen" rows="2"></textarea></div>
+  <div class="fr">
+    <div class="fg"><label>Tono</label><select id="ntono"><option value="neutral">Neutral</option><option value="positivo">Positivo</option><option value="negativo">Negativo</option></select></div>
+    <div class="fg"><label>Menciona</label><select id="nmenc"><option value="ambos">Municipio y Pablo</option><option value="muni">Solo Municipio</option><option value="pablo">Solo Pablo</option></select></div>
+  </div>
+  <div class="mft"><button class="btn" onclick="closeMod('modNoticia')">Cancelar</button><button class="btn p" onclick="saveNoticia()">Guardar</button></div>
+</div></div>
+
+<div class="ov" id="modSettings"><div class="mod" style="max-width:400px">
+  <div class="mod-t">⚙️ Configuración</div>
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <!-- Modo oscuro -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 13px;background:#f9fafb;border-radius:9px;border:1px solid #e5e7eb">
+      <div>
+        <div style="font-size:12px;font-weight:600">🌙 Modo oscuro</div>
+        <div style="font-size:10px;color:#9ca3af;margin-top:1px">Cambia el tema visual del panel</div>
+      </div>
+      <button id="darkToggleBtn" onclick="toggleDark()" style="padding:5px 14px;border-radius:20px;border:none;font-size:11px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;background:#667eea;color:#fff">Activar</button>
+    </div>
+    <!-- Cambiar contraseña -->
+    <div style="padding:10px 13px;background:#f9fafb;border-radius:9px;border:1px solid #e5e7eb">
+      <div style="font-size:12px;font-weight:600;margin-bottom:8px">🔑 Cambiar contraseña del panel</div>
+      <div class="fg" style="margin-bottom:8px"><label>Contraseña actual</label><input type="password" id="passActual" placeholder="••••••••"></div>
+      <div class="fg" style="margin-bottom:8px"><label>Nueva contraseña</label><input type="password" id="passNueva" placeholder="Mínimo 6 caracteres"></div>
+      <div class="fg" style="margin-bottom:10px"><label>Confirmar nueva</label><input type="password" id="passConfirm" placeholder="Repetí la nueva contraseña"></div>
+      <button onclick="cambiarPassword()" class="btn p" style="width:100%">Cambiar contraseña</button>
+      <div id="passerr" style="font-size:11px;color:#dc2626;margin-top:6px;min-height:16px"></div>
+    </div>
+    <!-- Info -->
+    <div style="padding:10px 13px;background:#f9fafb;border-radius:9px;border:1px solid #e5e7eb">
+      <div style="font-size:12px;font-weight:600;margin-bottom:4px">ℹ️ Información</div>
+      <div style="font-size:10px;color:#6b7280;line-height:1.6">
+        Panel de Comunicación · Municipalidad de Tres Arroyos<br>
+        Usuario actual: <span id="settingsUser" style="font-weight:600;color:#374151"></span><br>
+        Versión: 2026.04
+      </div>
+    </div>
+  </div>
+  <div class="mft"><button class="btn" onclick="closeMod('modSettings')">Cerrar</button></div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══ CONFIG ═══
+const SB_URL="https://kvbwurvvgfarmiqtvlsc.supabase.co";
+const SB_KEY="sb_publishable_XYkrltbXO7qOj4Tz48PoJg_uh8m-zmr";
+const GCAL_ID="642f04e4333c91e3c67f35a779bd775a7c4cc6d05700da68376b0ff313ea9f0b@group.calendar.google.com";
+const GCAL_KEY="AIzaSyAoWTmpOToooLj-xuQCb_hEuVNyYVg5tFk";
+const PASS="prensa2026";
+const START=new Date(2026,3,20);
+const WD={1:["Marianela","Yesi"],2:["Debora","Maiten"],3:["Yesi","Debora"],4:["Maiten","Lina"],5:["Lina","Marianela"]};
+const WE=[["Nadia","Lina"],["Debora","Yesi"],["Maiten","Marianela"]];
+const CUENTAS=[
+  {id:"fb-m",label:"Facebook",sub:"Municipalidad",dot:"#1877f2",cls:"efbm"},
+  {id:"ig-m",label:"Instagram",sub:"Municipalidad",dot:"#e1306c",cls:"eigm"},
+  {id:"tk-m",label:"TikTok",sub:"Municipalidad",dot:"#374151",cls:"etkm"},
+  {id:"fb-p",label:"Facebook",sub:"Pablo Garate",dot:"#0f5ca8",cls:"efbp"},
+  {id:"ig-p",label:"Instagram",sub:"Pablo Garate",dot:"#c13584",cls:"eigp"},
+  {id:"tk-p",label:"TikTok",sub:"Pablo Garate",dot:"#15803d",cls:"etkp"},
+  {id:"wa-p",label:"WhatsApp",sub:"Pablo Garate",dot:"#25d366",cls:"ewap"},
+];
+const MEDIOS=[
+  {n:"La Voz del Pueblo",c:"#1d4e7a",s:"LVP",rss:"https://www.lavozdelpueblo.com.ar/feed/"},
+  {n:"LU24",c:"#7c2d12",s:"LU24",rss:"https://www.lu24.com.ar/feed/"},
+  {n:"Via País",c:"#5b21b6",s:"VP",rss:"https://viapais.com.ar/tres-arroyos/feed/"},
+  {n:"Onda Uno",c:"#92400e",s:"O1",rss:"https://ondauno.com.ar/feed/"},
+  {n:"Provincia Noticias",c:"#0f5ca8",s:"PN",rss:"https://provincianoticias.com.ar/feed/"},
+];
+const MNS=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+const MNF=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+const DNF=["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
+const HOURS=[8,9,10,11,12,13,14,15,16,17,18,19,20];
+const ACC_CLR={"Municipalidad-Facebook":"#1877f2","Municipalidad-Instagram":"#e1306c","Municipalidad-YouTube":"#ef4444","Pablo Garate-Facebook":"#0f5ca8","Pablo Garate-Instagram":"#c13584"};
+
+// State
+const TODAY=new Date();TODAY.setHours(0,0,0,0);
+const isoToday=iso(TODAY);
+
+// FIX: contactos hardcodeados como fallback (se usan si la DB no tiene el dato)
+const CONTACTOS_FB={
+  "Marianela":{email:"marianelahut@gmail.com",tel:"5492983569618"},
+  "Yesi":{email:"yedann86@gmail.com",tel:"5492983548005"},
+  "Debora":{email:"Amestoydebora@gmail.com",tel:"5492983604796"},
+  "Guada":{email:"guadalul2603@gmail.com",tel:"5492983544254"},
+  "Maiten":{email:"maitenfaber@gmail.com",tel:"5492983560222"},
+  "Lina":{email:"",tel:""},
+  "Nadia":{email:"",tel:""},
+  "Santiago":{email:"santiagogarate96@gmail.com",tel:""}
 };
 
-function gid()  { return Date.now()+'_'+Math.floor(Math.random()*9999); }
-function e(s)   { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function cl(s)  { return (s||'').replace(/\D/g,''); }
-function aF()   { return [...FUNCS,...S.cFuncs.map(f=>({...f,custom:true}))]; }
-function waLink(ph,msg){ return 'https://wa.me/'+cl(ph)+'?text='+encodeURIComponent(msg); }
-function waSvg(){ return '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>'; }
-
-function loadData(){
+// Cargar contactos extras guardados en localStorage
+function loadLocalContacts(){
   try{
-    const a=localStorage.getItem('ta_tasks'),b=localStorage.getItem('ta_ents'),c=localStorage.getItem('ta_cf');
-    if(a)S.tasks=JSON.parse(a); if(b)S.entrevistas=JSON.parse(b); if(c)S.cFuncs=JSON.parse(c);
-  }catch(_){}
+    const saved=localStorage.getItem("panelContactos");
+    if(saved){
+      const extra=JSON.parse(saved);
+      Object.assign(CONTACTOS_FB,extra);
+    }
+  }catch(e){}
 }
-function saveData(){
+function saveLocalContact(nombre,email,tel){
   try{
-    localStorage.setItem('ta_tasks',JSON.stringify(S.tasks));
-    localStorage.setItem('ta_ents',JSON.stringify(S.entrevistas));
-    localStorage.setItem('ta_cf',JSON.stringify(S.cFuncs));
-  }catch(_){}
+    const saved=localStorage.getItem("panelContactos");
+    const extra=saved?JSON.parse(saved):{};
+    extra[nombre]={email,tel};
+    localStorage.setItem("panelContactos",JSON.stringify(extra));
+    CONTACTOS_FB[nombre]={email,tel};
+  }catch(e){}
+}
+loadLocalContacts();
+
+// getContact: prioriza DB → localStorage → hardcoded
+function getContact(nombre){
+  const m=gm(nombre);
+  const fb=CONTACTOS_FB[nombre]||{email:"",tel:""};
+  const email=(m&&m.email&&m.email.trim())?m.email:fb.email;
+  const telRaw=(m&&m.telefono&&String(m.telefono).trim())?String(m.telefono):fb.tel;
+  const tel=telRaw.replace(/[^0-9]/g,"");
+  return{email,tel};
 }
 
-function render(){
-  const pend=S.tasks.filter(t=>t.estado==='Pendiente').length;
-  document.getElementById('nav').innerHTML=
-    TABS.map(tb=>`<button class="tb ${S.tab===tb.id?'active':''}" onclick="setTab('${tb.id}')">${tb.l}${tb.id==='tablero'&&pend>0?`<span style="background:#ef444422;color:#ef4444;padding:0 5px;border-radius:6px;font-size:10px;margin-left:3px">${pend}</span>`:''}</button>`).join('')+
-    `<button class="btn-p" style="margin-left:auto;font-size:11px" onclick="openTM(null)">+ Nueva tarea</button>`;
-  const main=document.getElementById('main');
-  if(S.tab==='tablero') main.innerHTML=buildTablero();
-  else if(S.tab==='entrevistas') main.innerHTML=buildEntrevistas();
-  else main.innerHTML=`<div class="empty-state"><div style="font-size:28px;margin-bottom:8px">⚙</div><div>Sección en desarrollo</div></div>`;
-  const ov=document.getElementById('ov-root');
-  if(S.modal==='task') ov.innerHTML=buildTaskModal();
-  else if(S.modal==='ent') ov.innerHTML=buildEntModal();
-  else if(S.modal==='cf') ov.innerHTML=buildCFModal();
-  else ov.innerHTML='';
+const _wd=Math.max(0,Math.floor((TODAY-START)/(7*86400000)));
+let db,cu,fp="",gcalOk=false,mCharts={},mAccTab="todas";
+let pwO=_wd,calWO=_wd;
+let gcalEvs=[];
+let teams=[],tasks=[],agendas=[],pubs=[],stats=[],noticias=[];
+
+// ═══ UTILS ═══
+function iso(d){return d.toISOString().split("T")[0]}
+function addD(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r}
+function parseD(s){return new Date(s+"T00:00:00")}
+function dayAge(c){if(!c)return 0;try{const d=new Date(c);if(isNaN(d))return 0;return Math.floor((TODAY-d)/86400000);}catch(e){return 0;}}
+function ini(n){return(n||"?").slice(0,2).toUpperCase()}
+function gm(n){return teams.find(m=>m.nombre===(n||"").trim())}
+function av(m,sz=20){if(!m)return`<div style="width:${sz}px;height:${sz}px;border-radius:50%;background:#e5e7eb;flex-shrink:0"></div>`;return`<div style="width:${sz}px;height:${sz}px;border-radius:50%;background:${m.color};color:${m.color_texto};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:${Math.floor(sz*.42)}px;flex-shrink:0">${ini(m.nombre)}</div>`}
+function getCta(id){return CUENTAS.find(c=>c.id===id)}
+function getGuardia(ds){
+  const d=parseD(ds),dow=d.getDay();
+  if(dow>=1&&dow<=5)return WD[dow]||[];
+  const diff=Math.floor((d-START)/(7*86400000));
+  return WE[((diff%3)+3)%3]||[];
+}
+function toast(m,t="ok"){
+  const el=document.getElementById("toast");
+  el.textContent=m;el.className=`toast show ${t}`;
+  clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove("show"),4500);
+}
+function closeMod(id){document.getElementById(id).classList.remove("open")}
+function matchH(h,hr){
+  if(!h||h===null||h===""||h==="null"||h==="undefined")return hr===9;
+  const str=String(h).trim();
+  if(!str||str==="null"||str==="undefined")return hr===9;
+  const n=parseInt(str.split(":")[0]);
+  if(isNaN(n))return hr===9;
+  if(n<8)return hr===8;
+  if(n>20)return hr===20;
+  return n===hr;
+}
+function fmtN(n){if(!n)return"0";if(n>=1000000)return(n/1000000).toFixed(1)+"M";if(n>=1000)return(n/1000).toFixed(1)+"K";return String(n)}
+
+// FIX: mail ahora usa getContact() en vez de buscar m.email directamente
+function mail(nombre,sub,body){
+  const c=getContact(nombre);
+  if(!c.email){toast(`${nombre} sin correo`,"warn");return;}
+  // Intentar mailto primero, si falla abrir Gmail web
+  const mailtoUrl=`mailto:${c.email}?subject=${encodeURIComponent(sub)}&body=${encodeURIComponent(body)}`;
+  const gmailUrl=`https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(c.email)}&su=${encodeURIComponent(sub)}&body=${encodeURIComponent(body)}`;
+  // Abrir Gmail web directamente (más confiable que mailto en contextos web)
+  window.open(gmailUrl,"_blank");
+  toast(`✓ Gmail abierto → ${nombre}`);
 }
 
-function buildTablero(){
-  const cols=[['Pendiente','#ef4444'],['En proceso','#f59e0b'],['Listo','#22c55e']];
-  return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-    <span style="font-size:15px;font-weight:500">Tablero de tareas</span>
-    <span style="font-size:12px;color:#7c78a0">${S.tasks.length} tarea${S.tasks.length!==1?'s':''}</span>
-  </div>
-  <div class="kanban">${cols.map(([col,cl2])=>{
-    const tasks=S.tasks.filter(tt=>tt.estado===col);
-    return `<div class="col">
-      <div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:${cl2};margin-bottom:10px">${col} <span style="background:${cl2}22;padding:1px 6px;border-radius:6px">${tasks.length}</span></div>
-      ${tasks.length===0?`<div style="font-size:11px;color:#5a5778;text-align:center;padding:16px 0">Sin tareas</div>`:
-        tasks.map(tt=>`<div class="tc" onclick="openTM('${tt.id}')">
-          <div style="font-size:12px;font-weight:500;margin-bottom:5px">${e(tt.titulo)}</div>
-          ${tt.desc?`<div style="font-size:11px;color:#9993b8;margin-bottom:6px;line-height:1.4">${e(tt.desc.substring(0,90))}${tt.desc.length>90?'...':''}</div>`:''}
-          <div style="display:flex;gap:3px;flex-wrap:wrap;align-items:center">
-            <span class="bdg" style="background:${tt.prioridad==='Alta'?'#3b0d0d':tt.prioridad==='Media'?'#3b2500':'#0d2b18'};color:${tt.prioridad==='Alta'?'#f87171':tt.prioridad==='Media'?'#fbbf24':'#4ade80'}">${tt.prioridad}</span>
-            ${tt.responsables.map(r=>`<span class="bdg" style="background:#2d2a5e;color:#a89cf7">${r}</span>`).join('')}
-            ${tt.adjuntos&&tt.adjuntos.length>0?`<span class="bdg" style="background:#1e1d2e;color:#7c78a0">📎 ${tt.adjuntos.length}</span>`:''}
-            ${(tt.notif||[]).includes('whatsapp')?`<span style="font-size:10px;color:#25D366;font-weight:500">WA</span>`:''}
-            ${(tt.notif||[]).includes('mail')?`<span style="font-size:10px;color:#a89cf7">✉</span>`:''}
-          </div>
-        </div>`).join('')}
-    </div>`;
-  }).join('')}</div>`;
+function popSelects(){
+  ["fresp","agresp","presp","progresp"].forEach(id=>{
+    const s=document.getElementById(id);if(!s)return;
+    const v=s.value;while(s.options.length>1)s.remove(1);
+    const list=id==="agresp"?teams.filter(m=>m.cobertura):teams;
+    list.forEach(m=>s.appendChild(new Option(m.nombre,m.nombre)));
+    s.value=v;
+  });
+  const kfr=document.getElementById("kfr");
+  if(kfr){const v=kfr.value;while(kfr.options.length>1)kfr.remove(1);teams.forEach(m=>kfr.appendChild(new Option(m.nombre,m.nombre)));kfr.value=v;}
 }
 
-function buildEntrevistas(){
-  const funcs=aF();
-  return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-    <span style="font-size:15px;font-weight:500">Entrevistas pactadas</span>
-    <button class="btn-p" onclick="openEM(null)">+ Nueva entrevista</button>
-  </div>
-  ${S.entrevistas.length===0
-    ?`<div class="empty-state"><div style="font-size:28px;margin-bottom:8px">🎙</div><div style="font-weight:500;margin-bottom:4px">Sin entrevistas registradas</div><div style="font-size:12px">Agendá entrevistas con funcionarios y medios de comunicación</div></div>`
-    :S.entrevistas.map(ee=>{
-      const fn=funcs.find(f=>f.n===ee.funcionario);
-      const ph=fn?fn.t:ee.telCustom;
-      const ml=ee.medio==='otro'?(ee.medioCustom||'Otro'):ee.medio;
-      const msg=`Hola ${ee.funcionario}, le informamos que tiene una entrevista pactada con ${ml} el ${ee.fecha||'próximamente'}${ee.hora?' a las '+ee.hora:''}.${ee.notas?' Tema: '+ee.notas+'.':''} Saludos, Dirección de Comunicación — Municipalidad de Tres Arroyos.`;
-      return `<div class="ec">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
-          <div style="flex:1">
-            <div style="font-size:14px;font-weight:500;margin-bottom:2px">${e(ml)}</div>
-            <div style="font-size:12px;color:#9993b8">${e(ee.funcionario)}${fn?.custom?`<span style="font-size:9px;background:#2b2200;color:#fbbf24;padding:1px 4px;border-radius:3px;margin-left:4px">personaliz.</span>`:''}</div>
-            ${fn?.c?`<div style="font-size:11px;color:#5a5778">${e(fn.c)}</div>`:''}
-          </div>
-          <div style="display:flex;gap:5px;align-items:center;flex-shrink:0">
-            ${ph?`<a class="wa" href="${waLink(ph,msg)}" target="_blank" rel="noopener">${waSvg()} Notificar</a>`:''}
-            <button class="btn-s" style="font-size:11px;padding:3px 9px" onclick="openEM('${ee.id}')">Editar</button>
-            <button onclick="delE('${ee.id}')" style="background:none;border:none;cursor:pointer;color:#f87171;font-size:18px;padding:0 2px">×</button>
-          </div>
-        </div>
-        <div style="display:flex;gap:14px;margin-top:8px;font-size:11px;color:#7c78a0">
-          ${ee.fecha?`<span>📅 ${ee.fecha}</span>`:''}
-          ${ee.hora?`<span>🕐 ${ee.hora}</span>`:''}
-          ${ee.lugar?`<span>📍 ${e(ee.lugar)}</span>`:''}
-          ${ph?`<span>📱 +${cl(ph)}</span>`:''}
-        </div>
-        ${ee.notas?`<div style="margin-top:7px;font-size:11px;color:#9993b8;background:#13121f;padding:6px 9px;border-radius:6px;border:1px solid #2e2c4a">${e(ee.notas)}</div>`:''}
-      </div>`;
-    }).join('')}
-  <div style="margin-top:28px">
-    <div class="sep"></div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin:14px 0 10px">
-      <span style="font-size:13px;font-weight:500">Funcionarios personalizados</span>
-      <button class="btn-s" style="font-size:11px" onclick="openCF()">+ Agregar</button>
-    </div>
-    ${S.cFuncs.length===0
-      ?`<div style="font-size:12px;color:#5a5778">Agregá funcionarios que no figuren en el listado oficial.</div>`
-      :S.cFuncs.map((f,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:#13121f;border-radius:6px;margin-bottom:5px;border:1px solid #2e2c4a">
-          <div><span style="font-size:12px;font-weight:500">${e(f.n)}</span>${f.c?`<span style="font-size:11px;color:#7c78a0;margin-left:7px">${e(f.c)}</span>`:''}</div>
-          <div style="display:flex;gap:6px;align-items:center">
-            ${f.t?`<a class="wa" href="${waLink(f.t,'Hola '+f.n+', le contactamos desde la Municipalidad de Tres Arroyos.')}" target="_blank" rel="noopener" style="font-size:10px;padding:3px 7px">${waSvg()} WA</a>`:''}
-            ${f.t?`<span style="font-size:10px;color:#5a5778">+${cl(f.t)}</span>`:''}
-            <button onclick="dCF(${i})" style="background:none;border:none;cursor:pointer;color:#f87171;font-size:17px;padding:0">×</button>
-          </div>
-        </div>`).join('')}
-  </div>`;
+// ═══ LOGIN ═══
+// Load team names for login dropdown (before login)
+async function loadLoginTeams(){
+  try{
+    const tmp=supabase.createClient(SB_URL,SB_KEY);
+    const{data}=await tmp.from("usuarios").select("nombre").order("nombre");
+    const sel=document.getElementById("lu");
+    if(data&&data.length){
+      sel.innerHTML='<option value="">— seleccioná —</option>';
+      data.forEach(m=>sel.appendChild(new Option(m.nombre,m.nombre)));
+    }
+  }catch(e){console.warn("loadLoginTeams:",e);}
+}
+// Load teams when page opens
+loadLoginTeams();
+
+function doLogin(){
+  const u=document.getElementById("lu").value,p=document.getElementById("lp").value;
+  const e=document.getElementById("lerr");
+  if(!u){e.textContent="Seleccioná tu nombre";return}
+  // Check custom password first, then default
+  let passOk=p===PASS;
+  try{const cp=localStorage.getItem("panelPass");if(cp)passOk=p===cp;}catch(ex){}
+  if(!passOk){e.textContent="Contraseña incorrecta";return}
+  e.textContent="";cu=u;
+  document.getElementById("login").style.display="none";
+  document.getElementById("app").classList.add("on");
+  const m=gm(u)||{color:"#667eea",color_texto:"#fff"};
+  const uav=document.getElementById("uav");
+  uav.style.background=m.color;uav.style.color=m.color_texto;uav.textContent=ini(u);
+  document.getElementById("uname").textContent=u;
+  initApp();
+}
+function doLogout(){
+  document.getElementById("login").style.display="flex";
+  document.getElementById("app").classList.remove("on");
+  document.getElementById("lp").value="";cu=null;
 }
 
-function buildTaskModal(){
-  const f=S.tf; const isEdit=f.id!=null;
-  return `<div class="ov" onclick="if(event.target===this)closeM()">
-    <div class="mdl" onclick="event.stopPropagation()">
-      <div class="mh">
-        <span style="font-size:14px;font-weight:500">${isEdit?'Editar tarea':'Nueva tarea'}</span>
-        <button onclick="closeM()" style="background:none;border:none;cursor:pointer;color:#7c78a0;font-size:20px;padding:0;line-height:1">×</button>
-      </div>
-      <div class="mb">
-        <div class="fld"><label class="lbl">Título</label>
-          <input type="text" value="${e(f.titulo||'')}" placeholder="Título de la tarea" oninput="S.tf.titulo=this.value"></div>
-        <div class="fld"><label class="lbl">Descripción</label>
-          <textarea placeholder="Descripción..." oninput="S.tf.desc=this.value">${e(f.desc||'')}</textarea></div>
-        <div class="r2">
-          <div class="fld"><label class="lbl">Estado</label>
-            <select onchange="S.tf.estado=this.value">${['Pendiente','En proceso','Listo'].map(s=>`<option value="${s}" ${f.estado===s?'selected':''}>${s}</option>`).join('')}</select></div>
-          <div class="fld"><label class="lbl">Prioridad</label>
-            <select onchange="S.tf.prioridad=this.value">${['Alta','Media','Baja'].map(p=>`<option value="${p}" ${f.prioridad===p?'selected':''}>${p}</option>`).join('')}</select></div>
-        </div>
-        <div class="fld">
-          <label class="lbl">Responsables (podés elegir varios)</label>
-          <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px">
-            ${EQ.map(m=>`<button onclick="tResp('${m}')" style="padding:3px 9px;border-radius:8px;border:1px solid ${f.responsables.includes(m)?'#6c5ce7':'#3a3660'};font-size:11px;cursor:pointer;font-family:inherit;background:${f.responsables.includes(m)?'#6c5ce7':'transparent'};color:${f.responsables.includes(m)?'white':'#9993b8'}">${m}</button>`).join('')}
-          </div>
-          ${f.responsables.length>0?`<div style="display:flex;flex-wrap:wrap;gap:4px">${f.responsables.map(r=>`<span class="chip">${r}<button onclick="tResp('${r}')">×</button></span>`).join('')}</div>`:''}
-        </div>
-        <div class="fld">
-          <label class="lbl">Notificar responsables por</label>
-          <div style="display:flex;gap:7px;flex-wrap:wrap">
-            <button onclick="tNotif('whatsapp')" style="padding:5px 11px;border-radius:6px;border:1px solid ${f.notif.includes('whatsapp')?'#25D366':'#3a3660'};background:${f.notif.includes('whatsapp')?'#25D366':'transparent'};color:${f.notif.includes('whatsapp')?'white':'#9993b8'};cursor:pointer;font-size:11px;font-family:inherit;display:flex;align-items:center;gap:4px">${waSvg()} WhatsApp</button>
-            <button onclick="tNotif('mail')" style="padding:5px 11px;border-radius:6px;border:1px solid ${f.notif.includes('mail')?'#6c5ce7':'#3a3660'};background:${f.notif.includes('mail')?'#2d2a5e':'transparent'};color:${f.notif.includes('mail')?'#a89cf7':'#9993b8'};cursor:pointer;font-size:11px;font-family:inherit">✉ Email</button>
-            <button onclick="tNotif('sin')" style="padding:5px 11px;border-radius:6px;border:1px solid ${f.notif.includes('sin')?'#3a3660':'#2a2840'};background:${f.notif.includes('sin')?'#1e1d2e':'transparent'};color:#7c78a0;cursor:pointer;font-size:11px;font-family:inherit">Sin notif.</button>
-          </div>
-        </div>
-        <div class="fld">
-          <label class="lbl">Adjuntos — imágenes, links, documentos</label>
-          <div style="display:flex;gap:6px;margin-bottom:7px">
-            <select id="atipo" style="flex:0 0 auto;width:105px">
-              <option value="link">Enlace</option>
-              <option value="imagen">Imagen</option>
-              <option value="doc">Documento</option>
-            </select>
-            <input type="text" id="aval" placeholder="URL o nombre del archivo" style="flex:1">
-            <button class="btn-s" style="font-size:11px;flex-shrink:0;white-space:nowrap" onclick="addAdj()">+ Agregar</button>
-          </div>
-          ${f.adjuntos.map((a,i)=>`<div style="display:flex;align-items:center;gap:7px;padding:5px 9px;background:#13121f;border-radius:6px;margin-bottom:3px;border:1px solid #2e2c4a">
-            <span style="font-size:9px;font-weight:500;color:#7c78a0;text-transform:uppercase;flex-shrink:0">${a.tipo}</span>
-            <span style="flex:1;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#c0bcdc">${e(a.val)}</span>
-            <button onclick="rmAdj(${i})" style="background:none;border:none;cursor:pointer;color:#f87171;font-size:15px;padding:0;flex-shrink:0">×</button>
-          </div>`).join('')}
-        </div>
-        <div class="fld"><label class="lbl">Observaciones</label>
-          <textarea placeholder="Notas adicionales..." style="min-height:50px" oninput="S.tf.obs=this.value">${e(f.obs||'')}</textarea></div>
-      </div>
-      <div class="mf">
-        ${isEdit?`<button onclick="delT('${f.id}')" style="margin-right:auto;background:none;border:none;cursor:pointer;color:#f87171;font-size:12px;font-family:inherit">Eliminar tarea</button>`:''}
-        <button class="btn-s" onclick="closeM()">Cancelar</button>
-        <button class="btn-p" onclick="svT()">Guardar tarea</button>
-      </div>
-    </div>
-  </div>`;
-}
-
-function buildEntModal(){
-  const f=S.ef; const funcs=aF();
-  const fn=f.funcionario&&f.funcionario!=='__otro__'?funcs.find(ff=>ff.n===f.funcionario):null;
-  // Construir link WA con datos actuales del formulario
-  let waPreviewHref='#';
-  if(fn&&fn.t){
-    const ml=f.medio==='otro'?(f.medioCustom||'Otro'):f.medio;
-    const partes=[];
-    if(ml) partes.push('Medio: '+ml);
-    if(f.fecha) partes.push('Fecha: '+f.fecha);
-    if(f.hora) partes.push('Hora: '+f.hora);
-    if(f.lugar) partes.push('Lugar: '+f.lugar);
-    if(f.notas) partes.push('Tema: '+f.notas);
-    const msg='Hola '+f.funcionario+', le informamos que tiene una entrevista pactada'+(partes.length?':\n'+partes.join('\n'):'')+'\n\nSaludos, Dirección de Comunicación — Municipalidad de Tres Arroyos.';
-    waPreviewHref=waLink(fn.t,msg);
+// ═══ SUPABASE ═══
+async function initApp(){
+  try{
+    db=supabase.createClient(SB_URL,SB_KEY);
+    await loadAll();
+    setLive(true);
+    initDarkMode();
+    popSelects();
+    renderAll();
+    setupRealtime();
+    setTimeout(syncGCal,1500);
+    // Notificaciones
+    initNotif();
+    if(Notification.permission==="granted")document.getElementById("notifbtn")?.remove();
+  }catch(e){
+    setLive(false);
+    toast("Error DB: "+e.message,"err");
+    console.error("initApp:",e);
   }
-  return `<div class="ov" onclick="if(event.target===this)closeM()">
-    <div class="mdl" onclick="event.stopPropagation()">
-      <div class="mh">
-        <span style="font-size:14px;font-weight:500">${f.id?'Editar entrevista':'Nueva entrevista'}</span>
-        <button onclick="closeM()" style="background:none;border:none;cursor:pointer;color:#7c78a0;font-size:20px;padding:0;line-height:1">×</button>
-      </div>
-      <div class="mb">
-        <div class="fld"><label class="lbl">Medio de comunicación</label>
-          <select onchange="uEF('medio',this.value)">
-            <option value="">— Seleccionar medio —</option>
-            ${MEDIOS.map(m=>`<option value="${m}" ${f.medio===m?'selected':''}>${m}</option>`).join('')}
-            <option value="otro" ${f.medio==='otro'?'selected':''}>Otro...</option>
-          </select>
-          ${f.medio==='otro'?`<input type="text" placeholder="Nombre del medio" value="${e(f.medioCustom||'')}" oninput="S.ef.medioCustom=this.value" style="margin-top:7px">`:''}</div>
-        <div class="fld"><label class="lbl">Funcionario</label>
-          <select onchange="uEF('funcionario',this.value)">
-            <option value="">— Seleccionar funcionario —</option>
-            ${funcs.map(ff=>`<option value="${e(ff.n)}" ${f.funcionario===ff.n?'selected':''}>${e(ff.n)} — ${e(ff.c||'')}${ff.custom?' ✦':''}</option>`).join('')}
-            <option value="__otro__" ${f.funcionario==='__otro__'?'selected':''}>+ Otro (no en lista)</option>
-          </select>
-          ${f.funcionario==='__otro__'?`
-            <input type="text" placeholder="Nombre del funcionario *" value="${e(f.otroNombre||'')}" oninput="S.ef.otroNombre=this.value" style="margin-top:7px">
-            <input type="text" placeholder="Cargo (opcional)" value="${e(f.otroCargo||'')}" oninput="S.ef.otroCargo=this.value" style="margin-top:6px">
-            <input type="tel" placeholder="Teléfono WhatsApp (ej: 5492983123456)" value="${e(f.otroTel||'')}" oninput="S.ef.otroTel=this.value" style="margin-top:6px">`:''}
-          ${fn&&fn.t?`<div class="info-box">
-            <div style="display:flex;align-items:center;gap:8px">
-              <span style="color:#7c78a0">Contacto:</span>
-              <span style="font-weight:500;color:#e8e6f0">+${cl(fn.t)}</span>
+}
+function setLive(ok){
+  document.getElementById("ldot").className="ldot"+(ok?" ok":" err");
+  document.getElementById("ltxt").textContent=ok?"En vivo":"Sin conexión";
+}
+async function loadAll(){
+  // Solo cargar agenda de los últimos 30 días + próximos 6 meses (evita los 1000 registros viejos)
+  const agFrom=iso(addD(TODAY,-30));
+  const agTo=iso(addD(TODAY,180));
+  const[t,ta,ag,pu]=await Promise.all([
+    db.from("usuarios").select("*").order("nombre"),
+    db.from("tareas").select("*").order("created_at"),
+    db.from("agenda").select("*").gte("fecha",agFrom).lte("fecha",agTo).order("fecha"),
+    db.from("publicaciones").select("*").order("fecha,hora"),
+  ]);
+  if(t.data)teams=t.data;
+  if(ta.data)tasks=ta.data;
+  if(ag.data)agendas=ag.data;
+  if(pu.data)pubs=pu.data;
+  try{const r=await db.from("stats_redes").select("*").order("fecha,cuenta");if(r.data)stats=r.data;}catch(e){}
+  try{const r=await db.from("noticias_medios").select("*").order("created_at",{ascending:false});if(r.data)noticias=r.data;}catch(e){}
+}
+function setupRealtime(){
+  db.channel("rt")
+    .on("postgres_changes",{event:"*",schema:"public",table:"tareas"},async()=>{const r=await db.from("tareas").select("*").order("created_at");if(r.data)tasks=r.data;renderKanban();renderMaterial();updateBadges();renderPersons();})
+    .on("postgres_changes",{event:"*",schema:"public",table:"publicaciones"},async()=>{
+      const r=await db.from("publicaciones").select("*").order("fecha,hora");
+      if(r.data)pubs=r.data;
+      renderWeek();
+      renderCal();
+      renderMaterial();
+      updateBadges();
+      // Sync _pubGuardia from current pubs
+      if(window._pubGuardia){
+        // Remove pubs that no longer exist in DB
+        window._pubGuardia=window._pubGuardia.filter(pg=>{
+          const pubId=pg.id.replace("pub_","");
+          return pubs.find(p=>p.id===pubId);
+        });
+      }
+      const gp=document.getElementById("p-guardias");
+      if(gp&&gp.style.display!=="none")renderGuardias();
+    })
+    .on("postgres_changes",{event:"*",schema:"public",table:"agenda"},async()=>{
+      const agFrom=iso(addD(TODAY,-30));const agTo=iso(addD(TODAY,180));
+      const r=await db.from("agenda").select("*").gte("fecha",agFrom).lte("fecha",agTo).order("fecha");
+      if(r.data){
+        agendas=r.data;
+        // Auto-marcar eventos +15hs para guardia
+        agendas.forEach(a=>{
+          if(!a.hora||a.cancelado)return;
+          const h=parseInt(String(a.hora).split(":")[0]);
+          if(h>=15)cobSel[a.id]=true;
+        });
+      }
+      renderCal();updateBadges();
+      const gp=document.getElementById("p-guardias");if(gp&&gp.style.display!=="none")renderGuardias();
+    })
+    .on("postgres_changes",{event:"*",schema:"public",table:"usuarios"},async()=>{const r=await db.from("usuarios").select("*").order("nombre");if(r.data)teams=r.data;renderTeam();popSelects();renderPersons();})
+    .subscribe();
+}
+function renderAll(){
+  try{updateBadges();}catch(e){}
+  try{renderPersons();}catch(e){}
+  try{renderKanban();}catch(e){}
+  try{renderMaterial();}catch(e){}
+  try{renderWeek();}catch(e){}
+  try{renderCal();}catch(e){}
+  try{renderTeam();}catch(e){console.error("renderTeam:",e);}
+  try{initGuardias();}catch(e){}
+  try{renderMetricas();}catch(e){}
+  try{renderNoticias();}catch(e){}
+  try{renderMedioSum();}catch(e){}
+}
+function updateBadges(){
+  const p=tasks.filter(t=>t.estado!=="Completo").length;
+  const m=tasks.filter(t=>t.estado==="Listo s/publicar").length;
+  // Mostrar solo eventos de los próximos 30 días
+  const futuro=iso(addD(TODAY,30));
+  const allEvIds=new Set();
+  const allEvCount=[...agendas,...gcalEvs].filter(a=>{
+    if(a.cancelado||allEvIds.has(a.id))return false;
+    allEvIds.add(a.id);
+    const f=String(a.fecha).slice(0,10);
+    return f>=isoToday&&f<=futuro;
+  }).length;
+  document.getElementById("sbt").textContent=p;
+  document.getElementById("sbt").className="sbadge"+(p>5?" hot":"");
+  document.getElementById("sbm").textContent=m;
+  document.getElementById("sbag").textContent=allEvCount;
+  document.getElementById("tsub").textContent=`${p} activas`;
+}
+
+// ═══ NAVIGATION ═══
+const PAGES=["tablero","material","publicaciones","calendario","guardias","equipo","metricas","medios"];
+function nav(id,tab,sb){
+  PAGES.forEach(p=>{const el=document.getElementById("p-"+p);if(el)el.style.display=p===id?(["publicaciones","calendario"].includes(p)?"flex":"block"):"none";});
+  document.querySelectorAll(".ntab,.sbi").forEach(b=>b.classList.remove("on"));
+  if(tab)tab.classList.add("on");if(sb)sb.classList.add("on");
+  const ti=PAGES.indexOf(id);const tabs=document.querySelectorAll(".ntab");if(ti>=0&&tabs[ti])tabs[ti].classList.add("on");
+  const sbis=document.querySelectorAll(".sbi");if(ti>=0&&sbis[ti])sbis[ti].classList.add("on");
+  if(id==="guardias")initGuardias();
+  if(id==="metricas")renderMetricas();
+  if(id==="medios"){renderNoticias();renderMedioSum();}
+  // FIX: forzar renderTeam al entrar a equipo
+  if(id==="equipo")renderTeam();
+}
+function limpiarFiltro(){
+  fp="";
+  renderPersons();
+  renderKanban();
+  const panel=document.getElementById("fpanel");
+  if(panel)panel.style.display="none";
+  // Limpiar también el dropdown del kanban
+  const kfr=document.getElementById("kfr");
+  if(kfr)kfr.value="";
+}
+
+function renderPersons(){
+  document.getElementById("sbpersons").innerHTML=teams.map(m=>{
+    const pend=tasks.filter(t=>t.responsable===m.nombre&&t.estado!=="Completo").length;
+    const isSel=fp===m.nombre;
+    const safeName=m.nombre.replace(/\\/g,"\\\\").replace(/'/g,"\\'");
+    return`<div class="sbp${isSel?" sel":""}" onclick="clickPersona('${safeName}')" style="${isSel?"border-left:3px solid #6d28d9;background:#ede9fe":""}">
+      ${av(m,18)}
+      <span style="font-size:11px;font-weight:${isSel?700:400};color:${isSel?"#6d28d9":"#4b5563"};flex:1">${m.nombre}</span>
+      <span style="font-size:9px;background:${pend>0?"#fee2e2":"#f3f4f6"};color:${pend>0?"#dc2626":"#9ca3af"};font-weight:700;border-radius:10px;padding:0 5px;min-width:18px;text-align:center">${pend||""}</span>
+    </div>`;
+  }).join("");
+}
+
+function clickPersona(n){
+  fp=(fp===n)?"":n;
+  renderPersons();
+  renderKanban();
+  actualizarFPanel();
+}
+
+function actualizarFPanel(){
+  const panel=document.getElementById("fpanel");
+  if(!panel)return;
+  if(fp){
+    panel.style.display="block";
+    const nameEl=document.getElementById("fpanel-name");
+    const countEl=document.getElementById("fpanel-count");
+    const pend=tasks.filter(t=>t.responsable===fp&&t.estado!=="Completo");
+    const altas=pend.filter(t=>t.prioridad==="Alta").length;
+    if(nameEl)nameEl.textContent=fp;
+    if(countEl)countEl.innerHTML=`${pend.length} tarea${pend.length!==1?"s":""} activa${pend.length!==1?"s":""}${altas?` · <span style="color:#dc2626;font-weight:700">${altas} urgente${altas!==1?"s":""}</span>`:""}`;
+    const c=getContact(fp);
+    const waBtn=document.getElementById("fpbtn-wa");
+    const mailBtn=document.getElementById("fpbtn-mail");
+    if(waBtn){waBtn.style.opacity=c.tel?"1":"0.4";waBtn.title=c.tel?"Enviar por WhatsApp":"Sin teléfono";}
+    if(mailBtn){mailBtn.style.opacity=c.email?"1":"0.4";mailBtn.title=c.email?"Enviar por Gmail":"Sin correo";}
+  }else{
+    panel.style.display="none";
+  }
+}
+
+function setFP(el,n){clickPersona(n);}
+
+// ═══ KANBAN ═══
+function renderKanban(){
+  const kr=document.getElementById("kfr")?.value||fp;
+  const kp=document.getElementById("kfp")?.value;
+  const ft=tasks.filter(t=>{
+    if(t.estado==="Completo")return false;
+    if(kr&&t.responsable!==kr)return false;
+    if(kp&&t.prioridad!==kp)return false;
+    return true;
+  });
+  const COLS=[{id:"Pendiente",cls:"p1",lbl:"Pendiente"},{id:"En proceso",cls:"p2",lbl:"En proceso"},{id:"Listo s/publicar",cls:"p3",lbl:"Listo"}];
+  // Update subtitle to show filter
+  const tsubEl=document.getElementById("tsub");
+  if(tsubEl){
+    const ftCount=ft.length;
+    tsubEl.innerHTML=fp
+      ?`<span style="display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <span>Mostrando: <strong style="color:#6d28d9">${fp}</strong> · ${ftCount} tarea${ftCount!==1?"s":""}</span>
+          <button onclick="limpiarFiltro()" style="background:#f3f4f6;color:#374151;border:1px solid #d1d5db;border-radius:5px;padding:2px 9px;font-size:10px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">✕ Ver todo</button>
+        </span>`
+      :`${tasks.filter(t=>t.estado!=="Completo").length} activas`;
+  }
+  document.getElementById("kanban").innerHTML=COLS.map(col=>{
+    const ct=ft.filter(t=>t.estado===col.id);
+    return`<div class="kcol">
+      <div class="khdr ${col.cls}"><div class="kt"><div class="kd"></div>${col.lbl}</div><span class="kc">${ct.length}</span></div>
+      <div class="kbody">
+        ${ct.map(t=>{
+          const m=gm(t.responsable);
+          const age=t.created_at?Math.max(0,Math.floor((TODAY-new Date(t.created_at))/86400000)):0;
+          const ac=age>14?"a2":age>7?"a1":"";
+          const ageLbl=isNaN(age)?"":age+"d";
+          return`<div class="tc ${ac}" onclick="editTask('${t.id}')">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:4px">
+              <div class="tc-t" style="flex:1">${t.descripcion}</div>
+              <button onclick="event.stopPropagation();deleteTask('${t.id}','${t.descripcion.replace(/'/g,"\\'").slice(0,30)}')" style="background:none;border:none;cursor:pointer;color:#d1d5db;font-size:13px;padding:0;line-height:1;flex-shrink:0" title="Borrar">✕</button>
             </div>
-            <a class="wa" href="${waPreviewHref}" target="_blank" rel="noopener" style="font-size:10px;padding:4px 10px;white-space:nowrap">${waSvg()} Enviar por WA</a>
-          </div>`:''}</div>
-        <div class="r2">
-          <div class="fld"><label class="lbl">Fecha</label>
-            <input type="date" value="${e(f.fecha||'')}" onchange="uEF('fecha',this.value)"></div>
-          <div class="fld"><label class="lbl">Hora</label>
-            <input type="time" value="${e(f.hora||'')}" onchange="uEF('hora',this.value)"></div>
+            ${t.observaciones?`<div style="font-size:9px;color:#9ca3af;margin-bottom:3px;font-style:italic">${t.observaciones}</div>`:""}
+            <div class="tc-f">
+              <span class="tg ${t.prioridad==="Alta"?"tga":t.prioridad==="Baja"?"tgb":"tgm"}">${t.prioridad}</span>
+              <div style="display:flex;align-items:center;gap:4px">
+                <span style="font-size:9px;color:#9ca3af">${ageLbl}</span>
+                ${m?av(m,18):`<span style="font-size:9px;color:#d97706;background:#fffbeb;padding:1px 5px;border-radius:4px">Sin asig.</span>`}
+              </div>
+            </div>
+          </div>`;
+        }).join("")}
+        <button class="kadd" onclick="openTaskMod(null,'${col.id}')">+ Agregar</button>
+      </div>
+    </div>`;
+  }).join("");
+  updateBadges();
+}
+function openTaskMod(id=null,def=null){
+  document.getElementById("editTid").value=id||"";
+  document.getElementById("taskmodt").textContent=id?"Editar tarea":"Nueva tarea";
+  if(id){const t=tasks.find(x=>x.id===id);document.getElementById("fdesc").value=t.descripcion;document.getElementById("fresp").value=t.responsable||"";document.getElementById("fprio").value=t.prioridad;document.getElementById("fest").value=t.estado;document.getElementById("fobs").value=t.observaciones||"";}
+  else{["fdesc","fobs"].forEach(i=>document.getElementById(i).value="");document.getElementById("fresp").value="";document.getElementById("fprio").value="Alta";document.getElementById("fest").value=def||"Pendiente";}
+  document.getElementById("modTask").classList.add("open");
+}
+async function deleteTask(id,desc){
+  if(!confirm("¿Borrar la tarea: "+desc+"...?"))return;
+  try{const{error}=await db.from("tareas").delete().eq("id",id);if(error)throw new Error(error.message);toast("✓ Tarea borrada");}
+  catch(e){toast("Error: "+e.message,"err");}
+}
+function editTask(id){openTaskMod(id)}
+async function saveTask(){
+  const desc=document.getElementById("fdesc").value.trim();
+  if(!desc){alert("Descripción obligatoria");return}
+  const resp=document.getElementById("fresp").value;
+  const prio=document.getElementById("fprio").value;
+  const estado=document.getElementById("fest").value;
+  const data={descripcion:desc,responsable:resp,prioridad:prio,estado,observaciones:document.getElementById("fobs").value.trim()};
+  const eid=document.getElementById("editTid").value;
+  const esNueva=!eid;
+  // Detectar si cambió el responsable (para alerta)
+  const tareaAnterior=eid?tasks.find(t=>t.id===eid):null;
+  const cambioResponsable=eid&&tareaAnterior&&tareaAnterior.responsable!==resp&&resp;
+
+  if(eid)await db.from("tareas").update({...data,updated_at:new Date().toISOString()}).eq("id",eid);
+  else await db.from("tareas").insert(data);
+
+  closeMod("modTask");
+
+  // Alerta automática al responsable
+  if(resp&&(esNueva||cambioResponsable)){
+    const c=getContact(resp);
+    const prioEmoji=prio==="Alta"?"🔴":prio==="Media"?"🟡":"🟢";
+    const msg=`${prioEmoji} Nueva tarea asignada\n\n"${desc}"\n\nPrioridad: ${prio}\nEstado: ${estado}\n${data.observaciones?"Obs: "+data.observaciones+"\n":""}\nPanel: https://marianelahut-lang.github.io/panel-comunicacion/`;
+    const sub=`${prioEmoji} Nueva tarea: ${desc.slice(0,50)}`;
+    let sent=[];
+    if(c.tel){
+      window.open(`https://wa.me/${c.tel}?text=${encodeURIComponent(msg)}`,"_blank");
+      sent.push("📱 WA");
+    }
+    if(c.email){
+      // Pequeña demora para no bloquear el popup de WA
+      setTimeout(()=>{
+        window.open(`https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(c.email)}&su=${encodeURIComponent(sub)}&body=${encodeURIComponent(msg)}`,"_blank");
+      },c.tel?800:0);
+      sent.push("📧 Mail");
+    }
+    if(sent.length)toast(`Notificado ${resp}: ${sent.join(" + ")}`);
+    else toast(`${resp} sin WA ni correo configurado`,"warn");
+    pushNotif(`${prioEmoji} Tarea asignada a ${resp}`,desc.slice(0,60));
+  }
+}
+
+// ═══ MATERIAL ═══
+function renderMaterial(){
+  const mat=tasks.filter(t=>t.estado==="Listo s/publicar");
+  document.getElementById("sbm").textContent=mat.length;
+  if(!mat.length){document.getElementById("matgrid").innerHTML=`<div style="text-align:center;padding:2rem;color:#9ca3af">No hay material listo.</div>`;return;}
+  document.getElementById("matgrid").innerHTML=mat.map(t=>{
+    const m=gm(t.responsable);
+    return`<div class="mcard">
+      <div style="font-size:13px;font-weight:600;margin-bottom:5px">${t.descripcion}</div>
+      ${t.observaciones?`<div style="font-size:10px;color:#6b7280;margin-bottom:6px;font-style:italic">${t.observaciones}</div>`:""}
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+        ${m?`<div style="display:flex;align-items:center;gap:3px">${av(m,16)}<span style="font-size:10px">${m.nombre}</span></div>`:""}
+        <span style="font-size:9px;background:#dcfce7;color:#16a34a;padding:1px 6px;border-radius:4px;font-weight:600">Listo ✓</span>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn p sm" onclick="openProgram('${t.id}','${t.descripcion.replace(/'/g,"\\'")}')">📅 Programar</button>
+        <button class="btn sm" onclick="markCompleto('${t.id}')">✓ Completo</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+async function markCompleto(id){await db.from("tareas").update({estado:"Completo",updated_at:new Date().toISOString()}).eq("id",id);}
+
+// ═══ WEEKLY VIEW ═══
+function weekMon(off){return addD(START,off*7)}
+function buildWeek(hdrId,scrollId,off,showPubs,showAg){
+  const mon=weekMon(off);
+  const DN=["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
+  const SLOT=60;    // px por hora
+  const H0=7,H1=22; // rango de horas
+
+  // ── HEADER: días + guardia ──
+  let hdr=`<div style="width:52px;flex-shrink:0;background:#f9fafb;border-right:1px solid #e5e7eb"></div>`;
+  for(let i=0;i<7;i++){
+    const d=addD(mon,i),ds=iso(d);
+    const isT=ds===isoToday,isWE=i>=5;
+    const guards=getGuardia(ds);
+    const gc=guards.length>0?(gm(guards[0])||{color:"#e5e7eb"}).color:"#e5e7eb";
+    hdr+=`<div style="flex:1;padding:5px 3px;text-align:center;border-right:1px solid #e5e7eb;border-top:3px solid ${gc};background:${isT?"#eff6ff":isWE?"#fafafa":"#fff"}">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#9ca3af;letter-spacing:.05em">${DN[i]}</div>
+      <div style="font-size:${isT?14:16}px;font-weight:700;${isT?"display:inline-flex;width:24px;height:24px;background:#667eea;color:#fff;border-radius:50%;align-items:center;justify-content:center;font-size:13px":""}">${d.getDate()}</div>
+      <div style="display:flex;justify-content:center;gap:2px;margin-top:2px">${guards.map((n,gi)=>{const m=gm(n);return m?`<div style="width:14px;height:14px;border-radius:50%;background:${m.color};color:${m.color_texto};display:flex;align-items:center;justify-content:center;font-size:6px;font-weight:700;border:1.5px solid #fff" title="${gi===0?"Titular":"Soporte"}: ${m.nombre}">${ini(m.nombre)}</div>`:""}).join("")}</div>
+    </div>`;
+  }
+  const hdrEl=document.getElementById(hdrId);
+  if(hdrEl){hdrEl.style.display="flex";hdrEl.innerHTML=hdr;}
+
+  // ── BODY: grid de horas estilo Google Calendar ──
+  const totalPx=(H1-H0)*SLOT;
+
+  // Recolectar eventos por día
+  const dayData=[];
+  for(let i=0;i<7;i++){
+    const d=addD(mon,i),ds=iso(d);
+    const seen=new Set();
+    const evs=[];
+    if(showAg){
+      [...agendas,...gcalEvs,...(window._pubGuardia||[])].filter(a=>{
+        const af=String(a.fecha).slice(0,10);
+        if(af!==ds||a.cancelado||seen.has(a.id))return false;
+        seen.add(a.id);return true;
+      }).forEach(e=>{
+        const isCob=cobSel[e.id]||false;
+        const colors={prensa:["#fce7f3","#ec4899","#9d174d"],municipal:["#dcfce7","#22c55e","#15803d"],publicacion:["#f0e6ff","#8b5cf6","#5b21b6"]};
+        const def=["#dbeafe","#3b82f6","#1e40af"];
+        const[bg,brd,tc]=isCob?["#ede9fe","#6d28d9","#4c1d95"]:(colors[e.tipo]||def);
+        const icon=e.tipo==="prensa"?"📻":e.tipo==="municipal"?"🏛":e.tipo==="publicacion"?"📱":"🗓";
+        const hr=e.hora?parseInt(String(e.hora).split(":")[0]):null;
+        const mn=e.hora?parseInt(String(e.hora).split(":")[1]||0):0;
+        evs.push({hr,mn,sort:(hr??9)*60+mn,bg,brd,tc,
+          html:`<div onclick="event.stopPropagation();openEvPanel(${JSON.stringify(e).replace(/"/g,'&quot;')})" style="background:${bg};border-left:3px solid ${brd};color:${tc};border-radius:4px;padding:3px 5px;font-size:10px;cursor:pointer;overflow:hidden;line-height:1.3;box-shadow:0 1px 2px rgba(0,0,0,.08)">
+            <div style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${icon} ${e.descripcion}${isCob?'<span style="font-size:8px;background:#6d28d9;color:#fff;padding:1px 3px;border-radius:2px;margin-left:2px">📋</span>':''}</div>
+            ${e.hora?`<div style="font-size:9px;opacity:.75;margin-top:1px">🕐 ${e.hora.slice(0,5)}${e.lugar?" · "+e.lugar.slice(0,12):""}${e.responsable?" · "+e.responsable:""}</div>`:""}
+          </div>`
+        });
+      });
+    }
+    if(showPubs){
+      pubs.filter(p=>String(p.fecha).slice(0,10)===ds).forEach(p=>{
+        const ct=getCta(p.cuenta)||{label:p.cuenta,dot:"#667eea"};
+        const hr=p.hora?parseInt(String(p.hora).split(":")[0]):null;
+        const mn=p.hora?parseInt(String(p.hora).split(":")[1]||0):0;
+        evs.push({hr,mn,sort:(hr??9)*60+mn,
+          html:`<div onclick="event.stopPropagation();editPubItem('${p.id}')" style="background:#f0f0ff;border-left:3px solid ${ct.dot||"#667eea"};border-radius:4px;padding:3px 5px;font-size:10px;cursor:pointer;overflow:hidden;line-height:1.3;box-shadow:0 1px 2px rgba(0,0,0,.08)">
+            <div style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📱 ${ct.label} · ${p.tipo}</div>
+            ${p.hora?`<div style="font-size:9px;opacity:.75;margin-top:1px">🕐 ${p.hora.slice(0,5)} ${p.descripcion.slice(0,16)}${p.descripcion.length>16?"…":""}</div>`:""}
+          </div>`
+        });
+      });
+    }
+    evs.sort((a,b)=>a.sort-b.sort);
+    dayData.push({ds,evs,isT:ds===isoToday});
+  }
+
+  // Detectar solapamientos: asignar columna a cada evento posicionado
+  function assignCols(evList){
+    const cols=[];
+    for(const ev of evList){
+      if(ev.hr===null)continue;
+      const top=(ev.hr-H0)*SLOT+(ev.mn/60)*SLOT;
+      if(top<0||top>=totalPx)continue;
+      let col=0;
+      while(cols.some(c=>c.col===col&&Math.abs(c.top-top)<SLOT*0.8))col++;
+      cols.push({...ev,top,col});
+    }
+    const maxCol=cols.length?Math.max(...cols.map(c=>c.col))+1:1;
+    return{cols,maxCol};
+  }
+
+  // Construir HTML del cuerpo
+  let hourColHtml=`<div style="width:52px;flex-shrink:0;position:relative;border-right:1px solid #e5e7eb">`;
+  for(let h=H0;h<=H1;h++){
+    hourColHtml+=`<div style="position:absolute;top:${(h-H0)*SLOT-9}px;right:6px;font-size:10px;font-weight:600;color:#9ca3af;line-height:1">${h===H0?"":String(h).padStart(2,"0")+":00"}</div>`;
+  }
+  hourColHtml+=`</div>`;
+
+  let dayCols="";
+  for(const {ds,evs,isT} of dayData){
+    const guards=getGuardia(ds);
+    const gbg=guards.length>0?(gm(guards[0])||{color:"transparent"}).color+"06":"transparent";
+    const {cols,maxCol}=assignCols(evs);
+    const allDay=evs.filter(e=>e.hr===null);
+    const colW=100/maxCol;
+
+    let inner=`<div style="position:relative;height:${totalPx}px;cursor:crosshair" onclick="openPubFromCell('${ds}','09:00')">`;
+    // Hour lines
+    for(let h=H0;h<=H1;h++){
+      inner+=`<div style="position:absolute;top:${(h-H0)*SLOT}px;left:0;right:0;border-top:1px solid ${h===H0?"transparent":"#f0f0f0"};pointer-events:none"></div>`;
+    }
+    // 15hs line highlight
+    inner+=`<div style="position:absolute;top:${(15-H0)*SLOT}px;left:0;right:0;border-top:2px dashed #fde68a;pointer-events:none" title="+15hs guardia"></div>`;
+    // Current time
+    if(isT){
+      const now=new Date();
+      const tp=((now.getHours()-H0)*60+now.getMinutes())/60*SLOT;
+      if(tp>=0&&tp<=totalPx)inner+=`<div style="position:absolute;top:${tp}px;left:0;right:0;z-index:10;pointer-events:none"><div style="border-top:2px solid #ef4444"></div><div style="position:absolute;top:-4px;left:-1px;width:8px;height:8px;border-radius:50%;background:#ef4444"></div></div>`;
+    }
+    // Events
+    for(const ev of cols){
+      inner+=`<div style="position:absolute;top:${ev.top+1}px;left:${ev.col*colW}%;width:${colW-0.5}%;min-height:${SLOT-6}px;z-index:${5+ev.col};padding:0 1px" onclick="event.stopPropagation()">${ev.html}</div>`;
+    }
+    inner+=`<button class="hadd" style="position:absolute;bottom:4px;right:4px;display:flex;opacity:.4" onclick="event.stopPropagation();openPubFromCell('${ds}','09:00')">+</button>`;
+    inner+=`</div>`;
+
+    // All-day strip
+    const adStrip=allDay.length?`<div style="padding:2px;border-bottom:1px solid #f0f0f0;min-height:20px;display:flex;flex-direction:column;gap:1px">${allDay.map(e=>e.html).join("")}</div>`:"";
+
+    dayCols+=`<div style="flex:1;min-width:0;border-right:1px solid #e5e7eb;background:${isT?"rgba(102,126,234,.02)":gbg};overflow:hidden">${adStrip}${inner}</div>`;
+  }
+
+  const sc=document.getElementById(scrollId);
+  if(sc){
+    sc.innerHTML=`<div style="display:flex;height:${totalPx+40}px">${hourColHtml}<div style="display:flex;flex:1;min-width:0;overflow-x:hidden">${dayCols}</div></div>`;
+    setTimeout(()=>{
+      const nowH=new Date().getHours();
+      sc.scrollTop=Math.max(0,(Math.max(H0,nowH-1)-H0)*SLOT-20);
+    },50);
+  }
+}
+
+// ═══ PUBLICACIONES ═══
+function changePW(d){pwO+=d;renderWeek()}
+function renderWeek(){
+  const mon=weekMon(pwO),sun=addD(mon,6);
+  const lbl=`${mon.getDate()} ${MNS[mon.getMonth()]} — ${sun.getDate()} ${MNS[sun.getMonth()]} ${sun.getFullYear()}`;
+  const lel=document.getElementById("pwlbl");if(lel)lel.textContent=lbl;
+  const sel=document.getElementById("pubsub");if(sel)sel.textContent=`Semana del ${mon.getDate()} de ${MNF[mon.getMonth()]}`;
+  if(document.getElementById("whdr"))buildWeek("whdr","wscroll",pwO,true,false);
+}
+function openPubMod(fecha="",hora=""){
+  document.getElementById("pubmodt").textContent="Nueva publicación";
+  document.getElementById("pubeid").value="";
+  document.getElementById("pfecha").value=fecha;document.getElementById("phora").value=hora;
+  document.getElementById("pdesc").value="";document.getElementById("ptipo").value="Reel/Video";
+  document.getElementById("presp").value="";document.getElementById("pcolab").value="";document.getElementById("pest").value="Pendiente";
+  document.getElementById("pubdelbtn").style.display="none";
+  buildCuentasGrid("cuentasgrid",null);
+  document.getElementById("modPub").classList.add("open");
+  setTimeout(onPestChange,50);
+}
+function openPubFromCell(fecha,hora){openPubMod(fecha,hora);const g=getGuardia(fecha);if(g.length){const m=gm(g[0]);if(m)document.getElementById("presp").value=m.nombre;}}
+function editPubItem(id){
+  const p=pubs.find(x=>x.id===id);if(!p)return;
+  document.getElementById("pubmodt").textContent="Editar publicación";
+  document.getElementById("pubeid").value=id;document.getElementById("pfecha").value=p.fecha;
+  document.getElementById("phora").value=p.hora||"";document.getElementById("pdesc").value=p.descripcion;
+  document.getElementById("ptipo").value=p.tipo;document.getElementById("presp").value=p.responsable||"";
+  document.getElementById("pcolab").value=p.colaboracion||"";document.getElementById("pest").value=p.estado||"Pendiente";
+  document.getElementById("pubdelbtn").style.display="inline-flex";
+  buildCuentasGrid("cuentasgrid",p.cuenta);
+  document.getElementById("modPub").classList.add("open");
+  setTimeout(onPestChange,50);
+}
+async function deletePub(){
+  const id=document.getElementById("pubeid").value;
+  if(!id)return;
+  if(!confirm("¿Eliminar esta publicación?"))return;
+  try{
+    const{error}=await db.from("publicaciones").delete().eq("id",id);
+    if(error)throw error;
+    // Limpiar de _pubGuardia si existe
+    if(window._pubGuardia)window._pubGuardia=window._pubGuardia.filter(e=>e.id!=="pub_"+id);
+    closeMod("modPub");
+    toast("✓ Publicación eliminada");
+  }catch(e){toast("Error: "+e.message,"err");}
+}
+// Muestra/oculta el banner de guardia según hora y estado
+function onPestChange(){
+  const hora=document.getElementById("phora")?.value||"";
+  const estado=document.getElementById("pest")?.value||"";
+  const h=hora?parseInt(hora.split(":")[0]):-1;
+  const esG=h>=15&&estado!=="Publicado";
+  const b=document.getElementById("pubguardiabanner");
+  if(b)b.style.display=esG?"block":"none";
+}
+
+async function savePub(){
+  const fecha=document.getElementById("pfecha").value;
+  const desc=document.getElementById("pdesc").value.trim();
+  if(!fecha){alert("Seleccioná una fecha");return;}
+  if(!desc){alert("Escribí una descripción");return;}
+  const cuenta=getSelCuenta("cuentasgrid");
+  if(!cuenta){alert("Seleccioná una cuenta");return;}
+  const hora=document.getElementById("phora").value||null;
+  const estado=document.getElementById("pest").value;
+  const data={fecha,hora,descripcion:desc,cuenta,
+    tipo:document.getElementById("ptipo").value,
+    responsable:document.getElementById("presp").value,
+    colaboracion:document.getElementById("pcolab").value||"",estado};
+  try{
+    const eid=document.getElementById("pubeid").value;
+    let savedId=null;
+    if(eid){
+      const{error}=await db.from("publicaciones").update({...data,updated_at:new Date().toISOString()}).eq("id",eid);
+      if(error)throw error;
+      savedId=eid;
+    }else{
+      const{data:rows,error}=await db.from("publicaciones").insert(data).select();
+      if(error)throw error;
+      savedId=rows?.[0]?.id||null;
+    }
+    closeMod("modPub");
+    toast("✓ Publicación guardada");
+    _syncPubToGuardia(savedId,hora,desc,fecha,estado);
+  }catch(e){
+    toast("Error al guardar: "+e.message,"err");
+    console.error("savePub:",e);
+  }
+}
+
+async function saveProgram(){
+  const fecha=document.getElementById("progfecha").value;
+  if(!fecha){alert("Seleccioná fecha");return;}
+  const cuenta=getSelCuenta("progcuentas");
+  if(!cuenta){alert("Seleccioná cuenta");return;}
+  const hora=document.getElementById("proghora").value||null;
+  const desc=document.getElementById("proginfo").textContent.replace("📋 ","");
+  try{
+    const{data:rows,error}=await db.from("publicaciones").insert({
+      fecha,hora,descripcion:desc,cuenta,
+      tipo:document.getElementById("progtipo")?.value||"Reel/Video",
+      responsable:document.getElementById("progresp").value,
+      colaboracion:"",estado:"Pendiente",
+      tarea_id:document.getElementById("progtid").value
+    }).select();
+    if(error)throw error;
+    closeMod("modProgram");
+    toast("✓ Publicación programada");
+    _syncPubToGuardia(rows?.[0]?.id,hora,desc,fecha,"Pendiente");
+  }catch(e){
+    toast("Error: "+e.message,"err");
+    console.error("saveProgram:",e);
+  }
+}
+
+function _syncPubToGuardia(id,hora,desc,fecha,estado){
+  if(!hora)return;
+  if(estado==="Publicado")return;
+  const h=parseInt(String(hora).split(":")[0]);
+  if(isNaN(h)||h<15)return;
+  if(!window._pubGuardia)window._pubGuardia=[];
+  const pubKey="pub_"+(id||fecha+"_"+hora);
+  cobSel[pubKey]=true;
+  window._pubGuardia=window._pubGuardia.filter(e=>e.id!==pubKey);
+  window._pubGuardia.push({id:pubKey,fecha,hora,descripcion:"📱 "+desc,lugar:"",tipo:"publicacion",cancelado:false,gcal:false});
+  if(document.getElementById("p-guardias")?.style.display!=="none")renderGuardias();
+  toast("📋 Guardado en Guardia del "+fecha.slice(8,10)+"/"+fecha.slice(5,7));
+}
+
+function buildCuentasGrid(cid,selected){
+  document.getElementById(cid).innerHTML=CUENTAS.map(c=>`
+    <div class="copt${selected===c.id?" sel":""}" onclick="selCta('${cid}','${c.id}')">
+      <span class="cdot" style="background:${c.dot}"></span>
+      <div><div class="clabel">${c.label}</div><div class="csub">${c.sub}</div></div>
+    </div>`).join("");
+}
+function selCta(cid,id){document.getElementById(cid).querySelectorAll(".copt").forEach(e=>e.classList.remove("sel"));const el=document.getElementById(cid).querySelector(`[onclick*="'${id}'"]`);if(el)el.classList.add("sel");}
+function getSelCuenta(cid){const s=document.getElementById(cid).querySelector(".copt.sel");if(!s)return null;const m=s.getAttribute("onclick").match(/'([^']+)'\)$/);return m?m[1]:null;}
+function openProgram(tid,desc){
+  document.getElementById("progtid").value=tid;
+  document.getElementById("proginfo").textContent="📋 "+desc;
+  document.getElementById("progfecha").value="";document.getElementById("proghora").value="";
+  document.getElementById("progresp").value="";
+  buildCuentasGrid("progcuentas",null);
+  document.getElementById("modProgram").classList.add("open");
+}
+
+// ═══ CALENDARIO ═══
+function changeCalW(d){calWO+=d;renderCal()}
+function renderCal(){
+  if(!document.getElementById("calwhdr"))return;
+  const mon=weekMon(calWO),sun=addD(mon,6);
+  const lbl=mon.getMonth()===sun.getMonth()?`${mon.getDate()} — ${sun.getDate()} de ${MNF[mon.getMonth()]} ${mon.getFullYear()}`:`${mon.getDate()} ${MNS[mon.getMonth()]} — ${sun.getDate()} ${MNS[sun.getMonth()]} ${sun.getFullYear()}`;
+  const lel=document.getElementById("callbl");if(lel)lel.textContent=lbl;
+  // FIX: mostrar contador REAL de gcalEvs (sin contar duplicados de agenda)
+  const totalEvs=gcalEvs.filter(e=>!e.cancelado).length + agendas.filter(a=>!a.cancelado).length;
+  const sel=document.getElementById("calsub");
+  if(sel)sel.textContent=gcalOk?`Sincronizado · ${gcalEvs.length} eventos GCal`:"Sin sincronización activa";
+  const ban=document.getElementById("calbanner");
+  if(ban)ban.innerHTML=!gcalOk?`<div class="ibanner">📅 Sincronizá el calendario del Intendente para ver todos los eventos.<button class="btn p sm" style="margin-left:auto" onclick="syncGCal()">Sincronizar</button></div>`:"";
+  buildWeek("calwhdr","calwscroll",calWO,false,true);
+}
+let agCobActivo=false;
+
+function onAgTipoChange(){
+  // Si selecciona "prensa", auto-activar cobertura
+  const tipo=document.getElementById("agtipo").value;
+  if(tipo==="prensa"&&!agCobActivo){agCobActivo=true;_refreshAgCob();}
+}
+
+function toggleAgCob(){
+  agCobActivo=!agCobActivo;
+  _refreshAgCob();
+}
+
+function _refreshAgCob(){
+  const btn=document.getElementById("agcobbtn");
+  const lbl=document.getElementById("agcoblbl");
+  const sub=document.getElementById("agcobsub");
+  const chk=document.getElementById("agcobcheck");
+  if(!btn)return;
+  if(agCobActivo){
+    btn.style.borderColor="#667eea";btn.style.background="#ede9fe";
+    lbl.style.color="#6d28d9";lbl.textContent="✓ Cobertura de prensa activada";
+    sub.style.color="#8b5cf6";sub.textContent="El evento aparecerá en la sección de Guardias";
+    chk.style.background="#667eea";chk.style.borderColor="#667eea";chk.style.color="#fff";chk.textContent="✓";
+  }else{
+    btn.style.borderColor="#e5e7eb";btn.style.background="#f9fafb";
+    lbl.style.color="#374151";lbl.textContent="Cubrir con prensa";
+    sub.style.color="#9ca3af";sub.textContent="Activar para asignar cobertura a la guardia del día";
+    chk.style.background="";chk.style.borderColor="#d1d5db";chk.style.color="";chk.textContent="";
+  }
+}
+
+function openAgMod(fecha="",prefillCob=false){
+  agCobActivo=prefillCob;
+  document.getElementById("agmodt").textContent="Nuevo evento";
+  document.getElementById("ageditid").value="";
+  ["aghora","agdesc","aglugar"].forEach(i=>document.getElementById(i).value="");
+  document.getElementById("agfecha").value=fecha;
+  document.getElementById("agresp").value="";
+  document.getElementById("agtipo").value="intendente";
+  _refreshAgCob();
+  document.getElementById("modAg").classList.add("open");
+}
+
+async function saveAg(){
+  const fecha=document.getElementById("agfecha").value,desc=document.getElementById("agdesc").value.trim();
+  if(!fecha||!desc){alert("Fecha y descripción obligatorias");return}
+  const tipo=document.getElementById("agtipo").value;
+  const eid=document.getElementById("ageditid").value;
+  let savedId=eid;
+  if(eid){
+    await db.from("agenda").update({fecha,hora:document.getElementById("aghora").value||null,descripcion:desc,lugar:document.getElementById("aglugar").value.trim(),tipo,responsable:document.getElementById("agresp").value}).eq("id",eid);
+  }else{
+    const r=await db.from("agenda").insert({fecha,hora:document.getElementById("aghora").value||null,descripcion:desc,lugar:document.getElementById("aglugar").value.trim(),tipo,responsable:document.getElementById("agresp").value,cancelado:false}).select();
+    if(r.data&&r.data[0])savedId=r.data[0].id;
+  }
+  // Aplicar cobertura si está activo
+  if(agCobActivo&&savedId){
+    cobSel[savedId]=true;
+    // Si es evento de prensa y hora +15hs → cobSel activo ya lo pone en guardias
+  }else if(!agCobActivo&&savedId){
+    delete cobSel[savedId];
+  }
+  // Auto-sincronizar con guardia si es +15hs (independientemente de cobActivo)
+  const horaAg=document.getElementById("aghora").value||null;
+  if(savedId&&horaAg){
+    const hAg=parseInt(String(horaAg).split(":")[0]);
+    if(hAg>=15){
+      cobSel[savedId]=true; // siempre marcar para guardia si es +15hs
+    }
+  }
+  closeMod("modAg");
+  const horaFinal=document.getElementById("aghora").value||null;
+  const esGuardia=horaFinal&&parseInt(String(horaFinal).split(":")[0])>=15;
+  toast(esGuardia?"✓ Evento guardado y asignado a Guardia 📋":"✓ Evento agregado");
+  notifEventoGuardado(desc,fecha,horaFinal,tipo);
+  // Alerta al responsable si tiene uno asignado
+  const respAg=document.getElementById("agresp").value;
+  if(respAg&&savedId){
+    const c=getContact(respAg);
+    const d2=parseD(fecha);
+    const diaStr=`${DNF[d2.getDay()]} ${d2.getDate()} de ${MNF[d2.getMonth()]}`;
+    const msgAg=`📅 Evento asignado\n\n"${desc}"\n\n📆 ${diaStr}${horaFinal?" · "+horaFinal.slice(0,5):""}\n${document.getElementById("aglugar").value?" 📍 "+document.getElementById("aglugar").value+"\n":""}\nPanel: https://marianelahut-lang.github.io/panel-comunicacion/`;
+    if(c.tel){window.open(`https://wa.me/${c.tel}?text=${encodeURIComponent(msgAg)}`,"_blank");toast(`📱 Alerta enviada a ${respAg}`);}
+    else if(c.email){window.open(`https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(c.email)}&su=${encodeURIComponent("📅 Evento: "+desc.slice(0,40))}&body=${encodeURIComponent(msgAg)}`,"_blank");}
+  }
+  // Refresh con filtro de fechas
+  const agFrom2=iso(addD(TODAY,-30));const agTo2=iso(addD(TODAY,180));
+  const r2=await db.from("agenda").select("*").gte("fecha",agFrom2).lte("fecha",agTo2).order("fecha");
+  if(r2.data)agendas=r2.data;
+  renderCal();renderGuardias();
+}
+
+// ═══ GOOGLE CALENDAR ═══
+async function syncGCal(){
+  const btn=document.getElementById("gcbtn"),txt=document.getElementById("gctxt"),dot=document.getElementById("gcdot");
+  btn.className="gcbtn go";txt.textContent="Sincronizando...";
+  try{
+    let all=[],next=null;
+    const tMin=new Date(TODAY.getFullYear(),TODAY.getMonth()-3,1).toISOString();
+    const tMax=new Date(TODAY.getFullYear()+1,TODAY.getMonth()+3,1).toISOString();
+    do{
+      const url=`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(GCAL_ID)}/events?key=${encodeURIComponent(GCAL_KEY)}&timeMin=${tMin}&timeMax=${tMax}&singleEvents=true&orderBy=startTime&maxResults=2500${next?"&pageToken="+next:""}`;
+      const res=await fetch(url);
+      if(!res.ok){const e=await res.json();throw new Error(e.error?.message||"Error API")}
+      const data=await res.json();
+      all=[...all,...(data.items||[])];
+      next=data.nextPageToken||null;
+      txt.textContent=`Cargando... ${all.length}`;
+    }while(next);
+
+    // FIX: deduplicar por item.id ANTES de procesar
+    const seen=new Map();
+    for(const item of all){
+      if(!seen.has(item.id))seen.set(item.id,item);
+    }
+    const uniqueItems=[...seen.values()];
+
+    gcalEvs=[];
+    for(const item of uniqueItems){
+      if(item.status==="cancelled")continue;
+      const s=item.start?.dateTime||item.start?.date||"";if(!s)continue;
+      const fecha=s.split("T")[0];
+      const hora=s.includes("T")?s.split("T")[1].slice(0,5):null;
+      const desc=(item.summary||"(Sin título)").slice(0,200);
+      const lugar=(item.location||"").slice(0,200);
+      const dl=desc.toLowerCase();
+
+      // FIX: detección de prensa mejorada — colorId de Google Calendar:
+      // 4=Flamingo(rosa), 11=Tomato(rojo), 3=Grape, 6=Tangerine, 1=Lavender
+      const colorId=String(item.colorId||"");
+      const esColorPrensa=["4","11"].includes(colorId);
+
+      const esPrensaKW=
+        dl.includes("radio")||dl.includes("entrevista")||dl.includes("prensa")||
+        dl.includes("lu24")||dl.includes("la voz")||dl.includes("onda uno")||dl.includes("diario")||
+        dl.includes("nota")||dl.includes("medio")||dl.includes("canal")||dl.includes("tv")||
+        dl.includes("fm ")||dl.includes(" am ")||dl.includes("programa ")||dl.includes("ciclo")||
+        dl.includes("televis")||dl.includes("columna")||dl.includes("periodis")||
+        dl.includes("cobertura")||dl.includes("reportaje")||
+        dl.includes("olivera")||dl.includes("scarabotti")||dl.includes("voz del pueblo")||
+        dl.includes("laporte")||dl.includes("peco")||
+        dl.includes("entrevistar")||dl.includes("periodico")||dl.includes("reporter");
+
+      const tipo=(esColorPrensa||esPrensaKW)?"prensa":"intendente";
+      gcalEvs.push({id:"gc_"+item.id,fecha,hora,descripcion:desc,lugar,tipo,cancelado:false,gcal:true});
+    }
+
+    gcalOk=true;
+    btn.className="gcbtn ok";
+    // FIX: mostrar contador real (sin duplicados)
+    const presnaCount=gcalEvs.filter(e=>e.tipo==="prensa").length;
+    txt.textContent=`GCal · ${gcalEvs.length} (${presnaCount} prensa)`;
+    console.log(`GCal: ${all.length} raw → ${gcalEvs.length} únicos (${presnaCount} prensa)`);
+    // Auto-marcar eventos +15hs para guardia
+    gcalEvs.forEach(e=>{
+      if(!e.hora||e.cancelado)return;
+      const h=parseInt(String(e.hora).split(":")[0]);
+      if(h>=15&&!cobSel[e.id])cobSel[e.id]=true;
+    });
+    renderCal();renderWeek();updateBadges();
+    const gp2=document.getElementById("p-guardias");if(gp2&&gp2.style.display!=="none")renderGuardias();
+    toast(`✓ ${gcalEvs.length} eventos sincronizados (${presnaCount} prensa)`);
+    if(!syncGCal._iv)syncGCal._iv=setInterval(syncGCal,5*60*1000);
+  }catch(err){
+    gcalOk=false;btn.className="gcbtn";txt.textContent="Sincronizar Calendar";
+    toast("Error Calendar: "+err.message,"err");
+    console.error("syncGCal:",err);
+  }
+}
+
+// ═══ GUARDIAS ═══
+function initGuardias(){
+  const sel=document.getElementById("gwsel");if(!sel)return;
+  sel.innerHTML="";
+  for(let w=0;w<20;w++){
+    const mon=addD(START,w*7),sun=addD(mon,6);
+    const opt=new Option(`${mon.getDate()} ${MNS[mon.getMonth()]} — ${sun.getDate()} ${MNS[sun.getMonth()]}`,w);
+    if(TODAY>=mon&&TODAY<=addD(mon,6))opt.selected=true;
+    sel.appendChild(opt);
+  }
+  renderGuardias();
+}
+
+// ═══ COBERTURA DE PRENSA — indexado por event id ═══
+const cobSel={};   // cobSel[eventId] = true/false
+let evPanel_ev=null;  // evento actualmente abierto en el panel
+
+function openEvPanel(e){
+  evPanel_ev=e;
+  const panel=document.getElementById("evpanel");
+  // Tipo
+  const tipoEl=document.getElementById("evp-tipo");
+  const tipoColor=e.tipo==="prensa"?"#9d174d":e.tipo==="municipal"?"#15803d":"#1e40af";
+  const tipoLabel=e.tipo==="prensa"?"📻 Prensa / Medio":e.tipo==="municipal"?"🏛 Municipal":"🗓 Agenda Intendente";
+  tipoEl.textContent=tipoLabel;tipoEl.style.color=tipoColor;
+  // Título
+  document.getElementById("evp-title").textContent=e.descripcion;
+  // Meta
+  const d=parseD(e.fecha);
+  const diaStr=DNF[d.getDay()]+" "+d.getDate()+" de "+MNF[d.getMonth()];
+  document.getElementById("evp-meta").innerHTML=
+    `<span>📅 ${diaStr}${e.hora?" · "+e.hora.slice(0,5):""}</span>`+
+    (e.lugar?`<span>📍 ${e.lugar}</span>`:"")+
+    (e.responsable?`<span>👤 ${e.responsable}</span>`:"")+
+    (e.gcal?`<span style="color:#9ca3af;font-size:9px">Sincronizado de Google Calendar</span>`:"");
+  // Guardia del día
+  const g=getGuardia(e.fecha);
+  const gEl=document.getElementById("evp-guardia");
+  if(g.length){
+    gEl.style.display="block";
+    document.getElementById("evp-guardia-names").innerHTML=g.map((n,gi)=>{
+      const m=gm(n);
+      return m?`${av(m,16)} <span style="font-size:11px">${m.nombre} <span style="color:#9ca3af">(${gi===0?"titular":"soporte"})</span></span>`:"";
+    }).join(" &nbsp;");
+  }else{gEl.style.display="none";}
+  // Desc extra
+  document.getElementById("evp-desc").textContent="";
+  // Estado cobertura
+  _refreshCobBtn();
+  panel.classList.add("open");
+}
+
+function _refreshCobBtn(){
+  if(!evPanel_ev)return;
+  const activo=cobSel[evPanel_ev.id]||false;
+  const btn=document.getElementById("evp-cobbtn");
+  const sub=document.getElementById("evp-cobsub");
+  const chk=document.getElementById("evp-cobcheck");
+  btn.className="evp-cob"+(activo?" activo":"");
+  sub.textContent=activo?"✓ Marcado para cobertura — aparece en Guardias":"Marcar para cobertura de guardia";
+  chk.textContent=activo?"✓":"";
+}
+
+function toggleCobertura(){
+  if(!evPanel_ev)return;
+  cobSel[evPanel_ev.id]=!cobSel[evPanel_ev.id];
+  _refreshCobBtn();
+  if(cobSel[evPanel_ev.id])notifCobertura(evPanel_ev.descripcion,evPanel_ev.fecha);
+  // Refrescar calendario para mostrar badge azul
+  renderCal();
+  // Refrescar guardias si está visible
+  const gp=document.getElementById("p-guardias");
+  if(gp&&gp.style.display!=="none")renderGuardias();
+  toast(cobSel[evPanel_ev.id]?"📋 Cobertura asignada a guardia":"Cobertura removida");
+}
+
+function closeEvPanel(){
+  document.getElementById("evpanel").classList.remove("open");
+  evPanel_ev=null;
+}
+
+function toggleCob(key){
+  cobSel[key]=!cobSel[key];
+  const el=document.getElementById("cob_"+key);
+  if(el){
+    el.style.background=cobSel[key]?"#667eea":"#f3f4f6";
+    el.style.color=cobSel[key]?"#fff":"#6b7280";
+    el.style.borderColor=cobSel[key]?"#667eea":"#e5e7eb";
+  }
+}
+
+function renderGuardias(){
+  const wo=parseInt(document.getElementById("gwsel")?.value)||0;
+  const mon=addD(START,wo*7);
+  const DN=["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"];
+  let days="";
+  for(let i=0;i<7;i++){
+    const d=addD(mon,i),ds=iso(d),isWE=i>=5,isTd=ds===isoToday;
+    const g=getGuardia(ds);
+    const gc=g.length>0?(gm(g[0])||{color:"#e5e7eb"}).color:"#e5e7eb";
+    const evs=[...agendas,...gcalEvs,...(window._pubGuardia||[])].filter(a=>String(a.fecha).slice(0,10)===ds&&!a.cancelado);
+    const coberturas=evs.filter(e=>cobSel[e.id]);
+    const evsTarde=evs.filter(e=>{if(!e.hora)return false;const h=parseInt(String(e.hora).split(":")[0]);return h>=15;});
+
+    // ── Sección coberturas mejorada ──
+    const allCobs=[...coberturas]; // los marcados manualmente
+    // También incluir pubs +15hs que se auto-asignaron
+    evsTarde.filter(e=>e.tipo==="publicacion"&&!coberturas.find(c=>c.id===e.id)).forEach(e=>allCobs.push(e));
+
+    const cobHtml=allCobs.length?`
+      <div style="background:#f5f3ff;border:1.5px solid #c4b5fd;border-radius:9px;padding:8px 10px;margin-top:6px">
+        <div style="display:flex;align-items:center;gap:5px;margin-bottom:6px">
+          <span style="font-size:11px">📋</span>
+          <span style="font-size:9px;color:#6d28d9;font-weight:800;text-transform:uppercase;letter-spacing:.06em">Coberturas del día</span>
         </div>
-        <div class="fld"><label class="lbl">Lugar (opcional)</label>
-          <input type="text" placeholder="Sala de prensa, municipio, estudio..." value="${e(f.lugar||'')}" oninput="S.ef.lugar=this.value"></div>
-        <div class="fld"><label class="lbl">Tema / Notas</label>
-          <textarea placeholder="Tema a tratar, puntos clave, contexto..." oninput="S.ef.notas=this.value">${e(f.notas||'')}</textarea></div>
+        ${allCobs.map(e=>{
+          const isPub=e.tipo==="publicacion";
+          const isPren=e.tipo==="prensa";
+          const icon=isPub?"📱":isPren?"📻":"🗓";
+          const bg=isPub?"#ede9fe":isPren?"#fce7f3":"#dbeafe";
+          const brd=isPub?"#8b5cf6":isPren?"#ec4899":"#3b82f6";
+          const tc=isPub?"#5b21b6":isPren?"#9d174d":"#1e40af";
+          const canRemove=cobSel[e.id]; // solo mostrar X si fue marcado manualmente
+          return`<div style="display:flex;align-items:center;gap:6px;padding:5px 7px;background:${bg};border-left:3px solid ${brd};border-radius:6px;margin-bottom:3px">
+            <span style="font-size:12px;flex-shrink:0">${icon}</span>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:10px;font-weight:700;color:${tc};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.descripcion.replace("📱 ","").slice(0,30)}</div>
+              ${e.hora?`<div style="font-size:9px;color:${tc};opacity:.7">🕐 ${e.hora.slice(0,5)}</div>`:""}
+            </div>
+            ${canRemove?`<button onclick="cobSel['${e.id}']=false;renderGuardias();renderCal()" style="background:none;border:none;cursor:pointer;color:#9ca3af;font-size:13px;padding:0;flex-shrink:0;line-height:1">✕</button>`:""}
+          </div>`;
+        }).join("")}
+      </div>`
+    :evsTarde.length?`<div style="margin-top:6px;padding:6px 8px;background:#fffbeb;border:1px dashed #fde68a;border-radius:7px;font-size:9px;color:#92400e;text-align:center">+15hs · Asigná cobertura desde el Calendario</div>`:"";
+
+    // ── Botones WA con coberturas ──
+    const envEvs=allCobs.length>0?allCobs:evsTarde;
+    const waBtns=g.map(n=>{
+      const c=getContact(n);
+      if(!c.tel)return"";
+      const d2=parseD(ds);
+      let msg=`Guardia ${DNF[d2.getDay()]} ${d2.getDate()} de ${MNF[d2.getMonth()]}`;
+      if(envEvs.length){
+        msg+=allCobs.length>0?"\n\n📋 Coberturas del día:\n":"\n\nEventos +15hs:\n";
+        msg+=envEvs.slice(0,5).map(e=>"• "+(e.hora?e.hora.slice(0,5)+" ":"")+e.descripcion.replace("📱 ","")).join("\n");
+      }
+      msg+="\n\nPanel: https://marianelahut-lang.github.io/panel-comunicacion/";
+      return`<a href="https://wa.me/${c.tel}?text=${encodeURIComponent(msg)}" target="_blank" style="display:block;margin-top:3px;padding:6px;border-radius:6px;background:#25d366;color:#fff;font-size:10px;font-weight:700;text-decoration:none;text-align:center">📱 WA ${n}</a>`;
+    }).join("");
+
+    days+=`<div class="gwd${isWE?" gwwe":""}${isTd?" gwt":""}" style="border-top:3px solid ${gc}">
+      <div class="gwdate">${d.getDate()} ${MNS[d.getMonth()]}</div>
+      <div class="gwags">
+        ${g.map((n,gi)=>{const m=gm(n);return m?`<div class="gwag">${av(m,16)}<span style="font-size:9px;line-height:1.2">${m.nombre}<br><span style="color:#9ca3af;font-size:8px">${gi===0?"titular":"soporte"}</span></span></div>`:""}).join("")||`<span style="font-size:9px;color:#d1d5db">—</span>`}
       </div>
-      <div class="mf">
-        <button class="btn-s" onclick="closeM()">Cancelar</button>
-        <button class="btn-p" onclick="svE()">Guardar entrevista</button>
-      </div>
-    </div>
-  </div>`;
+      ${cobHtml}
+      <button class="gwnb" onclick="notifyDay('${ds}')">📧 Mail guardia</button>
+      ${waBtns}
+    </div>`;
+  }
+  document.getElementById("gwcontent").innerHTML=`<div class="gwtbl"><div class="gwh">${DN.map(d=>`<div class="gwhi">${d.slice(0,3)}</div>`).join("")}</div><div class="gwb">${days}</div></div>`;
 }
 
-function buildCFModal(){
-  const f=S.cff||{};
-  return `<div class="ov" onclick="if(event.target===this)closeM()">
-    <div class="mdl" style="max-width:380px" onclick="event.stopPropagation()">
-      <div class="mh">
-        <span style="font-size:14px;font-weight:500">Agregar funcionario</span>
-        <button onclick="closeM()" style="background:none;border:none;cursor:pointer;color:#7c78a0;font-size:20px;padding:0;line-height:1">×</button>
-      </div>
-      <div class="mb">
-        <div class="fld"><label class="lbl">Nombre y apellido *</label>
-          <input type="text" placeholder="Nombre completo" value="${e(f.n||'')}" oninput="S.cff.n=this.value"></div>
-        <div class="fld"><label class="lbl">Cargo</label>
-          <input type="text" placeholder="Cargo / función" value="${e(f.c||'')}" oninput="S.cff.c=this.value"></div>
-        <div class="fld"><label class="lbl">Teléfono WhatsApp</label>
-          <input type="tel" placeholder="5492983..." value="${e(f.t||'')}" oninput="S.cff.t=this.value">
-          <span style="font-size:10px;color:#5a5778">Sin espacios ni símbolos. Ej: 5492983642913</span></div>
-      </div>
-      <div class="mf">
-        <button class="btn-s" onclick="closeM()">Cancelar</button>
-        <button class="btn-p" onclick="svCF()">Guardar</button>
-      </div>
-    </div>
-  </div>`;
+// FIX: notifyDay y notifyWA ahora usan getContact()
+function notifyDay(ds){
+  const g=getGuardia(ds),d=parseD(ds);
+  const dia=`${DNF[d.getDay()]} ${d.getDate()} de ${MNF[d.getMonth()]}`;
+  const evs=[...agendas,...gcalEvs,...(window._pubGuardia||[])].filter(a=>String(a.fecha).slice(0,10)===ds&&!a.cancelado);
+  const coberturas=evs.filter(e=>cobSel[e.id]);
+  const evsTarde=evs.filter(e=>{if(!e.hora)return false;const h=parseInt(String(e.hora).split(":")[0]);return h>=15;});
+  let sent=0,nomail=[];
+  g.forEach((n,gi)=>{
+    const c=getContact(n);
+    if(!c.email){nomail.push(n);return;}
+    const partner=g.filter(x=>x!==n).join(", ")||"solo/a";
+    let evtxt="\nSin eventos registrados.";
+    if(coberturas.length){
+      evtxt="\n\n📋 Coberturas asignadas:\n"+coberturas.map(e=>`• ${e.hora?e.hora.slice(0,5):""} ${e.descripcion}`).join("\n");
+      const otros=evsTarde.filter(e=>!cobSel[e.id]);
+      if(otros.length)evtxt+="\n\nOtros eventos:\n"+otros.map(e=>`• ${e.hora?e.hora.slice(0,5):""} ${e.descripcion}`).join("\n");
+    }else if(evsTarde.length){
+      evtxt="\n\nEventos +15hs:\n"+evsTarde.map(e=>`• ${e.hora?e.hora.slice(0,5):""} ${e.descripcion}`).join("\n");
+    }
+    const sub=`🗓️ Guardia — ${dia}`;
+    const body=`Hola ${n},\n\nTenés guardia el ${dia} como ${gi===0?"titular":"soporte"}.\nCompañero/a: ${partner}${evtxt}\n\nPanel: https://marianelahut-lang.github.io/panel-comunicacion/\n\nSaludos,\nDpto. Comunicación — Municipalidad de Tres Arroyos`;
+    window.open(`https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(c.email)}&su=${encodeURIComponent(sub)}&body=${encodeURIComponent(body)}`,"_blank");
+    sent++;
+  });
+  if(sent){
+    toast(`✓ Mail guardia — ${dia}`);
+    pushNotif(`📧 Guardia notificada`,`${dia} — mail enviado a ${sent} integrante${sent!==1?"s":""}`);
+  }
+  if(nomail.length)toast(`Sin correo: ${nomail.join(", ")}`,"warn");
 }
 
-function setTab(x){S.tab=x;render();}
-function openTM(id){
-  if(id){const tt=S.tasks.find(x=>x.id===id);S.tf={...tt,responsables:[...tt.responsables],adjuntos:[...(tt.adjuntos||[])],notif:[...(tt.notif||[])]};}
-  else{S.tf={id:null,titulo:'',desc:'',estado:'Pendiente',prioridad:'Media',responsables:[],adjuntos:[],notif:[],obs:''};}
-  S.modal='task';render();
+function notifyWeek(){
+  const wo=parseInt(document.getElementById("gwsel")?.value)||0;
+  const mon=addD(START,wo*7);
+  const DN=["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"];
+  const done=new Set();let sent=0,nomail=[];
+  for(let i=0;i<7;i++){
+    const d=addD(mon,i),ds=iso(d);
+    getGuardia(ds).forEach(n=>{
+      if(done.has(n))return;done.add(n);
+      const c=getContact(n);
+      if(!c.email){nomail.push(n);return;}
+      const dias=[];
+      for(let j=0;j<7;j++){
+        const dj=addD(mon,j),dsj=iso(dj),gj=getGuardia(dsj);
+        if(gj.includes(n)){
+          const ej=[...agendas,...gcalEvs].filter(a=>String(a.fecha).slice(0,10)===dsj&&!a.cancelado);
+          dias.push(`• ${DN[j]} ${dj.getDate()}/${dj.getMonth()+1}${ej.length?" — "+ej.map(e=>e.descripcion.slice(0,20)).join(", "):""}`)
+        }
+      }
+      const sub=`🗓️ Guardias semana del ${mon.getDate()} de ${MNF[mon.getMonth()]}`;
+      const body=`Hola ${n},\n\nTu rotación esta semana:\n\n${dias.join("\n")}\n\nPanel: https://marianelahut-lang.github.io/panel-comunicacion/\n\nSaludos,\nDpto. Comunicación — Municipalidad de Tres Arroyos`;
+      window.open(`https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(c.email)}&su=${encodeURIComponent(sub)}&body=${encodeURIComponent(body)}`,"_blank");
+      sent++;
+    });
+  }
+  if(sent)toast(`✓ Enviado a ${sent} integrante${sent!==1?"s":""}`);
+  if(nomail.length)toast(`Sin correo: ${nomail.join(", ")}`,"warn");
 }
-function openEM(id){
-  if(id){const ee=S.entrevistas.find(x=>x.id===id);S.ef={...ee};}
-  else{S.ef={id:null,medio:'',medioCustom:'',funcionario:'',otroNombre:'',otroCargo:'',otroTel:'',fecha:'',hora:'',lugar:'',notas:'',telCustom:''};}
-  S.modal='ent';render();
-}
-function openCF(){S.cff={n:'',c:'',t:''};S.modal='cf';render();}
-function closeM(){S.modal=null;S.tf=null;S.ef=null;S.cff=null;render();}
-function tResp(n){const i=S.tf.responsables.indexOf(n);if(i===-1)S.tf.responsables.push(n);else S.tf.responsables.splice(i,1);render();}
-function tNotif(x){const i=S.tf.notif.indexOf(x);if(i===-1)S.tf.notif.push(x);else S.tf.notif.splice(i,1);render();}
-function addAdj(){const tipo=document.getElementById('atipo')?.value;const val=(document.getElementById('aval')?.value||'').trim();if(!val||!S.tf)return;S.tf.adjuntos.push({tipo,val});render();}
-function rmAdj(i){S.tf.adjuntos.splice(i,1);render();}
-function svT(){
-  const f=S.tf;if(!f.titulo.trim()){alert('El título es requerido');return;}
-  if(f.id){const i=S.tasks.findIndex(x=>x.id===f.id);if(i!==-1)S.tasks[i]={...f};}
-  else{S.tasks.push({...f,id:gid()});}
-  closeM();saveData();
-}
-function delT(id){if(!confirm('¿Eliminar esta tarea?'))return;S.tasks=S.tasks.filter(x=>x.id!==id);closeM();saveData();}
-function uEF(k,v){if(S.ef){S.ef[k]=v;render();}}
-function svE(){
-  const f=S.ef;
-  if(!f.medio){alert('Seleccioná un medio de comunicación');return;}
-  if(f.medio==='otro'&&!f.medioCustom?.trim()){alert('Ingresá el nombre del medio');return;}
-  let fn=f.funcionario;
-  if(fn==='__otro__'){if(!f.otroNombre?.trim()){alert('Ingresá el nombre del funcionario');return;}fn=f.otroNombre.trim();}
-  else if(!fn){alert('Seleccioná un funcionario');return;}
-  const ent={id:f.id||gid(),medio:f.medio,medioCustom:f.medioCustom||'',funcionario:fn,telCustom:f.otroTel||f.telCustom||'',fecha:f.fecha||'',hora:f.hora||'',lugar:f.lugar||'',notas:f.notas||''};
-  if(f.id){const i=S.entrevistas.findIndex(x=>x.id===f.id);if(i!==-1)S.entrevistas[i]=ent;}
-  else{S.entrevistas.unshift(ent);}
-  closeM();saveData();
-}
-function delE(id){S.entrevistas=S.entrevistas.filter(x=>x.id!==id);render();saveData();}
-function svCF(){const f=S.cff;if(!f.n?.trim()){alert('El nombre es requerido');return;}S.cFuncs.push({n:f.n.trim(),c:f.c?.trim()||'',t:f.t?.trim()||''});closeM();saveData();}
-function dCF(i){S.cFuncs.splice(i,1);render();saveData();}
 
-loadData();
-render();
+// ═══ EQUIPO ═══
+// FIX: una sola definición de renderTeam, usando getContact()
+function renderTeam(){
+  const grid=document.getElementById("teamgrid");
+  if(!grid)return;
+  if(!teams.length){grid.innerHTML=`<div style="text-align:center;padding:2rem;color:#9ca3af;grid-column:1/-1">Cargando equipo...</div>`;return;}
+  grid.innerHTML=teams.map(m=>{
+    const act=tasks.filter(t=>t.responsable===m.nombre&&t.estado!=="Completo").length;
+    const c=getContact(m.nombre);
+    return`<div class="tmcard" onclick="openEmMod('${m.id}')">
+      ${av(m,46)}
+      <div style="font-size:13px;font-weight:700;margin-top:8px">${m.nombre}</div>
+      <div style="font-size:10px;padding:2px 8px;border-radius:7px;background:#ede9fe;color:#6d28d9;font-weight:600;margin:3px 0;display:inline-block">${m.rol||"—"}</div>
+      ${!m.cobertura?`<div style="font-size:9px;color:#d97706;background:#fffbeb;padding:2px 6px;border-radius:6px;margin-top:2px">Sin coberturas</div>`:""}
+      ${c.email?`<div style="font-size:9px;color:#9ca3af;margin-top:3px;word-break:break-all">${c.email}</div>`:`<div style="font-size:9px;color:#dc2626;margin-top:3px">Sin correo ⚠</div>`}
+      ${c.tel?`<a href="https://wa.me/${c.tel}" target="_blank" onclick="event.stopPropagation()" style="display:inline-flex;align-items:center;gap:3px;margin-top:5px;padding:3px 9px;background:#25d366;color:#fff;border-radius:20px;font-size:9px;font-weight:600;text-decoration:none">📱 WhatsApp</a>`:""}
+      <div style="font-size:10px;color:#6b7280;margin-top:3px">${act} tareas activas</div>
+      <button onclick="event.stopPropagation();sendAlert('${m.nombre}')" style="margin-top:5px;padding:3px 9px;border-radius:20px;border:none;background:${c.tel?'#25d366':'#667eea'};color:#fff;font-size:9px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">${c.tel?'📱 Alerta WA':'📧 Alerta Mail'}</button>
+    </div>`;
+  }).join("");
+}
+
+function selEmColor(el){
+  document.querySelectorAll("#emcolors .copt").forEach(e=>{e.style.border="2px solid transparent";});
+  el.style.border="2px solid #111";
+}
+function getEmColor(){
+  const sel=document.querySelector("#emcolors .copt[style*='border: 2px solid rgb(17']")||
+            document.querySelector("#emcolors .copt[style*='border:2px solid #111']")||
+            document.querySelector("#emcolors .copt:first-child");
+  return sel?{color:sel.dataset.color,texto:sel.dataset.txt||"#fff"}:{color:"#667eea",texto:"#fff"};
+}
+function setEmColor(color){
+  document.querySelectorAll("#emcolors .copt").forEach(e=>{
+    e.style.border=e.dataset.color===color?"2px solid #111":"2px solid transparent";
+  });
+}
+
+function openNuevoMiembro(){
+  document.getElementById("emtitle").textContent="Agregar persona";
+  document.getElementById("emid").value="";
+  document.getElementById("emnombre").value="";
+  document.getElementById("emnombre").removeAttribute("readonly");
+  document.getElementById("ememail").value="";
+  document.getElementById("emtel").value="";
+  document.getElementById("emrol").value="Comunicador/a";
+  document.getElementById("emcob").value="1";
+  document.getElementById("emdelbtn").style.display="none";
+  setEmColor("#667eea");
+  document.getElementById("modEquipo").classList.add("open");
+}
+
+function openEmMod(id){
+  const m=teams.find(x=>x.id===id);if(!m)return;
+  const c=getContact(m.nombre);
+  document.getElementById("emtitle").textContent="Editar — "+m.nombre;
+  document.getElementById("emid").value=id;
+  document.getElementById("emnombre").value=m.nombre;
+  document.getElementById("emnombre").setAttribute("readonly","true");
+  document.getElementById("ememail").value=c.email||"";
+  document.getElementById("emtel").value=c.tel||"";
+  document.getElementById("emrol").value=m.rol||"Comunicador/a";
+  document.getElementById("emcob").value=m.cobertura?"1":"0";
+  document.getElementById("emdelbtn").style.display="inline-flex";
+  setEmColor(m.color||"#667eea");
+  document.getElementById("modEquipo").classList.add("open");
+}
+
+async function saveMember(){
+  const id=document.getElementById("emid").value;
+  const nombre=document.getElementById("emnombre").value.trim();
+  if(!nombre){toast("El nombre es obligatorio","err");return;}
+  const tel=document.getElementById("emtel").value.trim().replace(/[^0-9]/g,"");
+  const email=document.getElementById("ememail").value.trim();
+  const rol=document.getElementById("emrol").value;
+  const cobertura=document.getElementById("emcob").value==="1";
+
+  // Color del avatar
+  let color="#667eea",color_texto="#fff";
+  try{
+    const selEl=document.querySelector("#emcolors .copt[style*='border: 2px solid rgb(17']")||
+                document.querySelector("#emcolors .copt[style*='border:2px solid #111']");
+    if(selEl){color=selEl.dataset.color||"#667eea";color_texto=selEl.dataset.txt||"#fff";}
+  }catch(e){}
+
+  // Guardar en localStorage siempre (persiste entre sesiones)
+  saveLocalContact(nombre, email, tel);
+
+  // Intentar guardar con telefono, sin telefono como fallback
+  const baseData={email,rol,cobertura,color,color_texto};
+  const withTel={...baseData,telefono:tel};
+
+  try{
+    let error=null;
+    if(id){
+      // Editar
+      const r=await db.from("usuarios").update(withTel).eq("id",id);
+      if(r.error?.message?.toLowerCase().includes("telefono")){
+        // Sin columna telefono — guardar sin ella pero cachear localmente
+        const r2=await db.from("usuarios").update(baseData).eq("id",id);
+        if(r2.error)throw new Error(r2.error.message);
+        toast("✓ Datos actualizados (tel guardado localmente)","warn");
+      } else {
+        if(r.error)throw new Error(r.error.message);
+        toast("✓ Datos actualizados");
+      }
+    }else{
+      // Nuevo miembro
+      const r=await db.from("usuarios").insert({nombre,...withTel}).select();
+      if(r.error?.message?.toLowerCase().includes("telefono")){
+        const r2=await db.from("usuarios").insert({nombre,...baseData}).select();
+        if(r2.error)throw new Error(r2.error.message);
+        toast("✓ "+nombre+" agregado (tel guardado localmente)","warn");
+      } else {
+        if(r.error)throw new Error(r.error.message);
+        toast("✓ "+nombre+" agregado al equipo");
+      }
+    }
+    closeMod("modEquipo");
+    const r=await db.from("usuarios").select("*").order("nombre");
+    if(r.data){teams=r.data;renderTeam();popSelects();renderPersons();}
+  }catch(e){
+    toast("Error: "+e.message,"err");
+    console.error("saveMember:",e);
+  }
+}
+
+async function deleteMember(){
+  const id=document.getElementById("emid").value;
+  const nombre=document.getElementById("emnombre").value;
+  if(!id)return;
+  if(!confirm(`¿Eliminar a ${nombre} del equipo?`))return;
+  try{
+    const{error}=await db.from("usuarios").delete().eq("id",id);
+    if(error)throw new Error(error.message);
+    closeMod("modEquipo");
+    toast("✓ "+nombre+" eliminado");
+    const r=await db.from("usuarios").select("*").order("nombre");
+    if(r.data){teams=r.data;renderTeam();popSelects();renderPersons();}
+  }catch(e){toast("Error: "+e.message,"err");}
+}
+
+// FIX: sendAlert usa getContact()
+function alertarPendientesPor(canal){
+  if(!fp){toast("Seleccioná una persona primero","warn");return;}
+  const pendientes=tasks.filter(t=>t.responsable===fp&&t.estado!=="Completo");
+  if(!pendientes.length){toast(`${fp} no tiene tareas pendientes`,"warn");return;}
+  const c=getContact(fp);
+  const prioEmoji={Alta:"🔴",Media:"🟡",Baja:"🟢"};
+  const nl="\n";
+  let msg=`📋 Tareas pendientes — ${fp}${nl}${nl}`;
+  msg+=`Total: ${pendientes.length} tarea${pendientes.length!==1?"s":""}${nl}${nl}`;
+  ["Alta","Media","Baja"].forEach(p=>{
+    const ts=pendientes.filter(t=>t.prioridad===p);
+    if(!ts.length)return;
+    msg+=`${prioEmoji[p]} ${p}:${nl}`;
+    ts.forEach(t=>msg+=`• ${t.descripcion.slice(0,55)}${t.descripcion.length>55?"…":""}${nl}`);
+    msg+=nl;
+  });
+  msg+=`Panel: https://marianelahut-lang.github.io/panel-comunicacion/`;
+  const sub=`📋 Tareas pendientes — ${fp} (${pendientes.length})`;
+
+  if((canal==="wa"||canal==="ambos")&&c.tel){
+    window.open(`https://wa.me/${c.tel}?text=${encodeURIComponent(msg)}`,"_blank");
+    toast(`📱 WhatsApp abierto para ${fp}`);
+  } else if(canal==="wa"&&!c.tel){
+    toast(`${fp} no tiene teléfono cargado`,"warn");return;
+  }
+
+  if((canal==="mail"||canal==="ambos")&&c.email){
+    setTimeout(()=>{
+      window.open(`https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(c.email)}&su=${encodeURIComponent(sub)}&body=${encodeURIComponent(msg)}`,"_blank");
+      if(canal==="mail")toast(`📧 Gmail abierto para ${fp}`);
+      if(canal==="ambos")toast(`📱 WA + 📧 Mail enviados a ${fp}`);
+    },canal==="ambos"?800:0);
+  } else if(canal==="mail"&&!c.email){
+    toast(`${fp} no tiene correo cargado`,"warn");return;
+  }
+  pushNotif(`📋 Alerta enviada a ${fp}`,`${pendientes.length} tareas pendientes`);
+}
+
+// Mantener compatibilidad con llamadas anteriores
+function alertarPendientesPersona(){alertarPendientesPor("ambos");}
+
+function sendAlert(nombre){
+  const m=gm(nombre);
+  if(!m){toast("Agente no encontrado","err");return;}
+  const c=getContact(nombre);
+  const evs=[...agendas,...gcalEvs].filter(a=>String(a.fecha).slice(0,10)===isoToday&&!a.cancelado);
+  const ps=pubs.filter(p=>String(p.fecha).slice(0,10)===isoToday&&p.responsable===nombre);
+  const mt=tasks.filter(t=>t.responsable===nombre&&t.estado!=="Completo");
+  const d=parseD(isoToday);
+  const dia=DNF[d.getDay()]+" "+d.getDate()+" de "+MNF[d.getMonth()];
+  const nl="\n";
+  let msg="Alerta del día - "+dia+nl+nl+"Hola "+nombre+"!";
+  if(evs.length)msg+=nl+nl+"Eventos hoy:"+nl+evs.map(e=>"- "+(e.hora?e.hora.slice(0,5)+" ":"")+e.descripcion).join(nl);
+  if(ps.length)msg+=nl+nl+"Publicaciones:"+nl+ps.map(p=>{const ct=getCta(p.cuenta);return"- "+(ct?ct.label:p.cuenta)+": "+p.descripcion.slice(0,50);}).join(nl);
+  if(mt.length)msg+=nl+nl+"Tareas ("+mt.length+"):"+nl+mt.slice(0,3).map(t=>"- ["+t.prioridad+"] "+t.descripcion.slice(0,50)).join(nl);
+  msg+=nl+nl+"Panel: https://marianelahut-lang.github.io/panel-comunicacion/";
+  const sub="📋 Alerta del día - "+dia;
+  let sent=[];
+  if(c.tel){window.open("https://wa.me/"+c.tel+"?text="+encodeURIComponent(msg),"_blank");sent.push("📱 WA");}
+  if(c.email){
+    setTimeout(()=>{window.open(`https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(c.email)}&su=${encodeURIComponent(sub)}&body=${encodeURIComponent(msg)}`,"_blank");},c.tel?800:0);
+    sent.push("📧 Mail");
+  }
+  if(sent.length)toast(nombre+": "+sent.join(" + "));
+  else toast(nombre+" sin WA ni correo","warn");
+}
+
+// ═══ MEDIOS — ESCANEO RSS ═══
+async function scanMedios(){
+  const btn=document.getElementById("scanbtn");
+  const statusEl=document.getElementById("scanstatus");
+  if(btn)btn.disabled=true;
+  console.log("scanMedios v4 iniciado");
+
+  const RSS2JSON_KEY="nqbghjlpahb6cmzwxstjfnlrxwpqiefmkydvncvg";
+
+  // Medios: rss= feed RSS directo, html= URL para parsear HTML, selector= CSS para artículos
+  const medios=[
+    {n:"LU24",          c:"#7c2d12", rss:"https://www.lu24.com.ar/feed/"},
+    {n:"La Voz del Pueblo", c:"#1d4e7a", html:"https://www.lavozdelpueblo.com.ar/category/ciudad/", sel:"h2 a, h3 a, .entry-title a, article a"},
+    {n:"Onda Uno",      c:"#92400e", rss:"https://ondauno.com.ar/index.php/feed/"},
+    {n:"Via País",      c:"#5b21b6", html:"https://viapais.com.ar/tres-arroyos/", sel:"h2 a, h3 a, .titulo a, article a"},
+    {n:"Provincia Noticias", c:"#0f5ca8", html:"https://provincianoticias.com.ar/?s=tres+arroyos", sel:"h2 a, h3 a, .entry-title a"},
+  ];
+
+  const kws=["municipio","municipalidad","intendente","garate","pablo garate",
+    "tres arroyos","secretar","obras","inaugur","concejo","ordenanza","decreto",
+    "licitaci","hospital","agua","tránsito","transito","vecinos","subsidio","empleo",
+    "gobierno","gestión","servicio municipal","operativo"];
+
+  const cutoff=new Date(TODAY);cutoff.setDate(cutoff.getDate()-14);
+  let totalNuevas=0;
+
+  for(const medio of medios){
+    if(statusEl)statusEl.innerHTML=`<div class="sbar scan"><div class="spin"></div><span>Escaneando ${medio.n}...</span></div>`;
+    let items=[];
+
+    // ── Estrategia RSS ──
+    if(medio.rss){
+      // Intento 1: rss2json
+      try{
+        const r=await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(medio.rss)}&api_key=${RSS2JSON_KEY}&count=30`,
+          {signal:AbortSignal.timeout(20000)});
+        const d=await r.json();
+        if(d.status==="ok"&&d.items?.length){
+          items=d.items.map(i=>({
+            titulo:(i.title||"").replace(/<[^>]*>/g,"").trim(),
+            url:i.link||"",
+            pubDate:i.pubDate||"",
+            resumen:(i.description||i.content||"").replace(/<[^>]*>/g,"").slice(0,250)
+          }));
+          console.log(`✓ ${medio.n} rss2json: ${items.length} items`);
+        }
+      }catch(e){console.warn(`${medio.n} rss2json:`,e.message);}
+
+      // Intento 2: allorigins + parse XML
+      if(!items.length){
+        try{
+          const r=await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(medio.rss)}&t=${Date.now()}`,
+            {signal:AbortSignal.timeout(20000)});
+          const d=await r.json();
+          if(d.contents){
+            const xml=new DOMParser().parseFromString(d.contents,"text/xml");
+            const xmlItems=[...xml.querySelectorAll("item")];
+            if(xmlItems.length){
+              items=xmlItems.map(n=>({
+                titulo:(n.querySelector("title")?.textContent||"").replace(/<!\[CDATA\[|\]\]>/g,"").trim(),
+                url:n.querySelector("link")?.textContent||n.querySelector("guid")?.textContent||"",
+                pubDate:n.querySelector("pubDate")?.textContent||"",
+                resumen:(n.querySelector("description")?.textContent||"").replace(/<!\[CDATA\[|\]\]>|<[^>]*>/g,"").slice(0,250)
+              }));
+              console.log(`✓ ${medio.n} allorigins XML: ${items.length} items`);
+            }
+          }
+        }catch(e){console.warn(`${medio.n} allorigins:`,e.message);}
+      }
+    }
+
+    // ── Estrategia HTML scraping ──
+    if(!items.length&&medio.html){
+      try{
+        const r=await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(medio.html)}&t=${Date.now()}`,
+          {signal:AbortSignal.timeout(20000)});
+        const d=await r.json();
+        if(d.contents){
+          const parser=new DOMParser();
+          const doc=parser.parseFromString(d.contents,"text/html");
+          const links=new Map();
+          doc.querySelectorAll(medio.sel||"h2 a, h3 a, article a").forEach(a=>{
+            const titulo=(a.textContent||"").trim();
+            const href=a.href||a.getAttribute("href")||"";
+            if(titulo.length>15&&href&&!links.has(titulo)){
+              // Resolver URL relativa
+              let url=href;
+              if(href.startsWith("/"))url=new URL(href,medio.html).href;
+              links.set(titulo,{titulo,url,pubDate:"",resumen:""});
+            }
+          });
+          items=[...links.values()].slice(0,20);
+          console.log(`✓ ${medio.n} HTML scraping: ${items.length} items`);
+        }
+      }catch(e){console.warn(`${medio.n} HTML:`,e.message);}
+    }
+
+    if(!items.length){console.warn(`✗ ${medio.n}: sin items`);continue;}
+
+    // Filtrar por keywords y guardar
+    for(const item of items){
+      if(!item.titulo)continue;
+      const text=(item.titulo+" "+item.resumen).toLowerCase();
+      if(!kws.some(k=>text.includes(k)))continue;
+      // Verificar fecha
+      let fechaISO=isoToday;
+      if(item.pubDate){
+        try{
+          const fd=new Date(item.pubDate);
+          if(!isNaN(fd)){if(fd<cutoff)continue;fechaISO=fd.toISOString().slice(0,10);}
+        }catch(e){}
+      }
+      if(noticias.find(x=>x.url&&x.url===item.url))continue;
+      const tl=item.titulo.toLowerCase();
+      const tono=tl.includes("probl")||tl.includes("critic")||tl.includes("denuncia")||tl.includes("protest")||tl.includes("corte")||tl.includes("accidente")?"negativo":
+        tl.includes("inaugur")||tl.includes("obra")||tl.includes("logr")||tl.includes("entrega")||tl.includes("apertura")||tl.includes("benefi")?"positivo":"neutral";
+      try{
+        const{data,error}=await db.from("noticias_medios").insert({
+          titulo:item.titulo.slice(0,200),medio:medio.n,url:item.url.slice(0,500),fecha:fechaISO,
+          resumen:item.resumen.slice(0,200),tono,
+          menciona_municipio:text.includes("municipio")||text.includes("municipalidad")||text.includes("tres arroyos"),
+          menciona_pablo:text.includes("pablo garate")||text.includes("garate")
+        }).select();
+        if(!error&&data?.[0]){noticias.unshift(data[0]);totalNuevas++;}
+      }catch(e){console.warn("Insert:",e.message);}
+    }
+  }
+
+  if(statusEl){
+    statusEl.innerHTML=totalNuevas>0
+      ?`<div class="sbar done">✓ ${totalNuevas} noticias nuevas encontradas</div>`
+      :`<div class="sbar" style="background:#fffbeb;border:1px solid #fde68a;color:#92400e;padding:8px 12px;border-radius:8px;font-size:11px">Sin noticias nuevas — las noticias ya cargadas siguen disponibles</div>`;
+    setTimeout(()=>{if(statusEl)statusEl.innerHTML="";},8000);
+  }
+  if(btn){
+    btn.disabled=false;
+    btn.innerHTML='<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg> Escanear medios';
+  }
+  if(totalNuevas>0){toast(totalNuevas+" noticias nuevas");renderNoticias();renderMedioSum();}
+  else toast("Sin noticias nuevas — ya están todas cargadas","warn");
+}
+
+
+
+
+function renderNoticias(){
+  if(!document.getElementById("nlist"))return;
+  const mf=document.getElementById("mfilt")?.value||"";
+  const tf=document.getElementById("tfilt")?.value||"";
+  let data=[...noticias];
+  if(mf)data=data.filter(n=>n.medio===mf);
+  if(tf)data=data.filter(n=>n.tono===tf);
+  document.getElementById("ncount").textContent=`${data.length} noticias`;
+  const MC={"La Voz del Pueblo":"#1d4e7a","LU24":"#7c2d12","Via País":"#5b21b6","Onda Uno":"#92400e","Provincia Noticias":"#0f5ca8"};
+  if(!data.length){document.getElementById("nlist").innerHTML=`<div style="text-align:center;padding:2rem;color:#9ca3af">No hay noticias. Hacé clic en <strong>"Escanear medios"</strong> o usá <strong>"+ Agregar"</strong> para cargar manualmente.</div>`;return;}
+  document.getElementById("nlist").innerHTML=data.slice(0,50).map(n=>`
+    <div class="nrow">
+      <div style="min-width:80px;flex-shrink:0">
+        <span class="nbadge" style="background:${MC[n.medio]||"#374151"}">${n.medio}</span>
+        <div style="font-size:9px;color:#9ca3af;margin-top:3px">${n.fecha||""}</div>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div class="ntitle">${n.url?`<a href="${n.url}" target="_blank" rel="noopener">${n.titulo}</a>`:n.titulo}</div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;margin:2px 0">
+          <span class="pill pill-${n.tono==="positivo"?"pos":n.tono==="negativo"?"neg":"neu"}">${n.tono||"neutral"}</span>
+          ${n.menciona_municipio?`<span class="pill pill-muni">Municipio</span>`:""}
+          ${n.menciona_pablo?`<span class="pill pill-pablo">Pablo Garate</span>`:""}
+        </div>
+        ${n.resumen?`<div style="font-size:10px;color:#6b7280">${n.resumen}</div>`:""}
+      </div>
+    </div>`).join("");
+}
+
+function renderMedioSum(){
+  if(!document.getElementById("mediosum"))return;
+  const cut=new Date(TODAY);cut.setDate(cut.getDate()-7);const cutStr=iso(cut);
+  const semData=noticias.filter(n=>n.fecha>=cutStr);
+  document.getElementById("semlbl").textContent=`Últimos 7 días · ${semData.length} noticias`;
+  const maxC=Math.max(...MEDIOS.map(m=>semData.filter(n=>n.medio===m.n).length),1);
+  document.getElementById("mediosum").innerHTML=MEDIOS.map(m=>{
+    const cnt=semData.filter(n=>n.medio===m.n).length;
+    const pos=semData.filter(n=>n.medio===m.n&&n.tono==="positivo").length;
+    const neg=semData.filter(n=>n.medio===m.n&&n.tono==="negativo").length;
+    return`<div class="meds">
+      <div class="meds-logo" style="background:${m.c}">${m.s}</div>
+      <div style="flex:1">
+        <div style="font-size:11px;font-weight:600">${m.n}</div>
+        <div style="display:flex;gap:8px;margin-top:2px">
+          <span style="font-size:10px;color:#6b7280"><strong>${cnt}</strong> noticias</span>
+          <span style="font-size:10px;color:#16a34a"><strong>${pos}</strong> pos</span>
+          <span style="font-size:10px;color:#dc2626"><strong>${neg}</strong> neg</span>
+        </div>
+        <div class="meds-bar"><div class="meds-fill" style="width:${Math.round(cnt/maxC*100)}%;background:${m.c}"></div></div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function openNoticiaMod(){
+  document.getElementById("ntit").value="";
+  document.getElementById("nfecha").value=isoToday;
+  document.getElementById("nurl").value="";
+  document.getElementById("nresumen").value="";
+  document.getElementById("ntono").value="neutral";
+  document.getElementById("modNoticia").classList.add("open");
+}
+async function saveNoticia(){
+  const tit=document.getElementById("ntit").value.trim();if(!tit){alert("Título obligatorio");return}
+  const mc=document.getElementById("nmenc").value;
+  const r=await db.from("noticias_medios").insert({titulo:tit,medio:document.getElementById("nmedio").value,fecha:document.getElementById("nfecha").value||isoToday,url:document.getElementById("nurl").value.trim(),resumen:document.getElementById("nresumen").value.trim().slice(0,150),tono:document.getElementById("ntono").value,menciona_municipio:mc==="ambos"||mc==="muni",menciona_pablo:mc==="ambos"||mc==="pablo"}).select();
+  if(r.data&&r.data[0])noticias.unshift(r.data[0]);
+  closeMod("modNoticia");toast("✓ Noticia agregada");
+  renderNoticias();renderMedioSum();
+}
+
+// ═══ NOTIFICACIONES PUSH ═══
+// Pide permiso y envía notificación al navegador del usuario
+async function pedirPermisoNotif(){
+  if(!("Notification" in window)){toast("Tu navegador no soporta notificaciones","warn");return false;}
+  if(Notification.permission==="granted")return true;
+  if(Notification.permission==="denied"){toast("Notificaciones bloqueadas — habilitálas en la configuración del navegador","warn");return false;}
+  const p=await Notification.requestPermission();
+  return p==="granted";
+}
+
+function pushNotif(titulo,cuerpo,icono="🗓️"){
+  if(Notification.permission!=="granted")return;
+  try{
+    new Notification(titulo,{
+      body:cuerpo,
+      icon:"https://marianelahut-lang.github.io/panel-comunicacion/favicon.ico",
+      badge:"https://marianelahut-lang.github.io/panel-comunicacion/favicon.ico",
+      tag:titulo, // evita duplicados
+      requireInteraction:false
+    });
+  }catch(e){console.warn("Notif:",e);}
+}
+
+// Notifica al usuario actual cuando se guarda un evento
+function notifEventoGuardado(desc,fecha,hora,tipo){
+  if(Notification.permission!=="granted")return;
+  const icon=tipo==="prensa"?"📻":tipo==="municipal"?"🏛":"🗓";
+  const d=parseD(fecha);
+  const diaStr=`${DNF[d.getDay()]} ${d.getDate()} de ${MNF[d.getMonth()]}`;
+  pushNotif(`${icon} Evento agregado al calendario`,`${desc}\n${diaStr}${hora?" · "+hora:""}`);
+}
+
+// Notifica al usuario cuando se asigna cobertura
+function notifCobertura(desc,fecha){
+  if(Notification.permission!=="granted")return;
+  const d=parseD(fecha);
+  pushNotif(`📋 Cobertura asignada`,`${desc}\n${DNF[d.getDay()]} ${d.getDate()} de ${MNF[d.getMonth()]} → aparece en Guardias`);
+}
+
+// Botón para activar notificaciones — se muestra en la topbar
+async function activarNotificaciones(){
+  const ok=await pedirPermisoNotif();
+  if(ok){
+    toast("✓ Notificaciones activadas");
+    document.getElementById("notifbtn")?.remove();
+    // Notif de bienvenida
+    pushNotif("🔔 Notificaciones activadas","Vas a recibir alertas de eventos y guardias en este dispositivo");
+    // Guardar preferencia
+    try{localStorage.setItem("notif_enabled","1");}catch(e){}
+  }
+}
+
+// Auto-pedir permiso si ya lo activó antes
+function initNotif(){
+  try{
+    if(localStorage.getItem("notif_enabled")==="1"&&Notification.permission!=="granted"){
+      pedirPermisoNotif();
+    }
+  }catch(e){}
+}
+
+// ═══ ANÁLISIS IA DE MEDIOS ═══
+async function analizarConIA(){
+  const btn=document.getElementById("aibtn");
+  const panel=document.getElementById("aianalysis");
+  const txtEl=document.getElementById("aitext");
+  const dateEl=document.getElementById("aidate");
+
+  if(!noticias.length){toast("Primero escaneá los medios o agregá noticias","warn");return;}
+
+  btn.disabled=true;
+  btn.textContent="🤖 Analizando...";
+  panel.style.display="block";
+  txtEl.textContent="Generando análisis...";
+  dateEl.textContent=new Date().toLocaleString("es-AR");
+
+  // Análisis local basado en los datos disponibles (sin API externa)
+  const cut=new Date(TODAY);cut.setDate(cut.getDate()-7);
+  const recientes=noticias.filter(n=>n.fecha>=(iso(cut))).slice(0,50);
+  const total=recientes.length;
+  const pos=recientes.filter(n=>n.tono==="positivo").length;
+  const neg=recientes.filter(n=>n.tono==="negativo").length;
+  const neu=recientes.filter(n=>n.tono==="neutral").length;
+  const mencPablo=recientes.filter(n=>n.menciona_pablo).length;
+  const mencMuni=recientes.filter(n=>n.menciona_municipio).length;
+
+  // Agrupar por medio
+  const porMedio={};
+  for(const n of recientes){
+    if(!porMedio[n.medio])porMedio[n.medio]={total:0,pos:0,neg:0,neu:0};
+    porMedio[n.medio].total++;
+    porMedio[n.medio][n.tono]=(porMedio[n.medio][n.tono]||0)+1;
+  }
+  const medOrdenados=Object.entries(porMedio).sort((a,b)=>b[1].total-a[1].total);
+
+  // Temas más frecuentes (palabras clave en títulos)
+  const palabras={};
+  const stopwords=["de","la","el","en","y","a","con","por","que","los","las","se","del","al","un","una","es","su","para","más","mas","no","Tres","Arroyos"];
+  for(const n of recientes){
+    (n.titulo||"").split(/\s+/).forEach(w=>{
+      const clean=w.replace(/[^a-záéíóúüñA-ZÁÉÍÓÚÜÑ]/g,"");
+      if(clean.length>4&&!stopwords.includes(clean)){
+        palabras[clean]=(palabras[clean]||0)+1;
+      }
+    });
+  }
+  const topPalabras=Object.entries(palabras).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([w,c])=>`${w} (${c})`);
+
+  // Noticias negativas destacadas
+  const negativas=recientes.filter(n=>n.tono==="negativo").slice(0,3);
+  // Noticias positivas destacadas  
+  const positivas=recientes.filter(n=>n.tono==="positivo").slice(0,3);
+
+  const analisis=`📊 RESUMEN EJECUTIVO
+Se analizaron ${total} noticias de los últimos 7 días.
+${medOrdenados.length?`Mayor cobertura: ${medOrdenados[0][0]} con ${medOrdenados[0][1].total} notas.`:""}
+Menciones: Municipio en ${mencMuni} notas, Pablo Garate en ${mencPablo} notas.
+
+🔢 DISTRIBUCIÓN DE TONOS
+✅ Positivas: ${pos}  •  ⚪ Neutrales: ${neu}  •  ⚠️ Negativas: ${neg}
+
+📰 COBERTURA POR MEDIO
+${medOrdenados.map(([m,d])=>`• ${m}: ${d.total} nota${d.total!==1?"s":""} (${d.pos} pos, ${d.neg} neg)`).join("\n")||"Sin datos"}
+
+🔍 TEMAS MÁS FRECUENTES
+${topPalabras.length?topPalabras.join(" · "):"Sin datos suficientes"}
+
+${positivas.length?`✅ COBERTURAS POSITIVAS
+${positivas.map(n=>`• ${n.medio}: ${n.titulo.slice(0,60)}`).join("\n")}
+
+`:""}${negativas.length?`⚠️ ALERTAS — NOTAS CRÍTICAS
+${negativas.map(n=>`• ${n.medio}: ${n.titulo.slice(0,60)}`).join("\n")}
+
+`:""}📱 RECOMENDACIONES
+${neg>pos?"• Hay más cobertura negativa que positiva — revisar los temas críticos y preparar respuesta.":"• La cobertura es mayormente positiva o neutral."}
+${mencPablo<mencMuni?"• Pablo Garate tiene menos presencia mediática que el municipio en general — considerar más apariciones.":""}
+• Actualizar con contenido nuevo desde "+ Agregar" para mantener el monitoreo al día.`;
+
+  txtEl.textContent=analisis;
+  toast("✓ Análisis generado");
+  btn.disabled=false;
+  btn.innerHTML='<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 8v4l3 3"/></svg>🤖 Analizar con IA';
+}
+
+// ═══ CONFIGURACIÓN Y MODO OSCURO ═══
+let darkMode=false;
+function initDarkMode(){
+  try{const saved=localStorage.getItem("darkMode");if(saved==="1"){darkMode=true;applyDark();}}catch(e){}
+}
+function applyDark(){
+  document.body.classList.toggle("dark",darkMode);
+  const btn=document.getElementById("darkbtn");
+  const tb=document.getElementById("darkToggleBtn");
+  if(btn)btn.textContent=darkMode?"☀️":"🌙";
+  if(tb)tb.textContent=darkMode?"Desactivar":"Activar";
+  try{localStorage.setItem("darkMode",darkMode?"1":"0");}catch(e){}
+}
+function toggleDark(){
+  darkMode=!darkMode;applyDark();
+  toast(darkMode?"🌙 Modo oscuro activado":"☀️ Modo claro activado");
+}
+function openSettings(){
+  const u=document.getElementById("settingsUser");if(u)u.textContent=cu||"";
+  const tb=document.getElementById("darkToggleBtn");if(tb)tb.textContent=darkMode?"Desactivar":"Activar";
+  ["passActual","passNueva","passConfirm"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
+  const pe=document.getElementById("passerr");if(pe){pe.textContent="";pe.style.color="#dc2626";}
+  document.getElementById("modSettings").classList.add("open");
+}
+function cambiarPassword(){
+  const actual=document.getElementById("passActual").value;
+  const nueva=document.getElementById("passNueva").value;
+  const confirm=document.getElementById("passConfirm").value;
+  const errEl=document.getElementById("passerr");
+  // Obtener pass actual (custom o default)
+  let passActualOk=actual===PASS;
+  try{const cp=localStorage.getItem("panelPass");if(cp)passActualOk=actual===cp;}catch(e){}
+  if(!passActualOk){errEl.textContent="La contraseña actual es incorrecta";return;}
+  if(nueva.length<6){errEl.textContent="Mínimo 6 caracteres";return;}
+  if(nueva!==confirm){errEl.textContent="Las contraseñas no coinciden";return;}
+  try{
+    localStorage.setItem("panelPass",nueva);
+    errEl.style.color="#16a34a";errEl.textContent="✓ Contraseña cambiada";
+    ["passActual","passNueva","passConfirm"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
+    setTimeout(()=>{if(errEl)errEl.textContent="";},3000);
+  }catch(e){errEl.textContent="Error: "+e.message;}
+}
+
+function getFilteredStats(){
+  const days=parseInt(document.getElementById("mrange")?.value||7);
+  const cut=new Date(TODAY);cut.setDate(cut.getDate()-days);
+  const cutStr=iso(cut);
+  let data=stats.filter(s=>s.fecha>=cutStr);
+  if(mAccTab!=="todas"){const[cnt,red]=mAccTab.split("-");data=data.filter(s=>s.cuenta===cnt&&s.red===red);}
+  return data;
+}
+function renderMetricas(){
+  if(!document.getElementById("metcards"))return;
+  const data=getFilteredStats();
+  const tot=f=>data.reduce((a,s)=>a+(s[f]||0),0);
+  document.getElementById("metcards").innerHTML=[{i:"👁",v:tot("alcance"),l:"Alcance",bg:"#eff6ff"},{i:"❤️",v:tot("likes"),l:"Likes",bg:"#fce7f3"},{i:"💬",v:tot("comentarios"),l:"Comentarios",bg:"#f0fdf4"},{i:"▶️",v:tot("reproducciones"),l:"Reproducciones",bg:"#fee2e2"},{i:"👥",v:tot("nuevos_seguidores"),l:"Nuevos seg.",bg:"#ede9fe"}].map(m=>'<div class="met"><div class="met-ico" style="background:'+m.bg+'">'+m.i+'</div><div class="met-v">'+fmtN(m.v)+'</div><div class="met-l">'+m.l+'</div></div>').join("");
+  const tabs=[{k:"todas",l:"Todas",c:"#667eea"},...Object.entries(ACC_CLR).map(([k,c])=>({k,l:k.replace("-"," · "),c}))];
+  const atabs=document.getElementById("acctabs");
+  if(atabs)atabs.innerHTML=tabs.map(t=>`<button onclick="mAccTab='${t.k}';renderMetricas()" style="padding:5px 11px;border-radius:20px;font-size:10px;font-weight:500;cursor:pointer;border:1.5px solid ${mAccTab===t.k?t.c:'#e5e7eb'};background:${mAccTab===t.k?t.c:'#fff'};color:${mAccTab===t.k?'#fff':'#6b7280'};font-family:Inter,sans-serif">${t.l}</button>`).join("");
+  const days=parseInt(document.getElementById("mrange")?.value||7);
+  const dates=[];for(let i=days-1;i>=0;i--){const d=new Date(TODAY);d.setDate(d.getDate()-i);dates.push(iso(d));}
+  const dLbl=dates.map(d=>d.slice(5));
+  ["a","e","r","s"].forEach(k=>{if(mCharts[k]){mCharts[k].destroy();delete mCharts[k];}});
+  const c1=document.getElementById("chartAlcance")?.getContext("2d");
+  if(c1)mCharts.a=new Chart(c1,{type:"line",data:{labels:dLbl,datasets:[{label:"Alcance",data:dates.map(d=>data.filter(s=>s.fecha===d).reduce((a,s)=>a+(s.alcance||0),0)),borderColor:"#667eea",backgroundColor:"rgba(102,126,234,.1)",tension:.4,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom"}},scales:{y:{beginAtZero:true}}}});
+  const c2=document.getElementById("chartEng")?.getContext("2d");
+  if(c2)mCharts.e=new Chart(c2,{type:"bar",data:{labels:dLbl,datasets:[{label:"Likes",data:dates.map(d=>data.filter(s=>s.fecha===d).reduce((a,s)=>a+(s.likes||0),0)),backgroundColor:"rgba(236,72,153,.7)"},{label:"Comentarios",data:dates.map(d=>data.filter(s=>s.fecha===d).reduce((a,s)=>a+(s.comentarios||0),0)),backgroundColor:"rgba(102,126,234,.7)"}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom"}},scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}}}});
+  const cut2=dates[0]||isoToday;
+  const muD=stats.filter(s=>s.cuenta==="Municipalidad"&&s.fecha>=cut2);
+  const pbD=stats.filter(s=>s.cuenta==="Pablo Garate"&&s.fecha>=cut2);
+  const ts=(arr,f)=>arr.reduce((a,s)=>a+(s[f]||0),0);
+  const c3=document.getElementById("chartRadar")?.getContext("2d");
+  if(c3)mCharts.r=new Chart(c3,{type:"radar",data:{labels:["Alcance","Likes","Comentarios","Compartidos","Reproducciones","Nuevos seg."],datasets:[{label:"Municipalidad",data:[ts(muD,"alcance"),ts(muD,"likes"),ts(muD,"comentarios"),ts(muD,"compartidos"),ts(muD,"reproducciones"),ts(muD,"nuevos_seguidores")],borderColor:"#1877f2",backgroundColor:"rgba(24,119,242,.12)"},{label:"Pablo Garate",data:[ts(pbD,"alcance"),ts(pbD,"likes"),ts(pbD,"comentarios"),ts(pbD,"compartidos"),ts(pbD,"reproducciones"),ts(pbD,"nuevos_seguidores")],borderColor:"#667eea",backgroundColor:"rgba(102,126,234,.12)"}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom"}}}});
+}
+function openStatsMod(){const sf=document.getElementById("sfecha");if(sf)sf.value=isoToday;document.getElementById("modStats").classList.add("open");}
+async function saveStats(){
+  const fecha=document.getElementById("sfecha")?.value;if(!fecha){alert("Fecha obligatoria");return;}
+  const pv=(document.getElementById("scuenta")?.value||"Municipalidad|Facebook").split("|");
+  const row={fecha,cuenta:pv[0],red:pv[1],alcance:parseInt(document.getElementById("salcance")?.value)||0,impresiones:parseInt(document.getElementById("simpres")?.value)||0,likes:parseInt(document.getElementById("slikes")?.value)||0,comentarios:parseInt(document.getElementById("scoments")?.value)||0,compartidos:parseInt(document.getElementById("sshares")?.value)||0,reproducciones:parseInt(document.getElementById("sviews")?.value)||0,nuevos_seguidores:parseInt(document.getElementById("snew")?.value)||0,seguidores_total:parseInt(document.getElementById("stotal")?.value)||0,fuente:"manual"};
+  try{
+    const{error}=await db.from("stats_redes").insert(row);
+    if(error)throw new Error(error.message);
+    const r=await db.from("stats_redes").select("*").order("fecha,cuenta").catch(()=>({data:[]}));
+    if(r.data)stats=r.data;
+    closeMod("modStats");toast("Stats guardadas");renderMetricas();
+  }catch(e){toast("Error: "+e.message,"err");}
+}
 </script>
 </body>
 </html>
