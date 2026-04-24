@@ -868,7 +868,7 @@ body.dark #cal-day-content [style*="color:#9ca3af"]{color:#6b7280 !important}
   <!-- Responsables múltiples -->
   <div class="fg">
     <label>Responsables <span style="font-size:9px;color:#9ca3af;font-weight:400">(podés elegir más de uno)</span></label>
-    <div id="fresp-chips" style="display:flex;flex-wrap:wrap;gap:4px;min-height:28px;padding:4px;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:4px;cursor:pointer" onclick="document.getElementById('fresp-dd').style.display=document.getElementById('fresp-dd').style.display==='none'?'block':'none'">
+    <div id="fresp-chips" style="display:flex;flex-wrap:wrap;gap:4px;min-height:28px;padding:4px;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:4px;cursor:pointer" onclick="buildRespOptions();const dd=document.getElementById('fresp-dd');dd.style.display=dd.style.display==='none'?'block':'none'">
       <span style="font-size:10px;color:#9ca3af;padding:2px 4px" id="fresp-placeholder">Clic para asignar responsables...</span>
     </div>
     <div id="fresp-dd" style="display:none;border:1px solid #e5e7eb;border-radius:8px;background:#fff;max-height:160px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.1)">
@@ -1211,6 +1211,15 @@ const CONTACTOS_FB={
 };
 
 // Cargar contactos extras guardados en localStorage
+
+// Close fresp dropdown when clicking outside
+document.addEventListener("mousedown",function(e){
+  const dd=document.getElementById("fresp-dd");
+  const chips=document.getElementById("fresp-chips");
+  if(dd&&!dd.contains(e.target)&&!chips.contains(e.target)){
+    dd.style.display="none";
+  }
+});
 function loadLocalContacts(){
   try{
     const saved=localStorage.getItem("panelContactos");
