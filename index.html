@@ -1176,6 +1176,31 @@ function doLogout(){
 }
 
 // ═══ SUPABASE ═══
+// ═══ NOTIFICACIONES PUSH ═══
+function initNotif(){
+  try{
+    if("Notification" in window && Notification.permission==="granted"){
+      document.getElementById("notifbtn")?.remove();
+    }
+  }catch(e){}
+}
+
+function activarNotificaciones(){
+  if(!("Notification" in window)){toast("Este navegador no soporta notificaciones","warn");return;}
+  Notification.requestPermission().then(p=>{
+    if(p==="granted"){toast("✓ Notificaciones activadas");document.getElementById("notifbtn")?.remove();}
+    else toast("Notificaciones bloqueadas — habilitá desde configuración del navegador","warn");
+  });
+}
+
+function pushNotif(titulo,cuerpo){
+  try{
+    if(Notification.permission==="granted"){
+      new Notification(titulo,{body:cuerpo,icon:"/favicon.ico"});
+    }
+  }catch(e){}
+}
+
 async function initApp(){
   try{
     db=supabase.createClient(SB_URL,SB_KEY);
