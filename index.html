@@ -1436,6 +1436,81 @@ function renderKanban(){
   }).join("");
   updateBadges();
 }
+// ═══ TAREA MODAL — RESPONSABLES Y NOTIFICACIÓN ═══
+let _selResps=[]; // responsables seleccionados en modal
+let _notifCanal="wa"; // canal de notificación
+
+function buildRespOptions(){
+  const dd=document.getElementById("fresp-options");
+  if(!dd)return;
+  dd.innerHTML=teams.map(m=>{
+    const isSel=_selResps.includes(m.nombre);
+    const col=(m.color||"#667eea");
+    return`<div onclick="toggleRespChip('${m.nombre.replace(/'/g,"\\'")}',this)"
+      style="display:flex;align-items:center;gap:8px;padding:7px 10px;cursor:pointer;
+      background:${isSel?"#ede9fe":"transparent"};border-bottom:1px solid #f3f4f6"
+      data-nombre="${m.nombre}">
+      <div style="width:22px;height:22px;border-radius:50%;background:${col};
+        color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;
+        justify-content:center;flex-shrink:0">${(m.nombre||"?").slice(0,2).toUpperCase()}</div>
+      <span style="font-size:11px;color:#374151;flex:1">${m.nombre}</span>
+      ${isSel?'<span style="color:#6d28d9;font-size:12px">✓</span>':""}
+    </div>`;
+  }).join("");
+}
+
+function toggleRespChip(nombre, el){
+  const idx=_selResps.indexOf(nombre);
+  if(idx>=0) _selResps.splice(idx,1);
+  else _selResps.push(nombre);
+  buildRespOptions();
+  renderRespChips();
+  // Update hidden input
+  document.getElementById("fresp").value=_selResps.join(", ");
+}
+
+function setRespChips(lista){
+  _selResps=lista||[];
+  renderRespChips();
+  document.getElementById("fresp").value=_selResps.join(", ");
+}
+
+function renderRespChips(){
+  const container=document.getElementById("fresp-chips");
+  const ph=document.getElementById("fresp-placeholder");
+  if(!container)return;
+  // Remove old chips (keep the hidden placeholder)
+  [...container.querySelectorAll(".resp-chip")].forEach(c=>c.remove());
+  if(_selResps.length===0){
+    if(ph)ph.style.display="inline";
+  }else{
+    if(ph)ph.style.display="none";
+    _selResps.forEach(nombre=>{
+      const m=teams.find(x=>x.nombre===nombre);
+      const col=m?(m.color||"#667eea"):"#667eea";
+      const chip=document.createElement("div");
+      chip.className="resp-chip";
+      chip.style.cssText=`display:inline-flex;align-items:center;gap:4px;background:${col};
+        color:#fff;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:600`;
+      chip.innerHTML=`${nombre}<span onclick="toggleRespChip('${nombre.replace(/'/g,"\\'")}',null)"
+        style="cursor:pointer;margin-left:2px;font-size:11px;line-height:1">×</span>`;
+      container.insertBefore(chip, ph||null);
+    });
+  }
+}
+
+function toggleNotifTarea(canal){
+  _notifCanal=canal;
+  ["wa","mail","none"].forEach(c=>{
+    const btn=document.getElementById("tnotif-"+c);
+    if(!btn)return;
+    const active=c===canal;
+    if(c==="wa"){btn.style.background=active?"#25d366":"transparent";btn.style.color=active?"#fff":"#25d366";}
+    else if(c==="mail"){btn.style.background=active?"#667eea":"transparent";btn.style.color=active?"#fff":"#667eea";}
+    else{btn.style.background=active?"#374151":"transparent";btn.style.color=active?"#fff":"#6b7280";}
+  });
+}
+
 function openTaskMod(id=null,def=null){
   document.getElementById("editTid").value=id||"";
   document.getElementById("taskmodt").textContent=id?"Editar tarea":"Nueva tarea";
@@ -1471,7 +1546,7 @@ function editTask(id){openTaskMod(id)}
 async function saveTask(){
   const desc=document.getElementById("fdesc").value.trim();
   if(!desc){alert("Descripción obligatoria");return}
-  const resp=document.getElementById("fresp").value;
+  const resp=document.getElementById("fresp").value||_selResps.join(", ");
   const prio=document.getElementById("fprio").value;
   const estado=document.getElementById("fest").value;
   const data={descripcion:desc,responsable:resp,prioridad:prio,estado,observaciones:document.getElementById("fobs").value.trim()};
@@ -2460,7 +2535,7 @@ async function scanMedios(){
     {n:"LU24",c:"#7c2d12",rss:"https://www.lu24.com.ar/feed/"},
     {n:"La Voz del Pueblo",c:"#1d4e7a",rss:"https://www.lavozdelpueblo.com.ar/feed/",html:"https://www.lavozdelpueblo.com.ar/category/ciudad/"},
     {n:"Onda Uno",c:"#92400e",rss:"https://ondauno.com.ar/index.php/feed/"},
-    {n:"Via Pais",c:"#5b21b6",html:"https://viapais.com.ar/tres-arroyos/"},
+    {n:"Via País",c:"#5b21b6",rss:"https://viapais.com.ar/feed/",html:"https://viapais.com.ar/tag/tres-arroyos/"},
     {n:"Provincia Noticias",c:"#0f5ca8",html:"https://provincianoticias.com.ar/?s=tres+arroyos"},
   ];
   const kws=["municipio","municipalidad","intendente","garate","tres arroyos","secretar","obras","inaugur","concejo","ordenanza","decreto","hospital","agua","gobierno"];
