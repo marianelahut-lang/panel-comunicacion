@@ -2689,15 +2689,9 @@ async function syncGCal(){
 
 // ═══ GUARDIAS ═══
 function initGuardias(){
-  const sel=document.getElementById("gwsel");if(!sel)return;
-  sel.innerHTML="";
-  for(let w=0;w<20;w++){
-    const mon=addD(START,w*7),sun=addD(mon,6);
-    const opt=new Option(`${mon.getDate()} ${MNS[mon.getMonth()]} — ${sun.getDate()} ${MNS[sun.getMonth()]}`,w);
-    if(TODAY>=mon&&TODAY<=addD(mon,6))opt.selected=true;
-    sel.appendChild(opt);
-  }
+  guardWeekOff=Math.max(0,Math.floor((TODAY-START)/(7*86400000)));
   renderGuardias();
+  renderGuardDay();
 }
 
 // ═══ COBERTURA DE PRENSA — indexado por event id ═══
@@ -2899,7 +2893,11 @@ function goGuardWeek(d){guardWeekOff+=d;renderGuardias();}
 function renderGuardias(){
   const wo=guardWeekOff;
   const mon=addD(START,wo*7);
+  const sun=addD(mon,6);
   const DN=["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"];
+  // Actualizar label de semana
+  const lbl=document.getElementById("gwlbl");
+  if(lbl)lbl.textContent=mon.getDate()+" "+MNS[mon.getMonth()]+" — "+sun.getDate()+" "+MNS[sun.getMonth()]+" "+sun.getFullYear();
   let days="";
   for(let i=0;i<7;i++){
     const d=addD(mon,i),ds=iso(d),isWE=i>=5,isTd=ds===isoToday;
@@ -3002,7 +3000,7 @@ function notifyDay(ds){
 }
 
 function notifyWeek(){
-  const wo=parseInt(document.getElementById("gwsel")?.value)||0;
+  const wo=guardWeekOff;
   const mon=addD(START,wo*7);
   const DN=["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"];
   const done=new Set();let sent=0,nomail=[];
