@@ -630,8 +630,8 @@ body.dark #cal-day-content [style*="color:#9ca3af"]{color:#6b7280 !important}
 .gw-desktop { display:block }
 #p-publicaciones .gw-desktop, #p-calendario .gw-desktop { display:flex; flex-direction:column }
 .gw-mobile  { display:none !important }
-.gw-navrow  { display:flex !important; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:10px }
-.cal-navrow { display:flex !important; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:8px }
+.gw-navrow  { display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:10px }
+.cal-navrow { display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:8px }
 
 @media (max-width:700px) {
   .gw-desktop { display:none !important }
@@ -651,7 +651,6 @@ body.dark #cal-day-content [style*="color:#9ca3af"]{color:#6b7280 !important}
     overflow: hidden !important;
     flex-direction: column !important;
   }
-  /* Cuando están visibles se aplica flex vía nav() en JS */
   #p-guardias {
     height: calc(100dvh - 72px) !important;
     overflow-y: auto !important;
@@ -1615,7 +1614,7 @@ function setupRealtime(){
       renderCal();updateBadges();
       const gp=document.getElementById("p-guardias");if(gp&&gp.style.display!=="none")renderGuardias();
     })
-    .on("postgres_changes",{event:"*",schema:"public",table:"usuarios"},async()=>{const r=await db.from("usuarios").select("*").order("nombre");if(r.data)teams=r.data;renderTeam();popSelects();renderPersons();renderGuardias();renderGuardDay();})
+    .on("postgres_changes",{event:"*",schema:"public",table:"usuarios"},async()=>{const r=await db.from("usuarios").select("*").order("nombre");if(r.data)teams=r.data;renderTeam();popSelects();renderPersons();})
     .subscribe();
 }
 function renderAll(){
@@ -2847,6 +2846,7 @@ function renderGuardDay(){
     html+=`</div>`;
   } else {
     html+=`<div style="color:#9ca3af;font-size:12px;margin-bottom:12px">Sin guardia asignada</div>`;
+    html+=`<button onclick="openEditGuardia('${ds}')" style="padding:10px;background:#667eea;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;font-family:Inter,sans-serif;width:100%;margin-bottom:12px">✏️ Asignar guardia</button>`;
   }
 
   // Coberturas
@@ -2873,6 +2873,7 @@ function renderGuardDay(){
   if(g.length){
     const d2=parseD(ds);
     html+=`<div style="display:flex;flex-direction:column;gap:6px">`;
+    html+=`<button onclick="openEditGuardia('${ds}')" style="padding:10px;background:#667eea;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;font-family:Inter,sans-serif">✏️ Editar guardia del día</button>`;
     g.forEach(n=>{
       const ct=getContact(n);
       if(!ct.tel)return;
@@ -2960,6 +2961,7 @@ function renderGuardias(){
         ${g.map((n,gi)=>{const m=gm(n);return m?`<div class="gwag">${av(m,16)}<span style="font-size:9px;line-height:1.2">${m.nombre}<br><span style="color:#9ca3af;font-size:8px">${gi===0?"titular":"soporte"}</span></span></div>`:""}).join("")||`<span style="font-size:9px;color:#d1d5db">—</span>`}
       </div>
       ${cobHtml}
+      <button class="gwnb" onclick="openEditGuardia('${ds}')">✏️ Editar guardia</button>
       <button class="gwnb" onclick="notifyDay('${ds}')">📧 Mail guardia</button>
       ${waBtns}
     </div>`;
