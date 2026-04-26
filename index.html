@@ -628,7 +628,7 @@ body.dark #cal-day-content [style*="color:#9ca3af"]{color:#6b7280 !important}
 
 /* ═══ RESPONSIVE ÚNICO ═══ */
 .gw-desktop { display:block }
-#p-publicaciones .gw-desktop, #p-calendario .gw-desktop { display:flex; flex-direction:column }
+#p-publicaciones .gw-desktop:not(.cal-navrow), #p-calendario .gw-desktop:not(.cal-navrow) { display:flex; flex-direction:column }
 .gw-mobile  { display:none !important }
 .gw-navrow  { display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:10px }
 .cal-navrow { display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:8px }
@@ -2501,7 +2501,7 @@ function renderCalDay(){
   },100);
 }
 
-function changeCalW(d){calDayOff+=d*7;renderCalDay();}
+// (duplicate changeCalW removed)
 
 function renderCal(){
   if(!document.getElementById("calwhdr"))return;
@@ -3954,6 +3954,18 @@ function openEditGuardia(ds){
   sSel.value=current[1]||"";
   const resetBtn=document.getElementById("modEditGuard-resetbtn");
   if(resetBtn) resetBtn.style.display=guardOverrides[ds]?"inline-flex":"none";
+  // Reset checkbox
+  const chk=document.getElementById("modEditGuard-todos");
+  if(chk){chk.checked=false;}
+  const scopeLbl=document.getElementById("modEditGuard-scope-lbl");
+  if(chk&&scopeLbl){
+    chk.onchange=()=>{
+      const tit=tSel.value||current[0]||"el agente";
+      scopeLbl.textContent=chk.checked?
+        "Se reemplazará a "+tit+" en todos sus turnos próximos (28 días).":
+        "Este cambio aplica solo para este día.";
+    };
+  }
   openMod("modEditGuard");
 }
 
@@ -3961,9 +3973,34 @@ function guardarEditGuardia(){
   const ds=document.getElementById("modEditGuard-ds").value;
   const titular=document.getElementById("modEditGuard-titular").value;
   const soporte=document.getElementById("modEditGuard-soporte").value;
-  setGuardiaOverride(ds,titular,soporte);
-  closeMod("modEditGuard");
-  toast("✓ Guardia modificada para el "+ds.slice(8,10)+"/"+ds.slice(5,7));
+  const todos=document.getElementById("modEditGuard-todos")?.checked||false;
+
+  if(todos){
+    // Reemplazar al agente original en todos sus turnos próximos (28 días)
+    const current=getGuardia(ds);
+    const originalTitular=current[0]||"";
+    let count=0;
+    for(let i=0;i<28;i++){
+      const d=addD(new Date(TODAY),i);
+      const dsi=iso(d);
+      const g=getGuardia(dsi);
+      if(g.includes(originalTitular)){
+        // Reemplazar al original por el nuevo en esa posición
+        const newG=g.map(n=>n===originalTitular?titular:n).filter(n=>n);
+        // Si hay soporte nuevo y es distinto, usar soporte específico solo para el día base
+        if(dsi===ds&&soporte)newG[1]=soporte;
+        const nt=newG[0]||"";const ns=newG[1]||"";
+        setGuardiaOverride(dsi,nt,ns);
+        count++;
+      }
+    }
+    closeMod("modEditGuard");
+    toast("✓ "+count+" días modificados: "+originalTitular+" → "+(titular||"sin asignar"));
+  } else {
+    setGuardiaOverride(ds,titular,soporte);
+    closeMod("modEditGuard");
+    toast("✓ Guardia modificada para el "+ds.slice(8,10)+"/"+ds.slice(5,7));
+  }
 }
 
 function resetGuardia(){
@@ -4042,8 +4079,14 @@ async function eliminarSinReemplazar(){
       <label>SOPORTE</label>
       <select id="modEditGuard-soporte" style="width:100%"><option value="">— Sin soporte —</option></select>
     </div>
+    <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px 12px;margin-bottom:12px">
+      <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;font-size:12px;color:#166534">
+        <input type="checkbox" id="modEditGuard-todos" style="margin-top:2px;accent-color:#22c55e;flex-shrink:0">
+        <span><strong>Aplicar para todos los días de este agente</strong><br><span style="color:#4b7a60;font-size:11px">Reemplaza al titular actual en todos sus turnos próximos (28 días)</span></span>
+      </label>
+    </div>
     <div style="background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:8px 11px;font-size:11px;color:#92400e;margin-bottom:16px">
-      ⚠️ Este cambio aplica solo para este día.
+      ⚠️ <span id="modEditGuard-scope-lbl">Este cambio aplica solo para este día.</span>
     </div>
     <div class="mft">
       <button id="modEditGuard-resetbtn" class="btn r" onclick="resetGuardia()" style="margin-right:auto;display:none">↩ Restaurar</button>
