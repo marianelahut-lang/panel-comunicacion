@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -104,6 +105,9 @@ function guardarEditGuardia(){
   const soporte = document.getElementById("modEditGuard-soporte").value;
   setGuardiaOverride(ds, titular, soporte);
   closeMod("modEditGuard");
+  renderGuardias();
+  renderGuardDay();
+  toast("✓ Guardia modificada para "+ds.slice(8,10)+"/"+ds.slice(5,7));
 }
 
 function resetGuardia(){
@@ -1014,6 +1018,17 @@ body.dark .gw-mobile #pub-days-strip   { background:#1a1c24; border-color:#2d314
     min-height: 200px !important;
   }
 }
+
+
+/* ═══ DARK MODE — MODAL EDITAR GUARDIA ═══ */
+body.dark #modEditGuard .mod { background:#1e2028 !important; border-color:#2d3140 !important }
+body.dark #modEditGuard h2 { color:#f1f5f9 !important }
+body.dark #modEditGuard [style*="border-bottom:2px solid"] { border-color:#2d3140 !important }
+body.dark #modEditGuard [style*="color:#6b7280"] { color:#94a3b8 !important }
+body.dark #modEditGuard select { background:#252830 !important; color:#e2e8f0 !important; border-color:#3d4155 !important }
+body.dark #modEditGuard label { color:#94a3b8 !important }
+body.dark #modEditGuard [style*="background:#fef3c7"] { background:#2d1a00 !important; border-color:#78350f44 !important; color:#fbbf24 !important }
+body.dark #modEditGuard .mft { border-color:#2d3140 !important }
 
 </style>
 </head>
@@ -3375,7 +3390,7 @@ function renderGuardias(){
       <div class="gwags">
         ${g.map((n,gi)=>{const m=gm(n);return m?`<div class="gwag">${av(m,16)}<span style="font-size:9px;line-height:1.2">${m.nombre}<br><span style="color:#9ca3af;font-size:8px">${gi===0?"titular":"soporte"}</span></span></div>`:""}).join("")||`<span style="font-size:9px;color:#d1d5db">—</span>`}
       </div>
-      <button onclick="event.stopPropagation();openEditGuardia('${ds}')" title="Modificar guardia" style="margin-top:3px;background:none;border:1px solid #e5e7eb;border-radius:5px;padding:2px 6px;font-size:10px;color:#6b7280;cursor:pointer;width:100%">${guardOverrides[ds]?"✏️ Modificada":"✏️ Editar"}</button>
+      <button onclick="event.stopPropagation();openEditGuardia('${ds}')" title="Modificar guardia" style="margin-top:4px;background:${guardOverrides[ds]?'linear-gradient(135deg,#f59e0b,#d97706)':'none'};border:1px solid ${guardOverrides[ds]?'#f59e0b':'#e5e7eb'};border-radius:5px;padding:3px 6px;font-size:10px;color:${guardOverrides[ds]?'#fff':'#6b7280'};cursor:pointer;width:100%;font-weight:${guardOverrides[ds]?'700':'500'}">${guardOverrides[ds]?"✏️ Modificada":"✏️ Editar guardia"}</button>
       <div style="display:flex;flex-direction:column;gap:3px;margin-top:4px">
         <button class="gwnb" onclick="notifyDay('${ds}')">📧 Mail guardia</button>
         ${waBtns}
