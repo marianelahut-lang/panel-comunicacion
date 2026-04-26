@@ -2402,8 +2402,8 @@ function renderCalDay(){
   const ds=iso(day);
   const isHoy=ds===isoToday;
 
-  // Actualizar label
-  const lbl=document.getElementById("callbl");
+  // Actualizar label (mobile)
+  const lbl=document.getElementById("callbl-mob");
   if(lbl)lbl.innerHTML=`${DNF[day.getDay()]} <span style="font-weight:800">${day.getDate()}</span> de ${MNF[day.getMonth()]} ${day.getFullYear()}${isHoy?' <span style="background:#667eea;color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;font-weight:700">HOY</span>':""}`;
 
   // Strip de 7 días centrado en el día actual
