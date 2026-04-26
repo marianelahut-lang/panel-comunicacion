@@ -714,6 +714,45 @@ body.dark #cal-day-content [style*="color:#9ca3af"]{color:#6b7280 !important}
     padding:0 4px !important;
     border-bottom:1px solid #e5e7eb !important;
   }
+
+  /* Account for bottom nav in full-panel */
+  body.full-panel #main {
+    padding:0 !important;
+    height:calc(100dvh - 50px - 56px) !important;
+  }
+  body.full-panel #p-calendario,
+  body.full-panel #p-publicaciones {
+    height:calc(100dvh - 50px - 56px) !important;
+  }
+  body.full-panel #p-guardias {
+    height:calc(100dvh - 50px - 56px) !important;
+  }
+
+  /* ── MOBILE BOTTOM NAV ── */
+  #mobile-bottom-nav {
+    position:fixed;bottom:0;left:0;right:0;z-index:9000;
+    height:56px;
+    background:#fff;
+    border-top:1px solid #e5e7eb;
+    display:none;
+    align-items:stretch;
+    box-shadow:0 -2px 12px rgba(0,0,0,.08);
+  }
+  body.dark #mobile-bottom-nav {
+    background:#1e2028;
+    border-color:#2d3140;
+  }
+  body.full-panel #mobile-bottom-nav { display:flex !important }
+  .mbn-btn {
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:2px;border:none;background:transparent;cursor:pointer;
+    color:#9ca3af;font-size:9px;font-weight:600;font-family:Inter,sans-serif;
+    padding:4px 2px;transition:color .15s;
+  }
+  .mbn-btn svg { width:20px;height:20px;stroke-width:1.8 }
+  .mbn-btn.mbn-active { color:#667eea }
+  body.dark .mbn-btn { color:#6b7280 }
+  body.dark .mbn-btn.mbn-active { color:#818cf8 }
 }
 
 </style>
@@ -1699,6 +1738,10 @@ function nav(id,tab,sb){
   if(window.innerWidth<=700){
     const _fp=["calendario","publicaciones","guardias"];
     document.body.classList.toggle("full-panel",_fp.includes(id));
+    // Update bottom nav active state
+    document.querySelectorAll(".mbn-btn").forEach(b=>b.classList.remove("mbn-active"));
+    const activeBtn=document.getElementById("mbn-"+id);
+    if(activeBtn)activeBtn.classList.add("mbn-active");
     if(id==="calendario")renderCalDay();
     if(id==="publicaciones")renderPubDay();
     if(id==="guardias")renderGuardDay();
@@ -1707,6 +1750,10 @@ function nav(id,tab,sb){
   if(id==="medios"){renderNoticias();renderMedioSum();}
   // FIX: forzar renderTeam al entrar a equipo
   if(id==="equipo")renderTeam();
+}
+function exitFullPanel(id){
+  document.body.classList.remove("full-panel");
+  nav(id);
 }
 function limpiarFiltro(){
   fp="";
@@ -4158,5 +4205,28 @@ async function eliminarSinReemplazar(){
   </div>
 </div>
 
+<!-- MOBILE BOTTOM NAV -->
+<div id="mobile-bottom-nav" style="display:none">
+  <button class="mbn-btn" onclick="exitFullPanel('tablero')" id="mbn-tablero">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    <span>Tablero</span>
+  </button>
+  <button class="mbn-btn" onclick="exitFullPanel('publicaciones')" id="mbn-publicaciones">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    <span>Pubs</span>
+  </button>
+  <button class="mbn-btn mbn-active" onclick="exitFullPanel('calendario')" id="mbn-calendario">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+    <span>Calendario</span>
+  </button>
+  <button class="mbn-btn" onclick="exitFullPanel('guardias')" id="mbn-guardias">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+    <span>Guardias</span>
+  </button>
+  <button class="mbn-btn" onclick="exitFullPanel('equipo')" id="mbn-equipo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+    <span>Equipo</span>
+  </button>
+</div>
 </body>
 </html>
