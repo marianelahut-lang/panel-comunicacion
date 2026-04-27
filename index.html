@@ -634,10 +634,21 @@ body.dark #cal-day-content [style*="color:#9ca3af"]{color:#6b7280 !important}
 .cal-navrow { display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:8px }
 
 @media (max-width:700px) {
+  /* Desktop elements hidden */
   .gw-desktop { display:none !important }
+  /* Mobile elements visible */
   .gw-mobile  { display:block !important }
-  .gw-mobile.cal-navrow, .gw-mobile.gw-navrow, .gw-mobile.acts { display:flex !important }
+  /* Nav rows: always horizontal */
+  .gw-mobile.cal-navrow, .gw-mobile.gw-navrow, .gw-mobile.acts {
+    display:flex !important;
+    flex-direction:row !important;
+    flex-wrap:nowrap !important;
+    align-items:center !important;
+    justify-content:center !important;
+    gap:8px !important;
+  }
 
+  /* Topbar compact */
   .topbar { padding:0 8px; gap:4px }
   .logo img, .logo-n, .logo-s { display:none }
   .logo-b { width:32px; height:32px; font-size:13px }
@@ -646,38 +657,26 @@ body.dark #cal-day-content [style*="color:#9ca3af"]{color:#6b7280 !important}
 
   .main { padding:10px !important; height:calc(100dvh - 50px) !important; overflow:hidden !important }
 
-  #p-calendario, #p-publicaciones {
-    height: calc(100dvh - 72px) !important;
-    overflow: hidden !important;
+  /* Content containers — only non-navrow gw-mobile stretch */
+  #p-calendario .gw-mobile:not(.cal-navrow):not(.gw-navrow),
+  #p-publicaciones .gw-mobile:not(.cal-navrow):not(.gw-navrow) {
+    flex: 1 !important; min-height: 0 !important;
+    overflow: hidden !important; display: flex !important;
     flex-direction: column !important;
   }
-  #p-guardias {
-    height: calc(100dvh - 72px) !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch !important;
+  #p-guardias .gw-mobile:not(.gw-navrow):not(.acts) {
+    display: flex !important; flex-direction: column !important;
   }
   #cal-days-strip, #pub-days-strip, #guard-days-strip {
     flex-shrink: 0 !important;
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch !important;
   }
-  #p-calendario .gw-mobile, #p-publicaciones .gw-mobile {
-    flex: 1 !important; min-height: 0 !important;
-    overflow: hidden !important; display: flex !important;
-    flex-direction: column !important;
-  }
-  #p-calendario .gw-mobile > div:last-child {
-    flex: 1 !important; min-height: 0 !important;
-    overflow: hidden !important; display: flex !important;
-  }
   #cal-day-content, #pub-day-list, #guard-day-content {
     flex: 1 !important;
     overflow-y: scroll !important;
     -webkit-overflow-scrolling: touch !important;
     min-height: 0 !important;
-  }
-  #p-guardias .gw-mobile {
-    display: flex !important; flex-direction: column !important; min-height: 200px !important;
   }
   .mod { width:calc(100vw - 20px) !important; max-width:unset !important; max-height:85vh; overflow-y:auto }
 
@@ -719,26 +718,20 @@ body.dark #cal-day-content [style*="color:#9ca3af"]{color:#6b7280 !important}
   body.dark.show-publicaciones #p-publicaciones .ptop,
   body.dark.show-guardias #p-guardias .ptop { background:#252830 !important; border-color:#2d3140 !important }
 
-  body.show-calendario .cal-navrow.gw-mobile,
-  body.show-publicaciones .cal-navrow.gw-mobile,
-  body.show-guardias .gw-navrow.gw-mobile,
-  body.show-guardias .gw-mobile.acts {
+  /* Nav rows in full-panel: sticky top bar style */
+  body.show-calendario #p-calendario .cal-navrow.gw-mobile,
+  body.show-publicaciones #p-publicaciones .cal-navrow.gw-mobile,
+  body.show-guardias #p-guardias .gw-navrow.gw-mobile,
+  body.show-guardias #p-guardias .gw-mobile.acts {
     flex-shrink:0 !important;
-    display:flex !important;
-    flex-direction:row !important;
-    flex-wrap:nowrap !important;
-    align-items:center !important;
-    justify-content:center !important;
-    gap:8px !important;
-    padding:7px 10px !important;
+    padding:7px 12px !important;
     background:#fff !important;
     border-bottom:1px solid #e5e7eb !important;
-    overflow-x:auto !important;
   }
-  body.dark.show-calendario .cal-navrow.gw-mobile,
-  body.dark.show-publicaciones .cal-navrow.gw-mobile,
-  body.dark.show-guardias .gw-navrow.gw-mobile,
-  body.dark.show-guardias .gw-mobile.acts { background:#252830 !important; border-color:#2d3140 !important }
+  body.dark.show-calendario #p-calendario .cal-navrow.gw-mobile,
+  body.dark.show-publicaciones #p-publicaciones .cal-navrow.gw-mobile,
+  body.dark.show-guardias #p-guardias .gw-navrow.gw-mobile,
+  body.dark.show-guardias #p-guardias .gw-mobile.acts { background:#252830 !important; border-color:#2d3140 !important }
 
   body.show-calendario #p-calendario .gw-mobile:not(.cal-navrow),
   body.show-publicaciones #p-publicaciones .gw-mobile:not(.cal-navrow) {
