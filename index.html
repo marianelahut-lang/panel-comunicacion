@@ -1,225 +1,261 @@
-// ═══════════════════════════════════════════════════
-// FIXES PARA PANEL DE COMUNICACIÓN — TRES ARROYOS
-// Reemplazar estas funciones en el HTML existente
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
+// MÓDULO: LECTOR DE REDES SOCIALES — Panel Municipalidad TA
+// Requiere: App Token de Meta (gratis, sin aprobación)
+// ═══════════════════════════════════════════════════════════
 
-// ── FIX 1: tryFetch — compatible con iOS/Safari/Chrome viejo ──
-// Reemplaza la función tryFetch dentro de scanMedios
-async function tryFetch(url){
-  // Timeout manual compatible con todos los browsers
-  function fetchWithTimeout(fn, ms){
-    return new Promise((resolve, reject) => {
-      const ctrl = new AbortController();
-      const timer = setTimeout(() => { ctrl.abort(); reject(new Error("timeout")); }, ms);
-      fn(ctrl.signal).then(r => { clearTimeout(timer); resolve(r); }).catch(e => { clearTimeout(timer); reject(e); });
-    });
+// ── CONFIGURACIÓN ──────────────────────────────────────────
+// Completar con los IDs reales (se consiguen en facebook.com/<pagina>/about)
+const REDES_CONFIG = {
+  FB_APP_TOKEN:   "",  // ← Completar: APP_ID|APP_SECRET (desde developers.facebook.com)
+  FB_MUNI_ID:     "",  // ← Completar: ID numérico de la página Municipalidad (ej: "123456789")
+  FB_PABLO_ID:    "",  // ← Completar: ID numérico de la página Pablo Garate
+  IG_MUNI_ID:     "",  // ← Completar: ID de cuenta IG Business (desde Graph API Explorer)
+};
+// ──────────────────────────────────────────────────────────
+
+let redesPosts = [];   // posts cargados en memoria
+let redesStats = {};   // métricas básicas por cuenta
+
+// ══════════════════════════════════════════════════════════
+// 1. LEER PUBLICACIONES DE FACEBOOK (sin aprobación especial)
+// ══════════════════════════════════════════════════════════
+async function fetchFBPosts(pageId, label) {
+  if (!REDES_CONFIG.FB_APP_TOKEN || !pageId) {
+    return { posts: [], error: "Sin configurar" };
   }
-
-  const proxies = [
-    // rss2json primero (más rápido, sin CORS)
-    async () => {
-      const r = await fetch(
-        "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(url) + "&count=40",
-        { cache: "no-store" }
-      );
-      if (!r.ok) throw new Error("rss2json " + r.status);
-      const d = await r.json();
-      if (d.status !== "ok" || !d.items?.length) throw new Error("sin items");
-      // Devolver texto pseudo-RSS para que el parser lo maneje igual
-      return JSON.stringify({ _rss2json: true, items: d.items });
-    },
-    // allorigins (suele funcionar bien en Argentina)
-    sig => fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent(url), { signal: sig }),
-    // corsproxy.io
-    sig => fetch("https://corsproxy.io/?" + encodeURIComponent(url), { signal: sig }),
-    // codetabs (más lento, límite bajo)
-    sig => fetch("https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(url), { signal: sig }),
-  ];
-
-  for (let i = 0; i < proxies.length; i++) {
-    try {
-      const fn = proxies[i];
-      let text;
-      if (i === 0) {
-        // rss2json no necesita AbortSignal
-        text = await Promise.race([
-          fn(),
-          new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 12000))
-        ]);
-      } else {
-        const r = await fetchWithTimeout(sig => fn(sig), 12000);
-        if (!r.ok) continue;
-        text = await r.text();
-      }
-      if (text && text.length > 50) return text;
-    } catch(e) {
-      console.warn("Proxy " + i + " falló para " + url.slice(0, 40) + ":", e.message);
-    }
+  try {
+    const url = `https://graph.facebook.com/v19.0/${pageId}/posts`
+      + `?fields=message,created_time,full_picture,permalink_url,likes.summary(true),comments.summary(true),shares`
+      + `&limit=20&access_token=${REDES_CONFIG.FB_APP_TOKEN}`;
+    const r = await fetch(url);
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const d = await r.json();
+    if (d.error) throw new Error(d.error.message);
+    return {
+      posts: (d.data || []).map(p => ({
+        id:        p.id,
+        red:       "Facebook",
+        cuenta:    label,
+        texto:     p.message || "(sin texto)",
+        fecha:     p.created_time?.slice(0, 10) || isoToday,
+        hora:      p.created_time?.slice(11, 16) || "",
+        imagen:    p.full_picture || null,
+        url:       p.permalink_url || "",
+        likes:     p.likes?.summary?.total_count || 0,
+        comentarios: p.comments?.summary?.total_count || 0,
+        compartidos: p.shares?.count || 0,
+      })),
+      error: null
+    };
+  } catch(e) {
+    console.warn("fetchFBPosts:", e.message);
+    return { posts: [], error: e.message };
   }
-  return null;
 }
 
-// ── FIX 2: scanMedios — parsea rss2json Y RSS directo ──
-// Reemplaza la función scanMedios completa
-async function scanMedios(){
-  const btn = document.getElementById("scanbtn");
-  const statusEl = document.getElementById("scanstatus");
-  if (btn) btn.disabled = true;
-
-  const medios = [
-    { n: "LU24",              c: "#7c2d12", rss: "https://www.lu24.com.ar/feed/" },
-    { n: "La Voz del Pueblo", c: "#1d4e7a", rss: "https://www.lavozdelpueblo.com.ar/feed/" },
-    { n: "Onda Uno",          c: "#92400e", rss: "https://ondauno.com.ar/index.php/feed/" },
-    { n: "Via País",          c: "#5b21b6", rss: "https://viapais.com.ar/tres-arroyos/feed/" },
-    { n: "Provincia Noticias",c: "#0f5ca8", rss: "https://provincianoticias.com.ar/?s=tres+arroyos" },
-  ];
-
-  // Palabras clave — más inclusivas para no filtrar de más
-  const kws = [
-    "municipio","municipalidad","intendente","garate","tres arroyos",
-    "secretar","obra","inaugur","concejo","ordenanza","decreto",
-    "hospital","agua","gobierno","gestión","licitación","vecinal",
-    "escuela municipal","parque industrial","transporte","cementerio",
-    "bomberos","defensa civil","tránsito","turismo","cultura","deporte"
-  ];
-
-  const cutoff = new Date(TODAY); cutoff.setDate(cutoff.getDate() - 14);
-  const cutStr = cutoff.toISOString().slice(0, 10);
-  let totalNuevas = 0;
-
-  for (const medio of medios) {
-    if (statusEl) statusEl.innerHTML =
-      '<div class="sbar scan"><div class="spin"></div><span>Escaneando ' + medio.n + '...</span></div>';
-
-    let items = [];
-
-    const raw = await tryFetch(medio.rss);
-    if (!raw) { console.warn("Sin datos para " + medio.n); continue; }
-
-    // Caso 1: respuesta de rss2json (JSON con _rss2json flag)
-    if (raw.startsWith("{") && raw.includes("_rss2json")) {
-      try {
-        const d = JSON.parse(raw);
-        items = d.items.map(i => ({
-          titulo: (i.title || "").replace(/<[^>]*>/g, "").trim(),
-          url:    i.link || "",
-          pubDate:i.pubDate || "",
-          resumen:(i.description || i.content || "").replace(/<[^>]*>/g, "").slice(0, 300),
-        }));
-      } catch(e) { console.warn("rss2json parse error:", e.message); }
-    }
-
-    // Caso 2: XML/RSS crudo
-    if (!items.length && raw.includes("<item")) {
-      try {
-        const xml = new DOMParser().parseFromString(raw, "text/xml");
-        items = [...xml.querySelectorAll("item")].map(n => ({
-          titulo: (n.querySelector("title")?.textContent || "").replace(/\[CDATA\[|\]\]/g, "").trim(),
-          url:    n.querySelector("link")?.textContent || "",
-          pubDate:n.querySelector("pubDate")?.textContent || "",
-          resumen:(n.querySelector("description")?.textContent || "").replace(/<[^>]*>/g, "").slice(0, 300),
-        }));
-      } catch(e) { console.warn("XML parse error:", e.message); }
-    }
-
-    // Caso 3: HTML — buscar enlaces con texto relevante
-    if (!items.length && raw.length > 500) {
-      try {
-        const doc = new DOMParser().parseFromString(raw, "text/html");
-        const seen = new Map();
-        doc.querySelectorAll("h2 a, h3 a, h1 a, article a, .entry-title a, .post-title a").forEach(a => {
-          const titulo = (a.textContent || "").trim();
-          const href   = a.getAttribute("href") || "";
-          if (titulo.length > 12 && href && !seen.has(titulo)) {
-            let url = href;
-            try { if (href.startsWith("/")) url = new URL(href, medio.rss).href; } catch(_) {}
-            seen.set(titulo, { titulo, url, pubDate: "", resumen: "" });
-          }
-        });
-        items = [...seen.values()].slice(0, 30);
-      } catch(e) { console.warn("HTML parse error:", e.message); }
-    }
-
-    if (!items.length) { console.warn("Sin ítems para " + medio.n); continue; }
-
-    for (const item of items) {
-      if (!item.titulo) continue;
-      const text = (item.titulo + " " + item.resumen).toLowerCase();
-      if (!kws.some(k => text.includes(k))) continue;
-
-      // Fecha
-      let fechaISO = isoToday;
-      if (item.pubDate) {
-        try {
-          const fd = new Date(item.pubDate);
-          if (!isNaN(fd)) {
-            if (fd < cutoff) continue;
-            fechaISO = fd.toISOString().slice(0, 10);
-          }
-        } catch(_) {}
-      }
-
-      // Deduplicar
-      if (noticias.find(x => x.url && x.url === item.url)) continue;
-      if (noticias.find(x => x.titulo === item.titulo && x.medio === medio.n)) continue;
-
-      // Tono simple
-      const tl = item.titulo.toLowerCase();
-      const tono = (tl.includes("probl") || tl.includes("critic") || tl.includes("denuncia") || tl.includes("accidente") || tl.includes("multa"))
-        ? "negativo"
-        : (tl.includes("inaugur") || tl.includes("obra") || tl.includes("logr") || tl.includes("mejora") || tl.includes("nuevo"))
-        ? "positivo"
-        : "neutral";
-
-      try {
-        const { data, error } = await db.from("noticias_medios").insert({
-          titulo:             item.titulo.slice(0, 200),
-          medio:              medio.n,
-          url:                (item.url || "").slice(0, 500),
-          fecha:              fechaISO,
-          resumen:            item.resumen.slice(0, 200),
-          tono,
-          menciona_municipio: text.includes("municipio") || text.includes("tres arroyos"),
-          menciona_pablo:     text.includes("pablo garate") || text.includes("garate"),
-        }).select();
-        if (!error && data?.[0]) { noticias.unshift(data[0]); totalNuevas++; }
-      } catch(e) { console.warn("Insert error:", e.message); }
-    }
+// ══════════════════════════════════════════════════════════
+// 2. LEER PUBLICACIONES DE INSTAGRAM (requiere cuenta Business)
+// ══════════════════════════════════════════════════════════
+async function fetchIGPosts(igUserId, label) {
+  if (!REDES_CONFIG.FB_APP_TOKEN || !igUserId) {
+    return { posts: [], error: "Sin configurar" };
   }
-
-  if (statusEl) {
-    statusEl.innerHTML = totalNuevas > 0
-      ? '<div class="sbar done">✓ ' + totalNuevas + ' noticias nuevas encontradas</div>'
-      : '<div class="sbar scan" style="border-color:#fde68a;background:#fffbeb;color:#92400e">⚠ Sin noticias nuevas — los medios pueden tener restricciones de acceso. Probá de nuevo más tarde o agregá manualmente.</div>';
-    setTimeout(() => { if (statusEl) statusEl.innerHTML = ""; }, 10000);
+  try {
+    const url = `https://graph.facebook.com/v19.0/${igUserId}/media`
+      + `?fields=id,caption,media_type,media_url,permalink,timestamp,like_count,comments_count`
+      + `&limit=20&access_token=${REDES_CONFIG.FB_APP_TOKEN}`;
+    const r = await fetch(url);
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const d = await r.json();
+    if (d.error) throw new Error(d.error.message);
+    return {
+      posts: (d.data || []).map(p => ({
+        id:        p.id,
+        red:       "Instagram",
+        cuenta:    label,
+        texto:     p.caption || "(sin texto)",
+        fecha:     p.timestamp?.slice(0, 10) || isoToday,
+        hora:      p.timestamp?.slice(11, 16) || "",
+        imagen:    p.media_url || null,
+        url:       p.permalink || "",
+        likes:     p.like_count || 0,
+        comentarios: p.comments_count || 0,
+        compartidos: 0,
+        tipo:      p.media_type, // IMAGE, VIDEO, CAROUSEL_ALBUM
+      })),
+      error: null
+    };
+  } catch(e) {
+    console.warn("fetchIGPosts:", e.message);
+    return { posts: [], error: e.message };
   }
-  if (btn) {
-    btn.disabled = false;
-    btn.innerHTML = '<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg> Escanear medios';
-  }
-  if (totalNuevas > 0) { toast(totalNuevas + " noticias nuevas"); renderNoticias(); renderMedioSum(); }
-  else toast("Sin noticias nuevas — probá más tarde", "warn");
 }
 
+// ══════════════════════════════════════════════════════════
+// 3. LEER MÉTRICAS DE PÁGINA (requiere Page Access Token del admin)
+//    → Para esto sí necesitan que el admin de la página autorice
+// ══════════════════════════════════════════════════════════
+async function fetchFBPageStats(pageId, pageToken, label) {
+  // pageToken: token del admin de la página (distinto del app token)
+  // Solo disponible si el admin de la página lo genera desde
+  // https://developers.facebook.com/tools/explorer/
+  if (!pageToken || !pageId) return null;
+  try {
+    const since = Math.floor(Date.now()/1000) - 30*86400; // últimos 30 días
+    const metrics = ["page_impressions","page_reach","page_fans","page_post_engagements"].join(",");
+    const url = `https://graph.facebook.com/v19.0/${pageId}/insights`
+      + `?metric=${metrics}&since=${since}&period=day&access_token=${pageToken}`;
+    const r = await fetch(url);
+    const d = await r.json();
+    if (d.error) return null;
+    return d.data;
+  } catch(e) { return null; }
+}
 
-// ── FIX 3: Exportar/respaldar datos locales ──
-// Llamar con: exportarDatosLocales()
-function exportarDatosLocales(){
-  const backup = {
-    timestamp:       new Date().toISOString(),
-    guardOverrides:  JSON.parse(localStorage.getItem("guardOverrides") || "{}"),
-    panelContactos:  JSON.parse(localStorage.getItem("panelContactos") || "{}"),
-    ct_medios_v2:    JSON.parse(localStorage.getItem("ct_medios_v2") || "[]"),
-    darkMode:        localStorage.getItem("darkMode"),
-    briefingKeys:    Object.keys(localStorage).filter(k => k.startsWith("briefing_")),
+// ══════════════════════════════════════════════════════════
+// 4. ESCANEO COMPLETO — trae todo junto
+// ══════════════════════════════════════════════════════════
+async function escanearRedes() {
+  const btn = document.getElementById("btn-escanear-redes");
+  const status = document.getElementById("redes-status");
+  if (btn) { btn.disabled = true; btn.textContent = "⏳ Escaneando..."; }
+
+  const resultados = await Promise.allSettled([
+    fetchFBPosts(REDES_CONFIG.FB_MUNI_ID,  "Municipalidad"),
+    fetchFBPosts(REDES_CONFIG.FB_PABLO_ID, "Pablo Garate"),
+    fetchIGPosts(REDES_CONFIG.IG_MUNI_ID,  "Municipalidad"),
+  ]);
+
+  const [fbMuni, fbPablo, igMuni] = resultados.map(r =>
+    r.status === "fulfilled" ? r.value : { posts: [], error: r.reason?.message }
+  );
+
+  redesPosts = [...fbMuni.posts, ...fbPablo.posts, ...igMuni.posts]
+    .sort((a, b) => (b.fecha + b.hora).localeCompare(a.fecha + a.hora));
+
+  const errores = [fbMuni, fbPablo, igMuni].filter(r => r.error).map(r => r.error);
+  if (status) {
+    status.innerHTML = redesPosts.length > 0
+      ? `<div class="sbar done">✓ ${redesPosts.length} publicaciones cargadas${errores.length ? " · ⚠ " + errores.join(", ") : ""}</div>`
+      : `<div class="sbar fail">✕ Sin publicaciones — verificá la configuración de tokens</div>`;
+    setTimeout(() => { if (status) status.innerHTML = ""; }, 8000);
+  }
+
+  if (btn) { btn.disabled = false; btn.textContent = "🔄 Actualizar redes"; }
+  renderRedesPosts();
+}
+
+// ══════════════════════════════════════════════════════════
+// 5. RENDER DE PUBLICACIONES
+// ══════════════════════════════════════════════════════════
+function renderRedesPosts(filtroRed = "", filtroCuenta = "") {
+  const container = document.getElementById("redes-posts-grid");
+  if (!container) return;
+
+  const RED_COLOR = {
+    "Facebook":  "#1877f2",
+    "Instagram": "#e1306c",
+    "TikTok":    "#010101",
   };
-  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
-  const a    = document.createElement("a");
-  a.href     = URL.createObjectURL(blob);
-  a.download = "panel-backup-" + new Date().toISOString().slice(0, 10) + ".json";
-  a.click();
-  toast("✓ Backup descargado");
+  const CUENTA_COLOR = {
+    "Municipalidad": "#0f5ca8",
+    "Pablo Garate":  "#6d28d9",
+  };
+
+  const filtered = redesPosts.filter(p =>
+    (!filtroRed     || p.red     === filtroRed) &&
+    (!filtroCuenta  || p.cuenta  === filtroCuenta)
+  );
+
+  if (!filtered.length) {
+    container.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--color-text-secondary)">
+      <div style="font-size:32px;margin-bottom:8px">📱</div>
+      <div style="font-size:13px">Sin publicaciones — configurá los tokens y escaneá</div>
+    </div>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map(p => {
+    const redClr    = RED_COLOR[p.red]    || "#6b7280";
+    const cuentaClr = CUENTA_COLOR[p.cuenta] || "#6b7280";
+    const engRate   = p.likes + p.comentarios + p.compartidos;
+    return `<div style="background:var(--color-background-primary);border:1px solid var(--color-border-tertiary);border-radius:12px;overflow:hidden;display:flex;flex-direction:column">
+      ${p.imagen ? `<img src="${p.imagen}" alt="" style="width:100%;height:160px;object-fit:cover">` : ""}
+      <div style="padding:12px;flex:1;display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <span style="background:${redClr};color:#fff;padding:2px 8px;border-radius:10px;font-size:9px;font-weight:700">${p.red}</span>
+          <span style="background:${cuentaClr}18;color:${cuentaClr};padding:2px 8px;border-radius:10px;font-size:9px;font-weight:700;border:1px solid ${cuentaClr}40">${p.cuenta}</span>
+          <span style="font-size:10px;color:var(--color-text-secondary);margin-left:auto">${p.fecha}${p.hora ? " " + p.hora : ""}</span>
+        </div>
+        <div style="font-size:12px;color:var(--color-text-primary);line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical">${p.texto}</div>
+        <div style="display:flex;gap:12px;margin-top:auto;padding-top:6px;border-top:1px solid var(--color-border-tertiary)">
+          <span style="font-size:11px;color:var(--color-text-secondary)">❤ ${p.likes.toLocaleString()}</span>
+          <span style="font-size:11px;color:var(--color-text-secondary)">💬 ${p.comentarios.toLocaleString()}</span>
+          ${p.compartidos ? `<span style="font-size:11px;color:var(--color-text-secondary)">↗ ${p.compartidos.toLocaleString()}</span>` : ""}
+          ${p.url ? `<a href="${p.url}" target="_blank" style="margin-left:auto;font-size:10px;color:${redClr};text-decoration:none;font-weight:600">Ver post →</a>` : ""}
+        </div>
+      </div>
+    </div>`;
+  }).join("");
 }
 
-// Agregar botón de backup en Settings (pegar dentro de openSettings, antes de closeMod)
-// O llamar directamente desde consola del browser: exportarDatosLocales()
+// ══════════════════════════════════════════════════════════
+// 6. HTML A AGREGAR EN EL PANEL (dentro de #p-metricas o nueva sección)
+// ══════════════════════════════════════════════════════════
+const REDES_HTML = `
+<!-- Agregar dentro de #p-metricas, después de .api-grid, o como nueva pestaña -->
+<div style="background:var(--color-background-secondary);border:1px solid var(--color-border-tertiary);border-radius:10px;padding:14px;margin-bottom:12px">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+    <div style="font-size:13px;font-weight:600;color:var(--color-text-primary)">📱 Publicaciones reales</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <select id="redes-filtro-red" onchange="renderRedesPosts(this.value,document.getElementById('redes-filtro-cuenta').value)"
+        style="font-size:11px;padding:4px 8px;border-radius:6px;border:1px solid var(--color-border-tertiary);background:var(--color-background-primary);color:var(--color-text-primary)">
+        <option value="">Todas las redes</option>
+        <option>Facebook</option><option>Instagram</option>
+      </select>
+      <select id="redes-filtro-cuenta" onchange="renderRedesPosts(document.getElementById('redes-filtro-red').value,this.value)"
+        style="font-size:11px;padding:4px 8px;border-radius:6px;border:1px solid var(--color-border-tertiary);background:var(--color-background-primary);color:var(--color-text-primary)">
+        <option value="">Todas las cuentas</option>
+        <option>Municipalidad</option><option>Pablo Garate</option>
+      </select>
+      <button id="btn-escanear-redes" onclick="escanearRedes()" class="btn p" style="font-size:11px">🔄 Actualizar redes</button>
+    </div>
+  </div>
+  <div id="redes-status" style="margin-bottom:6px"></div>
+  <div id="redes-posts-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px"></div>
+</div>
+`;
+
+// ══════════════════════════════════════════════════════════
+// 7. CÓMO OBTENER EL APP TOKEN (paso a paso)
+// ══════════════════════════════════════════════════════════
+/*
+PASO 1 — Crear app en Meta for Developers (gratis):
+  https://developers.facebook.com/apps/create/
+  → Tipo: "Consumidor" o "Empresa"
+  → Nombre: "Panel Comunicación TA" (cualquier nombre)
+
+PASO 2 — Obtener App ID y App Secret:
+  → Panel de la app → Configuración → Básica
+  → Copiar App ID y App Secret
+
+PASO 3 — Generar App Token (NO caduca):
+  → Pegar en REDES_CONFIG.FB_APP_TOKEN: "APP_ID|APP_SECRET"
+  → Ejemplo: "123456789|abcdef123456"
+
+PASO 4 — Encontrar ID de la página:
+  → Ir a facebook.com/municipalidadtresarroyos (o la URL real)
+  → Sección Acerca de → ID de la página
+  → O usar: https://graph.facebook.com/NOMBRE_PAGINA?access_token=APP_TOKEN
+
+PASO 5 — ID de cuenta Instagram (si es cuenta Business):
+  → En Meta Business Suite → Configuración → Cuentas de Instagram
+  → O vía API: graph.facebook.com/ID_PAGINA_FB?fields=instagram_business_account&access_token=TOKEN
+
+NOTAS IMPORTANTES:
+  - Con el App Token solo podés leer POSTS PÚBLICOS (texto, imagen, fecha)
+  - Para métricas (alcance, impresiones, seguidores): necesitás Page Access Token
+    del admin → Graph API Explorer → Generar Token → Permisos: pages_read_engagement
+  - Los tokens del admin caducan cada 60 días (se puede hacer "long-lived" vía API)
+  - Para Instagram: la cuenta DEBE ser Business o Creator, conectada a una Página FB
+*/
