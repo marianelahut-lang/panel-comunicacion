@@ -9,6 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Comunicación TA">
 <link rel="manifest" id="pwa-manifest">
+<meta name="app-version" content="v5.28">
 <title>Panel · Comunicación Tres Arroyos</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -778,6 +779,14 @@ body.dark #cal-day-content [style*="color:#9ca3af"]{color:#6b7280 !important}
 </style>
 </head>
 <body>
+<!-- Update notification banner -->
+<div id="update-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:99999;background:#1e40af;color:#fff;padding:10px 16px;display:none;align-items:center;justify-content:space-between;gap:10px;font-family:Inter,sans-serif;font-size:13px;box-shadow:0 2px 12px rgba(0,0,0,.3)">
+  <span>🔄 <strong>Nueva versión disponible</strong> — Hay una actualización del panel.</span>
+  <div style="display:flex;gap:8px;flex-shrink:0">
+    <button onclick="applyUpdate()" style="background:#fff;color:#1e40af;border:none;border-radius:6px;padding:5px 14px;font-weight:700;cursor:pointer;font-size:12px;font-family:Inter,sans-serif">⚡ Actualizar</button>
+    <button onclick="document.getElementById('update-banner').style.display='none'" style="background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:12px;font-family:Inter,sans-serif">✕</button>
+  </div>
+</div>
 <div id="login">
   <div class="lbox">
     <div class="llogo">TA</div>
@@ -4189,6 +4198,37 @@ async function eliminarSinReemplazar(){
   closeMod("modReemplazoGuardia");
   await _confirmarEliminarMiembro(id,nombre);
 }
+
+// ═══ AUTO-UPDATE CHECK ═══
+const _APP_VERSION = document.querySelector('meta[name="app-version"]')?.content || "v5.28";
+
+function applyUpdate(){
+  if("serviceWorker" in navigator){
+    navigator.serviceWorker.getRegistrations().then(regs=>{
+      regs.forEach(r=>r.unregister());
+    }).finally(()=>{ window.location.reload(true); });
+  } else {
+    window.location.reload(true);
+  }
+}
+
+async function checkForUpdate(){
+  try{
+    const url = window.location.href.split("?")[0] + "?_v=" + Date.now();
+    const res = await fetch(url, { cache:"no-store" });
+    const html = await res.text();
+    const match = html.match(/<meta name="app-version" content="([^"]+)"/);
+    if(match && match[1] !== _APP_VERSION){
+      const banner = document.getElementById("update-banner");
+      if(banner) banner.style.display = "flex";
+    }
+  } catch(e){}
+}
+
+// Check on load (after 3s) and every 5 min
+setTimeout(checkForUpdate, 3000);
+setInterval(checkForUpdate, 5 * 60 * 1000);
+
 
 </script>
 
