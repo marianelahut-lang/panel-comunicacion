@@ -683,10 +683,13 @@ body.dark #cal-day-content [style*="color:#9ca3af"]{color:#6b7280 !important}
 
   /* ── FULL-SCREEN PANELS (position:fixed) ── */
   body.full-panel .sb { display:none !important }
+  body.show-calendario .sb, body.show-publicaciones .sb, body.show-guardias .sb { display:none !important }
 
-  body.full-panel #p-calendario,
-  body.full-panel #p-publicaciones,
-  body.full-panel #p-guardias {
+  /* Panel activo toma pantalla completa - usar clase show-X para no mostrar todos */
+  body.show-calendario #p-calendario,
+  body.show-publicaciones #p-publicaciones,
+  body.show-guardias #p-guardias {
+    display:flex !important;
     position:fixed !important;
     top:50px !important;
     left:0 !important; right:0 !important; bottom:56px !important;
@@ -694,32 +697,32 @@ body.dark #cal-day-content [style*="color:#9ca3af"]{color:#6b7280 !important}
     width:100% !important;
     z-index:500 !important;
     background:#f9fafb !important;
-    display:flex !important;
     flex-direction:column !important;
     gap:0 !important;
     overflow:hidden !important;
     padding:0 !important;
   }
-  body.dark.full-panel #p-calendario,
-  body.dark.full-panel #p-publicaciones,
-  body.dark.full-panel #p-guardias { background:#1e2028 !important }
+  body.dark.show-calendario #p-calendario,
+  body.dark.show-publicaciones #p-publicaciones,
+  body.dark.show-guardias #p-guardias { background:#1e2028 !important }
 
-  body.full-panel #p-calendario .ptop,
-  body.full-panel #p-publicaciones .ptop,
-  body.full-panel #p-guardias .ptop {
+  body.show-calendario #p-calendario .ptop,
+  body.show-publicaciones #p-publicaciones .ptop,
+  body.show-guardias #p-guardias .ptop {
     flex-shrink:0 !important;
     padding:8px 12px !important;
     margin:0 !important;
     border-bottom:1px solid #e5e7eb !important;
     background:#fff !important;
   }
-  body.dark.full-panel #p-calendario .ptop,
-  body.dark.full-panel #p-publicaciones .ptop,
-  body.dark.full-panel #p-guardias .ptop { background:#252830 !important; border-color:#2d3140 !important }
+  body.dark.show-calendario #p-calendario .ptop,
+  body.dark.show-publicaciones #p-publicaciones .ptop,
+  body.dark.show-guardias #p-guardias .ptop { background:#252830 !important; border-color:#2d3140 !important }
 
-  body.full-panel .cal-navrow.gw-mobile,
-  body.full-panel .gw-navrow.gw-mobile,
-  body.full-panel .gw-mobile.acts {
+  body.show-calendario .cal-navrow.gw-mobile,
+  body.show-publicaciones .cal-navrow.gw-mobile,
+  body.show-guardias .gw-navrow.gw-mobile,
+  body.show-guardias .gw-mobile.acts {
     flex-shrink:0 !important;
     display:flex !important;
     flex-direction:row !important;
@@ -732,19 +735,20 @@ body.dark #cal-day-content [style*="color:#9ca3af"]{color:#6b7280 !important}
     border-bottom:1px solid #e5e7eb !important;
     overflow-x:auto !important;
   }
-  body.dark.full-panel .cal-navrow.gw-mobile,
-  body.dark.full-panel .gw-navrow.gw-mobile,
-  body.dark.full-panel .gw-mobile.acts { background:#252830 !important; border-color:#2d3140 !important }
+  body.dark.show-calendario .cal-navrow.gw-mobile,
+  body.dark.show-publicaciones .cal-navrow.gw-mobile,
+  body.dark.show-guardias .gw-navrow.gw-mobile,
+  body.dark.show-guardias .gw-mobile.acts { background:#252830 !important; border-color:#2d3140 !important }
 
-  body.full-panel #p-calendario .gw-mobile:not(.cal-navrow),
-  body.full-panel #p-publicaciones .gw-mobile:not(.cal-navrow) {
+  body.show-calendario #p-calendario .gw-mobile:not(.cal-navrow),
+  body.show-publicaciones #p-publicaciones .gw-mobile:not(.cal-navrow) {
     flex:1 !important;
     min-height:0 !important;
     overflow:hidden !important;
     display:flex !important;
     flex-direction:column !important;
   }
-  body.full-panel #p-guardias .gw-mobile:not(.gw-navrow):not(.acts) {
+  body.show-guardias #p-guardias .gw-mobile:not(.gw-navrow):not(.acts) {
     flex:1 !important;
     min-height:0 !important;
     overflow-y:auto !important;
@@ -1760,7 +1764,11 @@ function nav(id,tab,sb){
   if(id==="guardias")initGuardias();
   if(window.innerWidth<=700){
     const _fp=["calendario","publicaciones","guardias"];
-    document.body.classList.toggle("full-panel",_fp.includes(id));
+    // Remove all show-X and full-panel classes first
+    document.body.classList.remove("full-panel","show-calendario","show-publicaciones","show-guardias");
+    if(_fp.includes(id)){
+      document.body.classList.add("full-panel","show-"+id);
+    }
     // Update bottom nav active state
     document.querySelectorAll(".mbn-btn").forEach(b=>b.classList.remove("mbn-active"));
     const activeBtn=document.getElementById("mbn-"+id);
@@ -1775,7 +1783,7 @@ function nav(id,tab,sb){
   if(id==="equipo")renderTeam();
 }
 function exitFullPanel(id){
-  document.body.classList.remove("full-panel");
+  document.body.classList.remove("full-panel","show-calendario","show-publicaciones","show-guardias");
   nav(id);
 }
 function limpiarFiltro(){
