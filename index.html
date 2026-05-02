@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Comunicación TA">
 <link rel="manifest" id="pwa-manifest">
-<meta name="app-version" content="v5.36">
+<meta name="app-version" content="v5.36b">
 <title>Panel · Comunicación Tres Arroyos</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -5562,6 +5562,142 @@ window.abrirPanelTareasAgente = function(nombreAgente){
 })();
 
 console.log('v5.36 OK - Briefing 7 dias, WA tareas, medios 2 dias, stats reload');
+</script>
+
+<!-- PATCH v5.36b - Dark mode briefing -->
+<style>
+/* Dark mode para el modal de briefing */
+body.dark #modBriefing .mod {
+  background: #1e2028 !important;
+  color: #e2e8f0 !important;
+}
+body.dark #modBriefing .bf-section {
+  background: #252830 !important;
+  border-color: #373b47 !important;
+}
+body.dark #modBriefing [style*="background:#f9fafb"],
+body.dark #modBriefing [style*="background: #f9fafb"] {
+  background: #252830 !important;
+  color: #e2e8f0 !important;
+}
+body.dark #modBriefing [style*="background:#fdf4ff"],
+body.dark #modBriefing [style*="background: #fdf4ff"] {
+  background: #2d2040 !important;
+}
+body.dark #modBriefing [style*="background:#fff"],
+body.dark #modBriefing [style*="background: #fff"] {
+  background: #252830 !important;
+  color: #e2e8f0 !important;
+}
+body.dark #modBriefing [style*="color:#111827"],
+body.dark #modBriefing [style*="color: #111827"] {
+  color: #e2e8f0 !important;
+}
+body.dark #modBriefing [style*="color:#374151"],
+body.dark #modBriefing [style*="color: #374151"] {
+  color: #cbd5e1 !important;
+}
+body.dark #modBriefing [style*="color:#6b7280"],
+body.dark #modBriefing [style*="color: #6b7280"] {
+  color: #94a3b8 !important;
+}
+body.dark #modBriefing [style*="color:#374151"] {
+  color: #cbd5e1 !important;
+}
+/* Header del briefing en dark */
+body.dark #bf-header {
+  background: linear-gradient(135deg, #1e1b4b, #312e81) !important;
+}
+/* Guardia del dia en dark */
+body.dark #bf-guardia {
+  background: rgba(255,255,255,0.05) !important;
+  border-color: rgba(255,255,255,0.1) !important;
+}
+/* Etiquetas de seccion en dark */
+body.dark #modBriefing [style*="color:#6b7280"],
+body.dark #modBriefing .bf-label {
+  color: #94a3b8 !important;
+}
+/* Punto rojo de urgente en dark */
+body.dark #modBriefing [style*="background:#ef4444"],
+body.dark #modBriefing [style*="background: #ef4444"] {
+  /* mantener rojo - OK */
+}
+/* Texto dentro de filas de tareas en dark */
+body.dark #bf-tareas > div,
+body.dark #bf-pubs > div,
+body.dark #bf-eventos > div,
+body.dark #bf-ents > div {
+  background: #252830 !important;
+  color: #e2e8f0 !important;
+}
+body.dark #bf-tareas > div * ,
+body.dark #bf-pubs > div *,
+body.dark #bf-eventos > div * {
+  color: inherit;
+}
+/* Botones del pie del briefing en dark */
+body.dark #modBriefing .bf-footer button,
+body.dark #modBriefing [style*="background:#f3f4f6"] {
+  background: #252830 !important;
+  color: #e2e8f0 !important;
+  border-color: #373b47 !important;
+}
+/* Overlay backdrop */
+body.dark #modBriefing {
+  background: rgba(0,0,0,0.75) !important;
+}
+</style>
+<script>
+// Parchar _renderBriefing para usar colores adaptivos segun dark mode
+(function(){
+  const _orig = window._renderBriefing;
+  if(!_orig) return;
+  window._renderBriefing = function(){
+    _orig();
+    // Post-proceso: ajustar colores en dark mode
+    setTimeout(function(){
+      const isDark = document.body.classList.contains('dark');
+      if(!isDark) return;
+      const mod = document.getElementById('modBriefing');
+      if(!mod) return;
+      // Reemplazar fondos claros en todas las filas
+      mod.querySelectorAll('[style*="background:#f9fafb"], [style*="background:#fff"]').forEach(function(el){
+        el.style.background = '#252830';
+        el.style.color = '#e2e8f0';
+      });
+      mod.querySelectorAll('[style*="background:#fdf4ff"]').forEach(function(el){
+        el.style.background = '#2d2040';
+      });
+      // Texto oscuro -> claro
+      mod.querySelectorAll('[style*="color:#111827"]').forEach(function(el){ el.style.color='#e2e8f0'; });
+      mod.querySelectorAll('[style*="color:#374151"]').forEach(function(el){ el.style.color='#cbd5e1'; });
+      mod.querySelectorAll('[style*="color:#6b7280"]').forEach(function(el){ el.style.color='#94a3b8'; });
+      mod.querySelectorAll('[style*="color:#1f2937"]').forEach(function(el){ el.style.color='#e2e8f0'; });
+    }, 50);
+  };
+})();
+
+// Tambien parchar abrirBriefing para aplicar dark fixes despues de abrir
+(function(){
+  const _origAbrir = window.abrirBriefing;
+  window.abrirBriefing = function(){
+    if(_origAbrir) _origAbrir();
+    setTimeout(function(){
+      const isDark = document.body.classList.contains('dark');
+      if(!isDark) return;
+      const mod = document.getElementById('modBriefing');
+      if(!mod) return;
+      mod.querySelectorAll('[style*="background:#f9fafb"],[style*="background:#fff"][style*="color"]').forEach(function(el){
+        el.style.background='#252830';el.style.color='#e2e8f0';
+      });
+      mod.querySelectorAll('[style*="color:#111827"],[style*="color:#374151"],[style*="color:#1f2937"]').forEach(function(el){
+        el.style.color='#e2e8f0';
+      });
+    }, 100);
+  };
+})();
+console.log('v5.36b dark briefing OK');
 </script>
 </body>
 </html>
