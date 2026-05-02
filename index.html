@@ -1779,16 +1779,27 @@ function popSelects(){
 
 // ═══ LOGIN ═══
 // Load team names for login dropdown (before login)
-async function loadLoginTeams(){
+async async function loadLoginTeams(){
+  const sel = document.getElementById("lu");
+  if(!sel) return;
+  // Intentar desde Supabase
+  let nombres = [];
   try{
-    const tmp=supabase.createClient(SB_URL,SB_KEY);
-    const{data}=await tmp.from("usuarios").select("nombre").order("nombre");
-    const sel=document.getElementById("lu");
-    if(data&&data.length){
-      sel.innerHTML='<option value="">— seleccioná —</option>';
-      data.forEach(m=>sel.appendChild(new Option(m.nombre,m.nombre)));
-    }
-  }catch(e){console.warn("loadLoginTeams:",e);}
+    const tmp = supabase.createClient(SB_URL, SB_KEY);
+    const {data} = await tmp.from("usuarios").select("nombre").order("nombre");
+    if(data && data.length > 0) nombres = data.map(function(r){return r.nombre;});
+  }catch(e){ console.warn("loadLoginTeams Supabase:",e); }
+  // Fallback: usar el array TEAMS hardcodeado
+  if(!nombres.length && typeof TEAMS !== "undefined" && TEAMS.length){
+    nombres = TEAMS.map(function(m){return m.nombre||m.name||"";}).filter(Boolean).sort();
+  }
+  // Fallback final: lista hardcodeada del equipo de comunicacion
+  if(!nombres.length){
+    nombres = ["Debora","Guada","Josefina Claromeco","Lina","Maiten","Marianela","Santiago","sofia","Yesi"];
+    console.log("Login: usando lista hardcodeada de agentes");
+  }
+  sel.innerHTML = '<option value="">\u2014 selecci\u00F3n\u00E1 \u2014</option>' +
+    nombres.map(function(n){ return '<option value="'+n+'">'+n+'</option>'; }).join("");
 }
 // Load teams when page opens
 loadLoginTeams();
