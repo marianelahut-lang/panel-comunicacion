@@ -2940,18 +2940,34 @@ async function syncGCal(){
   btn.className="gcbtn go";txt.textContent="Sincronizando...";
   const calIds=(typeof GCAL_IDS!=="undefined"&&GCAL_IDS.length)?GCAL_IDS:[GCAL_ID];
   try{
-    let allEvs=[];
+    let allEvs=[],calOkCount=0,calErrList=[];
     const tMin=new Date(TODAY.getFullYear(),TODAY.getMonth()-3,1).toISOString();
     const tMax=new Date(TODAY.getFullYear()+1,TODAY.getMonth()+3,1).toISOString();
     for(const calId of calIds){
-      let ca=[],nx=null;
-      do{
-        const url="https://www.googleapis.com/calendar/v3/calendars/"+encodeURIComponent(calId)+"/events?key="+encodeURIComponent(GCAL_KEY)+"&timeMin="+tMin+"&timeMax="+tMax+"&singleEvents=true&orderBy=startTime&maxResults=2500"+(nx?"&pageToken="+nx:"");
-        const res=await fetch(url);if(!res.ok)throw new Error((await res.json()).error?.message||"API error");
-        const data=await res.json();ca=[...ca,...(data.items||[])];nx=data.nextPageToken||null;
-        txt.textContent="Cargando "+(allEvs.length+ca.length)+"...";
-      }while(nx);
-      allEvs=[...allEvs,...ca];
+      try{
+        let ca=[],nx=null;
+        do{
+          const url="https://www.googleapis.com/calendar/v3/calendars/"+encodeURIComponent(calId)+"/events?key="+encodeURIComponent(GCAL_KEY)+"&timeMin="+tMin+"&timeMax="+tMax+"&singleEvents=true&orderBy=startTime&maxResults=2500"+(nx?"&pageToken="+nx:"");
+          const res=await fetch(url);
+          if(!res.ok){
+            const er=await res.json();
+            const msg=er.error?.message||"Error "+res.status;
+            if(res.status===404){
+              calErrList.push(calId.slice(0,20)+"... (no publico)");
+              console.warn("Calendario privado o no encontrado:",calId,"-",msg);
+            } else {
+              calErrList.push(calId.slice(0,20)+"... ("+msg+")");
+            }
+            break;
+          }
+          const data=await res.json();ca=[...ca,...(data.items||[])];nx=data.nextPageToken||null;
+          txt.textContent="Cargando "+(allEvs.length+ca.length)+"...";
+        }while(nx);
+        if(ca.length>0){allEvs=[...allEvs,...ca];calOkCount++;}
+      }catch(calErr){
+        calErrList.push(calId.slice(0,20)+"... (error de red)");
+        console.warn("Error en calendario",calId,":",calErr.message);
+      }
     }
     const seen=new Map();for(const it of allEvs)if(!seen.has(it.id))seen.set(it.id,it);
     gcalEvs=[];
@@ -2964,12 +2980,21 @@ async function syncGCal(){
       const esPrensa=["4","11"].includes(String(it.colorId||""))||dl.includes("radio")||dl.includes("entrevista")||dl.includes("prensa")||dl.includes("lu24")||dl.includes("diario")||dl.includes("tv")||dl.includes("cobertura")||dl.includes("nota");
       gcalEvs.push({id:"gc_"+it.id,fecha,hora,descripcion:desc,lugar,tipo:esPrensa?"prensa":"intendente",cancelado:false,gcal:true});
     }
-    gcalOk=true;btn.className="gcbtn ok";
-    txt.textContent="GCal "+calIds.length+" cal · "+gcalEvs.length+" ev";
+    gcalOk=calOkCount>0;
+    btn.className=gcalOk?"gcbtn ok":"gcbtn";
+    let statusTxt="GCal · "+gcalEvs.length+" ev";
+    if(calErrList.length>0)statusTxt+=" (⚠ "+calErrList.length+" cal privado)";
+    txt.textContent=statusTxt;
     gcalEvs.forEach(e=>{if(!e.hora||e.cancelado)return;if(parseInt(String(e.hora).split(":")[0])>=15&&!cobSel[e.id])cobSel[e.id]=true;});
     renderCal();renderCalDay();renderWeek();updateBadges();
     const gp=document.getElementById("p-guardias");if(gp&&gp.style.display!=="none")renderGuardias();
-    toast("Sincronizados "+gcalEvs.length+" eventos de "+calIds.length+" calendarios");
+    if(gcalOk){
+      let msg="Sincronizados "+gcalEvs.length+" eventos";
+      if(calErrList.length>0)msg+=" ⚠ "+calErrList[0];
+      toast(msg);
+    } else {
+      toast("Error: ningun calendario accesible","err");
+    }
     if(!syncGCal._iv)syncGCal._iv=setInterval(syncGCal,5*60*1000);
   }catch(err){
     gcalOk=false;btn.className="gcbtn";txt.textContent="Sincronizar Calendar";
