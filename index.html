@@ -5131,228 +5131,26 @@ var _d41=["Domingo","Lunes","Martes","Miercoles","Jueves","Viernes","Sabado"];
 var _m41=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
 function _f41(){var h=new Date(TODAY);return _d41[h.getDay()]+" "+h.getDate()+" de "+_m41[h.getMonth()];}
 var _recursos=[];
-var _recCats={foto:"Fotos",template:"Templates",doc:"Documentos",drive:"Drive",contacto:"Contactos",otro:"Otro"};
-var _recIcons={foto:"[Fotos]",template:"[Canva]",doc:"[Doc]",drive:"[Drive]",contacto:"[Tel]",otro:"[Link]"};
-async function loadRecursos(){
-  try{
-    var res=await db.from("recursos_equipo").select("*").order("created_at",{ascending:false});
-    _recursos=res.data||[];
-  }catch(e){
-    var saved=localStorage.getItem("recursos_v1");
-    _recursos=saved?JSON.parse(saved):[];
-  }
-  renderRecursos();
-}
-function renderRecursos(){
-  var grid=document.getElementById("recursos-grid");
-  if(!grid)return;
-  var busq=(document.getElementById("rec-buscar")||{}).value||"";
-  var cat=(document.getElementById("rec-cat")||{}).value||"";
-  var lista=_recursos.filter(function(r){
-    var matchCat=!cat||r.categoria===cat;
-    var matchBusq=!busq||(r.nombre||"").toLowerCase().includes(busq.toLowerCase())||(r.descripcion||"").toLowerCase().includes(busq.toLowerCase());
-    return matchCat&&matchBusq;
-  });
-  if(!lista.length){
-    grid.innerHTML='<p style="grid-column:1/-1;text-align:center;color:var(--sub);padding:40px;font-size:13px">No hay recursos. Usa "+ Agregar recurso" para compartir links utiles con el equipo.</p>';
-    return;
-  }
-  var html="";
-  for(var i=0;i<lista.length;i++){
-    var r=lista[i];
-    var ico=_recIcons[r.categoria]||"[Link]";
-    var badgeClass="rec-cat-"+(r.categoria||"otro");
-    var catLabel=_recCats[r.categoria]||"Otro";
-    html+='<div class="rec-card">';
-    html+='<div class="rec-icon">'+ico+'</div>';
-    html+='<div class="rec-name">'+escHtml(r.nombre||"Sin nombre")+'</div>';
-    if(r.descripcion)html+='<div class="rec-desc">'+escHtml(r.descripcion)+'</div>';
-    html+='<span class="rec-cat-badge '+badgeClass+'">'+catLabel+'</span>';
-    html+='<div class="rec-actions">';
-    if(r.url)html+='<a href="'+r.url+'" target="_blank" class="btn-pri" style="font-size:11px;padding:4px 10px;text-decoration:none;flex:1;text-align:center">Abrir</a>';
-    html+='<button onclick="editRecurso(\"'+r.id+'\")" class="btn-sec" style="font-size:11px;padding:4px 8px">Editar</button>';
-    html+='<button onclick="deleteRecurso(\"'+r.id+'\")" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:12px;padding:4px 6px">x</button>';
-    html+='</div></div>';
-  }
-  grid.innerHTML=html;
-}
-function escHtml(s){return(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
-function openModRecurso(id){
-  document.getElementById("recId").value=id||"";
-  if(!id){
-    ["recNombre","recUrl","recDesc"].forEach(function(x){document.getElementById(x).value="";});
-    document.getElementById("recCat").value="foto";
-  }else{
-    var r=_recursos.filter(function(x){return String(x.id)===String(id);})[0];
-    if(!r)return;
-    document.getElementById("recNombre").value=r.nombre||"";
-    document.getElementById("recCat").value=r.categoria||"otro";
-    document.getElementById("recUrl").value=r.url||"";
-    document.getElementById("recDesc").value=r.descripcion||"";
-  }
-  openMod("modRecurso");
-}
-function editRecurso(id){openModRecurso(id);}
-async function saveRecurso(){
-  var id=document.getElementById("recId").value;
-  var row={nombre:document.getElementById("recNombre").value.trim(),categoria:document.getElementById("recCat").value,url:document.getElementById("recUrl").value.trim()||null,descripcion:document.getElementById("recDesc").value.trim()||null};
-  if(!row.nombre){toast("Ingresa un nombre","err");return;}
-  try{
-    if(id){
-      await db.from("recursos_equipo").update(row).eq("id",id);
-    }else{
-      var ins=await db.from("recursos_equipo").insert([row]).select();
-      if(ins.data)_recursos.unshift(ins.data[0]);
-    }
-    await loadRecursos();
-  }catch(e){
-    // Fallback localStorage
-    if(id){_recursos=_recursos.map(function(r){return String(r.id)===String(id)?Object.assign({},r,row):r;});}
-    else{var nr=Object.assign({id:"loc_"+Date.now()},row);_recursos.unshift(nr);}
-    localStorage.setItem("recursos_v1",JSON.stringify(_recursos));
-    renderRecursos();
-  }
-  closeMod("modRecurso");toast("Recurso guardado");
-}
-async function deleteRecurso(id){
-  if(!confirm("Eliminar este recurso?"))return;
-  try{await db.from("recursos_equipo").delete().eq("id",id);}
-  catch(e){console.warn(e);}
-  _recursos=_recursos.filter(function(r){return String(r.id)!==String(id);});
-  localStorage.setItem("recursos_v1",JSON.stringify(_recursos));
-  renderRecursos();toast("Eliminado");
-}
-(function(){
-  setTimeout(function(){
-    var nav=document.querySelector(".mbn");
-    if(!nav||document.getElementById("mbn-recursos"))return;
-    var btn=document.createElement("button");
-    btn.className="mbn-btn";btn.id="mbn-recursos";
-    btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 10h16M4 14h8M4 18h8"/><rect x="14" y="12" width="8" height="8" rx="1"/></svg><span>Recursos</span>';
-    btn.onclick=function(){goRec();};
-    nav.appendChild(btn);
-    // Cargar recursos al inicio
-    setTimeout(loadRecursos,2000);
-  },1200);
-})();
-function goRec(){
-  document.querySelectorAll("[id^=p-]").forEach(function(el){el.style.display="none";});
-  document.querySelectorAll(".mbn-btn").forEach(function(b){b.classList.remove("act");});
-  var p=document.getElementById("p-recursos");
-  if(p){p.style.display="block";}
-  var b=document.getElementById("mbn-recursos");
-  if(b)b.classList.add("act");
-  loadRecursos();
-}
-function abrirTareasDiarias(nombre){
-  nombre=nombre||"";
-  var sel=document.getElementById("tdAgente");
-  if(sel){
-    var ms=window.teams||[];
-    var html='<option value="">Selecciona...</option>';
-    for(var i=0;i<ms.length;i++){var n=ms[i].nombre||ms[i].name||"";if(n)html+='<option value="'+n+'"'+(n===nombre?' selected':'')+'>'+n+'</option>';}
-    sel.innerHTML=html;
-  }
-  var lbl=document.getElementById("tdFechaLabel");
-  if(lbl)lbl.textContent="Tareas para hoy - "+_f41();
-  var ta=document.getElementById("tdTexto");if(ta)ta.value="";
-  if(nombre)tdCargarPendientes(nombre);
-  openMod("modTareasDiarias");
-}
-function tdCargarPendientes(nombre){
-  var cont=document.getElementById("tdPendientesChips");if(!cont)return;
-  if(!nombre){cont.innerHTML="";return;}
-  var pend=(window.tasks||[]).filter(function(t){var r=(t.responsable||"").split(",").map(function(x){return x.trim();});return r.indexOf(nombre)>=0&&t.estado!=="Completo";});
-  if(!pend.length){cont.innerHTML='<span style="font-size:11px;color:var(--sub)">Sin tareas asignadas</span>';return;}
-  var chips="";
-  for(var j=0;j<Math.min(pend.length,10);j++){
-    var desc=pend[j].descripcion.slice(0,35);
-    chips+='<span onclick="tdAgregarTexto(this.innerText)" style="cursor:pointer;font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid var(--bdr);background:var(--bg3);color:var(--txt)">'+desc+'</span>';
-  }
-  cont.innerHTML=chips;
-}
-function tdAgregarTexto(txt){var ta=document.getElementById("tdTexto");if(!ta)return;var cur=ta.value.trim();ta.value=cur+(cur?"
-":"")+"- "+txt;}
-function tdEnviarWA(){
-  var ag=(document.getElementById("tdAgente")||{}).value||"";
-  var txt=(document.getElementById("tdTexto")||{}).value||"";
-  if(!txt.trim()){toast("Escribe las tareas primero","err");return;}
-  var found=null;for(var k=0;k<(window.teams||[]).length;k++){if((window.teams[k].nombre||window.teams[k].name||"")===ag){found=window.teams[k];break;}}
-  var tel=found?(found.telefono||found.tel||found.whatsapp||""):"";
-  var saludo=ag?"Hola "+ag.split(" ")[0]+"!":"Hola!";
-  var msg=saludo+" Tus tareas del dia "+_f41()+":
-
-"+txt.trim()+"
-
-Buen dia!";
-  window.open((tel?"https://wa.me/"+tel.replace(/[^0-9]/g,""):"https://wa.me")+"?text="+encodeURIComponent(msg),"_blank");
-}
-function tdCopiar(){
-  var ag=(document.getElementById("tdAgente")||{}).value||"";
-  var txt=(document.getElementById("tdTexto")||{}).value||"";
-  if(!txt.trim()){toast("Sin texto","err");return;}
-  var msg=(ag?"Hola "+ag.split(" ")[0]+"! ":"")+"Tareas del dia "+_f41()+":
-
-"+txt.trim();
-  navigator.clipboard.writeText(msg).then(function(){toast("Copiado!");});
-}
-(function(){
-  var _O=window.abrirBriefing;
-  window.abrirBriefing=function(){
-    if(_O)_O();
-    setTimeout(function(){
-      var mod=document.getElementById("modBriefing");
-      if(!mod||mod.querySelector(".btn-tdwa41"))return;
-      var btns=mod.querySelectorAll("button");if(!btns.length)return;
-      var btn=document.createElement("button");
-      btn.className="btn-tdwa41";
-      btn.textContent="Enviar tareas del dia a agente";
-      btn.style.cssText="background:#25D366;border:none;color:#fff;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;margin-top:8px;width:100%";
-      btn.onclick=function(){closeMod("modBriefing");abrirTareasDiarias("");};
-      btns[btns.length-1].parentElement.appendChild(btn);
-    },300);
-  };
-})();
-(function(){
-  var _ORB=window._renderBriefing;if(!_ORB)return;
-  window._renderBriefing=function(){
-    _ORB();
-    if(!document.body.classList.contains("dark"))return;
-    setTimeout(function(){
-      var mod=document.getElementById("modBriefing");if(!mod)return;
-      var all=mod.querySelectorAll("*");
-      for(var i=0;i<all.length;i++){
-        var st=all[i].style;
-        if(st.backgroundColor==="#f9fafb"||st.background==="#f9fafb"){st.background="#252830";st.backgroundColor="#252830";}
-        if(st.backgroundColor==="#fdf4ff"||st.background==="#fdf4ff"){st.background="#2d1f40";st.backgroundColor="#2d1f40";}
-        if(st.color==="#111827")st.color="#e2e8f0";
-        if(st.color==="#374151")st.color="#cbd5e1";
-        if(st.color==="#6b7280")st.color="#94a3b8";
-      }
-    },80);
-  };
-})();
-(function(){
-  var _OLM=window.loadMedios;if(!_OLM)return;
-  window.loadMedios=async function(){
-    if(_OLM)await _OLM();
-    try{
-      var cutoff=new Date();cutoff.setDate(cutoff.getDate()-2);
-      var cs=cutoff.toISOString().slice(0,10);
-      var res=await db.from("noticias_medios").select("id").lt("fecha",cs);
-      if(res.data&&res.data.length){
-        for(var i=0;i<res.data.length;i++)await db.from("noticias_medios").delete().eq("id",res.data[i].id);
-        if(window.medios535)window.medios535=window.medios535.filter(function(m){return(m.fecha||"")>=cs;});
-        if(typeof renderMediosList==="function")renderMediosList();
-        toast("Limpieza: "+res.data.length+" coberturas antiguas eliminadas");
-      }
-    }catch(e){console.warn("limpieza:",e.message);}
-  };
-})();
+var _recIC={foto:"🖼",template:"🎨",doc:"📄",drive:"📁",contacto:"📞",otro:"🔗"};
+var _recCT={foto:"Fotos",template:"Templates",doc:"Documentos",drive:"Drive",contacto:"Contactos",otro:"Otro"};
+async function loadRecursos(){try{var res=await db.from("recursos_equipo").select("*").order("created_at",{ascending:false});_recursos=res.data||[];}catch(e){var s=localStorage.getItem("rec_v1");_recursos=s?JSON.parse(s):[];}renderRecursos();}
+function renderRecursos(){var g=document.getElementById("recursos-grid");if(!g)return;var bq=(document.getElementById("rec-buscar")||{}).value||"";var ct=(document.getElementById("rec-cat")||{}).value||"";var fl=_recursos.filter(function(r){return(!ct||r.categoria===ct)&&(!bq||(r.nombre||"").toLowerCase().includes(bq.toLowerCase()));});if(!fl.length){g.innerHTML='<p style="grid-column:1/-1;text-align:center;color:var(--sub);padding:40px;font-size:13px">Sin recursos. Usa &quot;+ Agregar recurso&quot; para empezar.</p>';return;}var h="";for(var i=0;i<fl.length;i++){var r=fl[i];var ic=_recIC[r.categoria]||"🔗";var lb=_recCT[r.categoria]||"Otro";h+='<div class="rec-card"><div class="rec-icon">'+ic+'</div><div class="rec-name">'+(r.nombre||"Sin nombre")+'</div>';if(r.descripcion)h+='<div class="rec-desc">'+r.descripcion+'</div>';h+='<span class="rec-cat-badge rec-cat-'+(r.categoria||"otro")+'">'+lb+'</span><div class="rec-actions">';if(r.url)h+='<a href="'+r.url+'" target="_blank" class="btn-pri" style="font-size:11px;padding:4px 10px;text-decoration:none;flex:1;text-align:center">Abrir</a>';h+='<button onclick="openModRecurso(\"'+r.id+'\")" class="btn-sec" style="font-size:11px;padding:4px 8px">Editar</button><button onclick="deleteRecurso(\"'+r.id+'\")" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:13px">x</button></div></div>';}g.innerHTML=h;}
+function openModRecurso(id){document.getElementById("recId").value=id||"";if(!id){["recNombre","recUrl","recDesc"].forEach(function(x){document.getElementById(x).value="";});document.getElementById("recCat").value="foto";}else{var r=_recursos.filter(function(x){return String(x.id)===String(id);})[0];if(!r)return;document.getElementById("recNombre").value=r.nombre||"";document.getElementById("recCat").value=r.categoria||"otro";document.getElementById("recUrl").value=r.url||"";document.getElementById("recDesc").value=r.descripcion||"";}openMod("modRecurso");}
+async function saveRecurso(){var id=document.getElementById("recId").value;var row={nombre:document.getElementById("recNombre").value.trim(),categoria:document.getElementById("recCat").value,url:document.getElementById("recUrl").value.trim()||null,descripcion:document.getElementById("recDesc").value.trim()||null};if(!row.nombre){toast("Ingresa un nombre","err");return;}try{if(id){await db.from("recursos_equipo").update(row).eq("id",id);}else{var ins=await db.from("recursos_equipo").insert([row]).select();if(ins.data)_recursos.unshift(ins.data[0]);}await loadRecursos();}catch(e){if(id){_recursos=_recursos.map(function(r){return String(r.id)===String(id)?Object.assign({},r,row):r;});}else{_recursos.unshift(Object.assign({id:"loc_"+Date.now()},row));}localStorage.setItem("rec_v1",JSON.stringify(_recursos));renderRecursos();}closeMod("modRecurso");toast("Recurso guardado");}
+async function deleteRecurso(id){if(!confirm("Eliminar?"))return;try{await db.from("recursos_equipo").delete().eq("id",id);}catch(e){console.warn(e);}_recursos=_recursos.filter(function(r){return String(r.id)!==String(id);});localStorage.setItem("rec_v1",JSON.stringify(_recursos));renderRecursos();toast("Eliminado");}
+(function(){setTimeout(function(){var nav=document.querySelector(".mbn");if(!nav||document.getElementById("mbn-recursos"))return;var btn=document.createElement("button");btn.className="mbn-btn";btn.id="mbn-recursos";btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 10h16M4 14h8"/></svg><span>Recursos</span>';btn.onclick=function(){goRec();};nav.appendChild(btn);setTimeout(loadRecursos,2000);},1200);})();
+function goRec(){document.querySelectorAll("[id^=p-]").forEach(function(el){el.style.display="none";});document.querySelectorAll(".mbn-btn").forEach(function(b){b.classList.remove("act");});var p=document.getElementById("p-recursos");if(p)p.style.display="block";var b=document.getElementById("mbn-recursos");if(b)b.classList.add("act");loadRecursos();}
+function abrirTareasDiarias(nombre){nombre=nombre||"";var sel=document.getElementById("tdAgente");if(sel){var ms=window.teams||[];var hh='<option value="">Selecciona...</option>';for(var i=0;i<ms.length;i++){var n=ms[i].nombre||ms[i].name||"";if(n)hh+='<option value="'+n+'"'+(n===nombre?' selected':'')+'>'+n+'</option>';}sel.innerHTML=hh;}var lbl=document.getElementById("tdFechaLabel");if(lbl)lbl.textContent="Tareas para hoy - "+_f41();var ta=document.getElementById("tdTexto");if(ta)ta.value="";if(nombre)tdCargarPendientes(nombre);openMod("modTareasDiarias");}
+function tdCargarPendientes(nombre){var cont=document.getElementById("tdPendientesChips");if(!cont)return;if(!nombre){cont.innerHTML="";return;}var pend=(window.tasks||[]).filter(function(t){var r=(t.responsable||"").split(",").map(function(x){return x.trim();});return r.indexOf(nombre)>=0&&t.estado!=="Completo";});if(!pend.length){cont.innerHTML='<span style="font-size:11px;color:var(--sub)">Sin tareas asignadas</span>';return;}var chips="";for(var j=0;j<Math.min(pend.length,10);j++){var desc=pend[j].descripcion.slice(0,35);chips+='<span onclick="tdAgregarTexto(this.innerText)" style="cursor:pointer;font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid var(--bdr);background:var(--bg3);color:var(--txt)">'+desc+'</span>';}cont.innerHTML=chips;}
+function tdAgregarTexto(txt){var ta=document.getElementById("tdTexto");if(!ta)return;var cur=ta.value.trim();ta.value=cur+(cur?"\n":"")+"- "+txt;}
+function tdEnviarWA(){var ag=(document.getElementById("tdAgente")||{}).value||"";var txt=(document.getElementById("tdTexto")||{}).value||"";if(!txt.trim()){toast("Escribe las tareas primero","err");return;}var found=null;for(var k=0;k<(window.teams||[]).length;k++){if((window.teams[k].nombre||window.teams[k].name||"")===ag){found=window.teams[k];break;}}var tel=found?(found.telefono||found.tel||found.whatsapp||""):"";var saludo=ag?"Hola "+ag.split(" ")[0]+"!":"Hola!";var msg=saludo+" Tus tareas del dia "+_f41()+":\n\n"+txt.trim()+"\nBuen dia!";window.open((tel?"https://wa.me/"+tel.replace(/[^0-9]/g,""):"https://wa.me")+"?text="+encodeURIComponent(msg),"_blank");}
+function tdCopiar(){var ag=(document.getElementById("tdAgente")||{}).value||"";var txt=(document.getElementById("tdTexto")||{}).value||"";if(!txt.trim()){toast("Sin texto","err");return;}navigator.clipboard.writeText((ag?"Hola "+ag.split(" ")[0]+"! ":"")+"Tareas del dia "+_f41()+":\n\n"+txt.trim()).then(function(){toast("Copiado!");});}
+(function(){var _O=window.abrirBriefing;window.abrirBriefing=function(){if(_O)_O();setTimeout(function(){var mod=document.getElementById("modBriefing");if(!mod||mod.querySelector(".btn-tdwa41"))return;var btns=mod.querySelectorAll("button");if(!btns.length)return;var btn=document.createElement("button");btn.className="btn-tdwa41";btn.textContent="Enviar tareas del dia a agente";btn.style.cssText="background:#25D366;border:none;color:#fff;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;margin-top:8px;width:100%";btn.onclick=function(){closeMod("modBriefing");abrirTareasDiarias("");};btns[btns.length-1].parentElement.appendChild(btn);},300);};})();
+(function(){var _ORB=window._renderBriefing;if(!_ORB)return;window._renderBriefing=function(){_ORB();if(!document.body.classList.contains("dark"))return;setTimeout(function(){var mod=document.getElementById("modBriefing");if(!mod)return;var all=mod.querySelectorAll("*");for(var i=0;i<all.length;i++){var st=all[i].style;if(st.backgroundColor==="#f9fafb"){st.background="#252830";st.backgroundColor="#252830";}if(st.color==="#111827")st.color="#e2e8f0";if(st.color==="#374151")st.color="#cbd5e1";}},80);};})();
+(function(){var _OLM=window.loadMedios;if(!_OLM)return;window.loadMedios=async function(){if(_OLM)await _OLM();try{var cutoff=new Date();cutoff.setDate(cutoff.getDate()-2);var cs=cutoff.toISOString().slice(0,10);var res=await db.from("noticias_medios").select("id").lt("fecha",cs);if(res.data&&res.data.length){for(var i=0;i<res.data.length;i++)await db.from("noticias_medios").delete().eq("id",res.data[i].id);if(typeof renderMediosList==="function")renderMediosList();toast("Limpieza: "+res.data.length+" coberturas antiguas eliminadas");}}catch(e){console.warn("limpieza:",e.message);}};})();
 if(typeof notifEventoGuardado==="undefined")window.notifEventoGuardado=function(){};
 if(typeof notifCobertura==="undefined")window.notifCobertura=function(){};
 if(typeof editPubMod==="undefined"&&typeof editPubItem==="function")window.editPubMod=function(id){return editPubItem(id);};
-if(typeof getSelCuentaStr==="undefined")window.getSelCuentaStr=function(cid){var s=[].slice.call(document.getElementById(cid).querySelectorAll(".copt.sel"));return s.map(function(x){var m=x.getAttribute("onclick").match(/'([^']+)')$/);return m?m[1]:null;}).filter(Boolean).join(",")||null;};
 console.log("v5.41 OK - Recursos+TareasWA+Dark");
 </script>
 </body>
