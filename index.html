@@ -777,56 +777,6 @@ body.dark #cal-day-content [style*="color:#9ca3af"]{color:#6b7280 !important}
   body.dark .mbn-btn.mbn-active { color:#818cf8 }
 }
 
-
-
-body.dark .met-v{color:var(--txt)!important}
-body.dark .met-l{color:var(--sub)!important}
-body.dark .metrow .met{background:var(--bg2)!important}
-/* Tabs de cuentas en métricas */
-body.dark .acctab{background:var(--bg2)!important;color:var(--sub)!important;border-color:var(--bdr)!important}
-body.dark .acctab.act{background:var(--acc)!important;color:#fff!important}
-/* Publicaciones - tarjetas y semana */
-body.dark .pub-card,body.dark .pub-item{background:var(--bg2)!important;border-color:var(--bdr)!important;color:var(--txt)!important}
-body.dark .pub-card *,body.dark .pub-item *{color:inherit}
-/* Calendario - eventos inline */
-body.dark .wev-wrap,body.dark .cal-ev-inline{background:var(--bg2)!important}
-/* Kanban / Tablero */
-body.dark .kboard > div{background:var(--bg2)!important}
-body.dark .kcol-hd{background:var(--bg2)!important;color:var(--txt)!important}
-/* Cards generales con fondo blanco */
-body.dark [style*="background:#fff"]:not([style*="background:#fff0"]):not(svg){background:var(--bg2)!important;color:var(--txt)!important}
-body.dark [style*="background:#f9fafb"]{background:var(--bg2)!important;color:var(--txt)!important}
-body.dark [style*="background:#f3f4f6"]{background:var(--bg3)!important;color:var(--txt)!important}
-body.dark [style*="background:#f0f0f0"]{background:rgba(255,255,255,.06)!important}
-body.dark [style*="background:#e5e7eb"]{background:var(--bg3)!important}
-body.dark [style*="color:#111827"]{color:var(--txt)!important}
-body.dark [style*="color:#1f2937"]{color:var(--txt)!important}
-body.dark [style*="color:#374151"]{color:var(--sub)!important}
-body.dark [style*="color:#6b7280"]{color:var(--sub)!important}
-/* Selectores y inputs en dark */
-body.dark select,body.dark textarea,body.dark input[type=text],body.dark input[type=date],body.dark input[type=url],body.dark input[type=number]{background:var(--bg2)!important;color:var(--txt)!important;border-color:var(--bdr)!important}
-/* Modales genéricos */
-body.dark .mod{background:var(--bg)!important;color:var(--txt)!important}
-body.dark .mod .fg label{color:var(--sub)!important}
-/* Briefing modal completo */
-body.dark #modBriefing .mod{background:#181c24!important}
-body.dark #bf-tareas > *,body.dark #bf-pubs > *,body.dark #bf-eventos > *,body.dark #bf-ents > *{background:var(--bg2)!important;color:var(--txt)!important}
-body.dark #bf-tareas > * *,body.dark #bf-pubs > * *{color:var(--txt)!important}
-/* Líneas del calendario */
-body.dark .whr{border-color:rgba(255,255,255,.06)!important}
-/* Cuentas redes (acctabs) */
-body.dark #acctabs *{color:var(--sub)!important}
-/* Novedades/cards en secciones */
-body.dark .ncard,body.dark .ecard,body.dark .mcard,body.dark .cbox,body.dark .tmcard{background:var(--bg2)!important;border-color:var(--bdr)!important;color:var(--txt)!important}
-
-/* ═══ DARK MODE v5.39 ═══ */
-body.dark .met{background:var(--bg2)!important;border-color:var(--bdr)!important}
-body.dark .met-v{color:var(--txt)!important}
-body.dark .met-l{color:var(--sub)!important}
-body.dark .acctab{background:var(--bg2)!important;color:var(--sub)!important;border-color:var(--bdr)!important}
-body.dark .acctab.act{background:var(--acc)!important;color:#fff!important}
-body.dark .cbox,body.dark .ncard,body.dark .ecard,body.dark .tmcard,body.dark .mcard{background:var(--bg2)!important;border-color:var(--bdr)!important;color:var(--txt)!important}
-body.dark .cbox-t,body.dark .tmcard .nm{color:var(--txt)!important}
 </style>
 </head>
 <body>
@@ -1625,6 +1575,7 @@ const SB_URL="https://kvbwurvvgfarmiqtvlsc.supabase.co";
 const SB_KEY="sb_publishable_XYkrltbXO7qOj4Tz48PoJg_uh8m-zmr";
 const GCAL_ID="642f04e4333c91e3c67f35a779bd775a7c4cc6d05700da68376b0ff313ea9f0b@group.calendar.google.com";
 const GCAL_IDS=["642f04e4333c91e3c67f35a779bd775a7c4cc6d05700da68376b0ff313ea9f0b@group.calendar.google.com","tresarroyosprensa@gmail.com"];
+const GCAL_IDS=["642f04e4333c91e3c67f35a779bd775a7c4cc6d05700da68376b0ff313ea9f0b@group.calendar.google.com","tresarroyosprensa@gmail.com"];
 const GCAL_KEY="AIzaSyAoWTmpOToooLj-xuQCb_hEuVNyYVg5tFk";
 const PASS="prensa2026";
 const START=new Date(2026,3,20);
@@ -1779,27 +1730,16 @@ function popSelects(){
 
 // ═══ LOGIN ═══
 // Load team names for login dropdown (before login)
-async async function loadLoginTeams(){
-  const sel = document.getElementById("lu");
-  if(!sel) return;
-  // Intentar desde Supabase
-  let nombres = [];
+async function loadLoginTeams(){
   try{
-    const tmp = supabase.createClient(SB_URL, SB_KEY);
-    const {data} = await tmp.from("usuarios").select("nombre").order("nombre");
-    if(data && data.length > 0) nombres = data.map(function(r){return r.nombre;});
-  }catch(e){ console.warn("loadLoginTeams Supabase:",e); }
-  // Fallback: usar el array TEAMS hardcodeado
-  if(!nombres.length && typeof TEAMS !== "undefined" && TEAMS.length){
-    nombres = TEAMS.map(function(m){return m.nombre||m.name||"";}).filter(Boolean).sort();
-  }
-  // Fallback final: lista hardcodeada del equipo de comunicacion
-  if(!nombres.length){
-    nombres = ["Debora","Guada","Josefina Claromeco","Lina","Maiten","Marianela","Santiago","sofia","Yesi"];
-    console.log("Login: usando lista hardcodeada de agentes");
-  }
-  sel.innerHTML = '<option value="">\u2014 selecci\u00F3n\u00E1 \u2014</option>' +
-    nombres.map(function(n){ return '<option value="'+n+'">'+n+'</option>'; }).join("");
+    const tmp=supabase.createClient(SB_URL,SB_KEY);
+    const{data}=await tmp.from("usuarios").select("nombre").order("nombre");
+    const sel=document.getElementById("lu");
+    if(data&&data.length){
+      sel.innerHTML='<option value="">— seleccioná —</option>';
+      data.forEach(m=>sel.appendChild(new Option(m.nombre,m.nombre)));
+    }
+  }catch(e){console.warn("loadLoginTeams:",e);}
 }
 // Load teams when page opens
 loadLoginTeams();
@@ -2372,7 +2312,7 @@ function renderMaterial(){
   document.getElementById("sbm").textContent=mat.length;
   if(!mat.length){document.getElementById("matgrid").innerHTML=`<div style="text-align:center;padding:2rem;color:#9ca3af">No hay material listo.</div>`;return;}
   document.getElementById("matgrid").innerHTML=mat.map(t=>{
-    const m=gm(t.responsable);
+    const _r2=(t.responsable||"").split(",").map(r=>r.trim()).filter(Boolean);const m=gm(_r2[0]||"");
     return`<div class="mcard">
       <div style="font-size:13px;font-weight:600;margin-bottom:5px">${t.descripcion}</div>
       ${t.observaciones?`<div style="font-size:10px;color:#6b7280;margin-bottom:6px;font-style:italic">${t.observaciones}</div>`:""}
@@ -2397,37 +2337,19 @@ async function markCompleto(id){
 // ═══ WEEKLY VIEW ═══
 function weekMon(off){return addD(START,off*7)}
 function buildWeek(hdrId,scrollId,off,showPubs,showAg){
-  const isDark=document.body.classList.contains("dark");
-  const _bg=isDark?"#1a1d27":"#f9fafb";
-  const _bg2=isDark?"#21242e":"#ffffff";
-  const _bdr=isDark?"rgba(255,255,255,.07)":"#e5e7eb";
-  const _bdr2=isDark?"rgba(255,255,255,.04)":"#f0f0f0";
-  const _txt=isDark?"#e2e8f0":"#374151";
-  const _sub=isDark?"#94a3b8":"#6b7280";
-  const _todayBg=isDark?"#1e3a5f":"#eef2ff";
-  const isDark=document.body.classList.contains("dark");
-  const _bg=isDark?"#1a1d27":"#f9fafb";
-  const _bg2=isDark?"#252830":"#ffffff";
-  const _bg3=isDark?"#1e2028":"#f0f0f0";
-  const _bdr=isDark?"rgba(255,255,255,.08)":"#e5e7eb";
-  const _bdr2=isDark?"rgba(255,255,255,.05)":"#f0f0f0";
-  const _txt=isDark?"#e2e8f0":"#374151";
-  const _sub=isDark?"#94a3b8":"#6b7280";
-  const _todayBg=isDark?"#1e3a5f":"#eef2ff";
-  const _todayTxt=isDark?"#93c5fd":"#4338ca";
   const mon=weekMon(off);
   const DN=["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
   const SLOT=60;    // px por hora
   const H0=7,H1=22; // rango de horas
 
   // ── HEADER: días + guardia ──
-  let hdr=`<div style="width:52px;flex-shrink:0;background:${_bg};border-right:1px solid ${_bdr}"></div>`;
+  let hdr=`<div style="width:52px;flex-shrink:0;background:#f9fafb;border-right:1px solid #e5e7eb"></div>`;
   for(let i=0;i<7;i++){
     const d=addD(mon,i),ds=iso(d);
     const isT=ds===isoToday,isWE=i>=5;
     const guards=getGuardia(ds);
     const gc=guards.length>0?(gm(guards[0])||{color:"#e5e7eb"}).color:"#e5e7eb";
-    hdr+=`<div style="flex:1;padding:5px 3px;text-align:center;border-right:1px solid ${_bdr};border-top:3px solid ${gc};background:${isT?"#eff6ff":isWE?"#fafafa":"#fff"}">
+    hdr+=`<div style="flex:1;padding:5px 3px;text-align:center;border-right:1px solid #e5e7eb;border-top:3px solid ${gc};background:${isT?"#eff6ff":isWE?"#fafafa":"#fff"}">
       <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#9ca3af;letter-spacing:.05em">${DN[i]}</div>
       <div style="font-size:${isT?14:16}px;font-weight:700;${isT?"display:inline-flex;width:24px;height:24px;background:#667eea;color:#fff;border-radius:50%;align-items:center;justify-content:center;font-size:13px":""}">${d.getDate()}</div>
       <div style="display:flex;justify-content:center;gap:2px;margin-top:2px">${guards.map((n,gi)=>{const m=gm(n);return m?`<div style="width:14px;height:14px;border-radius:50%;background:${m.color};color:${m.color_texto};display:flex;align-items:center;justify-content:center;font-size:6px;font-weight:700;border:1.5px solid #fff" title="${gi===0?"Titular":"Soporte"}: ${m.nombre}">${ini(m.nombre)}</div>`:""}).join("")}</div>
@@ -2472,7 +2394,7 @@ function buildWeek(hdrId,scrollId,off,showPubs,showAg){
         const hr=p.hora?parseInt(String(p.hora).split(":")[0]):null;
         const mn=p.hora?parseInt(String(p.hora).split(":")[1]||0):0;
         evs.push({hr,mn,sort:(hr??9)*60+mn,
-          html:`<div onclick="event.stopPropagation();editPubItem('${p.id}')" style="background:${_todayBg};border-left:3px solid ${ct.dot||"#667eea"};border-radius:4px;padding:3px 5px;font-size:10px;cursor:pointer;overflow:hidden;line-height:1.3;box-shadow:0 1px 2px rgba(0,0,0,.08)">
+          html:`<div onclick="event.stopPropagation();editPubItem('${p.id}')" style="background:#f0f0ff;border-left:3px solid ${ct.dot||"#667eea"};border-radius:4px;padding:3px 5px;font-size:10px;cursor:pointer;overflow:hidden;line-height:1.3;box-shadow:0 1px 2px rgba(0,0,0,.08)">
             <div style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📱 ${ct.label} · ${p.tipo}</div>
             ${p.hora?`<div style="font-size:9px;opacity:.75;margin-top:1px">🕐 ${p.hora.slice(0,5)} ${p.descripcion.slice(0,16)}${p.descripcion.length>16?"…":""}</div>`:""}
           </div>`
@@ -2499,7 +2421,7 @@ function buildWeek(hdrId,scrollId,off,showPubs,showAg){
   }
 
   // Construir HTML del cuerpo
-  let hourColHtml=`<div style="width:52px;flex-shrink:0;position:relative;border-right:1px solid ${_bdr}">`;
+  let hourColHtml=`<div style="width:52px;flex-shrink:0;position:relative;border-right:1px solid #e5e7eb">`;
   for(let h=H0;h<=H1;h++){
     hourColHtml+=`<div style="position:absolute;top:${(h-H0)*SLOT-9}px;right:6px;font-size:10px;font-weight:600;color:#9ca3af;line-height:1">${h===H0?"":String(h).padStart(2,"0")+":00"}</div>`;
   }
@@ -2537,7 +2459,7 @@ function buildWeek(hdrId,scrollId,off,showPubs,showAg){
     // All-day strip
     const adStrip=allDay.length?`<div style="padding:2px;border-bottom:1px solid #f0f0f0;min-height:20px;display:flex;flex-direction:column;gap:1px">${allDay.map(e=>e.html).join("")}</div>`:"";
 
-    dayCols+=`<div style="flex:1;min-width:0;border-right:1px solid ${_bdr};background:${isT?"rgba(102,126,234,.02)":gbg};overflow:hidden">${adStrip}${inner}</div>`;
+    dayCols+=`<div style="flex:1;min-width:0;border-right:1px solid #e5e7eb;background:${isT?"rgba(102,126,234,.02)":gbg};overflow:hidden">${adStrip}${inner}</div>`;
   }
 
   const sc=document.getElementById(scrollId);
@@ -3019,7 +2941,7 @@ async function syncGCal(){
   btn.className="gcbtn go";txt.textContent="Sincronizando...";
   const calIds=(typeof GCAL_IDS!=="undefined"&&GCAL_IDS.length)?GCAL_IDS:[GCAL_ID];
   try{
-    let allEvs=[],calOkCount=0,calErrList=[];
+    let allEvs=[],errs=[];
     const tMin=new Date(TODAY.getFullYear(),TODAY.getMonth()-3,1).toISOString();
     const tMax=new Date(TODAY.getFullYear()+1,TODAY.getMonth()+3,1).toISOString();
     for(const calId of calIds){
@@ -3028,25 +2950,12 @@ async function syncGCal(){
         do{
           const url="https://www.googleapis.com/calendar/v3/calendars/"+encodeURIComponent(calId)+"/events?key="+encodeURIComponent(GCAL_KEY)+"&timeMin="+tMin+"&timeMax="+tMax+"&singleEvents=true&orderBy=startTime&maxResults=2500"+(nx?"&pageToken="+nx:"");
           const res=await fetch(url);
-          if(!res.ok){
-            const er=await res.json();
-            const msg=er.error?.message||"Error "+res.status;
-            if(res.status===404){
-              calErrList.push(calId.slice(0,20)+"... (no publico)");
-              console.warn("Calendario privado o no encontrado:",calId,"-",msg);
-            } else {
-              calErrList.push(calId.slice(0,20)+"... ("+msg+")");
-            }
-            break;
-          }
+          if(!res.ok){const er=await res.json();errs.push(calId.slice(0,15)+" error "+res.status);break;}
           const data=await res.json();ca=[...ca,...(data.items||[])];nx=data.nextPageToken||null;
           txt.textContent="Cargando "+(allEvs.length+ca.length)+"...";
         }while(nx);
-        if(ca.length>0){allEvs=[...allEvs,...ca];calOkCount++;}
-      }catch(calErr){
-        calErrList.push(calId.slice(0,20)+"... (error de red)");
-        console.warn("Error en calendario",calId,":",calErr.message);
-      }
+        allEvs=[...allEvs,...ca];
+      }catch(ce){errs.push(calId.slice(0,15)+" err");console.warn("cal err:",ce);}
     }
     const seen=new Map();for(const it of allEvs)if(!seen.has(it.id))seen.set(it.id,it);
     gcalEvs=[];
@@ -3056,29 +2965,18 @@ async function syncGCal(){
       const fecha=s.split("T")[0],hora=s.includes("T")?s.split("T")[1].slice(0,5):null;
       const desc=(it.summary||"(Sin titulo)").slice(0,200),lugar=(it.location||"").slice(0,200);
       const dl=desc.toLowerCase();
-      const esPrensa=["4","11"].includes(String(it.colorId||""))||dl.includes("radio")||dl.includes("entrevista")||dl.includes("prensa")||dl.includes("lu24")||dl.includes("diario")||dl.includes("tv")||dl.includes("cobertura")||dl.includes("nota");
+      const esPrensa=["4","11"].includes(String(it.colorId||""))||dl.includes("radio")||dl.includes("entrevista")||dl.includes("prensa")||dl.includes("lu24")||dl.includes("diario")||dl.includes("tv")||dl.includes("cobertura");
       gcalEvs.push({id:"gc_"+it.id,fecha,hora,descripcion:desc,lugar,tipo:esPrensa?"prensa":"intendente",cancelado:false,gcal:true});
     }
-    gcalOk=calOkCount>0;
+    gcalOk=gcalEvs.length>0||errs.length<calIds.length;
     btn.className=gcalOk?"gcbtn ok":"gcbtn";
-    let statusTxt="GCal · "+gcalEvs.length+" ev";
-    if(calErrList.length>0)statusTxt+=" (⚠ "+calErrList.length+" cal privado)";
-    txt.textContent=statusTxt;
+    txt.textContent="GCal · "+gcalEvs.length+" ev"+(errs.length?" (⚠"+errs.length+")":"");
     gcalEvs.forEach(e=>{if(!e.hora||e.cancelado)return;if(parseInt(String(e.hora).split(":")[0])>=15&&!cobSel[e.id])cobSel[e.id]=true;});
     renderCal();renderCalDay();renderWeek();updateBadges();
     const gp=document.getElementById("p-guardias");if(gp&&gp.style.display!=="none")renderGuardias();
-    if(gcalOk){
-      let msg="Sincronizados "+gcalEvs.length+" eventos";
-      if(calErrList.length>0)msg+=" ⚠ "+calErrList[0];
-      toast(msg);
-    } else {
-      toast("Error: ningun calendario accesible","err");
-    }
+    toast("✓ "+gcalEvs.length+" eventos sincronizados");
     if(!syncGCal._iv)syncGCal._iv=setInterval(syncGCal,5*60*1000);
-  }catch(err){
-    gcalOk=false;btn.className="gcbtn";txt.textContent="Sincronizar Calendar";
-    toast("Error: "+err.message,"err");
-  }
+  }catch(err){gcalOk=false;btn.className="gcbtn";txt.textContent="Sincronizar Calendar";toast("Error: "+err.message,"err");}
 }
 
 // ═══ GUARDIAS ═══
@@ -4345,7 +4243,7 @@ function abrirBriefing(){
   const now=new Date();
   const h=now.getHours();
   // Solo mostrar de lunes a viernes, entre 6 y 20hs
-  // Mostrar siempre (incluso fines de semana);
+  // Mostrar todos los dias;
   if(h<6||h>=20)return;
   // No mostrar más de una vez por día
   // Briefing siempre visible
@@ -4358,12 +4256,6 @@ function closeBriefing(){
 }
 
 function _renderBriefing(){
-  const _dk=document.body.classList.contains("dark");
-  const _bg=_dk?"#252830":"#f9fafb";
-  const _bg2=_dk?"#2d1f40":"#fdf4ff";
-  const _txt=_dk?"#e2e8f0":"#111827";
-  const _sub=_dk?"#94a3b8":"#6b7280";
-  const _txt2=_dk?"#cbd5e1":"#374151";
   const now=new Date();
   const h=now.getHours();
   const saludoFinal=h<12?"Buenos días ☀️":h<18?"Buenas tardes 🌤":"Buenas noches 🌙";
@@ -4413,10 +4305,10 @@ function _renderBriefing(){
     evEl.innerHTML=todayEvs.slice(0,5).map(e=>{
       const icon=e.tipo==="prensa"?"📻":e.tipo==="municipal"?"🏛":"🗓";
       const isCob=cobSel[e.id];
-      return`<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:'+(document.body.classList.contains('dark')?'#252830':'#f9fafb')+';border-radius:8px;margin-bottom:4px;border-left:3px solid ${e.tipo==="prensa"?"#ec4899":e.tipo==="municipal"?"#22c55e":"#667eea"}">
+      return`<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:#f9fafb;border-radius:8px;margin-bottom:4px;border-left:3px solid ${e.tipo==="prensa"?"#ec4899":e.tipo==="municipal"?"#22c55e":"#667eea"}">
         <span style="font-size:14px">${icon}</span>
         <div style="flex:1;min-width:0">
-          <div style="font-size:12px;font-weight:600;color:'+(document.body.classList.contains('dark')?'#e2e8f0':'#111827')+';overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${e.descripcion}</div>
+          <div style="font-size:12px;font-weight:600;color:#111827;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${e.descripcion}</div>
           <div style="font-size:10px;color:#9ca3af">${e.hora?e.hora.slice(0,5)+" hs":"Sin hora"}${e.lugar?" · "+e.lugar.slice(0,25):""}${isCob?" · <span style='color:#6d28d9;font-weight:700'>📋 Cobertura</span>":""}</div>
         </div>
       </div>`;
@@ -4436,9 +4328,9 @@ function _renderBriefing(){
     pubEl.innerHTML=todayPubs.slice(0,4).map(p=>{
       const ct=getCta(p.cuenta)||{label:p.cuenta,dot:"#667eea"};
       const isListo=p.estado==="Listo para publicar"||p.estado==="Publicado";
-      return`<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:'+(document.body.classList.contains('dark')?'#252830':'#f9fafb')+';border-radius:8px;margin-bottom:4px;border-left:3px solid ${ct.dot||"#667eea"}">
+      return`<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:#f9fafb;border-radius:8px;margin-bottom:4px;border-left:3px solid ${ct.dot||"#667eea"}">
         <span style="background:${ct.dot};color:#fff;padding:2px 6px;border-radius:6px;font-size:9px;font-weight:700;white-space:nowrap">${ct.label} ${ct.sub}</span>
-        <div style="flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:11px;color:'+(document.body.classList.contains('dark')?'#cbd5e1':'#374151')+'">${p.descripcion}</div>
+        <div style="flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:11px;color:#374151">${p.descripcion}</div>
         <span style="font-size:9px;color:${isListo?"#16a34a":"#d97706"};font-weight:700;flex-shrink:0">${p.estado==="Publicado"?"✅":p.estado==="Listo para publicar"?"🟢":"🟡"}</span>
       </div>`;
     }).join("")+(todayPubs.length>4?`<div style="font-size:11px;color:#9ca3af;text-align:center;padding:4px">+${todayPubs.length-4} publicaciones más...</div>`:"");
@@ -4454,10 +4346,10 @@ function _renderBriefing(){
   }else{
     entWrap.style.display="block";
     entEl.innerHTML=todayEnts.map(e=>`
-      <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:'+(document.body.classList.contains('dark')?'#2d1f40':'#fdf4ff')+';border-radius:8px;margin-bottom:4px;border-left:3px solid #a855f7">
+      <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:#fdf4ff;border-radius:8px;margin-bottom:4px;border-left:3px solid #a855f7">
         <span style="font-size:14px">📻</span>
         <div style="flex:1;min-width:0">
-          <div style="font-size:12px;font-weight:600;color:'+(document.body.classList.contains('dark')?'#e2e8f0':'#111827')+'">${e.funcionario} <span style="color:#9ca3af;font-weight:400">—</span> <span style="color:#7c3aed">${e.medio}</span></div>
+          <div style="font-size:12px;font-weight:600;color:#111827">${e.funcionario} <span style="color:#9ca3af;font-weight:400">—</span> <span style="color:#7c3aed">${e.medio}</span></div>
           <div style="font-size:10px;color:#9ca3af">${e.hora?e.hora.slice(0,5)+" hs ·":""} ${e.tema?e.tema.slice(0,40):""}</div>
         </div>
         ${e.tel_funcionario?`<a href="https://wa.me/${e.tel_funcionario}" target="_blank" style="background:#25d366;color:#fff;border-radius:5px;padding:3px 7px;font-size:9px;font-weight:700;text-decoration:none;flex-shrink:0">📱 WA</a>`:""}
@@ -4480,7 +4372,7 @@ function _renderBriefing(){
       const ini2=m?(t.responsable||"?").slice(0,2).toUpperCase():"?";
       return`<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:#fff5f5;border-radius:8px;margin-bottom:4px;border-left:3px solid #ef4444">
         <span style="font-size:12px">🔴</span>
-        <div style="flex:1;min-width:0;font-size:12px;color:'+(document.body.classList.contains('dark')?'#e2e8f0':'#111827')+';overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${t.descripcion}</div>
+        <div style="flex:1;min-width:0;font-size:12px;color:#111827;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${t.descripcion}</div>
         ${m?`<div style="width:22px;height:22px;border-radius:50%;background:${col};color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0">${ini2}</div>`:""}
       </div>`;
     }).join("");
@@ -5450,232 +5342,29 @@ if(typeof selCta==='function'&&!window._seltaPatched){
 console.log('v5.35 CLEAN OK');
 </script>
 
-<script>
-// ══ FIX: Briefing muestra boton WA por agente para enviar tareas del dia ══
-(function(){
-  const _orig = window._renderBriefing;
-  if(!_orig) return;
-  window._renderBriefing = function(){
-    _orig();
-    // Agregar boton WA "Enviar tareas del dia" si hay guardia asignada
-    setTimeout(function(){
-      const gEl = document.getElementById('bf-guardia');
-      if(!gEl) return;
-      if(gEl.querySelector('.wa-tareas-btn')) return; // ya está
-      
-      // Obtener la guardia del dia
-      const today = typeof iso === 'function' ? iso(new Date(TODAY)) : new Date().toISOString().slice(0,10);
-      const guardiaHoy = typeof guardias !== 'undefined' 
-        ? (guardias.find(function(g){ return g.fecha === today; }) || null)
-        : null;
-      
-      if(!guardiaHoy) return;
-      
-      // Obtener tareas del agente de guardia
-      const agente = guardiaHoy.titular || guardiaHoy.agente || '';
-      if(!agente) return;
-      
-      const tareasAgente = (window.tasks || []).filter(function(t){
-        const r = (t.responsable||'').split(',').map(function(x){return x.trim();});
-        return r.includes(agente) && t.estado !== 'Completo';
-      });
-      
-      // Obtener tel del agente
-      const miembro = (window.teams || []).find(function(m){ return (m.nombre||m.name||'') === agente; });
-      const tel = miembro ? (miembro.telefono || miembro.tel || miembro.whatsapp || '') : '';
-      
-      if(!tel && tareasAgente.length === 0) return;
-      
-      // Construir mensaje WA
-      const hoy = new Date(TODAY);
-      const dias = ['Domingo','Lunes','Martes','Miercoles','Jueves','Viernes','Sabado'];
-      const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-      const fechaStr = dias[hoy.getDay()] + ' ' + hoy.getDate() + ' de ' + meses[hoy.getMonth()];
-      
-      let msg = 'Hola ' + agente.split(' ')[0] + '! Tus tareas para hoy ' + fechaStr + ':' + '
-
-';
-      if(tareasAgente.length > 0){
-        tareasAgente.slice(0,8).forEach(function(t,i){
-          msg += (i+1) + '. ' + t.descripcion.slice(0,60) + (t.prioridad==='Alta'?' [URGENTE]':'') + '
-';
-        });
-      } else {
-        msg += 'No tenes tareas pendientes asignadas.';
-      }
-      msg += '
-Que tengas buen dia!';
-      
-      const waUrl = tel 
-        ? 'https://wa.me/' + tel.replace(/[^0-9]/g,'') + '?text=' + encodeURIComponent(msg)
-        : 'https://wa.me/?text=' + encodeURIComponent(msg);
-      
-      // Agregar boton
-      const btn = document.createElement('a');
-      btn.className = 'wa-tareas-btn';
-      btn.href = waUrl;
-      btn.target = '_blank';
-      btn.style.cssText = 'display:inline-flex;align-items:center;gap:6px;background:#25D366;color:#fff;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;text-decoration:none;margin-top:8px;cursor:pointer';
-      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>'
-        + 'Enviar tareas a ' + agente.split(' ')[0];
-      
-      gEl.appendChild(btn);
-    }, 300);
-  };
-})();
-
-// ══ FIX: Medios - solo guardar 2 dias, borrar el resto automaticamente ══
-(function(){
-  const _orig = window.loadMedios;
-  window.loadMedios = async function(){
-    if(_orig) await _orig();
-    // Auto-limpiar registros de mas de 2 dias
-    try {
-      const cutoff = new Date();
-      cutoff.setDate(cutoff.getDate() - 2);
-      const cutoffStr = cutoff.toISOString().slice(0,10);
-      const { data: old } = await db.from('noticias_medios')
-        .select('id')
-        .lt('fecha', cutoffStr);
-      if(old && old.length > 0){
-        const ids = old.map(function(r){ return r.id; });
-        for(const id of ids){
-          await db.from('noticias_medios').delete().eq('id', id);
-        }
-        console.log('Auto-limpieza medios: ' + ids.length + ' registros eliminados');
-        // Recargar lista
-        window.medios535 = (window.medios535||[]).filter(function(m){ return (m.fecha||'') >= cutoffStr; });
-        if(typeof renderMediosList === 'function') renderMediosList();
-      }
-    } catch(e){ console.warn('Auto-limpieza medios:', e.message); }
-  };
-})();
-
-// ══ FIX: Metricas redes - forzar recarga desde Supabase ══
-(function(){
-  // Sobreescribir renderMetricas para que siempre use los ultimos datos
-  const _origLoad = window.renderAll;
-  window.renderAll = function(){
-    if(_origLoad) _origLoad();
-    // Recargar stats de redes si la seccion esta visible
-    setTimeout(function(){
-      const metPanel = document.getElementById('p-metricas');
-      if(!metPanel || metPanel.style.display === 'none') return;
-      if(typeof loadStats === 'function'){
-        loadStats();
-      } else {
-        // Intentar cargar stats directamente
-        db.from('stats_redes').select('*').order('fecha', {ascending:false}).limit(30)
-          .then(function(r){
-            if(r.data && r.data.length){
-              window.stats = r.data;
-              if(typeof renderMetricas === 'function') renderMetricas();
-            }
-          }).catch(function(e){ console.warn('loadStats fallback:', e.message); });
-      }
-    }, 1000);
-  };
-})();
-
-// ══ Panel de tareas diarias para enviar a agente ══
-// Abrir modal de WA con resumen de tareas del agente seleccionado
-window.abrirPanelTareasAgente = function(nombreAgente){
-  const agente = nombreAgente || '';
-  const hoy = new Date(TODAY);
-  const dias = ['Domingo','Lunes','Martes','Miercoles','Jueves','Viernes','Sabado'];
-  const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-  const fechaStr = dias[hoy.getDay()] + ' ' + hoy.getDate() + ' de ' + meses[hoy.getMonth()];
-  
-  const tareasAgente = (window.tasks||[]).filter(function(t){
-    if(!agente) return t.estado !== 'Completo';
-    const r = (t.responsable||'').split(',').map(function(x){return x.trim();});
-    return r.includes(agente) && t.estado !== 'Completo';
-  });
-  
-  const miembro = (window.teams||[]).find(function(m){ return (m.nombre||m.name||'') === agente; });
-  const tel = miembro ? (miembro.telefono||miembro.tel||miembro.whatsapp||'') : '';
-  
-  let msg = (agente ? 'Hola ' + agente.split(' ')[0] + '! ' : '') + 'Tareas para hoy ' + fechaStr + ':' + '
-
-';
-  if(tareasAgente.length > 0){
-    tareasAgente.slice(0,10).forEach(function(t,i){
-      const prior = t.prioridad === 'Alta' ? ' [URGENTE]' : '';
-      msg += (i+1) + '. ' + t.descripcion.slice(0,70) + prior + '
-';
-    });
-  } else {
-    msg += 'No hay tareas pendientes.';
-  }
-  
-  const waUrl = tel
-    ? 'https://wa.me/' + tel.replace(/[^0-9]/g,'') + '?text=' + encodeURIComponent(msg)
-    : 'https://wa.me/?text=' + encodeURIComponent(msg);
-  
-  window.open(waUrl, '_blank');
-};
-
-// Agregar boton WA en cada tarjeta del equipo
-(function(){
-  const _origRP = window.renderPersons;
-  if(!_origRP) return;
-  window.renderPersons = function(){
-    _origRP();
-    // Agregar boton WA a cada persona en la lista
-    setTimeout(function(){
-      const persons = document.querySelectorAll('[data-person-name], .person-card');
-      // Si no hay data-person-name, buscar de otra forma
-      const sbPersons = document.querySelectorAll('#sbpersons .gwcard');
-      sbPersons.forEach(function(card){
-        if(card.querySelector('.wa-person-btn')) return;
-        // Obtener el nombre del agente de la tarjeta
-        const nameEl = card.querySelector('.gwname') || card.querySelector('strong') || card.querySelector('[class*="name"]');
-        if(!nameEl) return;
-        const nombre = nameEl.textContent.trim();
-        if(!nombre) return;
-        const btn = document.createElement('button');
-        btn.className = 'wa-person-btn';
-        btn.title = 'Enviar tareas del dia por WhatsApp';
-        btn.onclick = function(){ abrirPanelTareasAgente(nombre); };
-        btn.style.cssText = 'background:#25D366;border:none;color:#fff;border-radius:6px;padding:4px 8px;font-size:11px;font-weight:600;cursor:pointer;margin-top:4px;display:flex;align-items:center;gap:4px';
-        btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Tareas del dia';
-        card.appendChild(btn);
-      });
-    }, 600);
-  };
-})();
-
-console.log('v5.36 OK - Briefing 7 dias, WA tareas, medios 2 dias, stats reload');
-</script>
-
-
+<!-- PATCH v5.40 - Tareas WA + Dark mode + Medios cleanup -->
 
 <!-- Modal Tareas Diarias -->
 <div class="overlay" id="modTareasDiarias" style="display:none" onclick="if(event.target===this)closeMod('modTareasDiarias')">
   <div class="mod" style="max-width:500px">
-    <div class="mod-t" style="display:flex;align-items:center;justify-content:space-between">
-      <span>Tareas del dia para agente</span>
-      <button onclick="closeMod('modTareasDiarias')" style="background:none;border:none;color:var(--sub);font-size:20px;cursor:pointer;line-height:1">&times;</button>
-    </div>
-    <div class="fg">
-      <label>Agente</label>
+    <div class="mod-t">Tareas del dia para agente</div>
+    <div class="fg"><label>Agente</label>
       <select id="tdAgente" onchange="tdCargarPendientes(this.value)" style="background:var(--bg2);border:1px solid var(--bdr);border-radius:8px;padding:8px 12px;color:var(--txt);width:100%;font-size:13px">
         <option value="">Selecciona...</option>
       </select>
     </div>
     <div class="fg">
       <label id="tdFechaLabel">Tareas para hoy</label>
-      <div id="tdPendientesChips" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px;min-height:10px"></div>
-      <textarea id="tdTexto" rows="6" placeholder="Escribi las tareas del dia, una por linea:
+      <div id="tdPendientesChips" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px;min-height:8px"></div>
+      <textarea id="tdTexto" rows="6" placeholder="Escribi las tareas del dia:
 - Contestar mensajes de redes
 - Hacer publicacion del dia
-- Ver condiciones del clima para medios
-- Revisar agenda de la semana" style="width:100%;background:var(--bg2);border:1px solid var(--bdr);border-radius:8px;padding:10px;color:var(--txt);font-size:13px;resize:vertical;line-height:1.6;box-sizing:border-box"></textarea>
+- Ver condiciones del clima para medios" style="width:100%;background:var(--bg2);border:1px solid var(--bdr);border-radius:8px;padding:10px;color:var(--txt);font-size:13px;resize:vertical;box-sizing:border-box;line-height:1.6"></textarea>
     </div>
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap">
       <button onclick="closeMod('modTareasDiarias')" class="btn-sec">Cancelar</button>
       <div style="display:flex;gap:8px">
-        <button onclick="tdCopiar()" class="btn-sec">Copiar texto</button>
+        <button onclick="tdCopiar()" class="btn-sec">Copiar</button>
         <button onclick="tdEnviarWA()" style="background:#25D366;border:none;color:#fff;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
           Enviar por WhatsApp
@@ -5684,213 +5373,164 @@ console.log('v5.36 OK - Briefing 7 dias, WA tareas, medios 2 dias, stats reload'
     </div>
   </div>
 </div>
+
+<style>
+/* Dark mode overrides */
+body.dark .met{background:var(--bg2)!important;border-color:var(--bdr)!important}
+body.dark .met-v{color:var(--txt)!important}
+body.dark .met-l{color:var(--sub)!important}
+body.dark .cbox,body.dark .tmcard,body.dark .ncard,body.dark .ecard,body.dark .mcard{background:var(--bg2)!important;border-color:var(--bdr)!important;color:var(--txt)!important}
+body.dark [style*="background:#f9fafb"]{background:#1e2028!important;color:#e2e8f0!important}
+body.dark [style*="background:#ffffff"]{background:#21242e!important;color:#e2e8f0!important}
+body.dark [style*="background:#fff;"]{background:#21242e!important;color:#e2e8f0!important}
+body.dark [style*="background:#f3f4f6"]{background:#252830!important}
+body.dark [style*="color:#111827"]{color:#e2e8f0!important}
+body.dark [style*="color:#374151"]{color:#cbd5e1!important}
+body.dark [style*="color:#1f2937"]{color:#e2e8f0!important}
+body.dark [style*="color:#6b7280"]{color:#94a3b8!important}
+body.dark #modBriefing .mod{background:#181c24!important}
+body.dark #bf-tareas > div,body.dark #bf-pubs > div,body.dark #bf-eventos > div{background:#252830!important;color:#e2e8f0!important}
+body.dark #bf-tareas > div *,body.dark #bf-pubs > div *{color:#e2e8f0!important}
+</style>
+
 <script>
-// ═══════════════════════════════════════════════════
-// v5.39 - Tareas diarias WA + Dark mode + Medios cleanup
-// ═══════════════════════════════════════════════════
+// PATCH v5.40
+const _DIAS=['Domingo','Lunes','Martes','Miercoles','Jueves','Viernes','Sabado'];
+const _MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+function _fhoy(){const h=new Date(TODAY);return _DIAS[h.getDay()]+' '+h.getDate()+' de '+_MESES[h.getMonth()];}
 
-// ── Helpers de fecha ──────────────────────────────────
-const _DIAS = ['Domingo','Lunes','Martes','Miercoles','Jueves','Viernes','Sabado'];
-const _MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-function _fechaHoy(){
-  const h=new Date(TODAY);
-  return _DIAS[h.getDay()]+' '+h.getDate()+' de '+_MESES[h.getMonth()]+' '+h.getFullYear();
-}
-
-// ── MODAL TAREAS DIARIAS ──────────────────────────────
 function abrirTareasDiarias(nombre){
-  nombre = nombre || '';
-  // Poblar dropdown de agentes
-  const sel = document.getElementById('tdAgente');
+  nombre=nombre||'';
+  const sel=document.getElementById('tdAgente');
   if(sel){
-    const ms = window.teams || [];
-    sel.innerHTML = '<option value="">Selecciona...</option>' +
-      ms.filter(function(m){return m.nombre||m.name;}).map(function(m){
-        const n = m.nombre||m.name||'';
-        return '<option value="'+n+'"'+(n===nombre?' selected':'')+'>'+n+'</option>';
-      }).join('');
+    const ms=window.teams||[];
+    sel.innerHTML='<option value="">Selecciona...</option>'+ms.filter(function(m){return m.nombre||m.name;}).map(function(m){const n=m.nombre||m.name||'';return '<option value="'+n+'"'+(n===nombre?' selected':'')+'>'+n+'</option>';}).join('');
   }
-  // Etiqueta de fecha
-  const lbl = document.getElementById('tdFechaLabel');
-  if(lbl) lbl.textContent = 'Tareas para hoy - '+_fechaHoy();
-  // Limpiar textarea
-  const ta = document.getElementById('tdTexto');
-  if(ta) ta.value = '';
-  // Cargar pendientes si hay agente
-  if(nombre) tdCargarPendientes(nombre);
+  const lbl=document.getElementById('tdFechaLabel');
+  if(lbl)lbl.textContent='Tareas para hoy - '+_fhoy();
+  const ta=document.getElementById('tdTexto');
+  if(ta)ta.value='';
+  if(nombre)tdCargarPendientes(nombre);
   openMod('modTareasDiarias');
 }
-
 function tdCargarPendientes(nombre){
-  const cont = document.getElementById('tdPendientesChips');
-  if(!cont) return;
+  const cont=document.getElementById('tdPendientesChips');
+  if(!cont)return;
   if(!nombre){cont.innerHTML='';return;}
-  const pend = (window.tasks||[]).filter(function(t){
-    const r=(t.responsable||'').split(',').map(function(x){return x.trim();});
-    return r.includes(nombre) && t.estado!=='Completo';
-  });
+  const pend=(window.tasks||[]).filter(function(t){const r=(t.responsable||'').split(',').map(function(x){return x.trim();});return r.includes(nombre)&&t.estado!=='Completo';});
   if(!pend.length){cont.innerHTML='<span style="font-size:11px;color:var(--sub)">Sin tareas asignadas</span>';return;}
-  cont.innerHTML = pend.slice(0,10).map(function(t){
-    const desc = t.descripcion.slice(0,40).replace(/'/g,"\'");
-    const urgent = t.prioridad==='Alta';
-    return '<span onclick="tdAgregarTexto(\''+desc+'\')" style="cursor:pointer;font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid '+(urgent?'#ef4444':'var(--bdr)')+';background:var(--bg3);color:var(--txt);white-space:nowrap" title="Clic para agregar">'+(urgent?'🔴 ':'')+t.descripcion.slice(0,35)+'</span>';
-  }).join('');
+  cont.innerHTML=pend.slice(0,10).map(function(t){const desc=t.descripcion.slice(0,40).replace(/'/g,"\'");const urg=t.prioridad==='Alta';return '<span onclick="tdAgregarTexto(''+desc+'')" style="cursor:pointer;font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid '+(urg?'#ef4444':'var(--bdr)')+';background:var(--bg3);color:var(--txt)">'+(urg?'🔴 ':'')+t.descripcion.slice(0,35)+'</span>';}).join('');
 }
-
-function tdAgregarTexto(texto){
-  const ta = document.getElementById('tdTexto');
-  if(!ta) return;
-  const cur = ta.value.trim();
-  ta.value = cur+(cur?'\n':'')+'- '+texto;
-  ta.focus();
-}
-
+function tdAgregarTexto(texto){const ta=document.getElementById('tdTexto');if(!ta)return;const cur=ta.value.trim();ta.value=cur+(cur?'
+':'')+'- '+texto;}
 function tdEnviarWA(){
-  const agente = (document.getElementById('tdAgente')||{}).value||'';
-  const texto = (document.getElementById('tdTexto')||{}).value||'';
-  if(!texto.trim()){toast('Escribe las tareas primero','err');return;}
-  const m = (window.teams||[]).find(function(x){return (x.nombre||x.name||'')===agente;});
-  const tel = m?(m.telefono||m.tel||m.whatsapp||''):'';
-  const saludo = agente?'Hola '+agente.split(' ')[0]+'!':'Hola!';
-  const msg = saludo+' Tus tareas para hoy '+_fechaHoy()+':\n\n'+texto.trim()+'\n\nQue tengas buen dia!';
-  const url = tel?'https://wa.me/'+tel.replace(/[^0-9]/g,'')+'?text='+encodeURIComponent(msg):'https://wa.me/?text='+encodeURIComponent(msg);
+  const ag=(document.getElementById('tdAgente')||{}).value||'';
+  const txt=(document.getElementById('tdTexto')||{}).value||'';
+  if(!txt.trim()){toast('Escribe las tareas primero','err');return;}
+  const m=(window.teams||[]).find(function(x){return(x.nombre||x.name||'')===ag;});
+  const tel=m?(m.telefono||m.tel||m.whatsapp||''):'';
+  const saludo=ag?'Hola '+ag.split(' ')[0]+'!':'Hola!';
+  const msg=saludo+' Tus tareas para hoy '+_fhoy()+':
+
+'+txt.trim()+'
+
+Que tengas buen dia!';
+  const url=tel?'https://wa.me/'+tel.replace(/[^0-9]/g,'')+'?text='+encodeURIComponent(msg):'https://wa.me/?text='+encodeURIComponent(msg);
   window.open(url,'_blank');
 }
-
 function tdCopiar(){
-  const agente = (document.getElementById('tdAgente')||{}).value||'';
-  const texto = (document.getElementById('tdTexto')||{}).value||'';
-  if(!texto.trim()){toast('No hay texto','err');return;}
-  const saludo = agente?'Hola '+agente.split(' ')[0]+'!':'Hola!';
-  const msg = saludo+' Tareas para hoy '+_fechaHoy()+':\n\n'+texto.trim();
-  navigator.clipboard.writeText(msg).then(function(){toast('Copiado!');}).catch(function(){
-    const t=document.createElement('textarea');t.value=msg;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);toast('Copiado!');
-  });
+  const ag=(document.getElementById('tdAgente')||{}).value||'';
+  const txt=(document.getElementById('tdTexto')||{}).value||'';
+  if(!txt.trim()){toast('No hay texto','err');return;}
+  const saludo=ag?'Hola '+ag.split(' ')[0]+'!':'Hola!';
+  const msg=saludo+' Tareas para hoy '+_fhoy()+':
+
+'+txt.trim();
+  navigator.clipboard.writeText(msg).then(function(){toast('Copiado!');}).catch(function(){const t=document.createElement('textarea');t.value=msg;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);toast('Copiado!');});
 }
 
-// ── BOTON WA EN BRIEFING (pie del modal) ─────────────────────────────────
-// Parchar abrirBriefing para agregar botón verde en el footer del modal
+// Boton WA en briefing
 (function(){
-  const _ORIG_AB = window.abrirBriefing;
-  window.abrirBriefing = function(){
-    if(_ORIG_AB) _ORIG_AB();
+  const _O=window.abrirBriefing;
+  window.abrirBriefing=function(){
+    if(_O)_O();
     setTimeout(function(){
-      const mod = document.getElementById('modBriefing');
-      if(!mod || mod.querySelector('.btn-td-wa')) return;
-      // Buscar cualquier div que tenga botones en el modal
-      const btns = mod.querySelectorAll('button');
-      if(!btns.length) return;
-      // Encontrar el contenedor del ultimo boton
-      const lastBtn = btns[btns.length-1];
-      const container = lastBtn.parentElement;
-      if(!container) return;
-      const btn = document.createElement('button');
-      btn.className = 'btn-td-wa';
-      btn.style.cssText = 'background:#25D366;border:none;color:#fff;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;margin-top:8px;width:100%;justify-content:center';
-      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg> Enviar tareas del dia a agente';
-      btn.onclick = function(){ closeMod('modBriefing'); abrirTareasDiarias(''); };
-      // Insertar despues del ultimo boton
+      const mod=document.getElementById('modBriefing');
+      if(!mod||mod.querySelector('.btn-td-wa'))return;
+      const btns=mod.querySelectorAll('button');
+      if(!btns.length)return;
+      const container=btns[btns.length-1].parentElement;
+      if(!container)return;
+      const btn=document.createElement('button');
+      btn.className='btn-td-wa';
+      btn.style.cssText='background:#25D366;border:none;color:#fff;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;margin-top:8px;width:100%;justify-content:center';
+      btn.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg> Enviar tareas del dia a agente';
+      btn.onclick=function(){closeMod('modBriefing');abrirTareasDiarias('');};
       container.appendChild(btn);
     },300);
   };
 })();
 
-// ── BOTON EN PANEL EQUIPO ────────────────────────────────────────────────
-// Agregar boton WA en cada tarjeta de persona
+// Boton WA en panel Equipo
 (function(){
-  const _ORIG_RP = window.renderPersons;
-  if(!_ORIG_RP) return;
-  window.renderPersons = function(){
-    _ORIG_RP();
+  const _O=window.renderPersons;
+  if(!_O)return;
+  window.renderPersons=function(){
+    _O();
     setTimeout(function(){
-      const cont = document.getElementById('sbpersons');
-      if(!cont) return;
-      cont.querySelectorAll('[class*="gwcard"],[onclick*="selectPerson"],[onclick*="fp="]').forEach(function(card){
-        if(card.querySelector('.btn-wa-agente')) return;
-        const nameEl = card.querySelector('.gwname') || card.querySelector('b') || card.querySelector('strong');
-        if(!nameEl) return;
-        const nombre = nameEl.textContent.trim();
-        if(!nombre) return;
-        const btn = document.createElement('button');
-        btn.className = 'btn-wa-agente';
-        btn.style.cssText = 'background:#25D366;border:none;color:#fff;border-radius:6px;padding:4px 9px;font-size:11px;font-weight:600;cursor:pointer;margin-top:5px;display:flex;align-items:center;gap:4px';
-        btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Tareas del dia';
-        btn.onclick = function(e){e.stopPropagation();abrirTareasDiarias(nombre);};
+      const cont=document.getElementById('sbpersons');
+      if(!cont)return;
+      cont.querySelectorAll('[onclick*="fp="]').forEach(function(card){
+        if(card.querySelector('.btn-wa-agente'))return;
+        const nameEl=card.querySelector('.gwname');
+        if(!nameEl)return;
+        const nombre=nameEl.textContent.trim();
+        if(!nombre)return;
+        const btn=document.createElement('button');
+        btn.className='btn-wa-agente';
+        btn.style.cssText='background:#25D366;border:none;color:#fff;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:600;cursor:pointer;margin-top:4px;display:flex;align-items:center;gap:3px';
+        btn.innerHTML='<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>Tareas del dia';
+        btn.onclick=function(e){e.stopPropagation();abrirTareasDiarias(nombre);};
         card.appendChild(btn);
       });
     },500);
   };
 })();
 
-// ── DARK MODE: MutationObserver para forzar dark en elementos dinamicos ───
+// Dark mode: MutationObserver para elementos dinamicos
 (function(){
-  if(!window.MutationObserver) return;
-  function applyDark(root){
-    if(!document.body.classList.contains('dark')) return;
-    root.querySelectorAll('[style*="#f9fafb"],[style*="#ffffff"],[style*="#fff;"]').forEach(function(el){
-      el.style.background = '#252830';
-      if(el.style.color==="#111827"||el.style.color==="#374151"||el.style.color==="#1f2937") el.style.color="#e2e8f0";
-    });
-    root.querySelectorAll('[style*="color:#111827"],[style*="color:#374151"],[style*="color:#1f2937"]').forEach(function(el){
-      el.style.color="#e2e8f0";
-    });
-    root.querySelectorAll('[style*="color:#6b7280"]').forEach(function(el){
-      el.style.color="#94a3b8";
-    });
+  if(!window.MutationObserver)return;
+  function fixDark(el){
+    if(!document.body.classList.contains('dark'))return;
+    el.querySelectorAll('[style*="#f9fafb"],[style*="#ffffff"],[style*="#fff;"]').forEach(function(n){n.style.background='#252830';if(n.style.color==='#111827'||n.style.color==='#374151')n.style.color='#e2e8f0';});
+    el.querySelectorAll('[style*="color:#111827"],[style*="color:#374151"],[style*="color:#1f2937"]').forEach(function(n){n.style.color='#e2e8f0';});
   }
-  const obs = new MutationObserver(function(muts){
-    muts.forEach(function(m){
-      m.addedNodes.forEach(function(n){
-        if(n.nodeType===1) applyDark(n);
-      });
-    });
-  });
-  document.addEventListener('DOMContentLoaded',function(){
-    obs.observe(document.getElementById('app')||document.body,{childList:true,subtree:true});
-  });
-  // Aplicar al cambiar de dark a light
-  const _ORIG_DARK = window.toggleDark;
-  if(_ORIG_DARK) window.toggleDark = function(){_ORIG_DARK(); setTimeout(function(){applyDark(document.body);},100);};
+  const obs=new MutationObserver(function(ms){ms.forEach(function(m){m.addedNodes.forEach(function(n){if(n.nodeType===1)fixDark(n);});});});
+  document.addEventListener('DOMContentLoaded',function(){obs.observe(document.getElementById('app')||document.body,{childList:true,subtree:true});});
 })();
 
-// ── LIMPIEZA MEDIOS 2 DIAS ────────────────────────────────────────────────
+// Limpieza medios 2 dias
 (function(){
-  const _ORIG_LM = window.loadMedios;
-  if(!_ORIG_LM) return;
-  window.loadMedios = async function(){
-    if(_ORIG_LM) await _ORIG_LM();
+  const _O=window.loadMedios;
+  if(!_O)return;
+  window.loadMedios=async function(){
+    if(_O)await _O();
     try{
-      const cutoff = new Date(); cutoff.setDate(cutoff.getDate()-2);
-      const cs = cutoff.toISOString().slice(0,10);
-      const {data:viejos} = await db.from('noticias_medios').select('id').lt('fecha',cs);
-      if(viejos&&viejos.length){
-        for(const r of viejos) await db.from('noticias_medios').delete().eq('id',r.id);
-        window.medios535=(window.medios535||[]).filter(function(m){return (m.fecha||'')>=cs;});
-        if(typeof renderMediosList==='function') renderMediosList();
-        toast('Limpieza: '+viejos.length+' coberturas antiguas eliminadas');
-      }
-    }catch(e){console.warn('limpieza medios:',e.message);}
+      const cutoff=new Date();cutoff.setDate(cutoff.getDate()-2);
+      const cs=cutoff.toISOString().slice(0,10);
+      const{data:viejos}=await db.from('noticias_medios').select('id').lt('fecha',cs);
+      if(viejos&&viejos.length){for(const r of viejos)await db.from('noticias_medios').delete().eq('id',r.id);console.log('Limpieza medios: '+viejos.length+' eliminados');}
+    }catch(e){console.warn('limpieza:',e.message);}
   };
 })();
 
-// ── STUBS necesarios ─────────────────────────────────────────────────────
-if(typeof notifEventoGuardado==='undefined') window.notifEventoGuardado=function(){};
-if(typeof notifCobertura==='undefined') window.notifCobertura=function(){};
-if(typeof editPubMod==='undefined'&&typeof editPubItem==='function') window.editPubMod=function(id){return editPubItem(id);};
-if(typeof getSelCuentaStr==='undefined') window.getSelCuentaStr=function(cid){
-  const sels=[...document.getElementById(cid).querySelectorAll('.copt.sel')];
-  return sels.map(function(s){const m=s.getAttribute('onclick').match(/'([^']+)')$/);return m?m[1]:null;}).filter(Boolean).join(',')||null;
-};
-if(!window._seltaPatched){
-  window._seltaPatched=true;
-  const _ost=window.selCta;
-  window.selCta=function(cid,id){
-    const el=document.getElementById(cid).querySelector('[onclick*=\"\'' +id+ '\'\"]');
-    if(el)el.classList.toggle('sel');
-  };
-}
+// Stubs
+if(typeof notifEventoGuardado==='undefined')window.notifEventoGuardado=function(){};
+if(typeof notifCobertura==='undefined')window.notifCobertura=function(){};
+if(typeof editPubMod==='undefined'&&typeof editPubItem==='function')window.editPubMod=function(id){return editPubItem(id);};
+if(typeof getSelCuentaStr==='undefined')window.getSelCuentaStr=function(cid){const s=[...document.getElementById(cid).querySelectorAll('.copt.sel')];return s.map(function(x){const m=x.getAttribute('onclick').match(/'([^']+)')$/);return m?m[1]:null;}).filter(Boolean).join(',')||null;};
 
-console.log('v5.39 OK - Tareas WA + Dark mode fix real + Medios cleanup');
+console.log('v5.40 OK');
 </script>
 </body>
 </html>
