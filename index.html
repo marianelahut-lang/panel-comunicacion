@@ -5257,19 +5257,47 @@ async function deleteRecurso(id){
 // ── TAREAS DIARIAS ──────────────────────────────────────────
 var _tdFecha='';
 var _tdTareas=[];
+var _tdUsuarios=[]; // cache de usuarios de Supabase
 
-function _getAgentes(){var lu=document.getElementById("lu");if(!lu)return[];return [...lu.options].map(function(o){return o.value;}).filter(Boolean);}
-function abrirTareasDiarias(nombre){
+// Cargar usuarios desde Supabase (incluye teléfonos)
+async function _tdLoadUsuarios(){
+  if(_tdUsuarios.length) return _tdUsuarios;
+  try{
+    var r=await db.from("usuarios").select("id,nombre,rol,telefono,color").order("nombre");
+    _tdUsuarios=r.data||[];
+  }catch(e){
+    // Fallback: usar el select de login
+    var lu=document.getElementById("lu");
+    if(lu)_tdUsuarios=[...lu.options].filter(function(o){return o.value;}).map(function(o){return {nombre:o.value,telefono:''};});
+  }
+  return _tdUsuarios;
+}
+
+async function abrirTareasDiarias(nombre){
   nombre=nombre||"";
   _tdFecha=new Date(TODAY).toISOString().slice(0,10);
+  
+  // Cargar usuarios desde Supabase
+  await _tdLoadUsuarios();
+  
   var sel=document.getElementById("tdAgente");
-  if(sel){var ms=_getAgentes();var hh='<option value="">Selecciona agente...</option>';
-    for(var i=0;i<ms.length;i++){var n=ms[i];
-      if(n)hh+='<option value="'+n+'"'+(n===nombre?' selected':'')+'>'+n+'</option>';}
-    sel.innerHTML=hh;}
+  if(sel){
+    var hh='<option value="">Selecciona agente...</option>';
+    for(var i=0;i<_tdUsuarios.length;i++){
+      var u=_tdUsuarios[i];
+      var n=u.nombre||"";
+      if(n)hh+='<option value="'+n+'"'+(n===nombre?' selected':'')+'>'+n+(u.rol?' ('+u.rol+')':'')+' '+(u.telefono?'\uD83D\uDCF1':'')+'</option>';
+    }
+    sel.innerHTML=hh;
+  }
+  
+  var lbl=document.getElementById("tdFechaLabel");
+  if(lbl)lbl.textContent="Tareas del dia - "+_f41();
   document.getElementById("tdNuevaTarea").value="";
+  
   if(nombre)tdCargarParaAgente(nombre);
-  else{document.getElementById("tdListaTareas").innerHTML='<p style="text-align:center;color:var(--sub);padding:16px;font-size:13px">Seleccioná un agente para ver sus tareas del día</p>';}
+  else document.getElementById("tdListaTareas").innerHTML='<p style="text-align:center;color:var(--sub);padding:16px;font-size:13px">Seleccioná un agente para ver sus tareas del día</p>';
+  
   openMod("modTareasDiarias");
 }
 
@@ -5279,14 +5307,16 @@ async function tdCargarParaAgente(nombre){
   lista.innerHTML='<p style="text-align:center;padding:12px;color:var(--sub);font-size:12px">Cargando...</p>';
   _tdTareas=[];
   try{
-    // Tareas asignadas al agente (pendientes)
-    var res=await db.from("tareas").select("*").or("responsable.like.%"+nombre+"%").neq("estado","Completo").order("prioridad",{ascending:false});
+    var res=await db.from("tareas").select("*").ilike("responsable","%"+nombre+"%").neq("estado","Completo").order("prioridad",{ascending:false});
     _tdTareas=res.data||[];
   }catch(e){
-    // Fallback: usar tasks en memoria
-    _tdTareas=(window.tasks||[]).filter(function(t){
-      var r=(t.responsable||"").split(",").map(function(x){return x.trim();});
-      return r.indexOf(nombre)>=0&&t.estado!=="Completo";
+    // Fallback: buscar en el DOM del kanban
+    _tdTareas=[];
+    document.querySelectorAll('.cbox').forEach(function(el){
+      var resp=(el.querySelector('.cbox-resp')||{}).textContent||el.dataset.resp||'';
+      if(resp.includes(nombre)){
+        _tdTareas.push({id:el.dataset.id||Math.random(),descripcion:(el.querySelector('.cbox-desc')||{}).textContent||'',estado:'Pendiente',prioridad:'Alta'});
+      }
     });
   }
   tdRenderLista();
@@ -5295,17 +5325,23 @@ async function tdCargarParaAgente(nombre){
 function tdRenderLista(){
   var lista=document.getElementById("tdListaTareas");if(!lista)return;
   if(!_tdTareas.length){
-    lista.innerHTML='<p style="text-align:center;color:var(--sub);padding:16px;font-size:13px">Sin tareas asignadas para hoy</p>';return;}
-  var h='';
+    lista.innerHTML='<div style="text-align:center;padding:20px"><div style="font-size:32px;margin-bottom:8px">\uD83C\uDF89</div><p style="color:var(--sub);font-size:13px">Sin tareas pendientes para este agente</p></div>';
+    return;
+  }
+  var h='<div style="font-size:11px;color:var(--sub);font-weight:600;margin-bottom:8px">'+_tdTareas.length+' tarea'+(_tdTareas.length>1?'s':'')+'</div>';
   for(var i=0;i<_tdTareas.length;i++){
     var t=_tdTareas[i];
     var priColor=t.prioridad==='Alta'?'#ef4444':t.prioridad==='Media'?'#f59e0b':'#10b981';
-    h+='<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;border:1px solid var(--bdr);background:var(--bg2);margin-bottom:6px">';
-    h+='<input type="checkbox" id="td_'+t.id+'" '+(t.estado==='Completo'?'checked':'')+' onchange="tdToggleTask(\"'+t.id+'\")" style="width:16px;height:16px;cursor:pointer">';
-    h+='<div style="flex:1"><div style="font-size:13px;color:var(--txt);'+(t.estado==='Completo'?'text-decoration:line-through;opacity:.6':'')+'">'+(t.descripcion||"")+'</div>';
-    h+='<div style="font-size:11px;margin-top:2px"><span style="color:'+priColor+';font-weight:600">'+t.prioridad+'</span>';
-    if(t.estado)h+=' · <span style="color:var(--sub)">'+t.estado+'</span>';
-    h+='</div></div></div>';
+    var done=t.estado==='Completo';
+    h+='<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:10px;border:1px solid var(--bdr);background:var(--bg2);margin-bottom:6px;'+(done?'opacity:.6':'')+'">';
+    h+='<input type="checkbox" id="td_'+t.id+'" '+(done?'checked':'')+' onchange="tdToggleTask(\"'+t.id+'\")" style="width:16px;height:16px;cursor:pointer;margin-top:2px;flex-shrink:0">';
+    h+='<div style="flex:1">';
+    h+='<div style="font-size:13px;color:var(--txt);'+(done?'text-decoration:line-through':'')+'">'+t.descripcion+'</div>';
+    h+='<div style="font-size:11px;margin-top:3px"><span style="color:'+priColor+';font-weight:600;background:'+priColor+'22;padding:1px 6px;border-radius:4px">'+t.prioridad+'</span>';
+    if(t.estado)h+='<span style="color:var(--sub);margin-left:6px">'+t.estado+'</span>';
+    h+='</div></div>';
+    h+='<button onclick="_tdEliminarTarea(\"'+t.id+'\")" style="background:none;border:none;color:var(--sub);cursor:pointer;font-size:14px;padding:0 4px;flex-shrink:0" title="Eliminar">×</button>';
+    h+='</div>';
   }
   lista.innerHTML=h;
 }
@@ -5314,56 +5350,58 @@ async function tdToggleTask(id){
   var t=_tdTareas.filter(function(x){return String(x.id)===String(id);})[0];
   if(!t)return;
   var nuevoEstado=t.estado==='Completo'?'Pendiente':'Completo';
-  try{
-    await db.from("tareas").update({estado:nuevoEstado}).eq("id",id);
-    t.estado=nuevoEstado;
-    // Sincronizar con tasks en memoria
-    var memTask=(window.tasks||[]).filter(function(x){return String(x.id)===String(id);})[0];
-    if(memTask)memTask.estado=nuevoEstado;
-    tdRenderLista();
-    // Refrescar kanban si está visible
-    if(typeof renderKanban==="function")renderKanban();
-    toast(nuevoEstado==="Completo"?"\u2705 Tarea completada":"Tarea marcada como pendiente");
-  }catch(e){console.warn(e);toast("Error al actualizar","err");}
+  try{await db.from("tareas").update({estado:nuevoEstado}).eq("id",id);}catch(e){console.warn(e);}
+  t.estado=nuevoEstado;
+  tdRenderLista();
+  if(typeof renderKanban==="function")renderKanban();
+  toast(nuevoEstado==="Completo"?"\u2705 Completada - aparece en Listo":"\uD83D\uDD04 Marcada como pendiente");
 }
 
-function tdAgregarNueva(){
+async function _tdEliminarTarea(id){
+  if(!confirm("¿Eliminar esta tarea?"))return;
+  try{await db.from("tareas").delete().eq("id",id);}catch(e){console.warn(e);}
+  _tdTareas=_tdTareas.filter(function(t){return String(t.id)!==String(id);});
+  tdRenderLista();
+  toast("Tarea eliminada");
+}
+
+async function tdAgregarNueva(){
   var desc=document.getElementById("tdNuevaTarea").value.trim();
   var ag=(document.getElementById("tdAgente")||{}).value||"";
-  if(!desc){toast("Escribe una tarea primero","err");return;}
+  if(!desc){toast("Escribí una tarea primero","err");return;}
   if(!ag){toast("Seleccioná un agente primero","err");return;}
   var row={descripcion:desc,responsable:ag,estado:"Pendiente",prioridad:"Alta",fecha:_tdFecha};
-  db.from("tareas").insert([row]).select().then(function(res){
-    if(res.data&&res.data.length){
-      var nt=res.data[0];
-      _tdTareas.unshift(nt);
-      if(window.tasks)window.tasks.unshift(nt);
-      if(typeof renderKanban==="function")renderKanban();
-    }
-    document.getElementById("tdNuevaTarea").value="";
-    tdRenderLista();
-    toast("Tarea agregada");
-  }).catch(function(e){console.warn(e);toast("Error","err");});
+  try{
+    var res=await db.from("tareas").insert([row]).select();
+    if(res.data&&res.data.length)_tdTareas.unshift(res.data[0]);
+    else _tdTareas.unshift(Object.assign({id:"tmp_"+Date.now()},row));
+  }catch(e){_tdTareas.unshift(Object.assign({id:"tmp_"+Date.now()},row));}
+  document.getElementById("tdNuevaTarea").value="";
+  tdRenderLista();
+  if(typeof renderKanban==="function")renderKanban();
+  toast("\u2795 Tarea agregada para "+ag);
 }
 
 function tdEnviarWA(){
   var ag=(document.getElementById("tdAgente")||{}).value||"";
   if(!ag){toast("Seleccioná un agente","err");return;}
-  if(!_tdTareas.length){toast("No hay tareas para enviar","err");return;}
-  var found=null;
-  for(var k=0;k<(window.teams||[]).length;k++){if((window.teams[k].nombre||window.teams[k].name||"")===ag){found=window.teams[k];break;}}
-  var tel=found?(found.telefono||found.tel||found.whatsapp||""):"";
   var pendientes=_tdTareas.filter(function(t){return t.estado!=="Completo";});
-  var lineas=pendientes.map(function(t){return "- "+t.descripcion;}).join("\n");
-  var msg="\uD83D\uDCCB Tareas del dia "+_f41()+" - "+ag+"\n\n"+lineas+"\n\nBuen dia! \uD83D\uDE0A";
+  if(!pendientes.length){toast("No hay tareas pendientes para enviar","err");return;}
+  // Buscar teléfono del agente
+  var usuario=_tdUsuarios.filter(function(u){return u.nombre===ag;})[0];
+  var tel=usuario?(usuario.telefono||""):"";
+  var lineas=pendientes.map(function(t){return "\u2022 "+t.descripcion;}).join("\n");
+  var msg="\uD83D\uDCCB Tareas del dia - "+ag+"\n"+_f41()+"\n\n"+lineas+"\n\nBuen dia! \uD83D\uDE0A";
+  if(!tel)toast("El agente no tiene teléfono cargado. Podés editarlo en la sección Equipo.","warn");
   window.open((tel?"https://wa.me/"+tel.replace(/[^0-9]/g,""):"https://wa.me")+"?text="+encodeURIComponent(msg),"_blank");
 }
+
 function tdCopiar(){
   var ag=(document.getElementById("tdAgente")||{}).value||"";
   var pendientes=_tdTareas.filter(function(t){return t.estado!=="Completo";});
-  var lineas=pendientes.map(function(t){return "- "+t.descripcion;}).join("\n");
-  var msg="Tareas del dia "+_f41()+(ag?" - "+ag:"")+"\n\n"+lineas;
-  navigator.clipboard.writeText(msg).then(function(){toast("Copiado!");});
+  var lineas=pendientes.map(function(t){return "• "+t.descripcion;}).join("\n");
+  var msg=(ag?"Tareas para "+ag+" - ":"")+_f41()+"\n\n"+lineas;
+  navigator.clipboard.writeText(msg).then(function(){toast("\uD83D\uDCCB Copiado al portapapeles");});
 }
 
 // Botón WA en briefing
