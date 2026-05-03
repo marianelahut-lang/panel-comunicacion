@@ -5243,21 +5243,30 @@ async function _tdSetTelefono(nombre,tel){
 }
 async function _tdLoadUsuarios(){
   if(_tdUsuarios.length) return _tdUsuarios;
+  // 1. Cargar lista de usuarios desde Supabase
+  var usuariosBase = [];
   try{
     var r=await db.from("usuarios").select("id,nombre,rol,color,email").order("nombre");
-    _tdUsuarios=r.data||[];
+    usuariosBase=r.data||[];
   }catch(e){
+    // Fallback: usar el select de login
     var lu=document.getElementById("lu");
-    if(lu)_tdUsuarios=[...lu.options].filter(function(o){return o.value;}).map(function(o){return {nombre:o.value};});
+    if(lu)usuariosBase=[...lu.options].filter(function(o){return o.value;}).map(function(o){return {nombre:o.value};});
   }
-  // Cargar teléfonos desde recursos_equipo
+  // 2. Enriquecer con teléfonos desde CONTACTOS_FB (fuente primaria del panel)
+  var cfb = typeof CONTACTOS_FB !== "undefined" ? CONTACTOS_FB : {};
+  // 3. También cargar desde recursos_equipo _tel (por si hay números más nuevos)
+  var telMap = {};
   try{
     var tels=await db.from("recursos_equipo").select("nombre,url").eq("categoria","_tel");
-    if(tels.data){var tm={};tels.data.forEach(function(t){tm[t.nombre.replace("tel::","")]=t.url||"";});}
-    _tdUsuarios=_tdUsuarios.map(function(u){return Object.assign({},u,{telefono:tm[u.nombre]||localStorage.getItem("_tel::"+u.nombre)||""}); });
-  }catch(e){
-    _tdUsuarios=_tdUsuarios.map(function(u){return Object.assign({},u,{telefono:localStorage.getItem("_tel::"+u.nombre)||""});});
-  }
+    if(tels.data) tels.data.forEach(function(t){telMap[t.nombre.replace("tel::","")]=t.url||"";});
+  }catch(e){}
+  _tdUsuarios=usuariosBase.map(function(u){
+    var n=u.nombre||"";
+    // Prioridad: recursos_equipo > CONTACTOS_FB > localStorage
+    var tel = telMap[n] || (cfb[n]?cfb[n].tel:"") || localStorage.getItem("_tel::"+n) || "";
+    return Object.assign({},u,{telefono:tel.replace(/[^0-9]/g,"")});
+  });
   return _tdUsuarios;
 }
 
