@@ -5083,11 +5083,12 @@ window.addEventListener("focus", ()=>{ setTimeout(checkForUpdate, 1000); });
     <div class="mod-t">📋 Tareas del día</div>
     <div class="fg">
       <label>Agente</label>
-      <select id="tdAgente" onchange="tdCargarParaAgente(this.value)" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid var(--bdr);background:var(--bg2);color:var(--txt);font-size:13px">
+      <select id="tdAgente" onchange="tdCargarParaAgente(this.value);tdMostrarEditTel(this.value)" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid var(--bdr);background:var(--bg2);color:var(--txt);font-size:13px">
         <option value="">Selecciona agente...</option>
       </select>
     </div>
     <div style="font-size:11px;color:var(--sub);margin-bottom:6px;font-weight:600" id="tdFechaLabel">Tareas pendientes</div>
+    <div id="tdTelRow"></div>
     <div id="tdListaTareas" style="max-height:280px;overflow-y:auto;margin-bottom:12px">
       <p style="text-align:center;color:var(--sub);padding:16px;font-size:13px">Seleccioná un agente para ver sus tareas del día</p>
     </div>
@@ -5190,7 +5191,7 @@ function renderRecursos(){
   var g=document.getElementById("recursos-grid");if(!g)return;
   var bq=(document.getElementById("rec-buscar")||{}).value||"";
   var ct=(document.getElementById("rec-cat")||{}).value||"";
-  var fl=_recursos.filter(function(r){return(!ct||r.categoria===ct)&&(!bq||(r.nombre||"").toLowerCase().includes(bq.toLowerCase())||(r.descripcion||"").toLowerCase().includes(bq.toLowerCase()));});
+  var fl=_recursos.filter(function(r){return r.categoria!=="_tel"&&(!ct||r.categoria===ct)&&(!bq||(r.nombre||"").toLowerCase().includes(bq.toLowerCase())||(r.descripcion||"").toLowerCase().includes(bq.toLowerCase()));});
   if(!fl.length){g.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:60px 20px"><div style="font-size:48px;margin-bottom:12px">\uD83D\uDCC2</div><div style="font-size:15px;font-weight:700;color:var(--txt);margin-bottom:8px">Sin recursos cargados</div><div style="font-size:13px;color:var(--sub);margin-bottom:20px">Compartí links con el equipo: Drive, Canva, documentos, contactos...</div><button onclick="openModRecurso()" class="btn-pri">+ Agregar primer recurso</button></div>';return;}
   var h="";
   for(var i=0;i<fl.length;i++){
@@ -5260,15 +5261,40 @@ var _tdTareas=[];
 var _tdUsuarios=[]; // cache de usuarios de Supabase
 
 // Cargar usuarios desde Supabase (incluye teléfonos)
+async function _tdGetTelefono(nombre){
+  try{
+    var r=await db.from("recursos_equipo").select("url").eq("categoria","_tel").eq("nombre","tel::"+nombre).limit(1);
+    return r.data&&r.data.length?r.data[0].url||"":"";
+  }catch(e){return localStorage.getItem("_tel::"+nombre)||"";}
+}
+async function _tdSetTelefono(nombre,tel){
+  tel=(tel||"").replace(/[^0-9]/g,"");
+  try{
+    var exists=await db.from("recursos_equipo").select("id").eq("categoria","_tel").eq("nombre","tel::"+nombre).limit(1);
+    if(exists.data&&exists.data.length){
+      await db.from("recursos_equipo").update({url:tel,descripcion:"Telefono WA de "+nombre}).eq("id",exists.data[0].id);
+    }else{
+      await db.from("recursos_equipo").insert([{nombre:"tel::"+nombre,categoria:"_tel",url:tel,descripcion:"Telefono WA de "+nombre}]);
+    }
+  }catch(e){localStorage.setItem("_tel::"+nombre,tel);}
+  localStorage.setItem("_tel::"+nombre,tel);
+}
 async function _tdLoadUsuarios(){
   if(_tdUsuarios.length) return _tdUsuarios;
   try{
-    var r=await db.from("usuarios").select("id,nombre,rol,telefono,color").order("nombre");
+    var r=await db.from("usuarios").select("id,nombre,rol,color,email").order("nombre");
     _tdUsuarios=r.data||[];
   }catch(e){
-    // Fallback: usar el select de login
     var lu=document.getElementById("lu");
-    if(lu)_tdUsuarios=[...lu.options].filter(function(o){return o.value;}).map(function(o){return {nombre:o.value,telefono:''};});
+    if(lu)_tdUsuarios=[...lu.options].filter(function(o){return o.value;}).map(function(o){return {nombre:o.value};});
+  }
+  // Cargar teléfonos desde recursos_equipo
+  try{
+    var tels=await db.from("recursos_equipo").select("nombre,url").eq("categoria","_tel");
+    if(tels.data){var tm={};tels.data.forEach(function(t){tm[t.nombre.replace("tel::","")]=t.url||"";});}
+    _tdUsuarios=_tdUsuarios.map(function(u){return Object.assign({},u,{telefono:tm[u.nombre]||localStorage.getItem("_tel::"+u.nombre)||""}); });
+  }catch(e){
+    _tdUsuarios=_tdUsuarios.map(function(u){return Object.assign({},u,{telefono:localStorage.getItem("_tel::"+u.nombre)||""});});
   }
   return _tdUsuarios;
 }
@@ -5286,9 +5312,13 @@ async function abrirTareasDiarias(nombre){
     for(var i=0;i<_tdUsuarios.length;i++){
       var u=_tdUsuarios[i];
       var n=u.nombre||"";
-      if(n)hh+='<option value="'+n+'"'+(n===nombre?' selected':'')+'>'+n+(u.rol?' ('+u.rol+')':'')+' '+(u.telefono?'\uD83D\uDCF1':'')+'</option>';
+      var hasTel=!!(u.telefono&&u.telefono.length>5);
+      if(n)hh+='<option value="'+n+'"'+(n===nombre?' selected':'')+'>'+n+' '+(hasTel?'\uD83D\uDCF1':'\u2757 sin tel')+'</option>';
     }
     sel.innerHTML=hh;
+    // Mostrar botón editar tel
+    var telRow=document.getElementById('tdTelRow');
+    if(telRow&&nombre)tdMostrarEditTel(nombre);
   }
   
   var lbl=document.getElementById("tdFechaLabel");
@@ -5402,6 +5432,33 @@ function tdCopiar(){
   var lineas=pendientes.map(function(t){return "• "+t.descripcion;}).join("\n");
   var msg=(ag?"Tareas para "+ag+" - ":"")+_f41()+"\n\n"+lineas;
   navigator.clipboard.writeText(msg).then(function(){toast("\uD83D\uDCCB Copiado al portapapeles");});
+}
+
+// Funciones de teléfono
+function tdMostrarEditTel(nombre){
+  var row=document.getElementById("tdTelRow");if(!row)return;
+  var u=_tdUsuarios.filter(function(x){return x.nombre===nombre;})[0]||{};
+  var tel=u.telefono||localStorage.getItem("_tel::"+nombre)||"";
+  row.innerHTML='<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg3);border-radius:8px;margin-bottom:8px"><span style="font-size:12px;color:var(--sub)">📱 WA:</span><input id="tdTelInput" type="tel" value="'+tel+'" placeholder="5492983XXXXXX" style="flex:1;border:none;background:transparent;color:var(--txt);font-size:13px;outline:none"><button onclick="tdGuardarTel()" style="background:var(--acc);border:none;color:#fff;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer">Guardar</button></div>';
+}
+async function tdGuardarTel(){
+  var ag=(document.getElementById("tdAgente")||{}).value||"";
+  var tel=(document.getElementById("tdTelInput")||{}).value||"";
+  if(!ag||!tel){toast("Seleccioná agente e ingresá el número","err");return;}
+  await _tdSetTelefono(ag,tel);
+  // Actualizar el cache
+  var u=_tdUsuarios.filter(function(x){return x.nombre===ag;})[0];
+  if(u)u.telefono=tel.replace(/[^0-9]/g,"");
+  _tdUsuarios=[];// limpiar cache para forzar recarga
+  toast("📱 Teléfono guardado para "+ag);
+  // Recargar dropdown
+  await _tdLoadUsuarios();
+  var sel=document.getElementById("tdAgente");
+  if(sel&&sel.value===ag){
+    var opts=[...sel.options];
+    opts.forEach(function(o){if(o.value===ag)o.textContent=ag+" 📱";});
+  }
+  tdMostrarEditTel(ag);
 }
 
 // Botón WA en briefing
