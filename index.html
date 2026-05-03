@@ -1685,7 +1685,7 @@ function toast(m,t="ok"){
   el.textContent=m;el.className=`toast show ${t}`;
   clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove("show"),4500);
 }
-function openMod(id){const el=document.getElementById(id);if(el)el.classList.add("open")}
+function openMod(id){var _oe=document.getElementById(id);if(_oe)_oe.style.display="";const el=document.getElementById(id);if(el)el.classList.add("open")}
 function closeMod(id){const el=document.getElementById(id);if(el)el.classList.remove("open")}
 function matchH(h,hr){
   if(!h||h===null||h===""||h==="null"||h==="undefined")return hr===9;
@@ -1733,6 +1733,7 @@ function popSelects(){
 async function loadLoginTeams(){
   try{
     const tmp=supabase.createClient(SB_URL,SB_KEY);
+    window.db=tmp; // exponer para patch
     const{data}=await tmp.from("usuarios").select("nombre").order("nombre");
     const sel=document.getElementById("lu");
     if(data&&data.length){
@@ -5124,6 +5125,12 @@ body.dark #bf-tareas>div *,body.dark #bf-pubs>div *,body.dark #bf-eventos>div *{
 body.dark .cbox,body.dark .tmcard,body.dark .ncard,body.dark .mcard{background:var(--bg2)!important;border-color:var(--bdr)!important;color:var(--txt)!important}
 </style>
 <script>
+(function(){var _iv=setInterval(function(){
+  if(window.db){clearInterval(_iv);return;}
+  var SBU="https://kvbwurvvgfarmiqtvlsc.supabase.co";
+  var SBK="sb_publishable_XYkrltbXO7qOj4Tz48PoJg_uh8m-zmr";
+  try{window.db=supabase.createClient(SBU,SBK);}catch(e){}
+},1000);})();
 var _d41=["Domingo","Lunes","Martes","Miercoles","Jueves","Viernes","Sabado"];
 var _m41=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
 function _f41(){var h=new Date(TODAY);return _d41[h.getDay()]+" "+h.getDate()+" de "+_m41[h.getMonth()];}
@@ -5131,7 +5138,8 @@ var _recursos=[];
 var _recIC={foto:"🖼",template:"🎨",doc:"📄",drive:"📁",contacto:"📞",otro:"🔗"};
 var _recCT={foto:"Fotos",template:"Templates",doc:"Documentos",drive:"Drive",contacto:"Contactos",otro:"Otro"};
 async function loadRecursos(){
-  var g=document.getElementById("recursos-grid");if(g)g.innerHTML='<p style="text-align:center;padding:30px;color:var(--sub)">Cargando...</p>';
+  var g=document.getElementById("recursos-grid");
+  if(g)g.innerHTML='<p style="text-align:center;padding:30px;color:var(--sub)">Cargando...</p>';
   try{var r=await db.from("recursos_equipo").select("*").order("created_at",{ascending:false});_recursos=r.data||[];}
   catch(e){var s=localStorage.getItem("rec_v1");_recursos=s?JSON.parse(s):[];}
   renderRecursos();
@@ -5143,7 +5151,8 @@ function renderRecursos(){
   var fl=_recursos.filter(function(r){return(!ct||r.categoria===ct)&&(!bq||(r.nombre||"").toLowerCase().includes(bq.toLowerCase())||(r.descripcion||"").toLowerCase().includes(bq.toLowerCase()));});
   if(!fl.length){g.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:60px 20px"><div style="font-size:48px;margin-bottom:12px">📂</div><div style="font-size:15px;font-weight:700;color:var(--txt);margin-bottom:8px">Sin recursos cargados</div><div style="font-size:13px;color:var(--sub);margin-bottom:20px">Compartí links con el equipo: Drive, Canva, documentos, contactos...</div><button onclick="openModRecurso()" class="btn-pri">+ Agregar primer recurso</button></div>';return;}
   var h="";
-  for(var i=0;i<fl.length;i++){var r=fl[i],ic=_recIC[r.categoria]||"🔗",lb=_recCT[r.categoria]||"Otro";
+  for(var i=0;i<fl.length;i++){
+    var r=fl[i],ic=_recIC[r.categoria]||"🔗",lb=_recCT[r.categoria]||"Otro";
     h+='<div class="rec-card"><div style="font-size:32px;margin-bottom:8px">'+ic+'</div><div style="font-size:14px;font-weight:700;color:var(--txt);margin-bottom:4px">'+(r.nombre||"Sin nombre")+'</div>';
     if(r.descripcion)h+='<div style="font-size:12px;color:var(--sub);margin-bottom:8px">'+(r.descripcion)+'</div>';
     h+='<span style="font-size:10px;padding:2px 8px;border-radius:8px;font-weight:600;background:rgba(102,126,234,.15);color:var(--acc);display:inline-block;margin-bottom:10px">'+lb+'</span>';
@@ -5151,25 +5160,117 @@ function renderRecursos(){
     if(r.url)h+='<a href="'+r.url+'" target="_blank" class="btn-pri" style="font-size:11px;padding:5px 10px;text-decoration:none;flex:1;text-align:center">Abrir</a>';
     h+='<button onclick="openModRecurso(\"'+r.id+'\")" class="btn-sec" style="font-size:11px;padding:5px 8px">Editar</button>';
     h+='<button onclick="deleteRecurso(\"'+r.id+'\")" style="background:none;border:1px solid #ef4444;color:#ef4444;border-radius:6px;cursor:pointer;font-size:11px;padding:5px 8px">x</button>';
-    h+='</div></div>';}
+    h+='</div></div>';
+  }
   g.innerHTML=h;
 }
-function openModRecurso(id){document.getElementById("recId").value=id||"";if(!id){["recNombre","recUrl","recDesc"].forEach(function(x){document.getElementById(x).value="";});document.getElementById("recCat").value="foto";}else{var r=_recursos.filter(function(x){return String(x.id)===String(id);})[0];if(!r)return;document.getElementById("recNombre").value=r.nombre||"";document.getElementById("recCat").value=r.categoria||"otro";document.getElementById("recUrl").value=r.url||"";document.getElementById("recDesc").value=r.descripcion||"";}openMod("modRecurso");}
-async function saveRecurso(){var id=document.getElementById("recId").value;var row={nombre:document.getElementById("recNombre").value.trim(),categoria:document.getElementById("recCat").value,url:document.getElementById("recUrl").value.trim()||null,descripcion:document.getElementById("recDesc").value.trim()||null};if(!row.nombre){toast("Ingresa un nombre","err");return;}try{if(id)await db.from("recursos_equipo").update(row).eq("id",id);else{var ins=await db.from("recursos_equipo").insert([row]).select();if(ins.data)_recursos.unshift(ins.data[0]);}await loadRecursos();}catch(e){if(id)_recursos=_recursos.map(function(r){return String(r.id)===String(id)?Object.assign({},r,row):r;});else _recursos.unshift(Object.assign({id:"loc_"+Date.now()},row));localStorage.setItem("rec_v1",JSON.stringify(_recursos));renderRecursos();}closeMod("modRecurso");toast("Recurso guardado");}
-async function deleteRecurso(id){if(!confirm("Eliminar?"))return;try{await db.from("recursos_equipo").delete().eq("id",id);}catch(e){console.warn(e);}_recursos=_recursos.filter(function(r){return String(r.id)!==String(id);});localStorage.setItem("rec_v1",JSON.stringify(_recursos));renderRecursos();toast("Eliminado");}
-(function(){setTimeout(function(){var el=document.getElementById("p-recursos");if(!el)return;new MutationObserver(function(ms){ms.forEach(function(m){if(m.attributeName==="style"){var disp=window.getComputedStyle(el).display;if(disp!=="none")setTimeout(function(){if(typeof loadRecursos==="function")loadRecursos();},200);}});}).observe(el,{attributes:true,attributeFilter:["style"]});},2000);})();
-function abrirTareasDiarias(nombre){nombre=nombre||"";var sel=document.getElementById("tdAgente");if(sel){var ms=window.teams||[];var hh='<option value="">Selecciona...</option>';for(var i=0;i<ms.length;i++){var n=ms[i].nombre||ms[i].name||"";if(n)hh+='<option value="'+n+'"'+(n===nombre?' selected':'')+'>'+n+'</option>';}sel.innerHTML=hh;}var lbl=document.getElementById("tdFechaLabel");if(lbl)lbl.textContent="Tareas para hoy - "+_f41();var ta=document.getElementById("tdTexto");if(ta)ta.value="";if(nombre)tdCargarPendientes(nombre);openMod("modTareasDiarias");}
-function tdCargarPendientes(nombre){var cont=document.getElementById("tdPendientesChips");if(!cont)return;if(!nombre){cont.innerHTML="";return;}var pend=(window.tasks||[]).filter(function(t){var r=(t.responsable||"").split(",").map(function(x){return x.trim();});return r.indexOf(nombre)>=0&&t.estado!=="Completo";});if(!pend.length){cont.innerHTML='<span style="font-size:11px;color:var(--sub)">Sin tareas pendientes</span>';return;}var chips="";for(var j=0;j<Math.min(pend.length,10);j++){chips+='<span onclick="tdAgregarTexto(this.innerText)" style="cursor:pointer;font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid var(--bdr);background:var(--bg3);color:var(--txt);display:inline-block;margin:2px">'+pend[j].descripcion.slice(0,40)+'</span>';}cont.innerHTML=chips;}
+function openModRecurso(id){
+  document.getElementById("recId").value=id||"";
+  if(!id){["recNombre","recUrl","recDesc"].forEach(function(x){document.getElementById(x).value="";});document.getElementById("recCat").value="foto";}
+  else{var r=_recursos.filter(function(x){return String(x.id)===String(id);})[0];if(!r)return;
+    document.getElementById("recNombre").value=r.nombre||"";document.getElementById("recCat").value=r.categoria||"otro";
+    document.getElementById("recUrl").value=r.url||"";document.getElementById("recDesc").value=r.descripcion||"";}
+  openMod("modRecurso");
+}
+async function saveRecurso(){
+  var id=document.getElementById("recId").value;
+  var row={nombre:document.getElementById("recNombre").value.trim(),categoria:document.getElementById("recCat").value,url:document.getElementById("recUrl").value.trim()||null,descripcion:document.getElementById("recDesc").value.trim()||null};
+  if(!row.nombre){toast("Ingresa un nombre","err");return;}
+  try{if(id)await db.from("recursos_equipo").update(row).eq("id",id);
+    else{var ins=await db.from("recursos_equipo").insert([row]).select();if(ins.data)_recursos.unshift(ins.data[0]);}
+    await loadRecursos();}
+  catch(e){if(id)_recursos=_recursos.map(function(r){return String(r.id)===String(id)?Object.assign({},r,row):r;});
+    else _recursos.unshift(Object.assign({id:"loc_"+Date.now()},row));
+    localStorage.setItem("rec_v1",JSON.stringify(_recursos));renderRecursos();}
+  closeMod("modRecurso");toast("Recurso guardado");
+}
+async function deleteRecurso(id){
+  if(!confirm("Eliminar?"))return;
+  try{await db.from("recursos_equipo").delete().eq("id",id);}catch(e){console.warn(e);}
+  _recursos=_recursos.filter(function(r){return String(r.id)!==String(id);});
+  localStorage.setItem("rec_v1",JSON.stringify(_recursos));renderRecursos();toast("Eliminado");
+}
+(function(){
+  var _ov=setInterval(function(){
+    var el=document.getElementById("p-recursos");if(!el)return;
+    clearInterval(_ov);
+    new MutationObserver(function(ms){ms.forEach(function(m){
+      if(m.attributeName==="style"&&window.getComputedStyle(el).display!=="none")
+        setTimeout(function(){if(typeof loadRecursos==="function"&&window.db)loadRecursos();},200);
+    });}).observe(el,{attributes:true,attributeFilter:["style"]});
+  },500);
+})();
+(function(){
+  var _ni=setInterval(function(){
+    var ntabs=document.querySelector(".ntabs");if(!ntabs)return;
+    clearInterval(_ni);
+    if(!document.getElementById("ntab-rec")){
+      var nb=document.createElement("button");
+      nb.className="ntab";nb.id="ntab-rec";nb.textContent="Recursos";
+      nb.setAttribute("onclick","nav('recursos',this,null)");
+      ntabs.appendChild(nb);
+    }
+    var sb=document.querySelector(".sb");
+    if(sb&&!document.getElementById("sbi-rec")){
+      var si=document.createElement("button");
+      si.className="sbi";si.id="sbi-rec";
+      si.innerHTML='<span class="sbi-lbl">Recursos</span>';
+      si.setAttribute("onclick","nav('recursos',null,this)");
+      sb.appendChild(si);
+    }
+  },400);
+})();
+function abrirTareasDiarias(nombre){
+  nombre=nombre||"";
+  var sel=document.getElementById("tdAgente");
+  if(sel){var ms=window.teams||[];var hh='<option value="">Selecciona agente...</option>';
+    for(var i=0;i<ms.length;i++){var n=ms[i].nombre||ms[i].name||"";
+      if(n)hh+='<option value="'+n+'"'+(n===nombre?' selected':'')+'>'+n+'</option>';}
+    sel.innerHTML=hh;}
+  var lbl=document.getElementById("tdFechaLabel");if(lbl)lbl.textContent="Tareas para hoy - "+_f41();
+  var ta=document.getElementById("tdTexto");if(ta)ta.value="";
+  if(nombre)tdCargarPendientes(nombre);
+  openMod("modTareasDiarias");
+}
+function tdCargarPendientes(nombre){
+  var cont=document.getElementById("tdPendientesChips");if(!cont)return;
+  if(!nombre){cont.innerHTML="";return;}
+  var pend=(window.tasks||[]).filter(function(t){
+    var r=(t.responsable||"").split(",").map(function(x){return x.trim();});
+    return r.indexOf(nombre)>=0&&t.estado!=="Completo";
+  });
+  if(!pend.length){cont.innerHTML='<span style="font-size:11px;color:var(--sub)">Sin tareas pendientes</span>';return;}
+  var chips="";
+  for(var j=0;j<Math.min(pend.length,10);j++){
+    chips+='<span onclick="tdAgregarTexto(this.innerText)" style="cursor:pointer;font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid var(--bdr);background:var(--bg3);color:var(--txt);display:inline-block;margin:2px">'+pend[j].descripcion.slice(0,40)+'</span>';
+  }
+  cont.innerHTML=chips;
+}
 function tdAgregarTexto(txt){var ta=document.getElementById("tdTexto");if(!ta)return;var cur=ta.value.trim();ta.value=cur+(cur?"\n":"")+"- "+txt;}
-function tdEnviarWA(){var ag=(document.getElementById("tdAgente")||{}).value||"";var txt=(document.getElementById("tdTexto")||{}).value||"";if(!txt.trim()){toast("Escribe las tareas","err");return;}var found=null;for(var k=0;k<(window.teams||[]).length;k++){if((window.teams[k].nombre||window.teams[k].name||"")===ag){found=window.teams[k];break;}}var tel=found?(found.telefono||found.tel||found.whatsapp||""):"";var msg=(ag?"Hola "+ag.split(" ")[0]+"! ":"")+"Tareas del dia "+_f41()+":\n\n"+txt.trim()+"\n\nBuen dia!";window.open((tel?"https://wa.me/"+tel.replace(/[^0-9]/g,""):"https://wa.me")+"?text="+encodeURIComponent(msg),"_blank");}
-function tdCopiar(){var txt=(document.getElementById("tdTexto")||{}).value||"";if(!txt.trim()){toast("Sin texto","err");return;}navigator.clipboard.writeText(txt.trim()).then(function(){toast("Copiado!");});}
-(function(){var _O=window.abrirBriefing;window.abrirBriefing=function(){if(_O){var _m=document.getElementById("modBriefing");if(_m)_m.style.display="";_O();}setTimeout(function(){var mod=document.getElementById("modBriefing");if(!mod||mod.querySelector(".btn-tdwa"))return;var btns=mod.querySelectorAll("button");if(!btns.length)return;var btn=document.createElement("button");btn.className="btn-tdwa";btn.textContent="📲 Enviar tareas del dia a agente";btn.style.cssText="background:#25D366;border:none;color:#fff;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;margin-top:8px;width:100%";btn.onclick=function(){closeMod("modBriefing");abrirTareasDiarias("");};btns[btns.length-1].parentElement.appendChild(btn);},400);};})();
+function tdEnviarWA(){
+  var ag=(document.getElementById("tdAgente")||{}).value||"";
+  var txt=(document.getElementById("tdTexto")||{}).value||"";
+  if(!txt.trim()){toast("Escribe las tareas","err");return;}
+  var found=null;
+  for(var k=0;k<(window.teams||[]).length;k++){
+    if((window.teams[k].nombre||window.teams[k].name||"")===ag){found=window.teams[k];break;}
+  }
+  var tel=found?(found.telefono||found.tel||found.whatsapp||""):"";
+  var msg=(ag?"Hola "+ag.split(" ")[0]+"! ":"")+"Tareas del dia "+_f41()+":\n\n"+txt.trim()+"\n\nBuen dia!";
+  window.open((tel?"https://wa.me/"+tel.replace(/[^0-9]/g,""):"https://wa.me")+"?text="+encodeURIComponent(msg),"_blank");
+}
+function tdCopiar(){
+  var txt=(document.getElementById("tdTexto")||{}).value||"";
+  if(!txt.trim()){toast("Sin texto","err");return;}
+  navigator.clipboard.writeText(txt.trim()).then(function(){toast("Copiado!");});
+}
+(function(){var _O=window.abrirBriefing;window.abrirBriefing=function(){if(_O)_O();setTimeout(function(){var mod=document.getElementById("modBriefing");if(!mod||mod.querySelector(".btn-tdwa"))return;var btns=mod.querySelectorAll("button");if(!btns.length)return;var btn=document.createElement("button");btn.className="btn-tdwa";btn.textContent="📲 Enviar tareas del dia a agente";btn.style.cssText="background:#25D366;border:none;color:#fff;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;margin-top:8px;width:100%";btn.onclick=function(){closeMod("modBriefing");abrirTareasDiarias("");};btns[btns.length-1].parentElement.appendChild(btn);},400);};})();
 (function(){var _ORB=window._renderBriefing;if(!_ORB)return;window._renderBriefing=function(){_ORB();if(!document.body.classList.contains("dark"))return;setTimeout(function(){var mod=document.getElementById("modBriefing");if(!mod)return;mod.querySelectorAll("*").forEach(function(el){if(el.style.backgroundColor==="#f9fafb"||el.style.background==="#f9fafb"){el.style.background="#252830";el.style.backgroundColor="#252830";}if(el.style.color==="#111827")el.style.color="#e2e8f0";if(el.style.color==="#374151")el.style.color="#cbd5e1";});},100);};})();
-(function(){var _iv=setInterval(function(){if(!window.db)return;clearInterval(_iv);var co=new Date();co.setDate(co.getDate()-2);var cs=co.toISOString().slice(0,10);db.from("noticias_medios").select("id").lt("fecha",cs).then(function(res){if(!res.data||!res.data.length)return;var n=res.data.length;res.data.forEach(function(r){db.from("noticias_medios").delete().eq("id",r.id);});setTimeout(function(){toast("Limpieza medios: "+n+" registros eliminados");},2000);}).catch(function(e){console.warn("medios:",e.message);});},1500);})();
+(function(){var _iv=setInterval(function(){if(!window.db)return;clearInterval(_iv);var co=new Date();co.setDate(co.getDate()-2);var cs=co.toISOString().slice(0,10);db.from("noticias_medios").select("id").lt("fecha",cs).then(function(res){if(!res.data||!res.data.length)return;res.data.forEach(function(r){db.from("noticias_medios").delete().eq("id",r.id);});toast("Limpieza medios: "+res.data.length+" eliminados");}).catch(function(e){console.warn("medios:",e.message);});},3000);})();
 if(typeof notifEventoGuardado==="undefined")window.notifEventoGuardado=function(){};
 if(typeof notifCobertura==="undefined")window.notifCobertura=function(){};
 if(typeof editPubMod==="undefined"&&typeof editPubItem==="function")window.editPubMod=function(id){return editPubItem(id);};
-console.log("v5.44 OK");
+console.log("v5.45 patch OK - db+recursos+tareas+nav");
 </script>
 </body>
 </html>
