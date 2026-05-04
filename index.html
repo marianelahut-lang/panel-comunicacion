@@ -5126,8 +5126,7 @@ body.dark .cbox,body.dark .tmcard,body.dark .ncard,body.dark .mcard{background:v
     if(el&&el.parentElement!==body&&el.parentElement!==document.documentElement)body.appendChild(el);
   });
   var main=document.getElementById('main');
-  var pRec=document.getElementById('p-recursos');
-  if(main&&pRec&&pRec.parentElement!==main)main.appendChild(pRec);
+  ['p-recursos','p-agente'].forEach(function(id){var el=document.getElementById(id);if(main&&el&&el.parentElement!==main)main.appendChild(el);});
 },500);})();
 var _d41=['Domingo','Lunes','Martes','Miercoles','Jueves','Viernes','Sabado'];
 var _m41=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
