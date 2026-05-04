@@ -1597,44 +1597,7 @@ body.dark #bf-tareas>div,body.dark #bf-pubs>div,body.dark #bf-eventos>div{backgr
 </div>
 
 <div class="toast" id="toast">
-<div id="p-agente" style="display:none">
-  <div class="ptop" style="flex-wrap:wrap;gap:12px">
-    <div style="display:flex;align-items:center;gap:14px">
-      <button onclick="nav('equipo',null,null)" style="background:none;border:none;cursor:pointer;color:var(--sub);font-size:13px;padding:4px 8px;border-radius:6px;border:1px solid var(--bdr)">← Equipo</button>
-      <div>
-        <div id="ag-nombre" class="ptitle" style="font-size:22px"></div>
-        <div id="ag-rol" class="psub"></div>
-      </div>
-    </div>
-    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-      <button onclick="abrirTareasDiarias(window._agenteActual)" class="btn-pri" style="background:#25D366;border-color:#25D366">📱 Tareas del día</button>
-      <button onclick="agAsignarTarea()" class="btn-pri">+ Asignar tarea</button>
-    </div>
-  </div>
 
-  <!-- Stats rápidas -->
-  <div id="ag-stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;padding:0 16px 16px"></div>
-
-  <!-- Barra de progreso global -->
-  <div style="padding:0 16px 16px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-      <span style="font-size:12px;font-weight:700;color:var(--sub);letter-spacing:.05em">PROGRESO GENERAL</span>
-      <span id="ag-pct" style="font-size:16px;font-weight:800;color:var(--acc)">0%</span>
-    </div>
-    <div style="background:var(--bg3);border-radius:999px;height:10px;overflow:hidden">
-      <div id="ag-bar" style="height:100%;background:linear-gradient(90deg,#667eea,#764ba2);border-radius:999px;transition:width .4s ease;width:0%"></div>
-    </div>
-  </div>
-
-  <!-- Tabs de tareas -->
-  <div style="padding:0 16px 12px;display:flex;gap:8px;border-bottom:1px solid var(--bdr)">
-    <button id="ag-tab-hoy" onclick="agShowTab('hoy')" class="ntab on" style="font-size:12px;padding:5px 12px;border-radius:8px">📅 Hoy</button>
-    <button id="ag-tab-pend" onclick="agShowTab('pend')" class="ntab" style="font-size:12px;padding:5px 12px;border-radius:8px">⏳ Pendientes</button>
-    <button id="ag-tab-sem" onclick="agShowTab('sem')" class="ntab" style="font-size:12px;padding:5px 12px;border-radius:8px">📆 Esta semana</button>
-    <button id="ag-tab-todas" onclick="agShowTab('todas')" class="ntab" style="font-size:12px;padding:5px 12px;border-radius:8px">📋 Todas</button>
-  </div>
-  <div id="ag-lista" style="padding:16px;min-height:200px"></div>
-</div>
 </div>
 
 <script>
@@ -5483,11 +5446,37 @@ window._agenteActual = '';
 window._agTareas = [];
 window._agTab = 'hoy';
 
+function _crearPanelAgente(){
+  // Crear el panel si no existe
+  if(document.getElementById('p-agente')) return;
+  var main = document.getElementById('main');
+  if(!main) return;
+  
+  // CSS
+  if(!document.getElementById('ag-css')){
+    var css=document.createElement('style');css.id='ag-css';
+    css.textContent='.ag-task{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:10px;border:1px solid var(--bdr);background:var(--bg2);margin-bottom:8px;transition:all .15s}.ag-task:hover{border-color:var(--acc)}.ag-task.done{opacity:.5}.ag-task.done .ag-task-desc{text-decoration:line-through}.ag-task-check{width:18px;height:18px;cursor:pointer;flex-shrink:0;accent-color:var(--acc)}.ag-task-desc{font-size:13px;color:var(--txt);line-height:1.4;margin-bottom:4px}.ag-task-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.ag-badge{font-size:10px;padding:2px 7px;border-radius:6px;font-weight:600}.ag-badge-alta{background:rgba(239,68,68,.15);color:#dc2626}.ag-badge-media{background:rgba(245,158,11,.15);color:#d97706}.ag-badge-baja{background:rgba(16,185,129,.15);color:#059669}.ag-stat-card{background:var(--bg2);border:1px solid var(--bdr);border-radius:12px;padding:14px;text-align:center}.ag-stat-num{font-size:28px;font-weight:800;line-height:1}.ag-stat-lbl{font-size:11px;color:var(--sub);margin-top:4px}';
+    document.head.appendChild(css);
+  }
+  
+  // HTML del panel
+  var panel = document.createElement('div');
+  panel.id = 'p-agente';
+  panel.style.display = 'none';
+  panel.innerHTML = '<div class="ptop" style="flex-wrap:wrap;gap:12px"><div style="display:flex;align-items:center;gap:14px"><button onclick="nav(\'equipo\',null,null)" style="background:none;border:1px solid var(--bdr);cursor:pointer;color:var(--sub);font-size:13px;padding:4px 10px;border-radius:6px">← Equipo</button><div><div id="ag-nombre" class="ptitle" style="font-size:22px"></div><div id="ag-rol" class="psub"></div></div></div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button onclick="abrirTareasDiarias(window._agenteActual)" style="background:#25D366;border:none;color:#fff;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer">📱 Tareas del día</button><button onclick="agAsignarTarea()" class="btn-pri">+ Asignar tarea</button></div></div>'
+    +'<div id="ag-stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;padding:0 16px 16px"></div>'
+    +'<div style="padding:0 16px 16px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:12px;font-weight:700;color:var(--sub);letter-spacing:.05em">PROGRESO GENERAL</span><span id="ag-pct" style="font-size:16px;font-weight:800;color:var(--acc)">0%</span></div><div style="background:var(--bg3);border-radius:999px;height:10px;overflow:hidden"><div id="ag-bar" style="height:100%;background:linear-gradient(90deg,#667eea,#764ba2);border-radius:999px;transition:width .4s ease;width:0%"></div></div></div>'
+    +'<div style="padding:0 16px 12px;display:flex;gap:8px;border-bottom:1px solid var(--bdr)"><button id="ag-tab-hoy" onclick="agShowTab(\'hoy\')" class="ntab on" style="font-size:12px;padding:5px 12px;border-radius:8px">📅 Hoy</button><button id="ag-tab-pend" onclick="agShowTab(\'pend\')" class="ntab" style="font-size:12px;padding:5px 12px;border-radius:8px">⏳ Pendientes</button><button id="ag-tab-sem" onclick="agShowTab(\'sem\')" class="ntab" style="font-size:12px;padding:5px 12px;border-radius:8px">📆 Esta semana</button><button id="ag-tab-todas" onclick="agShowTab(\'todas\')" class="ntab" style="font-size:12px;padding:5px 12px;border-radius:8px">📋 Todas</button></div>'
+    +'<div id="ag-lista" style="padding:16px;min-height:200px"></div>';
+  
+  main.appendChild(panel);
+}
+
 function agShowTab(tab){
   window._agTab = tab;
   ['hoy','pend','sem','todas'].forEach(function(t){
     var btn = document.getElementById('ag-tab-'+t);
-    if(btn) btn.className = btn.className.replace(' on','') + (t===tab?' on':'');
+    if(btn){btn.classList.remove('on');if(t===tab)btn.classList.add('on');}
   });
   agRenderLista();
 }
@@ -5497,23 +5486,24 @@ async function abrirPanelAgente(nombre){
   window._agTareas = [];
   window._agTab = 'hoy';
   
-  // Asegurar que p-agente está dentro de #main
-  var _main = document.getElementById('main');
-  var panel = document.getElementById('p-agente');
-  if(_main && panel && panel.parentElement !== _main) _main.appendChild(panel);
+  // Crear el panel si no existe
+  _crearPanelAgente();
+  
   // Mostrar panel
   document.querySelectorAll('[id^=p-]').forEach(function(el){el.style.display='none';});
   document.querySelectorAll('.ntab').forEach(function(b){b.classList.remove('on');});
+  var panel = document.getElementById('p-agente');
   if(panel) panel.style.display = 'block';
   
   // Info del agente
   var m = typeof gm === 'function' ? gm(nombre) : {};
   var color = m && m.color ? m.color : '#667eea';
-  document.getElementById('ag-nombre').textContent = nombre;
-  document.getElementById('ag-nombre').style.color = color;
-  document.getElementById('ag-rol').textContent = (m && m.rol) || 'Comunicador/a';
+  var nomEl = document.getElementById('ag-nombre');
+  var rolEl = document.getElementById('ag-rol');
+  if(nomEl){nomEl.textContent = nombre; nomEl.style.color = color;}
+  if(rolEl) rolEl.textContent = (m && m.rol) || 'Comunicador/a';
   
-  // Cargar tareas
+  // Cargar tareas y renderizar
   await agCargarTareas(nombre);
   agRenderStats();
   agRenderLista();
@@ -5525,194 +5515,123 @@ async function agCargarTareas(nombre){
     var r = await db.from('tareas').select('*').ilike('responsable','%'+nombre+'%').order('prioridad',{ascending:false});
     window._agTareas = r.data || [];
   }catch(e){
-    // Fallback DOM
-    window._agTareas = [];
+    window._agTareas = (window.tasks||[]).filter(function(t){return (t.responsable||'').includes(nombre);});
   }
 }
 
 function agRenderStats(){
   var tareas = window._agTareas;
-  var hoy = new Date(TODAY).toISOString().slice(0,10);
   var stats = [
-    {num: tareas.filter(function(t){return t.estado==='Pendiente';}).length, lbl:'Pendientes', color:'#ef4444'},
-    {num: tareas.filter(function(t){return t.estado==='En proceso';}).length, lbl:'En proceso', color:'#f59e0b'},
-    {num: tareas.filter(function(t){return t.estado==='Completo'||t.estado==='Listo s/publicar';}).length, lbl:'Completadas', color:'#10b981'},
-    {num: tareas.filter(function(t){return t.prioridad==='Alta'&&t.estado==='Pendiente';}).length, lbl:'Urgentes', color:'#7c3aed'}
+    {num:tareas.filter(function(t){return t.estado==='Pendiente';}).length,lbl:'Pendientes',color:'#ef4444'},
+    {num:tareas.filter(function(t){return t.estado==='En proceso';}).length,lbl:'En proceso',color:'#f59e0b'},
+    {num:tareas.filter(function(t){return t.estado==='Completo'||t.estado==='Listo s/publicar';}).length,lbl:'Completadas',color:'#10b981'},
+    {num:tareas.filter(function(t){return t.prioridad==='Alta'&&t.estado==='Pendiente';}).length,lbl:'Urgentes',color:'#7c3aed'}
   ];
-  var statsEl = document.getElementById('ag-stats');
-  if(!statsEl) return;
-  statsEl.innerHTML = stats.map(function(s){
-    return '<div class="ag-stat-card"><div class="ag-stat-num" style="color:'+s.color+'">'+s.num+'</div><div class="ag-stat-lbl">'+s.lbl+'</div></div>';
-  }).join('');
+  var el=document.getElementById('ag-stats');
+  if(el)el.innerHTML=stats.map(function(s){return '<div class="ag-stat-card"><div class="ag-stat-num" style="color:'+s.color+'">'+s.num+'</div><div class="ag-stat-lbl">'+s.lbl+'</div></div>';}).join('');
 }
 
 function agRenderProgresso(){
-  var tareas = window._agTareas;
-  if(!tareas.length) return;
-  var done = tareas.filter(function(t){return t.estado==='Completo'||t.estado==='Listo s/publicar';}).length;
-  var pct = Math.round((done/tareas.length)*100);
-  var bar = document.getElementById('ag-bar');
-  var pctEl = document.getElementById('ag-pct');
-  if(bar) bar.style.width = pct+'%';
-  if(bar) bar.style.background = pct>=70?'linear-gradient(90deg,#10b981,#059669)':pct>=40?'linear-gradient(90deg,#f59e0b,#d97706)':'linear-gradient(90deg,#ef4444,#dc2626)';
-  if(pctEl) pctEl.textContent = pct+'%';
+  var tareas=window._agTareas;
+  if(!tareas.length)return;
+  var done=tareas.filter(function(t){return t.estado==='Completo'||t.estado==='Listo s/publicar';}).length;
+  var pct=Math.round((done/tareas.length)*100);
+  var bar=document.getElementById('ag-bar'),pctEl=document.getElementById('ag-pct');
+  if(bar){bar.style.width=pct+'%';bar.style.background=pct>=70?'linear-gradient(90deg,#10b981,#059669)':pct>=40?'linear-gradient(90deg,#f59e0b,#d97706)':'linear-gradient(90deg,#ef4444,#dc2626)';}
+  if(pctEl)pctEl.textContent=pct+'%';
 }
 
 function agRenderLista(){
-  var lista = document.getElementById('ag-lista');
-  if(!lista) return;
-  var tareas = window._agTareas;
-  var tab = window._agTab;
-  var hoy = new Date(TODAY).toISOString().slice(0,10);
-  
-  // Filtrar según tab
+  var lista=document.getElementById('ag-lista');if(!lista)return;
+  var tareas=window._agTareas,tab=window._agTab;
+  var hoy=new Date(TODAY).toISOString().slice(0,10);
   var fl;
   if(tab==='hoy'){
-    fl = tareas.filter(function(t){
-      var esHoy = t.fecha && t.fecha.slice(0,10)===hoy;
-      var esDiaria = t.tipo==='diaria'||t.categoria==='diaria';
-      return esHoy || esDiaria;
-    });
-    if(!fl.length){
-      // Mostrar pendientes urgentes si no hay tareas de hoy
-      fl = tareas.filter(function(t){return t.prioridad==='Alta'&&t.estado==='Pendiente';});
-    }
-  } else if(tab==='pend'){
-    fl = tareas.filter(function(t){return t.estado!=='Completo'&&t.estado!=='Listo s/publicar';});
-  } else if(tab==='sem'){
-    var semStart = new Date(TODAY);
-    semStart.setDate(semStart.getDate()-semStart.getDay()+1);
-    var semEnd = new Date(semStart);
-    semEnd.setDate(semEnd.getDate()+6);
-    var ss = semStart.toISOString().slice(0,10);
-    var se = semEnd.toISOString().slice(0,10);
-    fl = tareas.filter(function(t){return t.fecha && t.fecha.slice(0,10)>=ss && t.fecha.slice(0,10)<=se;});
-    if(!fl.length) fl = tareas.filter(function(t){return t.estado!=='Completo';}).slice(0,10);
-  } else {
-    fl = tareas;
-  }
-  
-  if(!fl.length){
-    lista.innerHTML = '<div style="text-align:center;padding:40px;color:var(--sub)"><div style="font-size:40px;margin-bottom:12px">✅</div><div style="font-size:14px;font-weight:600">Sin tareas en esta vista</div></div>';
-    return;
-  }
-  
-  var h = '';
-  // Separar completadas
-  var pendientes = fl.filter(function(t){return t.estado!=='Completo'&&t.estado!=='Listo s/publicar';});
-  var completadas = fl.filter(function(t){return t.estado==='Completo'||t.estado==='Listo s/publicar';});
-  
-  function renderTask(t){
-    var done = t.estado==='Completo'||t.estado==='Listo s/publicar';
-    var priClass = t.prioridad==='Alta'?'ag-badge-alta':t.prioridad==='Media'?'ag-badge-media':'ag-badge-baja';
-    var dias = '';
-    if(t.fecha){
-      var diff = Math.ceil((new Date(t.fecha)-new Date(TODAY))/(1000*60*60*24));
-      if(!done) dias = diff<0?'<span style="font-size:10px;color:#ef4444;font-weight:600">'+Math.abs(diff)+'d vencida</span>':diff===0?'<span style="font-size:10px;color:#f59e0b;font-weight:600">Vence hoy</span>':'<span style="font-size:10px;color:var(--sub)">'+diff+'d</span>';
-    }
+    fl=tareas.filter(function(t){return t.fecha&&t.fecha.slice(0,10)===hoy;});
+    if(!fl.length)fl=tareas.filter(function(t){return t.prioridad==='Alta'&&t.estado==='Pendiente';});
+  }else if(tab==='pend'){
+    fl=tareas.filter(function(t){return t.estado!=='Completo'&&t.estado!=='Listo s/publicar';});
+  }else if(tab==='sem'){
+    var ss=new Date(TODAY);ss.setDate(ss.getDate()-ss.getDay()+1);
+    var se=new Date(ss);se.setDate(se.getDate()+6);
+    fl=tareas.filter(function(t){return t.fecha&&t.fecha.slice(0,10)>=ss.toISOString().slice(0,10)&&t.fecha.slice(0,10)<=se.toISOString().slice(0,10);});
+    if(!fl.length)fl=tareas.filter(function(t){return t.estado!=='Completo';}).slice(0,10);
+  }else{fl=tareas;}
+  if(!fl.length){lista.innerHTML='<div style="text-align:center;padding:40px;color:var(--sub)"><div style="font-size:40px;margin-bottom:12px">✅</div><div style="font-size:14px;font-weight:600">Sin tareas en esta vista</div></div>';return;}
+  var pend=fl.filter(function(t){return t.estado!=='Completo'&&t.estado!=='Listo s/publicar';});
+  var comp=fl.filter(function(t){return t.estado==='Completo'||t.estado==='Listo s/publicar';});
+  function rt(t){
+    var done=t.estado==='Completo'||t.estado==='Listo s/publicar';
+    var pc=t.prioridad==='Alta'?'ag-badge-alta':t.prioridad==='Media'?'ag-badge-media':'ag-badge-baja';
+    var dias='';
+    if(t.fecha&&!done){var diff=Math.ceil((new Date(t.fecha)-new Date(TODAY))/(86400000));dias=diff<0?'<span style="font-size:10px;color:#ef4444;font-weight:600">'+Math.abs(diff)+'d vencida</span>':diff===0?'<span style="font-size:10px;color:#f59e0b;font-weight:600">Vence hoy</span>':'';}
     return '<div class="ag-task'+(done?' done':'')+'">'
-      +'<input type="checkbox" class="ag-task-check" '+(done?'checked':'')+' onchange="agToggle(\"'+t.id+'\")" title="Marcar como '+(done?'pendiente':'completada')+'">'
-      +'<div class="ag-task-body">'
-      +'<div class="ag-task-desc">'+(t.descripcion||'Sin descripción')+'</div>'
-      +'<div class="ag-task-meta">'
-      +'<span class="ag-badge '+priClass+'">'+t.prioridad+'</span>'
-      +'<span style="font-size:10px;color:var(--sub)">'+t.estado+'</span>'
-      +(dias?dias:'')
-      +(t.link?'<a href="'+t.link+'" target="_blank" style="font-size:10px;color:var(--acc)">🔗 Link</a>':'')
-      +'</div></div>'
-      +'<button onclick="agEliminar(\"'+t.id+'\")" style="background:none;border:none;color:var(--sub);cursor:pointer;font-size:13px;padding:2px 5px;opacity:.5" title="Eliminar">×</button>'
-      +'</div>';
+      +'<input type="checkbox" class="ag-task-check" '+(done?'checked':'')+' onchange="agToggle(\"'+t.id+'\")"> '
+      +'<div style="flex:1"><div class="ag-task-desc">'+(t.descripcion||'')+'</div>'
+      +'<div class="ag-task-meta"><span class="ag-badge '+pc+'">'+t.prioridad+'</span>'
+      +'<span style="font-size:10px;color:var(--sub)">'+t.estado+'</span>'+dias+'</div></div>'
+      +'<button onclick="agEliminar(\"'+t.id+'\")" style="background:none;border:none;color:var(--sub);cursor:pointer;font-size:15px;padding:0 4px">×</button></div>';
   }
-  
-  pendientes.forEach(function(t){h+=renderTask(t);});
-  if(completadas.length){
-    h+='<div style="font-size:11px;color:var(--sub);font-weight:600;margin:16px 0 8px;text-transform:uppercase;letter-spacing:.06em">Completadas ('+completadas.length+')</div>';
-    completadas.forEach(function(t){h+=renderTask(t);});
-  }
-  lista.innerHTML = h;
+  var h='';pend.forEach(function(t){h+=rt(t);});
+  if(comp.length)h+='<div style="font-size:11px;color:var(--sub);font-weight:600;margin:16px 0 8px;text-transform:uppercase">Completadas ('+comp.length+')</div>';
+  comp.forEach(function(t){h+=rt(t);});
+  lista.innerHTML=h;
 }
 
 async function agToggle(id){
-  var t = window._agTareas.filter(function(x){return String(x.id)===String(id);})[0];
-  if(!t) return;
-  var nuevoEstado = (t.estado==='Completo'||t.estado==='Listo s/publicar')?'Pendiente':'Completo';
-  try{await db.from('tareas').update({estado:nuevoEstado}).eq('id',id);}catch(e){console.warn(e);}
-  t.estado = nuevoEstado;
-  agRenderStats();
-  agRenderProgresso();
-  agRenderLista();
-  if(typeof renderKanban==='function') renderKanban();
-  toast(nuevoEstado==='Completo'?'✅ Tarea completada':'🔄 Marcada como pendiente');
+  var t=window._agTareas.filter(function(x){return String(x.id)===String(id);})[0];if(!t)return;
+  var ns=t.estado==='Completo'||t.estado==='Listo s/publicar'?'Pendiente':'Completo';
+  try{await db.from('tareas').update({estado:ns}).eq('id',id);}catch(e){console.warn(e);}
+  t.estado=ns;agRenderStats();agRenderProgresso();agRenderLista();
+  if(typeof renderKanban==='function')renderKanban();
+  toast(ns==='Completo'?'✅ Completada':'🔄 Pendiente');
 }
-
 async function agEliminar(id){
-  if(!confirm('¿Eliminar esta tarea?')) return;
-  try{await db.from('tareas').delete().eq('id',id);}catch(e){console.warn(e);}
-  window._agTareas = window._agTareas.filter(function(t){return String(t.id)!==String(id);});
-  agRenderStats();
-  agRenderProgresso();
-  agRenderLista();
-  toast('Tarea eliminada');
+  if(!confirm('¿Eliminar?'))return;
+  try{await db.from('tareas').delete().eq('id',id);}catch(e){}
+  window._agTareas=window._agTareas.filter(function(t){return String(t.id)!==String(id);});
+  agRenderStats();agRenderProgresso();agRenderLista();toast('Eliminada');
 }
+function agAsignarTarea(){toast('Usá "+ Nueva tarea" del tablero y asigná a este agente','info');}
 
-function agAsignarTarea(){
-  // Abrir modal de nueva tarea con el agente preseleccionado
-  if(typeof openNuevaTarea==='function') openNuevaTarea(window._agenteActual);
-  else if(typeof abrirModTarea==='function') abrirModTarea({responsable:window._agenteActual});
-  else toast('Usá el botón "+ Nueva tarea" del tablero','info');
-}
-
-// ── MEJORAR TARJETAS DE EQUIPO con barras de progreso ──────
+// Agregar botones de progreso y Ver tareas a las tarjetas de equipo
 async function renderEquipoConProgreso(){
-  if(!window.db) return;
+  if(!window.db)return;
   try{
-    var r = await db.from('tareas').select('responsable,estado');
-    var tareas = r.data || [];
-    var mapa = {};
+    var r=await db.from('tareas').select('responsable,estado');
+    var tareas=r.data||[];
+    var mapa={};
     tareas.forEach(function(t){
-      var resps = (t.responsable||'').split(',').map(function(x){return x.trim();});
-      resps.forEach(function(nombre){
-        if(!nombre) return;
-        if(!mapa[nombre]) mapa[nombre] = {total:0,done:0};
+      (t.responsable||'').split(',').map(function(x){return x.trim();}).forEach(function(nombre){
+        if(!nombre)return;
+        if(!mapa[nombre])mapa[nombre]={total:0,done:0};
         mapa[nombre].total++;
-        if(t.estado==='Completo'||t.estado==='Listo s/publicar') mapa[nombre].done++;
+        if(t.estado==='Completo'||t.estado==='Listo s/publicar')mapa[nombre].done++;
       });
     });
     document.querySelectorAll('.tmcard').forEach(function(card){
-      // El nombre está en el 2do div hijo del card
-      var divs = card.querySelectorAll('div');
-      var nombre = divs[1] ? divs[1].textContent.trim() : '';
-      if(!nombre) return;
-      var datos = mapa[nombre] || {total:0,done:0};
-      var pct = datos.total ? Math.round((datos.done/datos.total)*100) : 0;
-      var barColor = pct>=70?'#10b981':pct>=40?'#f59e0b':'#ef4444';
-      // Evitar duplicados
-      if(card.querySelector('.tmcard-progress-wrap')) return;
-      // Crear barra + botón
-      var wrap = document.createElement('div');
-      wrap.className = 'tmcard-progress-wrap';
-      wrap.innerHTML = (datos.total>0?
-        '<div style="margin:8px 0 4px"><div style="background:var(--bg3);border-radius:999px;height:7px;overflow:hidden"><div style="width:'+pct+'%;height:100%;background:'+barColor+';border-radius:999px;transition:width .3s"></div></div><div style="font-size:11px;color:var(--sub);text-align:right;margin-top:3px">'+pct+'% · '+datos.done+'/'+datos.total+' tareas</div></div>'
-        :'<div style="font-size:11px;color:var(--sub);margin:6px 0">Sin tareas asignadas</div>')
+      if(card.querySelector('.tmcard-progress-wrap'))return;
+      var divs=card.querySelectorAll('div');
+      var nombre=divs[1]?divs[1].textContent.trim():'';
+      if(!nombre)return;
+      var datos=mapa[nombre]||{total:0,done:0};
+      var pct=datos.total?Math.round((datos.done/datos.total)*100):0;
+      var barColor=pct>=70?'#10b981':pct>=40?'#f59e0b':'#ef4444';
+      var wrap=document.createElement('div');
+      wrap.className='tmcard-progress-wrap';
+      wrap.innerHTML=(datos.total>0?'<div style="margin:8px 0 4px"><div style="background:var(--bg3);border-radius:999px;height:7px;overflow:hidden"><div style="width:'+pct+'%;height:100%;background:'+barColor+';border-radius:999px"></div></div><div style="font-size:11px;color:var(--sub);text-align:right;margin-top:3px">'+pct+'% · '+datos.done+'/'+datos.total+'</div></div>':'<div style="font-size:11px;color:var(--sub);margin:6px 0">Sin tareas asignadas</div>')
         +'<button onclick="event.stopPropagation();abrirPanelAgente(\''+nombre+'\')" style="width:100%;margin-top:6px;padding:7px;border-radius:8px;border:1px solid var(--acc);background:transparent;color:var(--acc);font-size:12px;font-weight:600;cursor:pointer">📊 Ver panel de tareas</button>';
       card.appendChild(wrap);
     });
-  }catch(e){console.warn('equipo progreso:', e.message);}
+  }catch(e){console.warn('renderEquipo:',e.message);}
 }
+(function(){var _o=window.nav;if(!_o)return;window.nav=function(id,tab,sb){_o(id,tab,sb);if(id==='equipo')setTimeout(renderEquipoConProgreso,400);};})();
+setTimeout(function(){if(document.getElementById('p-equipo')&&window.getComputedStyle(document.getElementById('p-equipo')).display!=='none')renderEquipoConProgreso();},1500);
 
-// Registrar 'agente' como página válida en PAGES
-if(typeof PAGES !== 'undefined' && !PAGES.includes('agente')) PAGES.push('agente');
+// Registrar en PAGES
+if(typeof PAGES!=='undefined'&&!PAGES.includes('agente'))PAGES.push('agente');
 
-// Hook en nav() para cargar datos cuando se abre equipo
-(function(){
-  var _origNav = window.nav;
-  if(!_origNav) return;
-  window.nav = function(id, tab, sb){
-    _origNav(id, tab, sb);
-    if(id === 'equipo') setTimeout(renderEquipoConProgreso, 400);
-  };
-})();
-
+// Auto-ejecutar si ya estamos en equipo
 // Auto-ejecutar si ya estamos en equipo
 setTimeout(function(){
   if(document.getElementById('p-equipo') && window.getComputedStyle(document.getElementById('p-equipo')).display !== 'none'){
@@ -5781,27 +5700,6 @@ console.log("v5.46 patch OK");
 <!-- Panel de Agente -->
 
 
-<style>
-/* Panel Agente */
-.ag-task{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:10px;border:1px solid var(--bdr);background:var(--bg2);margin-bottom:8px;transition:all .15s}
-.ag-task:hover{border-color:var(--acc);background:var(--bg3)}
-.ag-task.done{opacity:.55}
-.ag-task.done .ag-task-desc{text-decoration:line-through;color:var(--sub)}
-.ag-task-check{width:18px;height:18px;cursor:pointer;flex-shrink:0;margin-top:1px;accent-color:var(--acc)}
-.ag-task-body{flex:1;min-width:0}
-.ag-task-desc{font-size:13px;color:var(--txt);line-height:1.4;margin-bottom:4px}
-.ag-task-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-.ag-badge{font-size:10px;padding:2px 7px;border-radius:6px;font-weight:600}
-.ag-badge-alta{background:rgba(239,68,68,.15);color:#dc2626}
-.ag-badge-media{background:rgba(245,158,11,.15);color:#d97706}
-.ag-badge-baja{background:rgba(16,185,129,.15);color:#059669}
-.ag-stat-card{background:var(--bg2);border:1px solid var(--bdr);border-radius:12px;padding:14px;text-align:center}
-.ag-stat-num{font-size:28px;font-weight:800;line-height:1}
-.ag-stat-lbl{font-size:11px;color:var(--sub);margin-top:4px}
-/* Progress en tarjetas equipo */
-.tmcard-progress{margin-top:8px;background:var(--bg3);border-radius:999px;height:6px;overflow:hidden}
-.tmcard-progress-bar{height:100%;border-radius:999px;transition:width .3s}
-.tmcard-pct{font-size:11px;color:var(--sub);text-align:right;margin-top:3px}
-</style>
+
 </body>
 </html>
