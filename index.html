@@ -3370,6 +3370,8 @@ function renderTeam(){
       ${c.tel?`<a href="https://wa.me/${c.tel}" target="_blank" onclick="event.stopPropagation()" style="display:inline-flex;align-items:center;gap:3px;margin-top:5px;padding:3px 9px;background:#25d366;color:#fff;border-radius:20px;font-size:9px;font-weight:600;text-decoration:none">📱 WhatsApp</a>`:""}
       <div style="font-size:10px;color:#6b7280;margin-top:3px">${act} tareas activas</div>
       <button onclick="event.stopPropagation();sendAlert('${m.nombre}')" style="margin-top:5px;padding:3px 9px;border-radius:20px;border:none;background:${c.tel?'#25d366':'#667eea'};color:#fff;font-size:9px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif">${c.tel?'📱 Alerta WA':'📧 Alerta Mail'}</button>
+
+    <button onclick="event.stopPropagation();abrirPanelAgente('${m.nombre}')" style="width:100%;margin-top:10px;padding:8px;background:linear-gradient(135deg,#667eea,#764ba2);border:none;color:#fff;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.02em">📊 Panel de tareas</button>
     </div>`;
   }).join("");
 }
@@ -5595,35 +5597,41 @@ async function agEliminar(id){
 function agAsignarTarea(){toast('Usá "+ Nueva tarea" del tablero y asigná a este agente','info');}
 
 // Agregar botones de progreso y Ver tareas a las tarjetas de equipo
-async function renderEquipoConProgreso(){
-  if(!window.db)return;
+async async function renderEquipoConProgreso(){
+  if(!window.db) return;
   try{
-    var r=await db.from('tareas').select('responsable,estado');
-    var tareas=r.data||[];
-    var mapa={};
+    var r = await db.from('tareas').select('responsable,estado');
+    var tareas = r.data || [];
+    var mapa = {};
     tareas.forEach(function(t){
-      (t.responsable||'').split(',').map(function(x){return x.trim();}).forEach(function(nombre){
-        if(!nombre)return;
-        if(!mapa[nombre])mapa[nombre]={total:0,done:0};
+      var resps = (t.responsable||'').split(',').map(function(x){return x.trim();});
+      resps.forEach(function(nombre){
+        if(!nombre) return;
+        if(!mapa[nombre]) mapa[nombre] = {total:0,done:0};
         mapa[nombre].total++;
-        if(t.estado==='Completo'||t.estado==='Listo s/publicar')mapa[nombre].done++;
+        if(t.estado==='Completo'||t.estado==='Listo s/publicar') mapa[nombre].done++;
       });
     });
     document.querySelectorAll('.tmcard').forEach(function(card){
-      if(card.querySelector('.tmcard-progress-wrap'))return;
-      var divs=card.querySelectorAll('div');
-      var nombre=divs[1]?divs[1].textContent.trim():'';
-      if(!nombre)return;
-      var datos=mapa[nombre]||{total:0,done:0};
-      var pct=datos.total?Math.round((datos.done/datos.total)*100):0;
-      var barColor=pct>=70?'#10b981':pct>=40?'#f59e0b':'#ef4444';
-      var wrap=document.createElement('div');
-      wrap.className='tmcard-progress-wrap';
-      wrap.innerHTML=(datos.total>0?'<div style="margin:8px 0 4px"><div style="background:var(--bg3);border-radius:999px;height:7px;overflow:hidden"><div style="width:'+pct+'%;height:100%;background:'+barColor+';border-radius:999px"></div></div><div style="font-size:11px;color:var(--sub);text-align:right;margin-top:3px">'+pct+'% · '+datos.done+'/'+datos.total+'</div></div>':'<div style="font-size:11px;color:var(--sub);margin:6px 0">Sin tareas asignadas</div>')
-        +'<button onclick="event.stopPropagation();abrirPanelAgente(\''+nombre+'\')" style="width:100%;margin-top:6px;padding:7px;border-radius:8px;border:1px solid var(--acc);background:transparent;color:var(--acc);font-size:12px;font-weight:600;cursor:pointer">📊 Ver panel de tareas</button>';
-      card.appendChild(wrap);
+      // El nombre está en children[1] (el segundo div)
+      var nombre = card.children[1] ? card.children[1].textContent.trim() : '';
+      if(!nombre) return;
+      var datos = mapa[nombre];
+      if(!datos || !datos.total) return;
+      var pct = Math.round((datos.done/datos.total)*100);
+      var barColor = pct>=70?'#10b981':pct>=40?'#f59e0b':'#ef4444';
+      var barEl = card.querySelector('.tmcard-progress-wrap');
+      if(!barEl){
+        barEl = document.createElement('div');
+        barEl.className = 'tmcard-progress-wrap';
+        var panelBtn = card.querySelector('button[onclick*="abrirPanelAgente"]');
+        if(panelBtn) card.insertBefore(barEl, panelBtn);
+        else card.appendChild(barEl);
+      }
+      barEl.innerHTML = '<div class="tmcard-progress"><div class="tmcard-progress-bar" style="width:'+pct+'%;background:'+barColor+'"></div></div>'
+        +'<div class="tmcard-pct">'+pct+'% completado ('+datos.done+'/'+datos.total+' tareas)</div>';
     });
-  }catch(e){console.warn('renderEquipo:',e.message);}
+  }catch(e){console.warn('progreso equipo:',e.message);}
 }
 (function(){var _o=window.nav;if(!_o)return;window.nav=function(id,tab,sb){_o(id,tab,sb);if(id==='equipo')setTimeout(renderEquipoConProgreso,400);};})();
 setTimeout(function(){if(document.getElementById('p-equipo')&&window.getComputedStyle(document.getElementById('p-equipo')).display!=='none')renderEquipoConProgreso();},1500);
@@ -5639,6 +5647,9 @@ setTimeout(function(){
   }
 }, 1500);
 
+
+// Hook renderTeam para barras de progreso
+(function(){var _origRT2=window.renderTeam;if(_origRT2)window.renderTeam=function(){_origRT2();setTimeout(renderEquipoConProgreso,300);};})();
 // Stubs
 if(typeof notifEventoGuardado==="undefined")window.notifEventoGuardado=function(){};
 if(typeof notifCobertura==="undefined")window.notifCobertura=function(){};
