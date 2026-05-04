@@ -5225,5 +5225,58 @@ console.log('v5.51 patch OK - sin async/await');
 
 
 
+
+<!-- Panel de Agente v5.51 -->
+<div id="p-agente" style="display:none">
+  <div class="ptop" style="flex-wrap:wrap;gap:12px">
+    <div style="display:flex;align-items:center;gap:14px">
+      <button onclick="nav('equipo',null,null)" style="background:none;border:1px solid var(--bdr);cursor:pointer;color:var(--sub);font-size:13px;padding:4px 10px;border-radius:6px">← Equipo</button>
+      <div>
+        <div id="ag-nombre" class="ptitle" style="font-size:22px"></div>
+        <div id="ag-rol" class="psub"></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <button onclick="abrirTareasDiarias(window._agenteActual)" class="btn-pri" style="background:#25D366;border-color:#25D366">📱 Tareas del día</button>
+    </div>
+  </div>
+  <div id="ag-stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;padding:0 16px 16px"></div>
+  <div style="padding:0 16px 16px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <span style="font-size:12px;font-weight:700;color:var(--sub);letter-spacing:.05em">PROGRESO GENERAL</span>
+      <span id="ag-pct" style="font-size:16px;font-weight:800;color:var(--acc)">0%</span>
+    </div>
+    <div style="background:var(--bg3);border-radius:999px;height:10px;overflow:hidden">
+      <div id="ag-bar" style="height:100%;background:linear-gradient(90deg,#667eea,#764ba2);border-radius:999px;transition:width .4s ease;width:0%"></div>
+    </div>
+  </div>
+  <div style="padding:0 16px 12px;display:flex;gap:8px;border-bottom:1px solid var(--bdr)">
+    <button id="ag-tab-hoy" onclick="agShowTab('hoy')" class="ntab on" style="font-size:12px;padding:5px 12px;border-radius:8px">📅 Hoy</button>
+    <button id="ag-tab-pend" onclick="agShowTab('pend')" class="ntab" style="font-size:12px;padding:5px 12px;border-radius:8px">⏳ Pendientes</button>
+    <button id="ag-tab-sem" onclick="agShowTab('sem')" class="ntab" style="font-size:12px;padding:5px 12px;border-radius:8px">📆 Esta semana</button>
+    <button id="ag-tab-todas" onclick="agShowTab('todas')" class="ntab" style="font-size:12px;padding:5px 12px;border-radius:8px">📋 Todas</button>
+  </div>
+  <div id="ag-lista" style="padding:16px;min-height:200px"></div>
+</div>
+<style>
+.ag-task{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:10px;border:1px solid var(--bdr);background:var(--bg2);margin-bottom:8px;transition:all .15s}
+.ag-task:hover{border-color:var(--acc)}
+.ag-task.done{opacity:.55}
+.ag-task.done .ag-task-desc{text-decoration:line-through;color:var(--sub)}
+.ag-task-check{width:18px;height:18px;cursor:pointer;flex-shrink:0;margin-top:1px;accent-color:var(--acc)}
+.ag-task-body{flex:1;min-width:0}
+.ag-task-desc{font-size:13px;color:var(--txt);line-height:1.4;margin-bottom:4px}
+.ag-task-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.ag-badge{font-size:10px;padding:2px 7px;border-radius:6px;font-weight:600}
+.ag-badge-alta{background:rgba(239,68,68,.15);color:#dc2626}
+.ag-badge-media{background:rgba(245,158,11,.15);color:#d97706}
+.ag-badge-baja{background:rgba(16,185,129,.15);color:#059669}
+.ag-stat-card{background:var(--bg2);border:1px solid var(--bdr);border-radius:12px;padding:14px;text-align:center}
+.ag-stat-num{font-size:28px;font-weight:800;line-height:1}
+.ag-stat-lbl{font-size:11px;color:var(--sub);margin-top:4px}
+.tmcard-progress{background:var(--bg3);border-radius:999px;height:6px;overflow:hidden;margin-top:8px}
+.tmcard-progress-bar{height:100%;border-radius:999px;transition:width .3s}
+.tmcard-pct{font-size:11px;color:var(--sub);text-align:right;margin-top:3px}
+</style>
 </body>
 </html>
