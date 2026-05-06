@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Actualizando panel...</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#1e2535;font-family:Inter,sans-serif;color:#fff}
+.box{text-align:center;padding:40px;border-radius:20px;background:rgba(255,255,255,.08)}
+.spinner{width:48px;height:48px;border:4px solid rgba(255,255,255,.2);border-top-color:#667eea;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 20px}
+@keyframes spin{to{transform:rotate(360deg)}}
+h2{font-size:18px;margin-bottom:8px}
+p{font-size:13px;color:rgba(255,255,255,.6)}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="spinner"></div>
+  <h2>Limpiando cache...</h2>
+  <p>Vas a ser redirigido al panel actualizado en segundos.</p>
+</div>
+<script>
+(async function(){
+  try{
+    // 1. Desregistrar todos los Service Workers
+    if('serviceWorker' in navigator){
+      const regs=await navigator.serviceWorker.getRegistrations();
+      for(const reg of regs){ await reg.unregister(); }
+    }
+    // 2. Limpiar todos los caches
+    if('caches' in window){
+      const keys=await caches.keys();
+      for(const k of keys){ await caches.delete(k); }
+    }
+    // 3. Limpiar localStorage del panel
+    try{localStorage.clear();}catch(e){}
+    // 4. Redirigir al panel con cache-bust
+    setTimeout(function(){
+      window.location.replace('./index.html?v=5.57&t='+Date.now());
+    },1500);
+  }catch(e){
+    setTimeout(function(){
+      window.location.replace('./index.html?v=5.57&t='+Date.now());
+    },500);
+  }
+})();
+</script>
+</body>
+</html>
