@@ -5286,388 +5286,394 @@ console.log('v5.53 patch OK - bugfixes: cal events + tareas diarias');
 </style>
 <script>
 /* ═══════════════════════════════════════════════════════════════
-   PARCHE v5.54 — Panel Comunicación · Municipalidad de Tres Arroyos
-   Fix 1: Eventos del día en briefing matutino
-   Fix 2: Agregar actividades desde panel del agente
-   Fix 3: Marcar tareas como completas (checkbox fix)
-   Fix 4: Sincronización estado "Listo s/publicar"
-   Fix 5: Filtro personas → lista desplegable dinámica con buscador
+   PARCHE v5.55 — Panel Comunicación · Municipalidad de Tres Arroyos
+   ✓ Fix SCROLL: la lista de tareas ya no vuelve arriba al hacer scroll
+   ✓ Fix Briefing: eventos del día se cargan correctamente
+   ✓ Fix Agente: agregar actividades + checkboxes funcionan
+   ✓ Fix Sync: "Listo s/publicar" sincroniza entre vistas
+   ✓ Fix Filtro personas: desplegable dinámico con buscador
 ═══════════════════════════════════════════════════════════════ */
-(function () {
-  "use strict";
+(function(){
+"use strict";
 
-  function _db() { return window.db || (typeof db !== "undefined" ? db : null); }
-  function _toast(msg, tipo) { if (typeof toast === "function") toast(msg, tipo); }
-  function _isoHoy() { return (typeof iso === "function" && typeof TODAY !== "undefined") ? iso(TODAY) : new Date().toISOString().slice(0, 10); }
-  function _isDark() { return document.body.classList.contains("dark"); }
+/* ── UTILIDADES ── */
+function _db(){ return window.db||(typeof db!=="undefined"?db:null); }
+function _toast(msg,t){ if(typeof toast==="function")toast(msg,t); }
+function _hoy(){ return (typeof iso==="function"&&typeof TODAY!=="undefined")?iso(TODAY):new Date().toISOString().slice(0,10); }
+function _dark(){ return document.body.classList.contains("dark"); }
 
-  /* ── FIX 1: Eventos del día en Briefing ── */
-  window.abrirBriefing = (function(_orig) {
-    return function() {
-      function doOpen() {
-        if (typeof _renderBriefing === "function") _renderBriefing();
-        setTimeout(window._bfInjectCalEventsFix, 120);
-        var el = document.getElementById("modBriefing");
-        if (el) { el.style.display = ""; el.classList.add("open"); }
+/* ─────────────────────────────────────────────────────────────
+   SCROLL PRESERVATION — el fix principal
+   Cualquier función que haga container.innerHTML=html va a
+   conservar la posición de scroll del usuario.
+───────────────────────────────────────────────────────────── */
+var _scrollLocks = {};
+
+function _scrollSave(id){
+  var el=document.getElementById(id);
+  if(!el) return 0;
+  // Buscar el antepasado scrollable
+  var sc=el;
+  while(sc&&sc!==document.body){
+    var st=window.getComputedStyle(sc).overflowY;
+    if((st==="auto"||st==="scroll")&&sc.scrollHeight>sc.clientHeight) break;
+    sc=sc.parentElement;
+  }
+  var pos=sc?sc.scrollTop:0;
+  _scrollLocks[id]={el:sc,pos:pos};
+  return pos;
+}
+
+function _scrollRestore(id){
+  var lock=_scrollLocks[id];
+  if(!lock||!lock.el) return;
+  // requestAnimationFrame para asegurar que el DOM ya actualizó
+  requestAnimationFrame(function(){
+    if(lock.el&&lock.pos>0) lock.el.scrollTop=lock.pos;
+  });
+}
+
+/* ─────────────────────────────────────────────────────────────
+   FIX 1 — Briefing: eventos del día
+───────────────────────────────────────────────────────────── */
+window.abrirBriefing=(function(orig){
+  return function(){
+    function doOpen(){
+      if(typeof _renderBriefing==="function")_renderBriefing();
+      setTimeout(window._bfInjectCalEventsFix,120);
+      var m=document.getElementById("modBriefing");
+      if(m){m.style.display="";m.classList.add("open");}
+    }
+    var ok=(typeof agendas!=="undefined"&&Array.isArray(agendas)&&agendas.length)||
+           (typeof gcalEvs!=="undefined"&&Array.isArray(gcalEvs)&&gcalEvs.length);
+    if(ok){doOpen();return;}
+    var n=0,iv=setInterval(function(){
+      n++;
+      if((typeof agendas!=="undefined"&&agendas!==null)||(typeof gcalEvs!=="undefined"&&gcalEvs!==null)||n>=12){
+        clearInterval(iv);doOpen();
       }
-      var listo = (typeof agendas !== "undefined" && Array.isArray(agendas) && agendas.length) ||
-                  (typeof gcalEvs !== "undefined" && Array.isArray(gcalEvs) && gcalEvs.length);
-      if (listo) { doOpen(); return; }
-      var intentos = 0;
-      var iv = setInterval(function() {
-        intentos++;
-        if ((typeof agendas !== "undefined" && agendas !== null) ||
-            (typeof gcalEvs !== "undefined" && gcalEvs !== null) || intentos >= 12) {
-          clearInterval(iv); doOpen();
+    },200);
+  };
+})(window.abrirBriefing);
+
+window._bfInjectCalEventsFix=function(){
+  var wrap=document.getElementById("bf-eventos-wrap");
+  var evEl=document.getElementById("bf-eventos");
+  if(!wrap||!evEl)return;
+  var hoy=_hoy(),evs=[],seen={},src=[];
+  if(typeof agendas!=="undefined"&&Array.isArray(agendas))src=src.concat(agendas);
+  if(typeof gcalEvs!=="undefined"&&Array.isArray(gcalEvs))src=src.concat(gcalEvs);
+  src.forEach(function(e){
+    if(!e||String(e.fecha||"").slice(0,10)!==hoy||e.cancelado||e.tipo==="entrevista")return;
+    var k=(e.descripcion||"").slice(0,30)+"|"+(e.hora||"");
+    if(seen[k])return;seen[k]=1;evs.push(e);
+  });
+  evs.sort(function(a,b){return(a.hora||"00:00").localeCompare(b.hora||"00:00");});
+  if(!evs.length){wrap.style.display="none";return;}
+  wrap.style.display="block";
+  var html=evs.slice(0,8).map(function(e){
+    var ic={prensa:"📻",cobertura:"📷",municipal:"🏛",publicacion:"📱"}[e.tipo]||"🗓";
+    var hora=e.hora?e.hora.slice(0,5)+" hs":"";
+    var isCob=typeof cobSel!=="undefined"&&cobSel[e.id];
+    var brd=isCob?"#6d28d9":({prensa:"#ec4899",municipal:"#22c55e"}[e.tipo]||"#667eea");
+    return'<div onclick="openEvPanel('+JSON.stringify(e).replace(/"/g,"&quot;")+')" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:8px;border-left:3px solid '+brd+';background:rgba(102,126,234,.06);margin-bottom:6px;cursor:pointer">'+
+      '<span style="font-size:14px;flex-shrink:0">'+ic+'</span>'+
+      '<div style="flex:1;min-width:0">'+
+      '<div style="font-size:12px;font-weight:600;color:#111827;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">'+(e.descripcion||"Evento")+
+      (isCob?' <span style="font-size:9px;background:#6d28d9;color:#fff;padding:1px 4px;border-radius:3px">📋</span>':'')+
+      '</div>'+(hora?'<div style="font-size:10px;color:#6b7280;margin-top:1px">🕐 '+hora+(e.lugar?' · '+e.lugar.slice(0,20):'')+
+      '</div>':'')+
+      '</div></div>';
+  }).join("");
+  if(evs.length>8)html+='<div style="font-size:11px;color:#9ca3af;text-align:center;padding:4px">+'+(evs.length-8)+" eventos más...</div>";
+  evEl.innerHTML=html;
+};
+
+/* ─────────────────────────────────────────────────────────────
+   FIX 2+3+4 — Panel del agente: scroll + form + checkboxes + sync
+───────────────────────────────────────────────────────────── */
+window.abrirPanelAgente=(function(orig){
+  return function(nombre){
+    window._agenteActual=nombre;
+    window._agTareas=[];
+    window._agTab="hoy";
+    document.querySelectorAll("[id^=p-]").forEach(function(e){e.style.display="none";});
+    document.querySelectorAll(".ntab,.mbn-btn").forEach(function(b){b.classList.remove("on","act","mbn-active");});
+    var panel=document.getElementById("p-agente");
+    if(panel)panel.style.display="block";
+    var m=typeof gm==="function"?gm(nombre):{};
+    var color=(m&&m.color)||"#667eea";
+    var ne=document.getElementById("ag-nombre");if(ne){ne.textContent=nombre;ne.style.color=color;}
+    var re=document.getElementById("ag-rol");if(re)re.textContent=(m&&m.rol)||"Comunicador/a";
+    _agInyectarForm(nombre);
+    var lista=document.getElementById("ag-lista");
+    if(lista)lista.innerHTML='<p style="text-align:center;padding:20px;color:var(--sub)">Cargando...</p>';
+    if(typeof agRenderStats==="function")agRenderStats([]);
+    if(typeof agRenderProgreso==="function")agRenderProgreso(0,0);
+    var dbRef=_db();
+    if(!dbRef){if(typeof agRenderLista==="function")_agRenderSafe();return;}
+    dbRef.from("tareas").select("*").ilike("responsable","%"+nombre+"%")
+      .order("created_at",{ascending:false})
+      .then(function(r){
+        window._agTareas=r.data||[];
+        _agRefreshUI();
+      }).catch(function(){window._agTareas=[];_agRenderSafe();});
+  };
+})(window.abrirPanelAgente);
+
+function _agInyectarForm(nombre){
+  var panel=document.getElementById("p-agente");if(!panel)return;
+  var old=document.getElementById("ag-nueva-form");if(old)old.remove();
+  var dk=_dark(),bg=dk?"#1e2028":"#f9fafb",bdr=dk?"#373b47":"#e5e7eb",col=dk?"#e2e8f0":"#111827";
+  var form=document.createElement("div");
+  form.id="ag-nueva-form";
+  form.style.cssText="padding:0 16px 14px;border-bottom:1px solid var(--bdr,#e5e7eb)";
+  form.innerHTML='<div style="font-size:10px;font-weight:700;color:var(--sub,#6b7280);letter-spacing:.06em;margin-bottom:8px;text-transform:uppercase">＋ Nueva actividad para '+nombre+'</div>'+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">'+
+    '<input type="text" id="ag-nueva-desc" placeholder="Descripción de la tarea…" style="flex:1;min-width:160px;padding:8px 11px;border-radius:8px;border:1.5px solid '+bdr+';background:'+bg+';color:'+col+';font-size:12px;font-family:inherit;outline:none" onkeydown="if(event.key==='Enter')agAgregarNueva()">'+
+    '<select id="ag-nueva-prio" style="padding:8px 9px;border-radius:8px;border:1.5px solid '+bdr+';background:'+bg+';color:'+col+';font-size:12px;font-family:inherit">'+
+    '<option value="Alta">🔴 Alta</option><option value="Media" selected>🟡 Media</option><option value="Baja">🟢 Baja</option></select>'+
+    '<input type="date" id="ag-nueva-fecha" value="'+_hoy()+'" style="padding:8px 9px;border-radius:8px;border:1.5px solid '+bdr+';background:'+bg+';color:'+col+';font-size:12px;font-family:inherit">'+
+    '<button onclick="agAgregarNueva()" style="padding:8px 16px;background:#667eea;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">+ Agregar</button></div>';
+  var tabs=panel.querySelector(".ag-tabs,[id^='ag-tab']");
+  if(tabs&&tabs.parentElement)tabs.parentElement.insertBefore(form,tabs);
+  else{var hdr=panel.querySelector(".ag-header,#ag-header");if(hdr)hdr.after(form);else panel.appendChild(form);}
+}
+
+function _agRenderSafe(){
+  if(typeof agRenderLista!=="function")return;
+  var lista=document.getElementById("ag-lista");
+  _scrollSave("ag-lista");
+  agRenderLista();
+  _scrollRestore("ag-lista");
+}
+
+function _agRefreshUI(){
+  var stats=window._agTareas||[];
+  if(typeof agRenderStats==="function")agRenderStats(stats);
+  var done=stats.filter(function(t){return t.estado==="Completo"||t.estado==="Listo s/publicar";}).length;
+  if(typeof agRenderProgreso==="function")agRenderProgreso(done,stats.length);
+  _agRenderSafe();
+  if(typeof renderKanban==="function")setTimeout(renderKanban,100);
+  if(typeof updateBadges==="function")setTimeout(updateBadges,150);
+}
+
+window.agAgregarNueva=function(){
+  var descEl=document.getElementById("ag-nueva-desc");
+  var desc=(descEl?descEl.value:"").trim();
+  if(!desc){_toast("Escribí una descripción","err");return;}
+  var nombre=window._agenteActual||"";
+  if(!nombre){_toast("Sin agente seleccionado","err");return;}
+  var prio=(document.getElementById("ag-nueva-prio")||{}).value||"Media";
+  var fecha=(document.getElementById("ag-nueva-fecha")||{}).value||_hoy();
+  var row={descripcion:desc,responsable:nombre,prioridad:prio,estado:"Pendiente",fecha:fecha};
+  var dbRef=_db();
+  function ok(nueva){
+    window._agTareas.unshift(nueva);
+    if(typeof tasks!=="undefined"&&Array.isArray(tasks))tasks.unshift(nueva);
+    if(descEl)descEl.value="";
+    _agRefreshUI();
+    _toast("✓ Actividad agregada para "+nombre);
+  }
+  if(dbRef){
+    dbRef.from("tareas").insert([row]).select()
+      .then(function(res){ok((res.data&&res.data[0])||Object.assign({id:"tmp_"+Date.now()},row));})
+      .catch(function(e){_toast("Error: "+(e.message||e),"err");});
+  }else{ok(Object.assign({id:"tmp_"+Date.now()},row));}
+};
+
+/* FIX 3 — agToggle con scroll preservation */
+window.agToggle=function(id){
+  var t=(window._agTareas||[]).find(function(x){return String(x.id)===String(id);});
+  if(!t)return;
+  var nuevo=t.estado==="Completo"?"Pendiente":"Completo";
+  t.estado=nuevo;
+  var dbRef=_db();
+  if(dbRef){
+    dbRef.from("tareas").update({estado:nuevo,updated_at:new Date().toISOString()}).eq("id",id)
+      .then(function(){
+        if(typeof tasks!=="undefined"){var gt=tasks.find(function(x){return String(x.id)===String(id);});if(gt)gt.estado=nuevo;}
+      }).catch(function(e){console.warn("agToggle error:",e);});
+  }
+  _agRefreshUI();
+  _toast(nuevo==="Completo"?"✅ Tarea completada":"🔄 Marcada como pendiente");
+};
+
+/* FIX 4 — markCompleto + tdToggle con scroll preservation */
+window.markCompleto=(function(orig){
+  return function(id){
+    var res=orig?orig(id):Promise.resolve();
+    var sync=function(){_syncAg(id,"Completo");};
+    if(res&&typeof res.then==="function")res.then(sync);else setTimeout(sync,300);
+    return res;
+  };
+})(window.markCompleto);
+
+function _syncAg(id,estado){
+  var arr=window._agTareas;
+  if(!arr||!arr.length)return;
+  var t=arr.find(function(x){return String(x.id)===String(id);});
+  if(!t||t.estado===estado)return;
+  t.estado=estado;
+  var panel=document.getElementById("p-agente");
+  if(panel&&panel.style.display!=="none")_agRefreshUI();
+}
+
+window.tdToggle=function(id){
+  var arr=typeof _tdTareas!=="undefined"?_tdTareas:[];
+  var t=arr.find(function(x){return String(x.id)===String(id);});
+  if(!t)return;
+  var nuevo=(t.estado==="Completo"||t.estado==="Listo s/publicar")?"Pendiente":"Completo";
+  t.estado=nuevo;
+  var dbRef=_db();
+  if(dbRef){
+    dbRef.from("tareas").update({estado:nuevo,updated_at:new Date().toISOString()}).eq("id",id)
+      .then(function(){
+        if(typeof tasks!=="undefined"){var gt=tasks.find(function(x){return String(x.id)===String(id);});if(gt)gt.estado=nuevo;}
+      }).catch(function(e){console.warn("tdToggle error:",e);});
+  }
+  /* SCROLL PRESERVATION para tdListaTareas */
+  _scrollSave("tdListaTareas");
+  if(typeof tdRenderLista==="function")tdRenderLista();
+  _scrollRestore("tdListaTareas");
+  if(typeof renderKanban==="function")setTimeout(renderKanban,100);
+  if(typeof updateBadges==="function")setTimeout(updateBadges,150);
+  if(typeof renderMaterial==="function")setTimeout(renderMaterial,150);
+  _toast({Completo:"✅ Tarea completada","Listo s/publicar":"📤 Lista para publicar",Pendiente:"🔄 Pendiente"}[nuevo]||"🔄");
+};
+
+/* ─────────────────────────────────────────────────────────────
+   SCROLL LOCK GLOBAL — interceptar innerHTML en los contenedores
+   de listas para preservar siempre la posición de scroll
+───────────────────────────────────────────────────────────── */
+(function(){
+  // Contenedores que necesitan scroll preservation
+  var targets=["tdListaTareas","ag-lista","sbpersons","kanban"];
+  var nativeSet=Object.getOwnPropertyDescriptor(Element.prototype,"innerHTML").set;
+  var nativeGet=Object.getOwnPropertyDescriptor(Element.prototype,"innerHTML").get;
+
+  function lockScroll(el){
+    if(el._scrollLocked)return;
+    el._scrollLocked=true;
+    Object.defineProperty(el,"innerHTML",{
+      get:function(){ return nativeGet.call(this); },
+      set:function(html){
+        // Guardar posición del antepasado scrollable
+        var sc=this,savedTop=0;
+        var tmp=this;
+        while(tmp&&tmp!==document.body){
+          var ov=window.getComputedStyle(tmp).overflowY;
+          if((ov==="auto"||ov==="scroll")&&tmp.scrollHeight>tmp.clientHeight){sc=tmp;savedTop=tmp.scrollTop;break;}
+          tmp=tmp.parentElement;
         }
-      }, 200);
-    };
-  })(window.abrirBriefing);
-
-  window._bfInjectCalEventsFix = function() {
-    var wrap = document.getElementById("bf-eventos-wrap");
-    var evEl = document.getElementById("bf-eventos");
-    if (!wrap || !evEl) return;
-    var hoy = _isoHoy(), evs = [], seen = {}, fuentes = [];
-    if (typeof agendas !== "undefined" && Array.isArray(agendas)) fuentes = fuentes.concat(agendas);
-    if (typeof gcalEvs !== "undefined" && Array.isArray(gcalEvs)) fuentes = fuentes.concat(gcalEvs);
-    fuentes.forEach(function(e) {
-      if (!e || String(e.fecha||"").slice(0,10) !== hoy || e.cancelado || e.tipo === "entrevista") return;
-      var key = (e.descripcion||"").slice(0,30)+"|"+(e.hora||"");
-      if (seen[key]) return; seen[key] = 1; evs.push(e);
+        nativeSet.call(this,html);
+        if(savedTop>0){
+          requestAnimationFrame(function(){ if(sc)sc.scrollTop=savedTop; });
+        }
+      },
+      configurable:true
     });
-    evs.sort(function(a,b){ return (a.hora||"00:00").localeCompare(b.hora||"00:00"); });
-    if (!evs.length) { wrap.style.display = "none"; return; }
-    wrap.style.display = "block";
-    var html = evs.slice(0,8).map(function(e) {
-      var ic = {prensa:"📻",cobertura:"📷",municipal:"🏛",publicacion:"📱"}[e.tipo]||"🗓";
-      var hora = e.hora ? e.hora.slice(0,5)+" hs" : "";
-      var isCob = typeof cobSel !== "undefined" && cobSel[e.id];
-      var brd = isCob?"#6d28d9":({prensa:"#ec4899",municipal:"#22c55e"}[e.tipo]||"#667eea");
-      return '<div onclick="openEvPanel('+JSON.stringify(e).replace(/"/g,"&quot;")+')" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:8px;border-left:3px solid '+brd+';background:rgba(102,126,234,.06);margin-bottom:6px;cursor:pointer">'+
-        '<span style="font-size:14px;flex-shrink:0">'+ic+'</span>'+
-        '<div style="flex:1;min-width:0">'+
-        '<div style="font-size:12px;font-weight:600;color:#111827;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">'+(e.descripcion||"Evento")+(isCob?' <span style="font-size:9px;background:#6d28d9;color:#fff;padding:1px 4px;border-radius:3px">📋</span>':'')+
-        '</div>'+(hora?'<div style="font-size:10px;color:#6b7280;margin-top:1px">🕐 '+hora+(e.lugar?' · '+e.lugar.slice(0,20):'')+
-        '</div>':'')+'</div></div>';
-    }).join("");
-    if (evs.length>8) html+='<div style="font-size:11px;color:#9ca3af;text-align:center;padding:4px">+'+(evs.length-8)+" eventos más...</div>";
-    evEl.innerHTML = html;
-  };
-
-  /* ── FIX 2: Agregar actividades desde panel del agente ── */
-  window.abrirPanelAgente = (function(_orig) {
-    return function(nombre) {
-      window._agenteActual = nombre;
-      window._agTareas = [];
-      window._agTab = "hoy";
-      document.querySelectorAll("[id^=p-]").forEach(function(el){ el.style.display="none"; });
-      document.querySelectorAll(".ntab,.mbn-btn").forEach(function(b){ b.classList.remove("on","act","mbn-active"); });
-      var panel = document.getElementById("p-agente");
-      if (panel) panel.style.display = "block";
-      var m = typeof gm === "function" ? gm(nombre) : {};
-      var color = (m&&m.color)||"#667eea";
-      var nombreEl = document.getElementById("ag-nombre");
-      if (nombreEl) { nombreEl.textContent = nombre; nombreEl.style.color = color; }
-      var rolEl = document.getElementById("ag-rol");
-      if (rolEl) rolEl.textContent = (m&&m.rol)||"Comunicador/a";
-      _agInjectForm(nombre);
-      var lista = document.getElementById("ag-lista");
-      if (lista) lista.innerHTML = '<p style="text-align:center;padding:20px;color:var(--sub)">Cargando...</p>';
-      if (typeof agRenderStats==="function") agRenderStats([]);
-      if (typeof agRenderProgreso==="function") agRenderProgreso(0,0);
-      var dbRef = _db();
-      if (!dbRef) { if (typeof agRenderLista==="function") agRenderLista(); return; }
-      dbRef.from("tareas").select("*").ilike("responsable","%"+nombre+"%")
-        .order("created_at",{ascending:false})
-        .then(function(r){
-          window._agTareas = r.data||[];
-          if (typeof agRenderStats==="function") agRenderStats(window._agTareas);
-          var done = window._agTareas.filter(function(t){ return t.estado==="Completo"||t.estado==="Listo s/publicar"; }).length;
-          if (typeof agRenderProgreso==="function") agRenderProgreso(done,window._agTareas.length);
-          if (typeof agRenderLista==="function") agRenderLista();
-        }).catch(function(err){ window._agTareas=[]; if (typeof agRenderLista==="function") agRenderLista(); });
-    };
-  })(window.abrirPanelAgente);
-
-  function _agInjectForm(nombre) {
-    var panel = document.getElementById("p-agente"); if (!panel) return;
-    var old = document.getElementById("ag-nueva-form"); if (old) old.remove();
-    var dark = _isDark(), bg = dark?"#1e2028":"#f9fafb", bdr = dark?"#373b47":"#e5e7eb", col = dark?"#e2e8f0":"#111827";
-    var form = document.createElement("div");
-    form.id = "ag-nueva-form";
-    form.style.cssText = "padding:0 16px 14px;border-bottom:1px solid var(--bdr,#e5e7eb)";
-    form.innerHTML = '<div style="font-size:10px;font-weight:700;color:var(--sub,#6b7280);letter-spacing:.06em;margin-bottom:8px;text-transform:uppercase">＋ Nueva actividad para '+nombre+'</div>'+
-      '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">'+
-      '<input type="text" id="ag-nueva-desc" placeholder="Descripción de la tarea…" style="flex:1;min-width:180px;padding:8px 11px;border-radius:8px;border:1.5px solid '+bdr+';background:'+bg+';color:'+col+';font-size:12px;font-family:inherit;outline:none" onkeydown="if(event.key==='Enter')agAgregarNueva()">'+
-      '<select id="ag-nueva-prio" style="padding:8px 9px;border-radius:8px;border:1.5px solid '+bdr+';background:'+bg+';color:'+col+';font-size:12px;font-family:inherit"><option value="Alta">🔴 Alta</option><option value="Media" selected>🟡 Media</option><option value="Baja">🟢 Baja</option></select>'+
-      '<input type="date" id="ag-nueva-fecha" value="'+_isoHoy()+'" style="padding:8px 9px;border-radius:8px;border:1.5px solid '+bdr+';background:'+bg+';color:'+col+';font-size:12px;font-family:inherit">'+
-      '<button onclick="agAgregarNueva()" style="padding:8px 16px;background:#667eea;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit">+ Agregar</button></div>';
-    var tabsArea = panel.querySelector(".ag-tabs,[id^='ag-tab']");
-    if (tabsArea && tabsArea.parentElement) tabsArea.parentElement.insertBefore(form, tabsArea);
-    else { var hdr = panel.querySelector(".ag-header,#ag-header"); if(hdr) hdr.after(form); else panel.appendChild(form); }
   }
 
-  window.agAgregarNueva = function() {
-    var descEl = document.getElementById("ag-nueva-desc");
-    var desc = (descEl?descEl.value:"").trim();
-    if (!desc) { _toast("Escribí una descripción","err"); return; }
-    var nombre = window._agenteActual||"";
-    if (!nombre) { _toast("Sin agente seleccionado","err"); return; }
-    var prio = (document.getElementById("ag-nueva-prio")||{}).value||"Media";
-    var fecha = (document.getElementById("ag-nueva-fecha")||{}).value||_isoHoy();
-    var row = {descripcion:desc,responsable:nombre,prioridad:prio,estado:"Pendiente",fecha:fecha};
-    var dbRef = _db();
-    function afterInsert(nueva) {
-      window._agTareas.unshift(nueva);
-      if (typeof tasks!=="undefined"&&Array.isArray(tasks)) tasks.unshift(nueva);
-      if (descEl) descEl.value = "";
-      _refreshAgUI();
-      _toast("✓ Actividad agregada para "+nombre);
-    }
-    if (dbRef) {
-      dbRef.from("tareas").insert([row]).select()
-        .then(function(res){ afterInsert((res.data&&res.data[0])||Object.assign({id:"tmp_"+Date.now()},row)); })
-        .catch(function(e){ _toast("Error al guardar: "+(e.message||e),"err"); });
-    } else { afterInsert(Object.assign({id:"tmp_"+Date.now()},row)); }
-  };
-
-  function _refreshAgUI() {
-    var stats = window._agTareas||[];
-    if (typeof agRenderStats==="function") agRenderStats(stats);
-    var done = stats.filter(function(t){ return t.estado==="Completo"||t.estado==="Listo s/publicar"; }).length;
-    if (typeof agRenderProgreso==="function") agRenderProgreso(done,stats.length);
-    if (typeof agRenderLista==="function") agRenderLista();
-    if (typeof renderKanban==="function") setTimeout(renderKanban,100);
-    if (typeof updateBadges==="function") setTimeout(updateBadges,150);
-  }
-
-  /* ── FIX 3: Marcar tareas completas (agToggle) ── */
-  window.agToggle = function(id) {
-    var t = (window._agTareas||[]).find(function(x){ return String(x.id)===String(id); });
-    if (!t) return;
-    var nuevo = t.estado==="Completo"?"Pendiente":"Completo";
-    t.estado = nuevo;
-    var dbRef = _db();
-    if (dbRef) {
-      dbRef.from("tareas").update({estado:nuevo,updated_at:new Date().toISOString()}).eq("id",id)
-        .then(function(){ if(typeof tasks!=="undefined"){ var gt=tasks.find(function(x){return String(x.id)===String(id);}); if(gt)gt.estado=nuevo; } })
-        .catch(function(e){ console.warn("agToggle DB error:",e); });
-    }
-    _refreshAgUI();
-    _toast(nuevo==="Completo"?"✅ Tarea completada":"🔄 Marcada como pendiente");
-  };
-
-  /* ── FIX 4: Sincronización "Listo s/publicar" ── */
-  window.markCompleto = (function(_orig) {
-    return function(id) {
-      var res = _orig ? _orig(id) : Promise.resolve();
-      var sync = function(){ _syncAgTarea(id,"Completo"); };
-      if (res&&typeof res.then==="function") res.then(sync); else setTimeout(sync,300);
-      return res;
-    };
-  })(window.markCompleto);
-
-  function _syncAgTarea(id,estado) {
-    var arr = window._agTareas;
-    if (!arr||!arr.length) return;
-    var t = arr.find(function(x){ return String(x.id)===String(id); });
-    if (!t||t.estado===estado) return;
-    t.estado = estado;
-    var panel = document.getElementById("p-agente");
-    if (panel&&panel.style.display!=="none") _refreshAgUI();
-  }
-
-  window.tdToggle = function(id) {
-    var arr = typeof _tdTareas!=="undefined"?_tdTareas:[];
-    var t = arr.find(function(x){ return String(x.id)===String(id); });
-    if (!t) return;
-    var nuevo = (t.estado==="Completo"||t.estado==="Listo s/publicar")?"Pendiente":"Completo";
-    t.estado = nuevo;
-    var dbRef = _db();
-    if (dbRef) {
-      dbRef.from("tareas").update({estado:nuevo,updated_at:new Date().toISOString()}).eq("id",id)
-        .then(function(){ if(typeof tasks!=="undefined"){ var gt=tasks.find(function(x){return String(x.id)===String(id);}); if(gt)gt.estado=nuevo; } })
-        .catch(function(e){ console.warn("tdToggle error:",e); });
-    }
-    if (typeof tdRenderLista==="function") tdRenderLista();
-    if (typeof renderKanban==="function") setTimeout(renderKanban,100);
-    if (typeof updateBadges==="function") setTimeout(updateBadges,150);
-    if (typeof renderMaterial==="function") setTimeout(renderMaterial,150);
-    _toast({Completo:"✅ Tarea completada","Listo s/publicar":"📤 Lista para publicar",Pendiente:"🔄 Pendiente"}[nuevo]||"🔄");
-  };
-
-  /* ── FIX 5: Filtro personas → dropdown visual elegante ── */
-  (function() {
-    var _fpOpen = false;
-
-    function _fpAvatar(m, size) {
-      size = size || 22;
-      var bg = (m && m.color) || "#667eea";
-      var txt = (m && m.color_texto) || "#fff";
-      var initials = (m && m.nombre) ? m.nombre.slice(0,2).toUpperCase() : "??";
-      return '<div style="width:'+size+'px;height:'+size+'px;border-radius:50%;background:'+bg+';color:'+txt+';display:flex;align-items:center;justify-content:center;font-weight:700;font-size:'+(size<=20?7:9)+'px;flex-shrink:0">'+initials+'</div>';
-    }
-
-    function _fpPendCount(nombre) {
-      if (typeof tasks === "undefined" || !Array.isArray(tasks)) return 0;
-      return tasks.filter(function(t){ return t.responsable===nombre && t.estado!=="Completo" && t.estado!=="Listo s/publicar"; }).length;
-    }
-
-    function _fpClose() {
-      _fpOpen = false;
-      var dd = document.getElementById("fp-dropdown");
-      if (dd) dd.style.display = "none";
-      var btn = document.getElementById("fp-trigger");
-      if (btn) btn.style.borderColor = "var(--bdr,#e5e7eb)";
-    }
-
-    function _fpToggle() {
-      _fpOpen = !_fpOpen;
-      var dd = document.getElementById("fp-dropdown");
-      var btn = document.getElementById("fp-trigger");
-      if (!dd) { _fpRenderDropdown(); _fpOpen = true; return; }
-      dd.style.display = _fpOpen ? "block" : "none";
-      if (btn) btn.style.borderColor = _fpOpen ? "#6d28d9" : "var(--bdr,#e5e7eb)";
-      if (_fpOpen) _fpRefreshList();
-    }
-
-    function _fpRenderTrigger() {
-      var container = document.getElementById("sbpersons");
-      if (!container) return;
-      var old = document.getElementById("fp-widget");
-      if (old) old.remove();
-      var miembros = (typeof teams !== "undefined" && Array.isArray(teams)) ? teams : [];
-      var selMember = miembros.find(function(m){ return m.nombre === (typeof fp !== "undefined" ? fp : ""); });
-      var dark = document.body.classList.contains("dark");
-      var bg = dark ? "#1e2028" : "#fff";
-      var bdr = dark ? "#373b47" : "#e5e7eb";
-      var col = dark ? "#e2e8f0" : "#374151";
-      var sub = dark ? "#9ca3af" : "#6b7280";
-      var widget = document.createElement("div");
-      widget.id = "fp-widget";
-      widget.style.cssText = "padding:0 10px 8px";
-      // Trigger button
-      var triggerHTML = '<button id="fp-trigger" onclick="window._fpToggleDD()" style="width:100%;display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:10px;border:1.5px solid '+bdr+';background:'+bg+';cursor:pointer;font-family:inherit;transition:border-color .15s">';
-      if (selMember) {
-        triggerHTML += _fpAvatar(selMember, 22);
-        triggerHTML += '<span style="flex:1;font-size:12px;font-weight:600;color:'+col+';text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+selMember.nombre+'</span>';
-        var pend = _fpPendCount(selMember.nombre);
-        if (pend) triggerHTML += '<span style="font-size:9px;background:#fee2e2;color:#dc2626;font-weight:700;border-radius:8px;padding:1px 6px">'+pend+'</span>';
-        triggerHTML += '<span style="font-size:10px;color:'+sub+'">✕</span>';
-      } else {
-        triggerHTML += '<span style="width:22px;height:22px;border-radius:50%;background:var(--bdr,#e5e7eb);display:inline-flex;align-items:center;justify-content:center;font-size:9px;color:'+sub+'">👥</span>';
-        triggerHTML += '<span style="flex:1;font-size:12px;font-weight:500;color:'+sub+';text-align:left">Todos los agentes</span>';
-        triggerHTML += '<span style="font-size:11px;color:'+sub+'">▾</span>';
-      }
-      triggerHTML += '</button>';
-      // Dropdown container (initially hidden)
-      triggerHTML += '<div id="fp-dropdown" style="display:none;position:absolute;z-index:999;width:calc(100% - 20px);max-height:280px;overflow-y:auto;border-radius:10px;border:1.5px solid '+bdr+';background:'+bg+';box-shadow:0 8px 24px rgba(0,0,0,.12);margin-top:4px"></div>';
-      widget.innerHTML = triggerHTML;
-      widget.style.position = "relative";
-      container.before(widget);
-      container.style.display = "none";
-    }
-
-    function _fpRefreshList() {
-      var dd = document.getElementById("fp-dropdown");
-      if (!dd) return;
-      var miembros = (typeof teams !== "undefined" && Array.isArray(teams)) ? teams : [];
-      var curFP = typeof fp !== "undefined" ? fp : "";
-      var dark = document.body.classList.contains("dark");
-      var col = dark ? "#e2e8f0" : "#374151";
-      var sub = dark ? "#9ca3af" : "#6b7280";
-      var hov = dark ? "#2a2d38" : "#f5f3ff";
-      var selBg = dark ? "#2e1d6e" : "#ede9fe";
-      var html = '<div onclick="window._fpSelectDD('')" style="display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--bdr,#e5e7eb);background:'+(curFP===''?selBg:'transparent')+';">';
-      html += '<span style="width:26px;height:26px;border-radius:50%;background:var(--bdr,#e5e7eb);display:inline-flex;align-items:center;justify-content:center;font-size:11px">👥</span>';
-      html += '<span style="font-size:12px;font-weight:'+(curFP===''?'700':'500')+';color:'+(curFP===''?'#6d28d9':col)+'">Todos los agentes</span>';
-      var total = (typeof tasks!=="undefined"&&Array.isArray(tasks))?tasks.filter(function(t){return t.estado!=="Completo"&&t.estado!=="Listo s/publicar";}).length:0;
-      if (total) html += '<span style="margin-left:auto;font-size:9px;background:#f3f4f6;color:#6b7280;font-weight:700;border-radius:8px;padding:1px 6px">'+total+'</span>';
-      html += '</div>';
-      miembros.forEach(function(m) {
-        var pend = _fpPendCount(m.nombre);
-        var sel = curFP === m.nombre;
-        var safe = m.nombre.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-        html += '<div onclick="window._fpSelectDD(''+safe+'')" style="display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;background:'+(sel?selBg:'transparent')+';transition:background .1s">';
-        html += _fpAvatar(m, 26);
-        html += '<span style="flex:1;font-size:12px;font-weight:'+(sel?'700':'500')+';color:'+(sel?'#6d28d9':col)+'">'+m.nombre+'</span>';
-        if (pend) html += '<span style="font-size:9px;background:#fee2e2;color:#dc2626;font-weight:700;border-radius:8px;padding:1px 6px">'+pend+'</span>';
-        if (sel) html += '<span style="font-size:10px;color:#6d28d9">✓</span>';
-        html += '</div>';
-      });
-      dd.innerHTML = html;
-    }
-
-    function _fpRenderDropdown() {
-      _fpRenderTrigger();
-      var dd = document.getElementById("fp-dropdown");
-      if (dd) { dd.style.display = "block"; _fpRefreshList(); }
-      var btn = document.getElementById("fp-trigger");
-      if (btn) btn.style.borderColor = "#6d28d9";
-    }
-
-    window._fpToggleDD = function() { _fpToggle(); };
-
-    window._fpSelectDD = function(nombre) {
-      _fpClose();
-      if (typeof clickPersona === "function") clickPersona(nombre);
-      _fpRenderTrigger();
-    };
-
-    window.renderPersons = function() {
-      _fpRenderTrigger();
-      if (_fpOpen) { var dd = document.getElementById("fp-dropdown"); if (dd && dd.style.display !== "none") _fpRefreshList(); }
-    };
-
-    window.clickPersona = (function(_orig) {
-      return function(n) {
-        if (_orig) _orig(n);
-        _fpRenderTrigger();
-      };
-    })(window.clickPersona);
-
-    window.toggleDark = (function(_orig) {
-      return function() {
-        if (_orig) _orig();
-        setTimeout(_fpRenderTrigger, 60);
-      };
-    })(window.toggleDark);
-
-    // Close dropdown on outside click
-    document.addEventListener("click", function(e) {
-      if (!_fpOpen) return;
-      var widget = document.getElementById("fp-widget");
-      if (widget && !widget.contains(e.target)) _fpClose();
+  function tryLock(){
+    targets.forEach(function(id){
+      var el=document.getElementById(id);
+      if(el)lockScroll(el);
     });
+  }
 
-    // Initial render
-    setTimeout(_fpRenderTrigger, 400);
-  })();
+  // Intentar inmediatamente y cuando cargue
+  tryLock();
+  document.addEventListener("DOMContentLoaded",tryLock);
+  window.addEventListener("load",tryLock);
+  // También intentar periódicamente los primeros 5 segundos
+  var attempts=0,iv=setInterval(function(){
+    attempts++;
+    tryLock();
+    if(attempts>=10)clearInterval(iv);
+  },500);
+})();
 
-  /* ── FIX 6: Recursos nav — activar ntab-rec y sbi-rec directamente ── */
-  (function() {
-    var _origNav = window.nav;
-    window.nav = function(id, tab, sb) {
-      if (id === "recursos") {
-        document.querySelectorAll("[id^='p-']").forEach(function(el){ el.style.display = "none"; });
-        document.querySelectorAll(".ntab,.sbi,.mbn-btn").forEach(function(b){ b.classList.remove("on","mbn-active"); });
-        var pRec = document.getElementById("p-recursos");
-        if (pRec) pRec.style.display = "block";
-        var ntabRec = document.getElementById("ntab-rec");
-        if (ntabRec) ntabRec.classList.add("on");
-        var sbiRec = document.getElementById("sbi-rec");
-        if (sbiRec) sbiRec.classList.add("on");
-        if (typeof renderRecursos === "function") renderRecursos();
-        return;
-      }
-      _origNav(id, tab, sb);
-    };
-  })();
+/* ─────────────────────────────────────────────────────────────
+   FIX 5 — Filtro personas: desplegable dinámico + buscador
+───────────────────────────────────────────────────────────── */
+var _fpQ="";
 
-  console.log("✅ Parche v5.54b aplicado — Fix nav Recursos");
+window.renderPersons=function(){
+  var container=document.getElementById("sbpersons");if(!container)return;
+  var miembros=typeof teams!=="undefined"&&Array.isArray(teams)?teams:[];
+  if(!document.getElementById("fp-search-wrap")){
+    var dk=_dark(),bg=dk?"#1e2028":"#f9fafb",bdr=dk?"#373b47":"#e5e7eb",col=dk?"#e2e8f0":"#111827";
+    var wrap=document.createElement("div");
+    wrap.id="fp-search-wrap";
+    wrap.style.cssText="padding:6px 10px 4px";
+    wrap.innerHTML="<div style='position:relative'>"+
+      "<input id='fp-buscador' type='text' placeholder='🔍 Buscar…' oninput='window._fpQ=this.value;renderPersons()' "+
+      "style='width:100%;padding:6px 28px 6px 10px;border-radius:8px;border:1.5px solid "+bdr+";background:"+bg+";color:"+col+";font-size:11px;font-family:inherit;outline:none;box-sizing:border-box'>"+
+      (miembros.length?"<select id='fp-select' onchange="var v=this.value;window._fpQ=v==='__'?'':v;renderPersons()" "+
+      "style='position:absolute;right:2px;top:50%;transform:translateY(-50%);border:none;background:transparent;font-size:13px;cursor:pointer;outline:none'>"+
+      "<option value='__'>▾</option>"+
+      miembros.map(function(m){return"<option value='"+((m.nombre||"").replace(/'/g,"&#39;"))+"'>"+(m.nombre||"")+"</option>";}).join("")+
+      "</select>":"")+
+      "</div>";
+    container.parentNode.insertBefore(wrap,container);
+  }
+  var inp=document.getElementById("fp-buscador");
+  if(inp&&document.activeElement!==inp)inp.value=_fpQ;
+  var busq=_fpQ.toLowerCase().trim();
+  var fil=busq?miembros.filter(function(m){return((m.nombre||"").toLowerCase().includes(busq)||((m.rol||"").toLowerCase().includes(busq)));}):miembros;
+  if(!fil.length){
+    container.innerHTML="<div style='padding:10px 12px;font-size:11px;color:#9ca3af;text-align:center'>"+(busq?"Sin resultados":"Sin integrantes")+"</div>";
+    return;
+  }
+  container.innerHTML=fil.map(function(m){
+    var pend=typeof tasks!=="undefined"&&Array.isArray(tasks)?tasks.filter(function(t){return t.responsable===m.nombre&&t.estado!=="Completo";}).length:0;
+    var sel=typeof fp!=="undefined"&&fp===m.nombre;
+    var safe=(m.nombre||"").replace(/\\/g,"\\\\").replace(/'/g,"\\'");
+    return'<div class="sbp'+(sel?" sel":"")+'" onclick="clickPersona(''+safe+'')" '+
+      'style="'+(sel?"border-left:3px solid #6d28d9;background:#ede9fe;":"")+'">'+""+
+      '<div style="width:18px;height:18px;border-radius:50%;background:'+(m.color||"#667eea")+';color:'+(m.color_texto||"#fff")+';display:flex;align-items:center;justify-content:center;font-weight:700;font-size:7px;flex-shrink:0">'+
+      (m.nombre||"?").slice(0,2).toUpperCase()+"</div>"+
+      '<span style="font-size:11px;font-weight:'+(sel?700:400)+';color:'+(sel?"#6d28d9":"#4b5563")+';flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">'+(m.nombre||"")+"</span>"+
+      '<span style="font-size:9px;background:'+(pend?"#fee2e2":"#f3f4f6")+';color:'+(pend?"#dc2626":"#9ca3af")+';font-weight:700;border-radius:10px;padding:0 5px;min-width:18px;text-align:center;flex-shrink:0">'+(pend||"")+"</span></div>";
+  }).join("");
+  _fpDark();
+};
+
+function _fpDark(){
+  var inp=document.getElementById("fp-buscador");if(!inp)return;
+  var dk=_dark();
+  inp.style.background=dk?"#1e2028":"#f9fafb";
+  inp.style.borderColor=dk?"#373b47":"#e5e7eb";
+  inp.style.color=dk?"#e2e8f0":"#111827";
+}
+
+window._fpQ=_fpQ;
+
+window.toggleDark=(function(orig){
+  return function(){
+    if(orig)orig();
+    setTimeout(_fpDark,50);
+    var form=document.getElementById("ag-nueva-form");
+    if(form){var dk=_dark();form.querySelectorAll("input,select").forEach(function(e){e.style.background=dk?"#1e2028":"#f9fafb";e.style.borderColor=dk?"#373b47":"#e5e7eb";e.style.color=dk?"#e2e8f0":"#111827";});}
+  };
+})(window.toggleDark);
+
+window.clickPersona=(function(orig){
+  return function(n){if(orig)orig(n);renderPersons();if(typeof actualizarFPanel==="function")actualizarFPanel();};
+})(window.clickPersona);
+
+/* ─────────────────────────────────────────────────────────────
+   INIT
+───────────────────────────────────────────────────────────── */
+document.addEventListener("DOMContentLoaded",function(){
+  if(typeof renderPersons==="function"&&document.getElementById("sbpersons"))renderPersons();
+});
+
+console.log("✅ Parche v5.55 — Tres Arroyos | Scroll fix + todos los fixes aplicados");
 })();
 </script>
+
 
 </body>
 </html>
