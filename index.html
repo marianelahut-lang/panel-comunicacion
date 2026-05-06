@@ -5497,78 +5497,153 @@ console.log('v5.53 patch OK - bugfixes: cal events + tareas diarias');
     _toast({Completo:"✅ Tarea completada","Listo s/publicar":"📤 Lista para publicar",Pendiente:"🔄 Pendiente"}[nuevo]||"🔄");
   };
 
-  /* ── FIX 5: Filtro personas → desplegable dinámico con buscador ── */
-  var _fpQuery = "";
+  /* ── FIX 5: Filtro personas → dropdown visual elegante ── */
+  (function() {
+    var _fpOpen = false;
 
-  window.renderPersons = function() {
-    var container = document.getElementById("sbpersons"); if (!container) return;
-    var miembros = typeof teams!=="undefined"&&Array.isArray(teams)?teams:[];
-    if (!document.getElementById("fp-search-wrap")) {
-      var dark=_isDark(), bg=dark?"#1e2028":"#f9fafb", bdr=dark?"#373b47":"#e5e7eb", col=dark?"#e2e8f0":"#111827";
-      var wrap = document.createElement("div");
-      wrap.id = "fp-search-wrap";
-      wrap.style.cssText = "padding:6px 10px 4px";
-      wrap.innerHTML = "<div style='position:relative'>"+
-        "<input id='fp-buscador' type='text' placeholder='🔍 Buscar…' value='' "+
-        "oninput='window._fpQuery=this.value;renderPersons()' "+
-        "style='width:100%;padding:6px 28px 6px 10px;border-radius:8px;border:1.5px solid "+bdr+";background:"+bg+";color:"+col+";font-size:11px;font-family:inherit;outline:none;box-sizing:border-box'>"+
-        (miembros.length?"<select id='fp-select' onchange="var v=this.value;window._fpQuery=v==='__todos__'?'':v;renderPersons()" "+
-        "style='position:absolute;right:2px;top:50%;transform:translateY(-50%);border:none;background:transparent;font-size:13px;cursor:pointer;outline:none'>"+
-        "<option value='__todos__'>▾</option>"+
-        miembros.map(function(m){ return "<option value='"+((m.nombre||"").replace(/'/g,"&#39;"))+"'>"+(m.nombre||"")+"</option>"; }).join("")+
-        "</select>":"")+
-        "</div>";
-      container.parentNode.insertBefore(wrap,container);
+    function _fpAvatar(m, size) {
+      size = size || 22;
+      var bg = (m && m.color) || "#667eea";
+      var txt = (m && m.color_texto) || "#fff";
+      var initials = (m && m.nombre) ? m.nombre.slice(0,2).toUpperCase() : "??";
+      return '<div style="width:'+size+'px;height:'+size+'px;border-radius:50%;background:'+bg+';color:'+txt+';display:flex;align-items:center;justify-content:center;font-weight:700;font-size:'+(size<=20?7:9)+'px;flex-shrink:0">'+initials+'</div>';
     }
-    var inp = document.getElementById("fp-buscador");
-    if (inp&&document.activeElement!==inp) inp.value = _fpQuery;
-    var busq = _fpQuery.toLowerCase().trim();
-    var filtrados = busq ? miembros.filter(function(m){ return ((m.nombre||"").toLowerCase().includes(busq)||((m.rol||"").toLowerCase().includes(busq))); }) : miembros;
-    if (!filtrados.length) {
-      container.innerHTML = "<div style='padding:10px 12px;font-size:11px;color:#9ca3af;text-align:center'>"+(busq?"Sin resultados para \""+busq+"\"":"Sin integrantes")+"</div>";
-      return;
+
+    function _fpPendCount(nombre) {
+      if (typeof tasks === "undefined" || !Array.isArray(tasks)) return 0;
+      return tasks.filter(function(t){ return t.responsable===nombre && t.estado!=="Completo" && t.estado!=="Listo s/publicar"; }).length;
     }
-    container.innerHTML = filtrados.map(function(m) {
-      var pend = typeof tasks!=="undefined"&&Array.isArray(tasks)?tasks.filter(function(t){ return t.responsable===m.nombre&&t.estado!=="Completo"; }).length:0;
-      var sel = typeof fp!=="undefined"&&fp===m.nombre;
-      var safe = (m.nombre||"").replace(/\\/g,"\\\\").replace(/'/g,"\\'");
-      return '<div class="sbp'+(sel?" sel":"")+'" onclick="clickPersona(''+safe+'')" '+
-        'style="'+(sel?"border-left:3px solid #6d28d9;background:#ede9fe;":"")+'">'+""+
-        '<div style="width:18px;height:18px;border-radius:50%;background:'+(m.color||"#667eea")+';color:'+(m.color_texto||"#fff")+';display:flex;align-items:center;justify-content:center;font-weight:700;font-size:7px;flex-shrink:0">'+
-        (m.nombre||"?").slice(0,2).toUpperCase()+"</div>"+
-        '<span style="font-size:11px;font-weight:'+(sel?700:400)+';color:'+(sel?"#6d28d9":"#4b5563")+';flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">'+(m.nombre||"")+"</span>"+
-        '<span style="font-size:9px;background:'+(pend?"#fee2e2":"#f3f4f6")+';color:'+(pend?"#dc2626":"#9ca3af")+';font-weight:700;border-radius:10px;padding:0 5px;min-width:18px;text-align:center;flex-shrink:0">'+(pend||"")+"</span></div>";
-    }).join("");
-    _fpApplyDark();
-  };
 
-  function _fpApplyDark() {
-    var inp = document.getElementById("fp-buscador"); if (!inp) return;
-    var dark = _isDark();
-    inp.style.background = dark?"#1e2028":"#f9fafb";
-    inp.style.borderColor = dark?"#373b47":"#e5e7eb";
-    inp.style.color = dark?"#e2e8f0":"#111827";
-  }
+    function _fpClose() {
+      _fpOpen = false;
+      var dd = document.getElementById("fp-dropdown");
+      if (dd) dd.style.display = "none";
+      var btn = document.getElementById("fp-trigger");
+      if (btn) btn.style.borderColor = "var(--bdr,#e5e7eb)";
+    }
 
-  window._fpQuery = _fpQuery;
+    function _fpToggle() {
+      _fpOpen = !_fpOpen;
+      var dd = document.getElementById("fp-dropdown");
+      var btn = document.getElementById("fp-trigger");
+      if (!dd) { _fpRenderDropdown(); _fpOpen = true; return; }
+      dd.style.display = _fpOpen ? "block" : "none";
+      if (btn) btn.style.borderColor = _fpOpen ? "#6d28d9" : "var(--bdr,#e5e7eb)";
+      if (_fpOpen) _fpRefreshList();
+    }
 
-  window.toggleDark = (function(_orig) {
-    return function() {
-      if (_orig) _orig();
-      setTimeout(_fpApplyDark,50);
-      var form = document.getElementById("ag-nueva-form");
-      if (form) { var dark=_isDark(); form.querySelectorAll("input,select").forEach(function(el){ el.style.background=dark?"#1e2028":"#f9fafb"; el.style.borderColor=dark?"#373b47":"#e5e7eb"; el.style.color=dark?"#e2e8f0":"#111827"; }); }
+    function _fpRenderTrigger() {
+      var container = document.getElementById("sbpersons");
+      if (!container) return;
+      var old = document.getElementById("fp-widget");
+      if (old) old.remove();
+      var miembros = (typeof teams !== "undefined" && Array.isArray(teams)) ? teams : [];
+      var selMember = miembros.find(function(m){ return m.nombre === (typeof fp !== "undefined" ? fp : ""); });
+      var dark = document.body.classList.contains("dark");
+      var bg = dark ? "#1e2028" : "#fff";
+      var bdr = dark ? "#373b47" : "#e5e7eb";
+      var col = dark ? "#e2e8f0" : "#374151";
+      var sub = dark ? "#9ca3af" : "#6b7280";
+      var widget = document.createElement("div");
+      widget.id = "fp-widget";
+      widget.style.cssText = "padding:0 10px 8px";
+      // Trigger button
+      var triggerHTML = '<button id="fp-trigger" onclick="window._fpToggleDD()" style="width:100%;display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:10px;border:1.5px solid '+bdr+';background:'+bg+';cursor:pointer;font-family:inherit;transition:border-color .15s">';
+      if (selMember) {
+        triggerHTML += _fpAvatar(selMember, 22);
+        triggerHTML += '<span style="flex:1;font-size:12px;font-weight:600;color:'+col+';text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+selMember.nombre+'</span>';
+        var pend = _fpPendCount(selMember.nombre);
+        if (pend) triggerHTML += '<span style="font-size:9px;background:#fee2e2;color:#dc2626;font-weight:700;border-radius:8px;padding:1px 6px">'+pend+'</span>';
+        triggerHTML += '<span style="font-size:10px;color:'+sub+'">✕</span>';
+      } else {
+        triggerHTML += '<span style="width:22px;height:22px;border-radius:50%;background:var(--bdr,#e5e7eb);display:inline-flex;align-items:center;justify-content:center;font-size:9px;color:'+sub+'">👥</span>';
+        triggerHTML += '<span style="flex:1;font-size:12px;font-weight:500;color:'+sub+';text-align:left">Todos los agentes</span>';
+        triggerHTML += '<span style="font-size:11px;color:'+sub+'">▾</span>';
+      }
+      triggerHTML += '</button>';
+      // Dropdown container (initially hidden)
+      triggerHTML += '<div id="fp-dropdown" style="display:none;position:absolute;z-index:999;width:calc(100% - 20px);max-height:280px;overflow-y:auto;border-radius:10px;border:1.5px solid '+bdr+';background:'+bg+';box-shadow:0 8px 24px rgba(0,0,0,.12);margin-top:4px"></div>';
+      widget.innerHTML = triggerHTML;
+      widget.style.position = "relative";
+      container.before(widget);
+      container.style.display = "none";
+    }
+
+    function _fpRefreshList() {
+      var dd = document.getElementById("fp-dropdown");
+      if (!dd) return;
+      var miembros = (typeof teams !== "undefined" && Array.isArray(teams)) ? teams : [];
+      var curFP = typeof fp !== "undefined" ? fp : "";
+      var dark = document.body.classList.contains("dark");
+      var col = dark ? "#e2e8f0" : "#374151";
+      var sub = dark ? "#9ca3af" : "#6b7280";
+      var hov = dark ? "#2a2d38" : "#f5f3ff";
+      var selBg = dark ? "#2e1d6e" : "#ede9fe";
+      var html = '<div onclick="window._fpSelectDD('')" style="display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--bdr,#e5e7eb);background:'+(curFP===''?selBg:'transparent')+';">';
+      html += '<span style="width:26px;height:26px;border-radius:50%;background:var(--bdr,#e5e7eb);display:inline-flex;align-items:center;justify-content:center;font-size:11px">👥</span>';
+      html += '<span style="font-size:12px;font-weight:'+(curFP===''?'700':'500')+';color:'+(curFP===''?'#6d28d9':col)+'">Todos los agentes</span>';
+      var total = (typeof tasks!=="undefined"&&Array.isArray(tasks))?tasks.filter(function(t){return t.estado!=="Completo"&&t.estado!=="Listo s/publicar";}).length:0;
+      if (total) html += '<span style="margin-left:auto;font-size:9px;background:#f3f4f6;color:#6b7280;font-weight:700;border-radius:8px;padding:1px 6px">'+total+'</span>';
+      html += '</div>';
+      miembros.forEach(function(m) {
+        var pend = _fpPendCount(m.nombre);
+        var sel = curFP === m.nombre;
+        var safe = m.nombre.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+        html += '<div onclick="window._fpSelectDD(''+safe+'')" style="display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;background:'+(sel?selBg:'transparent')+';transition:background .1s">';
+        html += _fpAvatar(m, 26);
+        html += '<span style="flex:1;font-size:12px;font-weight:'+(sel?'700':'500')+';color:'+(sel?'#6d28d9':col)+'">'+m.nombre+'</span>';
+        if (pend) html += '<span style="font-size:9px;background:#fee2e2;color:#dc2626;font-weight:700;border-radius:8px;padding:1px 6px">'+pend+'</span>';
+        if (sel) html += '<span style="font-size:10px;color:#6d28d9">✓</span>';
+        html += '</div>';
+      });
+      dd.innerHTML = html;
+    }
+
+    function _fpRenderDropdown() {
+      _fpRenderTrigger();
+      var dd = document.getElementById("fp-dropdown");
+      if (dd) { dd.style.display = "block"; _fpRefreshList(); }
+      var btn = document.getElementById("fp-trigger");
+      if (btn) btn.style.borderColor = "#6d28d9";
+    }
+
+    window._fpToggleDD = function() { _fpToggle(); };
+
+    window._fpSelectDD = function(nombre) {
+      _fpClose();
+      if (typeof clickPersona === "function") clickPersona(nombre);
+      _fpRenderTrigger();
     };
-  })(window.toggleDark);
 
-  window.clickPersona = (function(_orig) {
-    return function(n) { if(_orig)_orig(n); renderPersons(); if(typeof actualizarFPanel==="function")actualizarFPanel(); };
-  })(window.clickPersona);
+    window.renderPersons = function() {
+      _fpRenderTrigger();
+      if (_fpOpen) { var dd = document.getElementById("fp-dropdown"); if (dd && dd.style.display !== "none") _fpRefreshList(); }
+    };
 
-  document.addEventListener("DOMContentLoaded",function(){ if(typeof renderPersons==="function"&&document.getElementById("sbpersons"))renderPersons(); });
+    window.clickPersona = (function(_orig) {
+      return function(n) {
+        if (_orig) _orig(n);
+        _fpRenderTrigger();
+      };
+    })(window.clickPersona);
 
-  console.log("✅ Parche v5.54 aplicado — Tres Arroyos");
+    window.toggleDark = (function(_orig) {
+      return function() {
+        if (_orig) _orig();
+        setTimeout(_fpRenderTrigger, 60);
+      };
+    })(window.toggleDark);
 
+    // Close dropdown on outside click
+    document.addEventListener("click", function(e) {
+      if (!_fpOpen) return;
+      var widget = document.getElementById("fp-widget");
+      if (widget && !widget.contains(e.target)) _fpClose();
+    });
+
+    // Initial render
+    setTimeout(_fpRenderTrigger, 400);
+  })();
 
   /* ── FIX 6: Recursos nav — activar ntab-rec y sbi-rec directamente ── */
   (function() {
