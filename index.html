@@ -5570,26 +5570,19 @@ console.log('v5.53 patch OK - bugfixes: cal events + tareas diarias');
   console.log("✅ Parche v5.54 aplicado — Tres Arroyos");
 
 
-  /* ── FIX 6: Recursos nav — activar ntab y sbi correctos ── */
+  /* ── FIX 6: Recursos nav — activar ntab-rec y sbi-rec directamente ── */
   (function() {
     var _origNav = window.nav;
     window.nav = function(id, tab, sb) {
-      // Para recursos: usar ntab-rec y sbi-rec directamente por ID
       if (id === "recursos") {
-        var ntabRec = document.getElementById("ntab-rec");
-        var sbiRec = document.getElementById("sbi-rec");
-        // Quitar on de todos los .ntab y .sbi primero
-        document.querySelectorAll(".ntab,.sbi").forEach(function(b){ b.classList.remove("on"); });
-        // Ocultar todos los paneles
-        document.querySelectorAll("[id^=\"p-\"]").forEach(function(el){ el.style.display="none"; });
-        // Mostrar p-recursos
+        document.querySelectorAll("[id^='p-']").forEach(function(el){ el.style.display = "none"; });
+        document.querySelectorAll(".ntab,.sbi,.mbn-btn").forEach(function(b){ b.classList.remove("on","mbn-active"); });
         var pRec = document.getElementById("p-recursos");
         if (pRec) pRec.style.display = "block";
-        // Activar ntab-rec
+        var ntabRec = document.getElementById("ntab-rec");
         if (ntabRec) ntabRec.classList.add("on");
-        // Activar sbi-rec
+        var sbiRec = document.getElementById("sbi-rec");
         if (sbiRec) sbiRec.classList.add("on");
-        // Render recursos si existe la función
         if (typeof renderRecursos === "function") renderRecursos();
         return;
       }
