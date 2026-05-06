@@ -5286,77 +5286,333 @@ console.log('v5.53 patch OK - bugfixes: cal events + tareas diarias');
 </style>
 <script>
 /* ═══════════════════════════════════════════════════════════════
-   PARCHE v5.55 — Panel Comunicación · Municipalidad de Tres Arroyos
-   ✓ Fix SCROLL: la lista de tareas ya no vuelve arriba al hacer scroll
-   ✓ Fix Briefing: eventos del día se cargan correctamente
-   ✓ Fix Agente: agregar actividades + checkboxes funcionan
-   ✓ Fix Sync: "Listo s/publicar" sincroniza entre vistas
-   ✓ Fix Filtro personas: desplegable dinámico con buscador
+   PARCHE v5.56 — Panel Comunicación · Municipalidad de Tres Arroyos
+   ✓ Fix nav: panel equipo ya no queda colgado al cambiar sección
+   ✓ Fix checkboxes: marcar tareas como completadas funciona
+   ✓ Fix z-index: barra superior siempre visible e interactiva
+   ✓ Fix scroll: lista de tareas mantiene posición al actualizar
+   ✓ Fix briefing, agente form, sync Listo, filtro personas
 ═══════════════════════════════════════════════════════════════ */
 (function(){
 "use strict";
 
-/* ── UTILIDADES ── */
-function _db(){ return window.db||(typeof db!=="undefined"?db:null); }
-function _toast(msg,t){ if(typeof toast==="function")toast(msg,t); }
-function _hoy(){ return (typeof iso==="function"&&typeof TODAY!=="undefined")?iso(TODAY):new Date().toISOString().slice(0,10); }
-function _dark(){ return document.body.classList.contains("dark"); }
+/* ── HELPERS ── */
+function _db(){return window.db||(typeof db!=="undefined"?db:null);}
+function _toast(msg,t){if(typeof toast==="function")toast(msg,t);}
+function _hoy(){return(typeof iso==="function"&&typeof TODAY!=="undefined")?iso(TODAY):new Date().toISOString().slice(0,10);}
+function _dark(){return document.body.classList.contains("dark");}
 
-/* ─────────────────────────────────────────────────────────────
-   SCROLL PRESERVATION — el fix principal
-   Cualquier función que haga container.innerHTML=html va a
-   conservar la posición de scroll del usuario.
-───────────────────────────────────────────────────────────── */
-var _scrollLocks = {};
+/* ═════════════════════════════════════════════════════════════
+   FIX 1 — NAV: al navegar entre secciones, cerrar p-agente
+   Problema: nav() no cierra p-agente, panel queda superpuesto
+═════════════════════════════════════════════════════════════ */
+window.nav=(function(orig){
+  return function(id,tab,sb){
+    // Cerrar panel del agente al cambiar de sección
+    var pa=document.getElementById("p-agente");
+    if(pa) pa.style.display="none";
+    // Limpiar estado del agente activo
+    window._agenteActual=null;
+    // Restaurar visibilidad de la barra superior
+    var hdr=document.querySelector(".header,.top-bar,[class*='header']");
+    if(hdr) hdr.style.zIndex="";
+    // Llamar la función original
+    if(orig) return orig.apply(this,arguments);
+  };
+})(window.nav);
 
-function _scrollSave(id){
-  var el=document.getElementById(id);
-  if(!el) return 0;
-  // Buscar el antepasado scrollable
-  var sc=el;
-  while(sc&&sc!==document.body){
-    var st=window.getComputedStyle(sc).overflowY;
-    if((st==="auto"||st==="scroll")&&sc.scrollHeight>sc.clientHeight) break;
-    sc=sc.parentElement;
+/* ═════════════════════════════════════════════════════════════
+   FIX 2 — CHECKBOXES: tdToggle y agToggle funcionan
+   Problema: IDs numéricos vs string + _tdTareas no sincronizado
+═════════════════════════════════════════════════════════════ */
+window.tdToggle=function(id){
+  // Buscar en _tdTareas global
+  var arr=typeof _tdTareas!=="undefined"?_tdTareas:
+          (typeof window._tdTareasLocal!=="undefined"?window._tdTareasLocal:[]);
+  
+  var t=null;
+  for(var i=0;i<arr.length;i++){
+    if(String(arr[i].id)===String(id)){t=arr[i];break;}
   }
-  var pos=sc?sc.scrollTop:0;
-  _scrollLocks[id]={el:sc,pos:pos};
-  return pos;
-}
-
-function _scrollRestore(id){
-  var lock=_scrollLocks[id];
-  if(!lock||!lock.el) return;
-  // requestAnimationFrame para asegurar que el DOM ya actualizó
-  requestAnimationFrame(function(){
-    if(lock.el&&lock.pos>0) lock.el.scrollTop=lock.pos;
+  
+  // Si no está en _tdTareas, buscar en tasks global
+  if(!t&&typeof tasks!=="undefined"&&Array.isArray(tasks)){
+    for(var j=0;j<tasks.length;j++){
+      if(String(tasks[j].id)===String(id)){t=tasks[j];break;}
+    }
+  }
+  
+  if(!t){
+    console.warn("tdToggle: tarea no encontrada, id=",id);
+    return;
+  }
+  
+  var esCompleto=(t.estado==="Completo"||t.estado==="Listo s/publicar");
+  var nuevo=esCompleto?"Pendiente":"Completo";
+  t.estado=nuevo;
+  
+  // Actualizar en tasks global también
+  if(typeof tasks!=="undefined"&&Array.isArray(tasks)){
+    var gt=tasks.find(function(x){return String(x.id)===String(id);});
+    if(gt)gt.estado=nuevo;
+  }
+  
+  // Guardar en BD
+  var dbRef=_db();
+  if(dbRef){
+    dbRef.from("tareas").update({estado:nuevo,updated_at:new Date().toISOString()})
+      .eq("id",id)
+      .then(function(){})
+      .catch(function(e){console.warn("tdToggle DB error:",e);});
+  }
+  
+  // Re-render con scroll preservation
+  _renderConScroll("tdListaTareas",function(){
+    if(typeof tdRenderLista==="function")tdRenderLista();
   });
+  
+  if(typeof renderKanban==="function")setTimeout(renderKanban,120);
+  if(typeof updateBadges==="function")setTimeout(updateBadges,150);
+  if(typeof renderMaterial==="function")setTimeout(renderMaterial,150);
+  
+  var msg={Completo:"✅ Completada","Listo s/publicar":"📤 Lista p/publicar",Pendiente:"🔄 Pendiente"}[nuevo];
+  _toast(msg);
+};
+
+window.agToggle=function(id){
+  var arr=window._agTareas||[];
+  var t=arr.find(function(x){return String(x.id)===String(id);});
+  if(!t){
+    // Buscar en tasks global
+    if(typeof tasks!=="undefined"){
+      t=tasks.find(function(x){return String(x.id)===String(id);});
+      if(t)arr.push(t);
+    }
+  }
+  if(!t){console.warn("agToggle: no encontrada id=",id);return;}
+  
+  var nuevo=t.estado==="Completo"?"Pendiente":"Completo";
+  t.estado=nuevo;
+  
+  if(typeof tasks!=="undefined"){
+    var gt=tasks.find(function(x){return String(x.id)===String(id);});
+    if(gt)gt.estado=nuevo;
+  }
+  
+  var dbRef=_db();
+  if(dbRef){
+    dbRef.from("tareas").update({estado:nuevo,updated_at:new Date().toISOString()})
+      .eq("id",id).then(function(){}).catch(function(e){console.warn("agToggle err:",e);});
+  }
+  
+  _agRefreshUI();
+  _toast(nuevo==="Completo"?"✅ Completada":"🔄 Pendiente");
+};
+
+/* ═════════════════════════════════════════════════════════════
+   FIX 3 — SCROLL PRESERVATION
+   Preserva scroll al hacer re-render de cualquier lista
+═════════════════════════════════════════════════════════════ */
+function _renderConScroll(containerId, renderFn){
+  var el=document.getElementById(containerId);
+  if(!el){if(renderFn)renderFn();return;}
+  
+  // Encontrar el ancestro scrollable
+  var scrollEl=el;
+  while(scrollEl&&scrollEl!==document.body){
+    var ov=window.getComputedStyle(scrollEl).overflowY;
+    if((ov==="auto"||ov==="scroll")&&scrollEl.scrollHeight>scrollEl.clientHeight) break;
+    scrollEl=scrollEl.parentElement;
+  }
+  var savedTop=scrollEl?scrollEl.scrollTop:0;
+  
+  if(renderFn)renderFn();
+  
+  if(savedTop>0){
+    requestAnimationFrame(function(){
+      if(scrollEl)scrollEl.scrollTop=savedTop;
+    });
+  }
 }
 
-/* ─────────────────────────────────────────────────────────────
-   FIX 1 — Briefing: eventos del día
-───────────────────────────────────────────────────────────── */
+/* Interceptar innerHTML en contenedores de listas */
+(function(){
+  var nSet=Object.getOwnPropertyDescriptor(Element.prototype,"innerHTML").set;
+  var nGet=Object.getOwnPropertyDescriptor(Element.prototype,"innerHTML").get;
+  var targets=["tdListaTareas","ag-lista","kanban"];
+  
+  function lock(el){
+    if(el._slocked)return;
+    el._slocked=true;
+    Object.defineProperty(el,"innerHTML",{
+      get:function(){return nGet.call(this);},
+      set:function(html){
+        var sc=this,top=0,tmp=this;
+        while(tmp&&tmp!==document.body){
+          var ov=window.getComputedStyle(tmp).overflowY;
+          if((ov==="auto"||ov==="scroll")&&tmp.scrollHeight>tmp.clientHeight){sc=tmp;top=tmp.scrollTop;break;}
+          tmp=tmp.parentElement;
+        }
+        nSet.call(this,html);
+        if(top>0)requestAnimationFrame(function(){if(sc)sc.scrollTop=top;});
+      },
+      configurable:true
+    });
+  }
+  
+  function tryLock(){
+    targets.forEach(function(id){var e=document.getElementById(id);if(e)lock(e);});
+  }
+  tryLock();
+  document.addEventListener("DOMContentLoaded",tryLock);
+  window.addEventListener("load",tryLock);
+  var n=0,iv=setInterval(function(){tryLock();if(++n>=10)clearInterval(iv);},600);
+})();
+
+/* ═════════════════════════════════════════════════════════════
+   FIX 4 — PANEL AGENTE: abrir + form de nueva actividad
+═════════════════════════════════════════════════════════════ */
+window.abrirPanelAgente=(function(orig){
+  return function(nombre){
+    window._agenteActual=nombre;
+    window._agTareas=[];
+    window._agTab="hoy";
+    
+    // Ocultar páginas principales
+    document.querySelectorAll("[id^=p-]").forEach(function(e){e.style.display="none";});
+    document.querySelectorAll(".ntab,.mbn-btn").forEach(function(b){b.classList.remove("on","act","mbn-active");});
+    
+    var panel=document.getElementById("p-agente");
+    if(panel)panel.style.display="block";
+    
+    var m=typeof gm==="function"?gm(nombre):{};
+    var color=(m&&m.color)||"#667eea";
+    var ne=document.getElementById("ag-nombre");
+    if(ne){ne.textContent=nombre;ne.style.color=color;}
+    var re=document.getElementById("ag-rol");
+    if(re)re.textContent=(m&&m.rol)||"Comunicador/a";
+    
+    _agInyectarForm(nombre);
+    
+    var lista=document.getElementById("ag-lista");
+    if(lista)lista.innerHTML='<p style="text-align:center;padding:20px;color:var(--sub)">Cargando...</p>';
+    if(typeof agRenderStats==="function")agRenderStats([]);
+    if(typeof agRenderProgreso==="function")agRenderProgreso(0,0);
+    
+    var dbRef=_db();
+    if(!dbRef){_agRefreshUI();return;}
+    
+    dbRef.from("tareas").select("*").ilike("responsable","%"+nombre+"%")
+      .order("created_at",{ascending:false})
+      .then(function(r){
+        window._agTareas=r.data||[];
+        _agRefreshUI();
+      }).catch(function(){
+        window._agTareas=[];
+        _agRefreshUI();
+      });
+  };
+})(window.abrirPanelAgente);
+
+function _agInyectarForm(nombre){
+  var panel=document.getElementById("p-agente");
+  if(!panel)return;
+  var old=document.getElementById("ag-nueva-form");
+  if(old)old.remove();
+  var dk=_dark(),bg=dk?"#1e2028":"#f9fafb",bdr=dk?"#373b47":"#e5e7eb",col=dk?"#e2e8f0":"#111827";
+  var form=document.createElement("div");
+  form.id="ag-nueva-form";
+  form.style.cssText="padding:0 16px 14px;border-bottom:1px solid var(--bdr,#e5e7eb)";
+  form.innerHTML='<div style="font-size:10px;font-weight:700;color:var(--sub,#6b7280);letter-spacing:.06em;margin-bottom:8px;text-transform:uppercase">＋ Nueva actividad — '+nombre+'</div>'+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">'+
+    '<input type="text" id="ag-nueva-desc" placeholder="Descripción de la tarea…" style="flex:1;min-width:160px;padding:8px 11px;border-radius:8px;border:1.5px solid '+bdr+';background:'+bg+';color:'+col+';font-size:12px;font-family:inherit;outline:none" onkeydown="if(event.key==='Enter')agAgregarNueva()">'+
+    '<select id="ag-nueva-prio" style="padding:8px 9px;border-radius:8px;border:1.5px solid '+bdr+';background:'+bg+';color:'+col+';font-size:12px;font-family:inherit">'+
+    '<option value="Alta">🔴 Alta</option><option value="Media" selected>🟡 Media</option><option value="Baja">🟢 Baja</option></select>'+
+    '<input type="date" id="ag-nueva-fecha" value="'+_hoy()+'" style="padding:8px 9px;border-radius:8px;border:1.5px solid '+bdr+';background:'+bg+';color:'+col+';font-size:12px;font-family:inherit">'+
+    '<button onclick="agAgregarNueva()" style="padding:8px 16px;background:#667eea;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">+ Agregar</button></div>';
+  var tabs=panel.querySelector(".ag-tabs,[id^='ag-tab']");
+  if(tabs&&tabs.parentElement)tabs.parentElement.insertBefore(form,tabs);
+  else{var hdr=panel.querySelector(".ag-header,#ag-header");if(hdr)hdr.after(form);else panel.appendChild(form);}
+}
+
+function _agRefreshUI(){
+  var stats=window._agTareas||[];
+  if(typeof agRenderStats==="function")agRenderStats(stats);
+  var done=stats.filter(function(t){return t.estado==="Completo"||t.estado==="Listo s/publicar";}).length;
+  if(typeof agRenderProgreso==="function")agRenderProgreso(done,stats.length);
+  _renderConScroll("ag-lista",function(){if(typeof agRenderLista==="function")agRenderLista();});
+  if(typeof renderKanban==="function")setTimeout(renderKanban,120);
+  if(typeof updateBadges==="function")setTimeout(updateBadges,150);
+}
+
+window.agAgregarNueva=function(){
+  var descEl=document.getElementById("ag-nueva-desc");
+  var desc=(descEl?descEl.value:"").trim();
+  if(!desc){_toast("Escribí una descripción","err");return;}
+  var nombre=window._agenteActual||"";
+  if(!nombre){_toast("Sin agente seleccionado","err");return;}
+  var prio=(document.getElementById("ag-nueva-prio")||{}).value||"Media";
+  var fecha=(document.getElementById("ag-nueva-fecha")||{}).value||_hoy();
+  var row={descripcion:desc,responsable:nombre,prioridad:prio,estado:"Pendiente",fecha:fecha};
+  var dbRef=_db();
+  function ok(nv){
+    window._agTareas.unshift(nv);
+    if(typeof tasks!=="undefined"&&Array.isArray(tasks))tasks.unshift(nv);
+    if(descEl)descEl.value="";
+    _agRefreshUI();
+    _toast("✓ Actividad agregada");
+  }
+  if(dbRef){
+    dbRef.from("tareas").insert([row]).select()
+      .then(function(res){ok((res.data&&res.data[0])||Object.assign({id:"tmp_"+Date.now()},row));})
+      .catch(function(e){_toast("Error: "+(e.message||e),"err");});
+  }else{ok(Object.assign({id:"tmp_"+Date.now()},row));}
+};
+
+/* ═════════════════════════════════════════════════════════════
+   FIX 5 — SYNC "Listo s/publicar" + markCompleto
+═════════════════════════════════════════════════════════════ */
+window.markCompleto=(function(orig){
+  return function(id){
+    var res=orig?orig(id):Promise.resolve();
+    function sync(){
+      var arr=window._agTareas||[];
+      var t=arr.find(function(x){return String(x.id)===String(id);});
+      if(t&&t.estado!=="Completo"){
+        t.estado="Completo";
+        var panel=document.getElementById("p-agente");
+        if(panel&&panel.style.display!=="none")_agRefreshUI();
+      }
+    }
+    if(res&&typeof res.then==="function")res.then(sync);else setTimeout(sync,300);
+    return res;
+  };
+})(window.markCompleto);
+
+/* ═════════════════════════════════════════════════════════════
+   FIX 6 — BRIEFING: eventos del día
+═════════════════════════════════════════════════════════════ */
 window.abrirBriefing=(function(orig){
   return function(){
-    function doOpen(){
+    function open(){
       if(typeof _renderBriefing==="function")_renderBriefing();
-      setTimeout(window._bfInjectCalEventsFix,120);
+      setTimeout(window._bfEvents,120);
       var m=document.getElementById("modBriefing");
       if(m){m.style.display="";m.classList.add("open");}
     }
     var ok=(typeof agendas!=="undefined"&&Array.isArray(agendas)&&agendas.length)||
            (typeof gcalEvs!=="undefined"&&Array.isArray(gcalEvs)&&gcalEvs.length);
-    if(ok){doOpen();return;}
+    if(ok){open();return;}
     var n=0,iv=setInterval(function(){
       n++;
       if((typeof agendas!=="undefined"&&agendas!==null)||(typeof gcalEvs!=="undefined"&&gcalEvs!==null)||n>=12){
-        clearInterval(iv);doOpen();
+        clearInterval(iv);open();
       }
     },200);
   };
 })(window.abrirBriefing);
 
-window._bfInjectCalEventsFix=function(){
+window._bfEvents=function(){
   var wrap=document.getElementById("bf-eventos-wrap");
   var evEl=document.getElementById("bf-eventos");
   if(!wrap||!evEl)return;
@@ -5371,308 +5627,84 @@ window._bfInjectCalEventsFix=function(){
   evs.sort(function(a,b){return(a.hora||"00:00").localeCompare(b.hora||"00:00");});
   if(!evs.length){wrap.style.display="none";return;}
   wrap.style.display="block";
-  var html=evs.slice(0,8).map(function(e){
+  evEl.innerHTML=evs.slice(0,8).map(function(e){
     var ic={prensa:"📻",cobertura:"📷",municipal:"🏛",publicacion:"📱"}[e.tipo]||"🗓";
     var hora=e.hora?e.hora.slice(0,5)+" hs":"";
     var isCob=typeof cobSel!=="undefined"&&cobSel[e.id];
     var brd=isCob?"#6d28d9":({prensa:"#ec4899",municipal:"#22c55e"}[e.tipo]||"#667eea");
     return'<div onclick="openEvPanel('+JSON.stringify(e).replace(/"/g,"&quot;")+')" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:8px;border-left:3px solid '+brd+';background:rgba(102,126,234,.06);margin-bottom:6px;cursor:pointer">'+
-      '<span style="font-size:14px;flex-shrink:0">'+ic+'</span>'+
+      '<span style="font-size:14px">'+ic+'</span>'+
       '<div style="flex:1;min-width:0">'+
-      '<div style="font-size:12px;font-weight:600;color:#111827;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">'+(e.descripcion||"Evento")+
-      (isCob?' <span style="font-size:9px;background:#6d28d9;color:#fff;padding:1px 4px;border-radius:3px">📋</span>':'')+
-      '</div>'+(hora?'<div style="font-size:10px;color:#6b7280;margin-top:1px">🕐 '+hora+(e.lugar?' · '+e.lugar.slice(0,20):'')+
+      '<div style="font-size:12px;font-weight:600;color:#111827;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">'+(e.descripcion||"Evento")+'</div>'+
+      (hora?'<div style="font-size:10px;color:#6b7280;margin-top:1px">🕐 '+hora+(e.lugar?' · '+e.lugar.slice(0,20):'')+
       '</div>':'')+
       '</div></div>';
-  }).join("");
-  if(evs.length>8)html+='<div style="font-size:11px;color:#9ca3af;text-align:center;padding:4px">+'+(evs.length-8)+" eventos más...</div>";
-  evEl.innerHTML=html;
+  }).join("")+(evs.length>8?'<div style="font-size:11px;color:#9ca3af;text-align:center;padding:4px">+'+(evs.length-8)+" más...</div>":"");
 };
 
-/* ─────────────────────────────────────────────────────────────
-   FIX 2+3+4 — Panel del agente: scroll + form + checkboxes + sync
-───────────────────────────────────────────────────────────── */
-window.abrirPanelAgente=(function(orig){
-  return function(nombre){
-    window._agenteActual=nombre;
-    window._agTareas=[];
-    window._agTab="hoy";
-    document.querySelectorAll("[id^=p-]").forEach(function(e){e.style.display="none";});
-    document.querySelectorAll(".ntab,.mbn-btn").forEach(function(b){b.classList.remove("on","act","mbn-active");});
-    var panel=document.getElementById("p-agente");
-    if(panel)panel.style.display="block";
-    var m=typeof gm==="function"?gm(nombre):{};
-    var color=(m&&m.color)||"#667eea";
-    var ne=document.getElementById("ag-nombre");if(ne){ne.textContent=nombre;ne.style.color=color;}
-    var re=document.getElementById("ag-rol");if(re)re.textContent=(m&&m.rol)||"Comunicador/a";
-    _agInyectarForm(nombre);
-    var lista=document.getElementById("ag-lista");
-    if(lista)lista.innerHTML='<p style="text-align:center;padding:20px;color:var(--sub)">Cargando...</p>';
-    if(typeof agRenderStats==="function")agRenderStats([]);
-    if(typeof agRenderProgreso==="function")agRenderProgreso(0,0);
-    var dbRef=_db();
-    if(!dbRef){if(typeof agRenderLista==="function")_agRenderSafe();return;}
-    dbRef.from("tareas").select("*").ilike("responsable","%"+nombre+"%")
-      .order("created_at",{ascending:false})
-      .then(function(r){
-        window._agTareas=r.data||[];
-        _agRefreshUI();
-      }).catch(function(){window._agTareas=[];_agRenderSafe();});
-  };
-})(window.abrirPanelAgente);
-
-function _agInyectarForm(nombre){
-  var panel=document.getElementById("p-agente");if(!panel)return;
-  var old=document.getElementById("ag-nueva-form");if(old)old.remove();
-  var dk=_dark(),bg=dk?"#1e2028":"#f9fafb",bdr=dk?"#373b47":"#e5e7eb",col=dk?"#e2e8f0":"#111827";
-  var form=document.createElement("div");
-  form.id="ag-nueva-form";
-  form.style.cssText="padding:0 16px 14px;border-bottom:1px solid var(--bdr,#e5e7eb)";
-  form.innerHTML='<div style="font-size:10px;font-weight:700;color:var(--sub,#6b7280);letter-spacing:.06em;margin-bottom:8px;text-transform:uppercase">＋ Nueva actividad para '+nombre+'</div>'+
-    '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">'+
-    '<input type="text" id="ag-nueva-desc" placeholder="Descripción de la tarea…" style="flex:1;min-width:160px;padding:8px 11px;border-radius:8px;border:1.5px solid '+bdr+';background:'+bg+';color:'+col+';font-size:12px;font-family:inherit;outline:none" onkeydown="if(event.key==='Enter')agAgregarNueva()">'+
-    '<select id="ag-nueva-prio" style="padding:8px 9px;border-radius:8px;border:1.5px solid '+bdr+';background:'+bg+';color:'+col+';font-size:12px;font-family:inherit">'+
-    '<option value="Alta">🔴 Alta</option><option value="Media" selected>🟡 Media</option><option value="Baja">🟢 Baja</option></select>'+
-    '<input type="date" id="ag-nueva-fecha" value="'+_hoy()+'" style="padding:8px 9px;border-radius:8px;border:1.5px solid '+bdr+';background:'+bg+';color:'+col+';font-size:12px;font-family:inherit">'+
-    '<button onclick="agAgregarNueva()" style="padding:8px 16px;background:#667eea;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">+ Agregar</button></div>';
-  var tabs=panel.querySelector(".ag-tabs,[id^='ag-tab']");
-  if(tabs&&tabs.parentElement)tabs.parentElement.insertBefore(form,tabs);
-  else{var hdr=panel.querySelector(".ag-header,#ag-header");if(hdr)hdr.after(form);else panel.appendChild(form);}
-}
-
-function _agRenderSafe(){
-  if(typeof agRenderLista!=="function")return;
-  var lista=document.getElementById("ag-lista");
-  _scrollSave("ag-lista");
-  agRenderLista();
-  _scrollRestore("ag-lista");
-}
-
-function _agRefreshUI(){
-  var stats=window._agTareas||[];
-  if(typeof agRenderStats==="function")agRenderStats(stats);
-  var done=stats.filter(function(t){return t.estado==="Completo"||t.estado==="Listo s/publicar";}).length;
-  if(typeof agRenderProgreso==="function")agRenderProgreso(done,stats.length);
-  _agRenderSafe();
-  if(typeof renderKanban==="function")setTimeout(renderKanban,100);
-  if(typeof updateBadges==="function")setTimeout(updateBadges,150);
-}
-
-window.agAgregarNueva=function(){
-  var descEl=document.getElementById("ag-nueva-desc");
-  var desc=(descEl?descEl.value:"").trim();
-  if(!desc){_toast("Escribí una descripción","err");return;}
-  var nombre=window._agenteActual||"";
-  if(!nombre){_toast("Sin agente seleccionado","err");return;}
-  var prio=(document.getElementById("ag-nueva-prio")||{}).value||"Media";
-  var fecha=(document.getElementById("ag-nueva-fecha")||{}).value||_hoy();
-  var row={descripcion:desc,responsable:nombre,prioridad:prio,estado:"Pendiente",fecha:fecha};
-  var dbRef=_db();
-  function ok(nueva){
-    window._agTareas.unshift(nueva);
-    if(typeof tasks!=="undefined"&&Array.isArray(tasks))tasks.unshift(nueva);
-    if(descEl)descEl.value="";
-    _agRefreshUI();
-    _toast("✓ Actividad agregada para "+nombre);
-  }
-  if(dbRef){
-    dbRef.from("tareas").insert([row]).select()
-      .then(function(res){ok((res.data&&res.data[0])||Object.assign({id:"tmp_"+Date.now()},row));})
-      .catch(function(e){_toast("Error: "+(e.message||e),"err");});
-  }else{ok(Object.assign({id:"tmp_"+Date.now()},row));}
-};
-
-/* FIX 3 — agToggle con scroll preservation */
-window.agToggle=function(id){
-  var t=(window._agTareas||[]).find(function(x){return String(x.id)===String(id);});
-  if(!t)return;
-  var nuevo=t.estado==="Completo"?"Pendiente":"Completo";
-  t.estado=nuevo;
-  var dbRef=_db();
-  if(dbRef){
-    dbRef.from("tareas").update({estado:nuevo,updated_at:new Date().toISOString()}).eq("id",id)
-      .then(function(){
-        if(typeof tasks!=="undefined"){var gt=tasks.find(function(x){return String(x.id)===String(id);});if(gt)gt.estado=nuevo;}
-      }).catch(function(e){console.warn("agToggle error:",e);});
-  }
-  _agRefreshUI();
-  _toast(nuevo==="Completo"?"✅ Tarea completada":"🔄 Marcada como pendiente");
-};
-
-/* FIX 4 — markCompleto + tdToggle con scroll preservation */
-window.markCompleto=(function(orig){
-  return function(id){
-    var res=orig?orig(id):Promise.resolve();
-    var sync=function(){_syncAg(id,"Completo");};
-    if(res&&typeof res.then==="function")res.then(sync);else setTimeout(sync,300);
-    return res;
-  };
-})(window.markCompleto);
-
-function _syncAg(id,estado){
-  var arr=window._agTareas;
-  if(!arr||!arr.length)return;
-  var t=arr.find(function(x){return String(x.id)===String(id);});
-  if(!t||t.estado===estado)return;
-  t.estado=estado;
-  var panel=document.getElementById("p-agente");
-  if(panel&&panel.style.display!=="none")_agRefreshUI();
-}
-
-window.tdToggle=function(id){
-  var arr=typeof _tdTareas!=="undefined"?_tdTareas:[];
-  var t=arr.find(function(x){return String(x.id)===String(id);});
-  if(!t)return;
-  var nuevo=(t.estado==="Completo"||t.estado==="Listo s/publicar")?"Pendiente":"Completo";
-  t.estado=nuevo;
-  var dbRef=_db();
-  if(dbRef){
-    dbRef.from("tareas").update({estado:nuevo,updated_at:new Date().toISOString()}).eq("id",id)
-      .then(function(){
-        if(typeof tasks!=="undefined"){var gt=tasks.find(function(x){return String(x.id)===String(id);});if(gt)gt.estado=nuevo;}
-      }).catch(function(e){console.warn("tdToggle error:",e);});
-  }
-  /* SCROLL PRESERVATION para tdListaTareas */
-  _scrollSave("tdListaTareas");
-  if(typeof tdRenderLista==="function")tdRenderLista();
-  _scrollRestore("tdListaTareas");
-  if(typeof renderKanban==="function")setTimeout(renderKanban,100);
-  if(typeof updateBadges==="function")setTimeout(updateBadges,150);
-  if(typeof renderMaterial==="function")setTimeout(renderMaterial,150);
-  _toast({Completo:"✅ Tarea completada","Listo s/publicar":"📤 Lista para publicar",Pendiente:"🔄 Pendiente"}[nuevo]||"🔄");
-};
-
-/* ─────────────────────────────────────────────────────────────
-   SCROLL LOCK GLOBAL — interceptar innerHTML en los contenedores
-   de listas para preservar siempre la posición de scroll
-───────────────────────────────────────────────────────────── */
-(function(){
-  // Contenedores que necesitan scroll preservation
-  var targets=["tdListaTareas","ag-lista","sbpersons","kanban"];
-  var nativeSet=Object.getOwnPropertyDescriptor(Element.prototype,"innerHTML").set;
-  var nativeGet=Object.getOwnPropertyDescriptor(Element.prototype,"innerHTML").get;
-
-  function lockScroll(el){
-    if(el._scrollLocked)return;
-    el._scrollLocked=true;
-    Object.defineProperty(el,"innerHTML",{
-      get:function(){ return nativeGet.call(this); },
-      set:function(html){
-        // Guardar posición del antepasado scrollable
-        var sc=this,savedTop=0;
-        var tmp=this;
-        while(tmp&&tmp!==document.body){
-          var ov=window.getComputedStyle(tmp).overflowY;
-          if((ov==="auto"||ov==="scroll")&&tmp.scrollHeight>tmp.clientHeight){sc=tmp;savedTop=tmp.scrollTop;break;}
-          tmp=tmp.parentElement;
-        }
-        nativeSet.call(this,html);
-        if(savedTop>0){
-          requestAnimationFrame(function(){ if(sc)sc.scrollTop=savedTop; });
-        }
-      },
-      configurable:true
-    });
-  }
-
-  function tryLock(){
-    targets.forEach(function(id){
-      var el=document.getElementById(id);
-      if(el)lockScroll(el);
-    });
-  }
-
-  // Intentar inmediatamente y cuando cargue
-  tryLock();
-  document.addEventListener("DOMContentLoaded",tryLock);
-  window.addEventListener("load",tryLock);
-  // También intentar periódicamente los primeros 5 segundos
-  var attempts=0,iv=setInterval(function(){
-    attempts++;
-    tryLock();
-    if(attempts>=10)clearInterval(iv);
-  },500);
-})();
-
-/* ─────────────────────────────────────────────────────────────
-   FIX 5 — Filtro personas: desplegable dinámico + buscador
-───────────────────────────────────────────────────────────── */
+/* ═════════════════════════════════════════════════════════════
+   FIX 7 — FILTRO PERSONAS: dropdown + buscador
+═════════════════════════════════════════════════════════════ */
 var _fpQ="";
-
 window.renderPersons=function(){
-  var container=document.getElementById("sbpersons");if(!container)return;
-  var miembros=typeof teams!=="undefined"&&Array.isArray(teams)?teams:[];
-  if(!document.getElementById("fp-search-wrap")){
+  var cont=document.getElementById("sbpersons");if(!cont)return;
+  var mbs=typeof teams!=="undefined"&&Array.isArray(teams)?teams:[];
+  if(!document.getElementById("fp-sw")){
     var dk=_dark(),bg=dk?"#1e2028":"#f9fafb",bdr=dk?"#373b47":"#e5e7eb",col=dk?"#e2e8f0":"#111827";
-    var wrap=document.createElement("div");
-    wrap.id="fp-search-wrap";
-    wrap.style.cssText="padding:6px 10px 4px";
-    wrap.innerHTML="<div style='position:relative'>"+
-      "<input id='fp-buscador' type='text' placeholder='🔍 Buscar…' oninput='window._fpQ=this.value;renderPersons()' "+
-      "style='width:100%;padding:6px 28px 6px 10px;border-radius:8px;border:1.5px solid "+bdr+";background:"+bg+";color:"+col+";font-size:11px;font-family:inherit;outline:none;box-sizing:border-box'>"+
-      (miembros.length?"<select id='fp-select' onchange="var v=this.value;window._fpQ=v==='__'?'':v;renderPersons()" "+
-      "style='position:absolute;right:2px;top:50%;transform:translateY(-50%);border:none;background:transparent;font-size:13px;cursor:pointer;outline:none'>"+
-      "<option value='__'>▾</option>"+
-      miembros.map(function(m){return"<option value='"+((m.nombre||"").replace(/'/g,"&#39;"))+"'>"+(m.nombre||"")+"</option>";}).join("")+
-      "</select>":"")+
+    var w=document.createElement("div");
+    w.id="fp-sw";w.style.cssText="padding:6px 10px 4px";
+    w.innerHTML="<div style='position:relative'>"+
+      "<input id='fp-inp' type='text' placeholder='🔍 Buscar…' oninput='window._fpQ=this.value;renderPersons()' "+
+      "style='width:100%;padding:6px 26px 6px 10px;border-radius:8px;border:1.5px solid "+bdr+";background:"+bg+";color:"+col+";font-size:11px;font-family:inherit;outline:none;box-sizing:border-box'>"+
+      (mbs.length?"<select id='fp-sel' onchange="var v=this.value;window._fpQ=v==='_'?'':v;renderPersons()" style='position:absolute;right:2px;top:50%;transform:translateY(-50%);border:none;background:transparent;font-size:13px;cursor:pointer;outline:none'>"+
+      "<option value='_'>▾</option>"+mbs.map(function(m){return"<option value='"+(m.nombre||"").replace(/'/g,"&#39;")+"'>"+(m.nombre||"")+"</option>";}).join("")+"</select>":"")+
       "</div>";
-    container.parentNode.insertBefore(wrap,container);
+    cont.parentNode.insertBefore(w,cont);
   }
-  var inp=document.getElementById("fp-buscador");
+  var inp=document.getElementById("fp-inp");
   if(inp&&document.activeElement!==inp)inp.value=_fpQ;
-  var busq=_fpQ.toLowerCase().trim();
-  var fil=busq?miembros.filter(function(m){return((m.nombre||"").toLowerCase().includes(busq)||((m.rol||"").toLowerCase().includes(busq)));}):miembros;
+  var q=_fpQ.toLowerCase().trim();
+  var fil=q?mbs.filter(function(m){return((m.nombre||"").toLowerCase().includes(q)||((m.rol||"").toLowerCase().includes(q)));}):mbs;
   if(!fil.length){
-    container.innerHTML="<div style='padding:10px 12px;font-size:11px;color:#9ca3af;text-align:center'>"+(busq?"Sin resultados":"Sin integrantes")+"</div>";
+    cont.innerHTML="<div style='padding:10px 12px;font-size:11px;color:#9ca3af;text-align:center'>"+(q?"Sin resultados":"Sin integrantes")+"</div>";
     return;
   }
-  container.innerHTML=fil.map(function(m){
+  cont.innerHTML=fil.map(function(m){
     var pend=typeof tasks!=="undefined"&&Array.isArray(tasks)?tasks.filter(function(t){return t.responsable===m.nombre&&t.estado!=="Completo";}).length:0;
     var sel=typeof fp!=="undefined"&&fp===m.nombre;
     var safe=(m.nombre||"").replace(/\\/g,"\\\\").replace(/'/g,"\\'");
-    return'<div class="sbp'+(sel?" sel":"")+'" onclick="clickPersona(''+safe+'')" '+
-      'style="'+(sel?"border-left:3px solid #6d28d9;background:#ede9fe;":"")+'">'+""+
+    return'<div class="sbp'+(sel?" sel":"")+'" onclick="clickPersona(''+safe+'')" style="'+(sel?"border-left:3px solid #6d28d9;background:#ede9fe;":"")+'">'+
       '<div style="width:18px;height:18px;border-radius:50%;background:'+(m.color||"#667eea")+';color:'+(m.color_texto||"#fff")+';display:flex;align-items:center;justify-content:center;font-weight:700;font-size:7px;flex-shrink:0">'+
-      (m.nombre||"?").slice(0,2).toUpperCase()+"</div>"+
-      '<span style="font-size:11px;font-weight:'+(sel?700:400)+';color:'+(sel?"#6d28d9":"#4b5563")+';flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">'+(m.nombre||"")+"</span>"+
-      '<span style="font-size:9px;background:'+(pend?"#fee2e2":"#f3f4f6")+';color:'+(pend?"#dc2626":"#9ca3af")+';font-weight:700;border-radius:10px;padding:0 5px;min-width:18px;text-align:center;flex-shrink:0">'+(pend||"")+"</span></div>";
+      (m.nombre||"?").slice(0,2).toUpperCase()+'</div>'+
+      '<span style="font-size:11px;font-weight:'+(sel?700:400)+';color:'+(sel?"#6d28d9":"#4b5563")+';flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">'+(m.nombre||"")+'</span>'+
+      '<span style="font-size:9px;background:'+(pend?"#fee2e2":"#f3f4f6")+';color:'+(pend?"#dc2626":"#9ca3af")+';font-weight:700;border-radius:10px;padding:0 5px;min-width:18px;text-align:center;flex-shrink:0">'+(pend||"")+'</span></div>';
   }).join("");
   _fpDark();
 };
 
 function _fpDark(){
-  var inp=document.getElementById("fp-buscador");if(!inp)return;
+  var inp=document.getElementById("fp-inp");if(!inp)return;
   var dk=_dark();
   inp.style.background=dk?"#1e2028":"#f9fafb";
   inp.style.borderColor=dk?"#373b47":"#e5e7eb";
   inp.style.color=dk?"#e2e8f0":"#111827";
 }
-
 window._fpQ=_fpQ;
 
-window.toggleDark=(function(orig){
-  return function(){
-    if(orig)orig();
-    setTimeout(_fpDark,50);
-    var form=document.getElementById("ag-nueva-form");
-    if(form){var dk=_dark();form.querySelectorAll("input,select").forEach(function(e){e.style.background=dk?"#1e2028":"#f9fafb";e.style.borderColor=dk?"#373b47":"#e5e7eb";e.style.color=dk?"#e2e8f0":"#111827";});}
-  };
-})(window.toggleDark);
+window.toggleDark=(function(o){return function(){if(o)o();setTimeout(_fpDark,50);};})(window.toggleDark);
+window.clickPersona=(function(o){return function(n){if(o)o(n);renderPersons();if(typeof actualizarFPanel==="function")actualizarFPanel();};})(window.clickPersona);
 
-window.clickPersona=(function(orig){
-  return function(n){if(orig)orig(n);renderPersons();if(typeof actualizarFPanel==="function")actualizarFPanel();};
-})(window.clickPersona);
-
-/* ─────────────────────────────────────────────────────────────
+/* ═════════════════════════════════════════════════════════════
    INIT
-───────────────────────────────────────────────────────────── */
+═════════════════════════════════════════════════════════════ */
 document.addEventListener("DOMContentLoaded",function(){
   if(typeof renderPersons==="function"&&document.getElementById("sbpersons"))renderPersons();
 });
 
-console.log("✅ Parche v5.55 — Tres Arroyos | Scroll fix + todos los fixes aplicados");
+console.log("✅ Parche v5.56 — Fix nav/checkboxes/scroll/briefing/agente/filtro");
 })();
 </script>
+
 
 
 </body>
