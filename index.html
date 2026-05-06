@@ -5285,240 +5285,113 @@ console.log('v5.53 patch OK - bugfixes: cal events + tareas diarias');
 .tmcard-pct{font-size:11px;color:var(--sub);text-align:right;margin-top:3px}
 </style>
 <script>
-/* ═══════════════════════════════════════════════════════════════
-   PARCHE v5.56 — Panel Comunicación · Municipalidad de Tres Arroyos
-   ✓ Fix nav: panel equipo ya no queda colgado al cambiar sección
-   ✓ Fix checkboxes: marcar tareas como completadas funciona
-   ✓ Fix z-index: barra superior siempre visible e interactiva
-   ✓ Fix scroll: lista de tareas mantiene posición al actualizar
-   ✓ Fix briefing, agente form, sync Listo, filtro personas
-═══════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════
+   PARCHE v5.57 — Fix DEFINITIVO
+   ✓ Panel equipo/agente: se cierra al navegar
+   ✓ Checkboxes: marcar completo/en proceso funciona
+   ✓ Filtrar persona: dropdown desplegable colapsable
+   ✓ Scroll lista tareas preservado
+   ✓ Briefing, form agente, sync Listo
+═══════════════════════════════════════════════════ */
 (function(){
 "use strict";
 
-/* ── HELPERS ── */
+/* ── helpers ── */
 function _db(){return window.db||(typeof db!=="undefined"?db:null);}
-function _toast(msg,t){if(typeof toast==="function")toast(msg,t);}
+function _toast(m,t){if(typeof toast==="function")toast(m,t);}
 function _hoy(){return(typeof iso==="function"&&typeof TODAY!=="undefined")?iso(TODAY):new Date().toISOString().slice(0,10);}
 function _dark(){return document.body.classList.contains("dark");}
 
-/* ═════════════════════════════════════════════════════════════
-   FIX 1 — NAV: al navegar entre secciones, cerrar p-agente
-   Problema: nav() no cierra p-agente, panel queda superpuesto
-═════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════
+   FIX 1 — PANEL EQUIPO QUEDA COLGADO
+   Causa: "agente" no está en PAGES, nav() nunca
+   oculta p-agente al cambiar de sección.
+   Solución: agregar "agente" a PAGES + botón cerrar.
+════════════════════════════════════════════ */
+// Agregar "agente" al array PAGES para que nav() lo maneje
+try{
+  if(typeof PAGES!=="undefined"&&Array.isArray(PAGES)&&!PAGES.includes("agente")){
+    PAGES.push("agente");
+  }
+}catch(e){}
+
+// Override de nav() — también limpia estado del agente
 window.nav=(function(orig){
   return function(id,tab,sb){
-    // Cerrar panel del agente al cambiar de sección
-    var pa=document.getElementById("p-agente");
-    if(pa) pa.style.display="none";
-    // Limpiar estado del agente activo
-    window._agenteActual=null;
-    // Restaurar visibilidad de la barra superior
-    var hdr=document.querySelector(".header,.top-bar,[class*='header']");
-    if(hdr) hdr.style.zIndex="";
-    // Llamar la función original
-    if(orig) return orig.apply(this,arguments);
+    // Si vamos a cualquier sección que no sea agente, limpiar
+    if(id!=="agente"){
+      window._agenteActual=null;
+      // Por si acaso PAGES no incluye "agente", ocultar manualmente
+      var pa=document.getElementById("p-agente");
+      if(pa)pa.style.display="none";
+    }
+    if(orig)return orig.apply(this,arguments);
   };
 })(window.nav);
 
-/* ═════════════════════════════════════════════════════════════
-   FIX 2 — CHECKBOXES: tdToggle y agToggle funcionan
-   Problema: IDs numéricos vs string + _tdTareas no sincronizado
-═════════════════════════════════════════════════════════════ */
-window.tdToggle=function(id){
-  // Buscar en _tdTareas global
-  var arr=typeof _tdTareas!=="undefined"?_tdTareas:
-          (typeof window._tdTareasLocal!=="undefined"?window._tdTareasLocal:[]);
-  
-  var t=null;
-  for(var i=0;i<arr.length;i++){
-    if(String(arr[i].id)===String(id)){t=arr[i];break;}
-  }
-  
-  // Si no está en _tdTareas, buscar en tasks global
-  if(!t&&typeof tasks!=="undefined"&&Array.isArray(tasks)){
-    for(var j=0;j<tasks.length;j++){
-      if(String(tasks[j].id)===String(id)){t=tasks[j];break;}
-    }
-  }
-  
-  if(!t){
-    console.warn("tdToggle: tarea no encontrada, id=",id);
-    return;
-  }
-  
-  var esCompleto=(t.estado==="Completo"||t.estado==="Listo s/publicar");
-  var nuevo=esCompleto?"Pendiente":"Completo";
-  t.estado=nuevo;
-  
-  // Actualizar en tasks global también
-  if(typeof tasks!=="undefined"&&Array.isArray(tasks)){
-    var gt=tasks.find(function(x){return String(x.id)===String(id);});
-    if(gt)gt.estado=nuevo;
-  }
-  
-  // Guardar en BD
-  var dbRef=_db();
-  if(dbRef){
-    dbRef.from("tareas").update({estado:nuevo,updated_at:new Date().toISOString()})
-      .eq("id",id)
-      .then(function(){})
-      .catch(function(e){console.warn("tdToggle DB error:",e);});
-  }
-  
-  // Re-render con scroll preservation
-  _renderConScroll("tdListaTareas",function(){
-    if(typeof tdRenderLista==="function")tdRenderLista();
-  });
-  
-  if(typeof renderKanban==="function")setTimeout(renderKanban,120);
-  if(typeof updateBadges==="function")setTimeout(updateBadges,150);
-  if(typeof renderMaterial==="function")setTimeout(renderMaterial,150);
-  
-  var msg={Completo:"✅ Completada","Listo s/publicar":"📤 Lista p/publicar",Pendiente:"🔄 Pendiente"}[nuevo];
-  _toast(msg);
-};
-
-window.agToggle=function(id){
-  var arr=window._agTareas||[];
-  var t=arr.find(function(x){return String(x.id)===String(id);});
-  if(!t){
-    // Buscar en tasks global
-    if(typeof tasks!=="undefined"){
-      t=tasks.find(function(x){return String(x.id)===String(id);});
-      if(t)arr.push(t);
-    }
-  }
-  if(!t){console.warn("agToggle: no encontrada id=",id);return;}
-  
-  var nuevo=t.estado==="Completo"?"Pendiente":"Completo";
-  t.estado=nuevo;
-  
-  if(typeof tasks!=="undefined"){
-    var gt=tasks.find(function(x){return String(x.id)===String(id);});
-    if(gt)gt.estado=nuevo;
-  }
-  
-  var dbRef=_db();
-  if(dbRef){
-    dbRef.from("tareas").update({estado:nuevo,updated_at:new Date().toISOString()})
-      .eq("id",id).then(function(){}).catch(function(e){console.warn("agToggle err:",e);});
-  }
-  
-  _agRefreshUI();
-  _toast(nuevo==="Completo"?"✅ Completada":"🔄 Pendiente");
-};
-
-/* ═════════════════════════════════════════════════════════════
-   FIX 3 — SCROLL PRESERVATION
-   Preserva scroll al hacer re-render de cualquier lista
-═════════════════════════════════════════════════════════════ */
-function _renderConScroll(containerId, renderFn){
-  var el=document.getElementById(containerId);
-  if(!el){if(renderFn)renderFn();return;}
-  
-  // Encontrar el ancestro scrollable
-  var scrollEl=el;
-  while(scrollEl&&scrollEl!==document.body){
-    var ov=window.getComputedStyle(scrollEl).overflowY;
-    if((ov==="auto"||ov==="scroll")&&scrollEl.scrollHeight>scrollEl.clientHeight) break;
-    scrollEl=scrollEl.parentElement;
-  }
-  var savedTop=scrollEl?scrollEl.scrollTop:0;
-  
-  if(renderFn)renderFn();
-  
-  if(savedTop>0){
-    requestAnimationFrame(function(){
-      if(scrollEl)scrollEl.scrollTop=savedTop;
-    });
-  }
-}
-
-/* Interceptar innerHTML en contenedores de listas */
-(function(){
-  var nSet=Object.getOwnPropertyDescriptor(Element.prototype,"innerHTML").set;
-  var nGet=Object.getOwnPropertyDescriptor(Element.prototype,"innerHTML").get;
-  var targets=["tdListaTareas","ag-lista","kanban"];
-  
-  function lock(el){
-    if(el._slocked)return;
-    el._slocked=true;
-    Object.defineProperty(el,"innerHTML",{
-      get:function(){return nGet.call(this);},
-      set:function(html){
-        var sc=this,top=0,tmp=this;
-        while(tmp&&tmp!==document.body){
-          var ov=window.getComputedStyle(tmp).overflowY;
-          if((ov==="auto"||ov==="scroll")&&tmp.scrollHeight>tmp.clientHeight){sc=tmp;top=tmp.scrollTop;break;}
-          tmp=tmp.parentElement;
-        }
-        nSet.call(this,html);
-        if(top>0)requestAnimationFrame(function(){if(sc)sc.scrollTop=top;});
-      },
-      configurable:true
-    });
-  }
-  
-  function tryLock(){
-    targets.forEach(function(id){var e=document.getElementById(id);if(e)lock(e);});
-  }
-  tryLock();
-  document.addEventListener("DOMContentLoaded",tryLock);
-  window.addEventListener("load",tryLock);
-  var n=0,iv=setInterval(function(){tryLock();if(++n>=10)clearInterval(iv);},600);
-})();
-
-/* ═════════════════════════════════════════════════════════════
-   FIX 4 — PANEL AGENTE: abrir + form de nueva actividad
-═════════════════════════════════════════════════════════════ */
+// Función para abrir panel del agente correctamente via nav()
 window.abrirPanelAgente=(function(orig){
   return function(nombre){
     window._agenteActual=nombre;
     window._agTareas=[];
     window._agTab="hoy";
-    
-    // Ocultar páginas principales
-    document.querySelectorAll("[id^=p-]").forEach(function(e){e.style.display="none";});
+
+    // Navegar a la "página" del agente usando nav() para ocultar todo lo demás
+    var pa=document.getElementById("p-agente");
+    if(pa){
+      // Ocultar todas las páginas conocidas
+      document.querySelectorAll("[id^=p-]").forEach(function(e){e.style.display="none";});
+      pa.style.display="block";
+    }
     document.querySelectorAll(".ntab,.mbn-btn").forEach(function(b){b.classList.remove("on","act","mbn-active");});
-    
-    var panel=document.getElementById("p-agente");
-    if(panel)panel.style.display="block";
-    
+
+    // Datos del agente
     var m=typeof gm==="function"?gm(nombre):{};
     var color=(m&&m.color)||"#667eea";
-    var ne=document.getElementById("ag-nombre");
-    if(ne){ne.textContent=nombre;ne.style.color=color;}
-    var re=document.getElementById("ag-rol");
-    if(re)re.textContent=(m&&m.rol)||"Comunicador/a";
-    
-    _agInyectarForm(nombre);
-    
+    var ne=document.getElementById("ag-nombre");if(ne){ne.textContent=nombre;ne.style.color=color;}
+    var re=document.getElementById("ag-rol");if(re)re.textContent=(m&&m.rol)||"Comunicador/a";
+
+    // Inyectar botón cerrar + formulario
+    _agSetup(nombre);
+
+    // Loading
     var lista=document.getElementById("ag-lista");
     if(lista)lista.innerHTML='<p style="text-align:center;padding:20px;color:var(--sub)">Cargando...</p>';
     if(typeof agRenderStats==="function")agRenderStats([]);
     if(typeof agRenderProgreso==="function")agRenderProgreso(0,0);
-    
+
     var dbRef=_db();
-    if(!dbRef){_agRefreshUI();return;}
-    
+    if(!dbRef){_agUI();return;}
     dbRef.from("tareas").select("*").ilike("responsable","%"+nombre+"%")
       .order("created_at",{ascending:false})
-      .then(function(r){
-        window._agTareas=r.data||[];
-        _agRefreshUI();
-      }).catch(function(){
-        window._agTareas=[];
-        _agRefreshUI();
-      });
+      .then(function(r){window._agTareas=r.data||[];_agUI();})
+      .catch(function(){window._agTareas=[];_agUI();});
   };
 })(window.abrirPanelAgente);
 
-function _agInyectarForm(nombre){
-  var panel=document.getElementById("p-agente");
-  if(!panel)return;
-  var old=document.getElementById("ag-nueva-form");
-  if(old)old.remove();
+function _agSetup(nombre){
+  var panel=document.getElementById("p-agente");if(!panel)return;
+
+  // Botón CERRAR (volver a Equipo)
+  if(!document.getElementById("ag-btn-cerrar")){
+    var btnCerrar=document.createElement("button");
+    btnCerrar.id="ag-btn-cerrar";
+    btnCerrar.textContent="✕ Cerrar panel";
+    btnCerrar.style.cssText="position:absolute;top:12px;right:16px;padding:6px 14px;background:transparent;border:1.5px solid var(--bdr,#e5e7eb);border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;color:var(--sub,#6b7280);font-family:inherit";
+    btnCerrar.onclick=function(){
+      panel.style.display="none";
+      window._agenteActual=null;
+      // Volver a la sección Equipo
+      var equipoBtn=document.querySelector(".ntab[onclick*=\"equipo\"],.ntab[onclick*='equipo']");
+      if(equipoBtn)equipoBtn.click();
+      else if(typeof nav==="function")nav("equipo");
+    };
+    panel.style.position="relative";
+    panel.insertBefore(btnCerrar,panel.firstChild);
+  }
+
+  // Formulario nueva actividad
+  var old=document.getElementById("ag-nueva-form");if(old)old.remove();
   var dk=_dark(),bg=dk?"#1e2028":"#f9fafb",bdr=dk?"#373b47":"#e5e7eb",col=dk?"#e2e8f0":"#111827";
   var form=document.createElement("div");
   form.id="ag-nueva-form";
@@ -5532,25 +5405,29 @@ function _agInyectarForm(nombre){
     '<button onclick="agAgregarNueva()" style="padding:8px 16px;background:#667eea;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">+ Agregar</button></div>';
   var tabs=panel.querySelector(".ag-tabs,[id^='ag-tab']");
   if(tabs&&tabs.parentElement)tabs.parentElement.insertBefore(form,tabs);
-  else{var hdr=panel.querySelector(".ag-header,#ag-header");if(hdr)hdr.after(form);else panel.appendChild(form);}
+  else{var hdr=panel.querySelector(".ag-header,#ag-header,#ag-btn-cerrar");if(hdr)hdr.after(form);else panel.appendChild(form);}
 }
 
-function _agRefreshUI(){
+function _agUI(){
   var stats=window._agTareas||[];
   if(typeof agRenderStats==="function")agRenderStats(stats);
   var done=stats.filter(function(t){return t.estado==="Completo"||t.estado==="Listo s/publicar";}).length;
   if(typeof agRenderProgreso==="function")agRenderProgreso(done,stats.length);
-  _renderConScroll("ag-lista",function(){if(typeof agRenderLista==="function")agRenderLista();});
+  // Scroll-safe render de la lista del agente
+  var lista=document.getElementById("ag-lista");
+  var savedTop=lista?lista.scrollTop:0;
+  if(typeof agRenderLista==="function")agRenderLista();
+  if(lista&&savedTop>0)requestAnimationFrame(function(){lista.scrollTop=savedTop;});
   if(typeof renderKanban==="function")setTimeout(renderKanban,120);
   if(typeof updateBadges==="function")setTimeout(updateBadges,150);
 }
 
 window.agAgregarNueva=function(){
-  var descEl=document.getElementById("ag-nueva-desc");
-  var desc=(descEl?descEl.value:"").trim();
+  var d=document.getElementById("ag-nueva-desc");
+  var desc=(d?d.value:"").trim();
   if(!desc){_toast("Escribí una descripción","err");return;}
   var nombre=window._agenteActual||"";
-  if(!nombre){_toast("Sin agente seleccionado","err");return;}
+  if(!nombre){_toast("Sin agente","err");return;}
   var prio=(document.getElementById("ag-nueva-prio")||{}).value||"Media";
   var fecha=(document.getElementById("ag-nueva-fecha")||{}).value||_hoy();
   var row={descripcion:desc,responsable:nombre,prioridad:prio,estado:"Pendiente",fecha:fecha};
@@ -5558,152 +5435,301 @@ window.agAgregarNueva=function(){
   function ok(nv){
     window._agTareas.unshift(nv);
     if(typeof tasks!=="undefined"&&Array.isArray(tasks))tasks.unshift(nv);
-    if(descEl)descEl.value="";
-    _agRefreshUI();
-    _toast("✓ Actividad agregada");
+    if(d)d.value="";
+    _agUI();_toast("✓ Actividad agregada");
   }
   if(dbRef){
     dbRef.from("tareas").insert([row]).select()
-      .then(function(res){ok((res.data&&res.data[0])||Object.assign({id:"tmp_"+Date.now()},row));})
+      .then(function(r){ok((r.data&&r.data[0])||Object.assign({id:"tmp_"+Date.now()},row));})
       .catch(function(e){_toast("Error: "+(e.message||e),"err");});
-  }else{ok(Object.assign({id:"tmp_"+Date.now()},row));}
+  }else ok(Object.assign({id:"tmp_"+Date.now()},row));
 };
 
-/* ═════════════════════════════════════════════════════════════
-   FIX 5 — SYNC "Listo s/publicar" + markCompleto
-═════════════════════════════════════════════════════════════ */
-window.markCompleto=(function(orig){
+window.agToggle=function(id){
+  var arr=window._agTareas||[];
+  var t=arr.find(function(x){return String(x.id)===String(id);});
+  if(!t&&typeof tasks!=="undefined"){t=tasks.find(function(x){return String(x.id)===String(id);});if(t)arr.push(t);}
+  if(!t)return;
+  var nv=t.estado==="Completo"?"Pendiente":"Completo";
+  t.estado=nv;
+  if(typeof tasks!=="undefined"){var gt=tasks.find(function(x){return String(x.id)===String(id);});if(gt)gt.estado=nv;}
+  var dbRef=_db();
+  if(dbRef)dbRef.from("tareas").update({estado:nv,updated_at:new Date().toISOString()}).eq("id",id).catch(function(e){console.warn(e);});
+  _agUI();
+  _toast(nv==="Completo"?"✅ Completada":"🔄 Pendiente");
+};
+
+/* ═══════════════════════════════════════════
+   FIX 2 — CHECKBOXES tdToggle: funciona y no
+   revierte por suscripción en tiempo real.
+   Se bloquea el re-render por 1.5s post-click.
+════════════════════════════════════════════ */
+var _tdLock=false, _tdLockTimer=null;
+
+window.tdToggle=function(id){
+  // Buscar en todos los arrays posibles
+  var t=null;
+  var arrs=[
+    typeof _tdTareas!=="undefined"?_tdTareas:null,
+    typeof tasks!=="undefined"&&Array.isArray(tasks)?tasks:null
+  ];
+  for(var ai=0;ai<arrs.length&&!t;ai++){
+    if(!arrs[ai])continue;
+    t=arrs[ai].find(function(x){return String(x.id)===String(id);});
+  }
+  if(!t){console.warn("tdToggle: no encontrada",id);return;}
+
+  var nv=(t.estado==="Completo"||t.estado==="Listo s/publicar")?"Pendiente":"Completo";
+  t.estado=nv;
+
+  // Actualizar en tasks global también
+  if(typeof tasks!=="undefined"&&Array.isArray(tasks)){
+    var gt=tasks.find(function(x){return String(x.id)===String(id);});
+    if(gt)gt.estado=nv;
+  }
+
+  // Bloquear re-render de tiempo real por 1.5s para evitar reversión
+  _tdLock=true;
+  clearTimeout(_tdLockTimer);
+  _tdLockTimer=setTimeout(function(){_tdLock=false;},1500);
+
+  // Guardar en BD
+  var dbRef=_db();
+  if(dbRef){
+    dbRef.from("tareas").update({estado:nv,updated_at:new Date().toISOString()}).eq("id",id)
+      .then(function(){
+        if(typeof tasks!=="undefined"){var x=tasks.find(function(t){return String(t.id)===String(id);});if(x)x.estado=nv;}
+      }).catch(function(e){console.warn("tdToggle DB:",e);});
+  }
+
+  // Actualizar el checkbox visualmente SIN re-render completo
+  var cbEl=document.getElementById("td_"+id);
+  if(cbEl){
+    cbEl.checked=nv==="Completo";
+    // Actualizar el badge de estado
+    var item=cbEl.closest?cbEl.closest("[data-id]")||cbEl.parentElement:cbEl.parentElement;
+    var badge=item?item.querySelector(".kt,[class*=badge],[class*=estado]"):null;
+    if(badge)badge.textContent=nv;
+    // Tachado del texto
+    var txtEl=item?item.querySelector("div"):null;
+    if(txtEl)txtEl.style.textDecoration=nv==="Completo"?"line-through":"";
+  }
+
+  // Re-render completo con scroll preservation
+  var lista=document.getElementById("tdListaTareas");
+  var savedTop=lista?lista.scrollTop:0;
+  if(typeof tdRenderLista==="function")tdRenderLista();
+  if(lista&&savedTop>0)requestAnimationFrame(function(){lista.scrollTop=savedTop;});
+
+  if(typeof renderKanban==="function")setTimeout(renderKanban,120);
+  if(typeof updateBadges==="function")setTimeout(updateBadges,150);
+
+  _toast({Completo:"✅ Tarea completada","Listo s/publicar":"📤 Lista p/publicar",Pendiente:"🔄 Pendiente"}[nv]||"🔄");
+};
+
+// Bloquear render real-time cuando _tdLock está activo
+var _origTdRenderLista=window.tdRenderLista;
+window.tdRenderLista=(function(orig){
+  return function(){
+    if(_tdLock)return; // no re-renderizar durante lock
+    if(orig)return orig.apply(this,arguments);
+  };
+})(window.tdRenderLista);
+
+/* Sync markCompleto con panel agente */
+window.markCompleto=(function(o){
   return function(id){
-    var res=orig?orig(id):Promise.resolve();
-    function sync(){
-      var arr=window._agTareas||[];
-      var t=arr.find(function(x){return String(x.id)===String(id);});
-      if(t&&t.estado!=="Completo"){
-        t.estado="Completo";
-        var panel=document.getElementById("p-agente");
-        if(panel&&panel.style.display!=="none")_agRefreshUI();
-      }
-    }
-    if(res&&typeof res.then==="function")res.then(sync);else setTimeout(sync,300);
-    return res;
+    var r=o?o(id):Promise.resolve();
+    function sync(){var arr=window._agTareas||[];var t=arr.find(function(x){return String(x.id)===String(id);});if(t){t.estado="Completo";var pa=document.getElementById("p-agente");if(pa&&pa.style.display!=="none")_agUI();}}
+    if(r&&r.then)r.then(sync);else setTimeout(sync,300);
+    return r;
   };
 })(window.markCompleto);
 
-/* ═════════════════════════════════════════════════════════════
-   FIX 6 — BRIEFING: eventos del día
-═════════════════════════════════════════════════════════════ */
-window.abrirBriefing=(function(orig){
+/* ═══════════════════════════════════════════
+   FIX 3 — FILTRAR PERSONA: dropdown colapsable
+   Reemplaza la lista fija por un selector
+   desplegable con avatar + nombre + contador.
+════════════════════════════════════════════ */
+var _fpOpen=false, _fpSel="";
+
+window.renderPersons=function(){
+  var cont=document.getElementById("sbpersons");if(!cont)return;
+  var mbs=typeof teams!=="undefined"&&Array.isArray(teams)?teams:[];
+  var parent=cont.parentNode;
+
+  // Crear o actualizar el wrapper del dropdown
+  var wrap=document.getElementById("fp-drop-wrap");
+  if(!wrap){
+    wrap=document.createElement("div");
+    wrap.id="fp-drop-wrap";
+    wrap.style.cssText="padding:4px 10px 6px";
+    parent.insertBefore(wrap,cont);
+    cont.style.display="none"; // ocultar el contenedor original
+  }
+
+  // Construir el dropdown
+  var dk=_dark(),bg=dk?"#1e2028":"#fff",bdr=dk?"#373b47":"#e5e7eb",txt2=dk?"#e2e8f0":"#111827",bg2=dk?"#252830":"#f9fafb";
+  var selMb=mbs.find(function(m){return m.nombre===_fpSel||m.nombre===(typeof fp!=="undefined"?fp:null);});
+  var selLabel=selMb?selMb.nombre:"Todas las personas";
+  var selColor=selMb?(selMb.color||"#667eea"):"#9ca3af";
+  var selInitials=selMb?(selMb.nombre||"?").slice(0,2).toUpperCase():"👥";
+
+  var dropHTML='<div id="fp-header" onclick="window._fpToggle()" style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:9px;border:1.5px solid '+bdr+';background:'+bg+';cursor:pointer;user-select:none">'+
+    '<div style="width:20px;height:20px;border-radius:50%;background:'+selColor+';color:#fff;display:flex;align-items:center;justify-content:center;font-size:'+(selMb?'7px':'12px')+';font-weight:700;flex-shrink:0">'+selInitials+'</div>'+
+    '<span style="font-size:11px;font-weight:600;color:'+txt2+';flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">'+selLabel+'</span>'+
+    '<span style="font-size:11px;color:#9ca3af;transition:transform .2s;display:inline-block;transform:'+(_fpOpen?"rotate(180deg)":"rotate(0deg)")+'">▾</span>'+
+  '</div>';
+
+  if(_fpOpen){
+    dropHTML+='<div id="fp-list" style="margin-top:4px;border:1.5px solid '+bdr+';border-radius:9px;background:'+bg+';overflow:hidden;max-height:240px;overflow-y:auto">';
+    // Opción "Todas"
+    var allSel=!_fpSel;
+    dropHTML+='<div onclick="window._fpPickPersona('')" style="display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer;background:'+( allSel?( dk?"#2d2f3a":"#f0f0ff"):"transparent" )+';border-bottom:1px solid '+bdr+'">'+
+      '<div style="width:18px;height:18px;border-radius:50%;background:#9ca3af;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0">👥</div>'+
+      '<span style="font-size:11px;font-weight:'+(allSel?700:400)+';color:'+(allSel?"#6d28d9":txt2)+'">Todas las personas</span>'+
+    '</div>';
+    // Una opción por persona
+    mbs.forEach(function(m){
+      var pend=typeof tasks!=="undefined"&&Array.isArray(tasks)?tasks.filter(function(t){return t.responsable===m.nombre&&t.estado!=="Completo";}).length:0;
+      var isSel=m.nombre===_fpSel;
+      var safe=(m.nombre||"").replace(/\\/g,"\\\\").replace(/'/g,"\\'");
+      dropHTML+='<div onclick="window._fpPickPersona(''+safe+'')" style="display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer;background:'+(isSel?(dk?"#2d2f3a":"#f0f0ff"):"transparent")+';border-bottom:1px solid '+bdr+'">'+
+        '<div style="width:18px;height:18px;border-radius:50%;background:'+(m.color||"#667eea")+';color:'+(m.color_texto||"#fff")+';display:flex;align-items:center;justify-content:center;font-weight:700;font-size:7px;flex-shrink:0">'+(m.nombre||"?").slice(0,2).toUpperCase()+'</div>'+
+        '<span style="font-size:11px;font-weight:'+(isSel?700:400)+';color:'+(isSel?"#6d28d9":txt2)+';flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">'+(m.nombre||"")+'</span>'+
+        '<span style="font-size:9px;background:'+(pend?"#fee2e2":"#f3f4f6")+';color:'+(pend?"#dc2626":"#9ca3af")+';font-weight:700;border-radius:10px;padding:0 5px;min-width:18px;text-align:center;flex-shrink:0">'+(pend||"")+'</span>'+
+      '</div>';
+    });
+    dropHTML+='</div>';
+  }
+
+  wrap.innerHTML=dropHTML;
+};
+
+window._fpToggle=function(){
+  _fpOpen=!_fpOpen;
+  renderPersons();
+};
+
+window._fpPickPersona=function(nombre){
+  _fpOpen=false;
+  _fpSel=nombre;
+  if(nombre){
+    if(typeof clickPersona==="function")clickPersona(nombre);
+  }else{
+    // Limpiar filtro
+    if(typeof fp!=="undefined")window.fp=null;
+    if(typeof actualizarFPanel==="function")actualizarFPanel();
+    else if(typeof renderKanban==="function")renderKanban();
+  }
+  renderPersons();
+};
+
+// Cerrar dropdown al hacer clic fuera
+document.addEventListener("click",function(e){
+  if(_fpOpen&&!e.target.closest("#fp-drop-wrap")){
+    _fpOpen=false;
+    renderPersons();
+  }
+},true);
+
+window.clickPersona=(function(o){
+  return function(n){
+    if(o)o(n);
+    _fpSel=n;
+    renderPersons();
+    if(typeof actualizarFPanel==="function")actualizarFPanel();
+  };
+})(window.clickPersona);
+
+/* ═══════════════════════════════════════════
+   FIX 4 — SCROLL PRESERVATION (contenedores)
+════════════════════════════════════════════ */
+(function(){
+  var nS=Object.getOwnPropertyDescriptor(Element.prototype,"innerHTML").set;
+  var nG=Object.getOwnPropertyDescriptor(Element.prototype,"innerHTML").get;
+  function lock(el){
+    if(el._sl)return;el._sl=true;
+    Object.defineProperty(el,"innerHTML",{
+      get:function(){return nG.call(this);},
+      set:function(h){
+        var sc=this,top=0,tmp=this;
+        while(tmp&&tmp!==document.body){var ov=window.getComputedStyle(tmp).overflowY;if((ov==="auto"||ov==="scroll")&&tmp.scrollHeight>tmp.clientHeight){sc=tmp;top=tmp.scrollTop;break;}tmp=tmp.parentElement;}
+        nS.call(this,h);
+        if(top>0)requestAnimationFrame(function(){if(sc)sc.scrollTop=top;});
+      },configurable:true
+    });
+  }
+  function tryLock(){["tdListaTareas","ag-lista","kanban"].forEach(function(id){var e=document.getElementById(id);if(e)lock(e);});}
+  tryLock();
+  document.addEventListener("DOMContentLoaded",tryLock);
+  window.addEventListener("load",tryLock);
+  var n=0,iv=setInterval(function(){tryLock();if(++n>=10)clearInterval(iv);},600);
+})();
+
+/* ═══════════════════════════════════════════
+   FIX 5 — BRIEFING eventos del día
+════════════════════════════════════════════ */
+window.abrirBriefing=(function(o){
   return function(){
     function open(){
       if(typeof _renderBriefing==="function")_renderBriefing();
-      setTimeout(window._bfEvents,120);
+      setTimeout(_bfEvs,120);
       var m=document.getElementById("modBriefing");
       if(m){m.style.display="";m.classList.add("open");}
     }
-    var ok=(typeof agendas!=="undefined"&&Array.isArray(agendas)&&agendas.length)||
-           (typeof gcalEvs!=="undefined"&&Array.isArray(gcalEvs)&&gcalEvs.length);
+    var ok=(typeof agendas!=="undefined"&&Array.isArray(agendas)&&agendas.length)||(typeof gcalEvs!=="undefined"&&Array.isArray(gcalEvs)&&gcalEvs.length);
     if(ok){open();return;}
-    var n=0,iv=setInterval(function(){
-      n++;
-      if((typeof agendas!=="undefined"&&agendas!==null)||(typeof gcalEvs!=="undefined"&&gcalEvs!==null)||n>=12){
-        clearInterval(iv);open();
-      }
-    },200);
+    var n=0,iv=setInterval(function(){n++;if((typeof agendas!=="undefined"&&agendas!==null)||(typeof gcalEvs!=="undefined"&&gcalEvs!==null)||n>=12){clearInterval(iv);open();}},200);
   };
 })(window.abrirBriefing);
 
-window._bfEvents=function(){
+function _bfEvs(){
   var wrap=document.getElementById("bf-eventos-wrap");
   var evEl=document.getElementById("bf-eventos");
   if(!wrap||!evEl)return;
   var hoy=_hoy(),evs=[],seen={},src=[];
   if(typeof agendas!=="undefined"&&Array.isArray(agendas))src=src.concat(agendas);
   if(typeof gcalEvs!=="undefined"&&Array.isArray(gcalEvs))src=src.concat(gcalEvs);
-  src.forEach(function(e){
-    if(!e||String(e.fecha||"").slice(0,10)!==hoy||e.cancelado||e.tipo==="entrevista")return;
-    var k=(e.descripcion||"").slice(0,30)+"|"+(e.hora||"");
-    if(seen[k])return;seen[k]=1;evs.push(e);
-  });
+  src.forEach(function(e){if(!e||String(e.fecha||"").slice(0,10)!==hoy||e.cancelado||e.tipo==="entrevista")return;var k=(e.descripcion||"").slice(0,30)+"|"+(e.hora||"");if(seen[k])return;seen[k]=1;evs.push(e);});
   evs.sort(function(a,b){return(a.hora||"00:00").localeCompare(b.hora||"00:00");});
   if(!evs.length){wrap.style.display="none";return;}
   wrap.style.display="block";
   evEl.innerHTML=evs.slice(0,8).map(function(e){
     var ic={prensa:"📻",cobertura:"📷",municipal:"🏛",publicacion:"📱"}[e.tipo]||"🗓";
     var hora=e.hora?e.hora.slice(0,5)+" hs":"";
-    var isCob=typeof cobSel!=="undefined"&&cobSel[e.id];
-    var brd=isCob?"#6d28d9":({prensa:"#ec4899",municipal:"#22c55e"}[e.tipo]||"#667eea");
-    return'<div onclick="openEvPanel('+JSON.stringify(e).replace(/"/g,"&quot;")+')" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:8px;border-left:3px solid '+brd+';background:rgba(102,126,234,.06);margin-bottom:6px;cursor:pointer">'+
-      '<span style="font-size:14px">'+ic+'</span>'+
-      '<div style="flex:1;min-width:0">'+
-      '<div style="font-size:12px;font-weight:600;color:#111827;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">'+(e.descripcion||"Evento")+'</div>'+
-      (hora?'<div style="font-size:10px;color:#6b7280;margin-top:1px">🕐 '+hora+(e.lugar?' · '+e.lugar.slice(0,20):'')+
-      '</div>':'')+
-      '</div></div>';
+    var brd={prensa:"#ec4899",municipal:"#22c55e"}[e.tipo]||"#667eea";
+    return'<div onclick="openEvPanel('+JSON.stringify(e).replace(/"/g,"&quot;")+')" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:8px;border-left:3px solid '+brd+';background:rgba(102,126,234,.06);margin-bottom:6px;cursor:pointer"><span style="font-size:14px">'+ic+'</span><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;color:#111827;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">'+(e.descripcion||"Evento")+'</div>'+(hora?'<div style="font-size:10px;color:#6b7280;margin-top:1px">🕐 '+hora+(e.lugar?' · '+e.lugar.slice(0,20):'')+
+    '</div>':'')+
+    '</div></div>';
   }).join("")+(evs.length>8?'<div style="font-size:11px;color:#9ca3af;text-align:center;padding:4px">+'+(evs.length-8)+" más...</div>":"");
-};
-
-/* ═════════════════════════════════════════════════════════════
-   FIX 7 — FILTRO PERSONAS: dropdown + buscador
-═════════════════════════════════════════════════════════════ */
-var _fpQ="";
-window.renderPersons=function(){
-  var cont=document.getElementById("sbpersons");if(!cont)return;
-  var mbs=typeof teams!=="undefined"&&Array.isArray(teams)?teams:[];
-  if(!document.getElementById("fp-sw")){
-    var dk=_dark(),bg=dk?"#1e2028":"#f9fafb",bdr=dk?"#373b47":"#e5e7eb",col=dk?"#e2e8f0":"#111827";
-    var w=document.createElement("div");
-    w.id="fp-sw";w.style.cssText="padding:6px 10px 4px";
-    w.innerHTML="<div style='position:relative'>"+
-      "<input id='fp-inp' type='text' placeholder='🔍 Buscar…' oninput='window._fpQ=this.value;renderPersons()' "+
-      "style='width:100%;padding:6px 26px 6px 10px;border-radius:8px;border:1.5px solid "+bdr+";background:"+bg+";color:"+col+";font-size:11px;font-family:inherit;outline:none;box-sizing:border-box'>"+
-      (mbs.length?"<select id='fp-sel' onchange="var v=this.value;window._fpQ=v==='_'?'':v;renderPersons()" style='position:absolute;right:2px;top:50%;transform:translateY(-50%);border:none;background:transparent;font-size:13px;cursor:pointer;outline:none'>"+
-      "<option value='_'>▾</option>"+mbs.map(function(m){return"<option value='"+(m.nombre||"").replace(/'/g,"&#39;")+"'>"+(m.nombre||"")+"</option>";}).join("")+"</select>":"")+
-      "</div>";
-    cont.parentNode.insertBefore(w,cont);
-  }
-  var inp=document.getElementById("fp-inp");
-  if(inp&&document.activeElement!==inp)inp.value=_fpQ;
-  var q=_fpQ.toLowerCase().trim();
-  var fil=q?mbs.filter(function(m){return((m.nombre||"").toLowerCase().includes(q)||((m.rol||"").toLowerCase().includes(q)));}):mbs;
-  if(!fil.length){
-    cont.innerHTML="<div style='padding:10px 12px;font-size:11px;color:#9ca3af;text-align:center'>"+(q?"Sin resultados":"Sin integrantes")+"</div>";
-    return;
-  }
-  cont.innerHTML=fil.map(function(m){
-    var pend=typeof tasks!=="undefined"&&Array.isArray(tasks)?tasks.filter(function(t){return t.responsable===m.nombre&&t.estado!=="Completo";}).length:0;
-    var sel=typeof fp!=="undefined"&&fp===m.nombre;
-    var safe=(m.nombre||"").replace(/\\/g,"\\\\").replace(/'/g,"\\'");
-    return'<div class="sbp'+(sel?" sel":"")+'" onclick="clickPersona(''+safe+'')" style="'+(sel?"border-left:3px solid #6d28d9;background:#ede9fe;":"")+'">'+
-      '<div style="width:18px;height:18px;border-radius:50%;background:'+(m.color||"#667eea")+';color:'+(m.color_texto||"#fff")+';display:flex;align-items:center;justify-content:center;font-weight:700;font-size:7px;flex-shrink:0">'+
-      (m.nombre||"?").slice(0,2).toUpperCase()+'</div>'+
-      '<span style="font-size:11px;font-weight:'+(sel?700:400)+';color:'+(sel?"#6d28d9":"#4b5563")+';flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">'+(m.nombre||"")+'</span>'+
-      '<span style="font-size:9px;background:'+(pend?"#fee2e2":"#f3f4f6")+';color:'+(pend?"#dc2626":"#9ca3af")+';font-weight:700;border-radius:10px;padding:0 5px;min-width:18px;text-align:center;flex-shrink:0">'+(pend||"")+'</span></div>';
-  }).join("");
-  _fpDark();
-};
-
-function _fpDark(){
-  var inp=document.getElementById("fp-inp");if(!inp)return;
-  var dk=_dark();
-  inp.style.background=dk?"#1e2028":"#f9fafb";
-  inp.style.borderColor=dk?"#373b47":"#e5e7eb";
-  inp.style.color=dk?"#e2e8f0":"#111827";
 }
-window._fpQ=_fpQ;
 
-window.toggleDark=(function(o){return function(){if(o)o();setTimeout(_fpDark,50);};})(window.toggleDark);
-window.clickPersona=(function(o){return function(n){if(o)o(n);renderPersons();if(typeof actualizarFPanel==="function")actualizarFPanel();};})(window.clickPersona);
-
-/* ═════════════════════════════════════════════════════════════
-   INIT
-═════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════
+   INIT — Aplicar al cargar la página
+════════════════════════════════════════════ */
 document.addEventListener("DOMContentLoaded",function(){
+  // Inicializar dropdown de personas
   if(typeof renderPersons==="function"&&document.getElementById("sbpersons"))renderPersons();
+  // Asegurar que p-agente no esté visible al cargar
+  var pa=document.getElementById("p-agente");if(pa)pa.style.display="none";
 });
 
-console.log("✅ Parche v5.56 — Fix nav/checkboxes/scroll/briefing/agente/filtro");
+// También ejecutar si el DOM ya está listo
+if(document.readyState!=="loading"){
+  try{if(typeof renderPersons==="function"&&document.getElementById("sbpersons"))renderPersons();}catch(e){}
+  try{var pa2=document.getElementById("p-agente");if(pa2)pa2.style.display="none";}catch(e){}
+}
+
+console.log("✅ Parche v5.57 aplicado — Panel Tres Arroyos");
+console.log("  ✓ nav() cierra p-agente al cambiar sección");
+console.log("  ✓ Botón cerrar en panel del agente");  
+console.log("  ✓ tdToggle: checkboxes con lock anti-revert");
+console.log("  ✓ Filtrar persona: dropdown colapsable");
+console.log("  ✓ Scroll preservation activo");
 })();
 </script>
+
 
 
 
