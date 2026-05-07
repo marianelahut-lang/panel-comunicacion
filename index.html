@@ -5824,5 +5824,235 @@ window._renderHoy=function(){
 console.log("\u2705 v5.64 - Guardia async + WhatsApp tel + menu estado limpio");
 })();
 </script>
+
+<script>
+/* PARCHE v5.65 - Fix iconos ag-tab + Google Sheets guardias */
+(function(){
+"use strict";
+
+/* === FIX ICONOS TABS DEL AGENTE === */
+(function(){
+  var old=document.getElementById("ta-tab-fix-css");if(old)old.remove();
+  var st=document.createElement("style");st.id="ta-tab-fix-css";
+  st.textContent=[
+    /* Tabs del agente - iconos y botones visibles */
+    ".ag-tab{opacity:1!important;color:var(--sub,#6b7280)!important;font-size:12px!important;font-weight:600!important;padding:6px 12px!important;border-radius:8px!important;border:none!important;cursor:pointer!important;background:transparent!important;display:flex!important;align-items:center!important;gap:5px!important;transition:all .15s!important}",
+    ".ag-tab.on{background:var(--bg-card,#fff)!important;color:#6d28d9!important;box-shadow:0 1px 4px rgba(0,0,0,.1)!important}",
+    ".ag-tab img,.ag-tab svg{width:16px!important;height:16px!important;opacity:1!important;filter:none!important}",
+    ".ag-tab:not(.on) img,.ag-tab:not(.on) svg{opacity:.7!important}",
+    /* Iconos de tabs como texto unicode visible */
+    ".ag-tab[onclick*=hoy]:before{content:'\2600\fe0f '}",
+    ".ag-tab[onclick*=pend]:before{content:'\23f3 '}",
+    ".ag-tab[onclick*=semana]:before{content:'\1f4c5 '}",
+    ".ag-tab[onclick*=todas]:before,.ag-tab[onclick*=todos]:before{content:'\1f4cb '}",
+    /* Contenedor de tabs */
+    ".ag-tabs{display:flex!important;gap:4px!important;padding:6px 12px!important;background:var(--bg2,#f8fafc)!important;border-bottom:1px solid var(--bdr,#e5e7eb)!important}",
+    /* Fix imagen del tab si usa img */
+    ".ag-tab img[src*=svg],.ag-tab img[src*=icon]{filter:brightness(.4) saturate(0)!important;opacity:.8!important}",
+    ".ag-tab.on img[src*=svg],.ag-tab.on img[src*=icon]{filter:hue-rotate(260deg) saturate(3) brightness(.7)!important;opacity:1!important}"
+  ].join("");
+  document.head.appendChild(st);
+})();
+
+/* === GOOGLE SHEETS GUARDIAS === */
+var SHEET_ID="1jVUzC2WHuBz1m8dqE5aRod96ha8JBCLF8OKSgVhEGGw";
+var SHEET_URL="https://docs.google.com/spreadsheets/d/"+SHEET_ID+"/export?format=csv";
+
+function _parseCSV(text){
+  var rows=[];
+  var lines=text.split("\n");
+  lines.forEach(function(line){
+    if(!line.trim())return;
+    var cols=[];
+    var cur="",inQ=false;
+    for(var i=0;i<line.length;i++){
+      var c=line[i];
+      if(c==='"'){inQ=!inQ;}
+      else if(c===","&&!inQ){cols.push(cur.trim());cur="";}
+      else cur+=c;
+    }
+    cols.push(cur.trim());
+    rows.push(cols);
+  });
+  return rows;
+}
+
+function _guardiaFromCSV(text,hoy){
+  var rows=_parseCSV(text);
+  if(rows.length<2)return null;
+  var headers=rows[0].map(function(h){return h.toLowerCase().replace(/[^a-z]/g,"");});
+  // Buscar columnas relevantes
+  var idxFecha=headers.findIndex?headers.findIndex(function(h){return h.includes("fecha")||h.includes("dia")||h.includes("date")||h.includes("semana");}):-1;
+  var idxTitular=headers.findIndex?headers.findIndex(function(h){return h.includes("titular")||h.includes("guardia")||h.includes("encargad")||h.includes("persona");}):-1;
+  var idxSoporte=headers.findIndex?headers.findIndex(function(h){return h.includes("soporte")||h.includes("apoyo")||h.includes("suplente")||h.includes("segundo");}):-1;
+
+  // Si no hay findIndex, buscar manualmente
+  if(idxFecha===-1){for(var k=0;k<headers.length;k++){if(headers[k].includes("fecha")||headers[k].includes("dia")||headers[k].includes("date")||headers[k].includes("semana")){idxFecha=k;break;}}}
+  if(idxTitular===-1){for(var k=0;k<headers.length;k++){if(headers[k].includes("titular")||headers[k].includes("guardia")||headers[k].includes("persona")){idxTitular=k;break;}}}
+  if(idxSoporte===-1){for(var k=0;k<headers.length;k++){if(headers[k].includes("soporte")||headers[k].includes("apoyo")){idxSoporte=k;break;}}}
+
+  // Si no encontramos por nombre, asumir columnas por posición
+  // Col 0=fecha, Col 1=titular, Col 2=soporte (estructura más común)
+  if(idxFecha===-1)idxFecha=0;
+  if(idxTitular===-1)idxTitular=1;
+  if(idxSoporte===-1)idxSoporte=2;
+
+  var ahora=new Date(hoy);
+  var found=null;
+
+  for(var i=1;i<rows.length;i++){
+    var row=rows[i];
+    if(!row||!row.length)continue;
+    var fechaVal=row[idxFecha]||"";
+    // Convertir fecha de formato DD/MM/YYYY o YYYY-MM-DD
+    var fechaNorm="";
+    if(fechaVal.includes("/")){
+      var parts=fechaVal.split("/");
+      if(parts.length===3){
+        if(parts[2].length===4){
+          // DD/MM/YYYY
+          fechaNorm=parts[2]+"-"+("0"+parts[1]).slice(-2)+"-"+("0"+parts[0]).slice(-2);
+        }else{
+          // MM/DD/YYYY
+          fechaNorm=parts[2]+"-"+("0"+parts[0]).slice(-2)+"-"+("0"+parts[1]).slice(-2);
+        }
+      }
+    }else{
+      fechaNorm=String(fechaVal).slice(0,10);
+    }
+    // Comparar fecha exacta
+    if(fechaNorm===hoy){
+      found=row;break;
+    }
+    // Buscar rango: si hay dos fechas en la fila (semana)
+    var fechaFin=row[idxFecha+1]||"";
+    if(fechaFin){
+      var normFin="";
+      if(fechaFin.includes("/")){var p2=fechaFin.split("/");if(p2.length===3)normFin=p2[2]+"-"+("0"+p2[1]).slice(-2)+"-"+("0"+p2[0]).slice(-2);}
+      else normFin=String(fechaFin).slice(0,10);
+      var d1=new Date(fechaNorm),d2=new Date(normFin);
+      if(!isNaN(d1.getTime())&&!isNaN(d2.getTime())&&ahora>=d1&&ahora<=d2){found=row;break;}
+    }
+  }
+
+  if(!found&&rows.length>1)found=rows[rows.length-1];
+
+  if(found){
+    return {
+      titular:(found[idxTitular]||"").trim(),
+      soporte:(found[idxSoporte]||"").trim(),
+      _source:"gsheets"
+    };
+  }
+  return null;
+}
+
+// Cargar guardia desde Google Sheets con fallback a Supabase
+window._loadGuardiaFromDB=function(hoy,callback){
+  // Primero intentar Google Sheets
+  fetch(SHEET_URL)
+    .then(function(r){
+      if(!r.ok)throw new Error("HTTP "+r.status);
+      return r.text();
+    })
+    .then(function(csv){
+      var g=_guardiaFromCSV(csv,hoy);
+      if(g&&(g.titular||g.soporte)){
+        window._todayGuarda=g;
+        callback(g);
+      }else{
+        _loadFromSupabase(hoy,callback);
+      }
+    })
+    .catch(function(err){
+      console.warn("Google Sheets guardia no disponible (sheet debe ser publico):",err.message);
+      _loadFromSupabase(hoy,callback);
+    });
+};
+
+function _loadFromSupabase(hoy,callback){
+  var db=window.db||(typeof db!=="undefined"?db:null);
+  if(!db){callback(null);return;}
+  var q=db.from("guardias").select("*");
+  if(q&&q.then){
+    q.then(function(r){
+      if(r&&r.data&&r.data.length){
+        var ahora=new Date(hoy);
+        var found=null;
+        for(var i=0;i<r.data.length;i++){
+          var g=r.data[i];
+          var fields=[g.fecha,g.dia,g.desde,g.lunes,g.inicio,g.start,g.date];
+          for(var j=0;j<fields.length;j++){if(fields[j]&&String(fields[j]).slice(0,10)===hoy){found=g;break;}}
+          if(found)break;
+          if(!found){var d1=new Date(g.desde||g.lunes||g.inicio||""),d2=new Date(g.hasta||g.fin||"");if(!isNaN(d1.getTime())){if(isNaN(d2.getTime()))d2=new Date(d1.getTime()+6*86400000);if(ahora>=d1&&ahora<=d2){found=g;break;}}}
+        }
+        if(!found)found=r.data[r.data.length-1];
+        if(found){window._todayGuarda={titular:found.titular||found.nombre||found.persona||"",soporte:found.soporte||found.apoyo||""};callback(window._todayGuarda);}
+        else callback(null);
+      }else callback(null);
+    }).then(null,function(){callback(null);});
+  }else callback(null);
+}
+
+/* === RENDER GUARDIA CARD (reutilizado) === */
+window._renderGuardiaCard=function(container,guarda){
+  while(container.firstChild)container.removeChild(container.firstChild);
+  if(!guarda||(!guarda.titular&&!guarda.soporte)){
+    var e=document.createElement("div");
+    e.style.cssText="font-size:12px;color:#9ca3af;padding:8px 0;text-align:center";
+    e.textContent="Sin guardia registrada. ";
+    var hint=document.createElement("span");
+    hint.style.cssText="font-size:11px;color:#667eea;cursor:pointer;text-decoration:underline";
+    hint.textContent="(Sheet debe ser p\u00fablico)";
+    hint.onclick=function(){window.open("https://docs.google.com/spreadsheets/d/"+SHEET_ID+"/edit","_blank");};
+    e.appendChild(hint);container.appendChild(e);return;
+  }
+  var source=guarda._source==="gsheets"?" \ud83d\udcc4 Google Sheets":"";
+  var mbs=typeof teams!=="undefined"&&Array.isArray(teams)?teams:[];
+  var row=document.createElement("div");
+  row.style.cssText="display:flex;gap:12px;align-items:center;flex-wrap:wrap";
+  function mkChip(nombre2,rol2){
+    if(!nombre2)return;
+    var m2=mbs.find(function(x){return x.nombre===nombre2;})||{};
+    var chip=document.createElement("div");
+    chip.style.cssText="display:flex;align-items:center;gap:8px;background:var(--bg2,#f8fafc);border-radius:10px;padding:8px 14px";
+    var av2=document.createElement("div");av2.style.cssText="width:36px;height:36px;border-radius:50%;background:"+(m2.color||"#667eea")+";color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px";av2.textContent=(nombre2).slice(0,2).toUpperCase();
+    var info2=document.createElement("div");
+    var n3=document.createElement("div");n3.style.cssText="font-size:13px;font-weight:700;color:var(--txt,#111827)";n3.textContent=nombre2;
+    var r3=document.createElement("div");r3.style.cssText="font-size:11px;color:#6b7280;margin-top:1px";r3.textContent=rol2;
+    info2.appendChild(n3);info2.appendChild(r3);chip.appendChild(av2);chip.appendChild(info2);row.appendChild(chip);
+  }
+  mkChip(guarda.titular,"Titular");mkChip(guarda.soporte,"Soporte");
+  container.appendChild(row);
+  if(source){var srcBadge=document.createElement("div");srcBadge.style.cssText="font-size:10px;color:#9ca3af;margin-top:8px";srcBadge.textContent=source;container.appendChild(srcBadge);}
+};
+
+/* === OVERRIDE _renderHoy para guardia async === */
+var _origRH=window._renderHoy;
+window._renderHoy=function(){
+  if(_origRH)_origRH.apply(this,arguments);
+  var hoy=typeof iso==="function"&&typeof TODAY!=="undefined"?iso(TODAY):new Date().toISOString().slice(0,10);
+  window._loadGuardiaFromDB(hoy,function(guarda){
+    var pHoy=document.getElementById("p-hoy");if(!pHoy)return;
+    // Buscar el contenedor de la card de guardia
+    var allDivs=pHoy.querySelectorAll("div[style]");
+    allDivs.forEach(function(div){
+      if(div.textContent.includes("Guardia del d")){
+        var children=Array.from(div.children);
+        var body=children.find(function(c){
+          var s=c.getAttribute("style")||"";
+          return s.includes("padding:12px")||s.includes("padding: 12px");
+        });
+        if(body)window._renderGuardiaCard(body,guarda);
+      }
+    });
+  });
+};
+
+console.log("\u2705 v5.65 - Iconos ag-tab + Google Sheets guardias OK");
+console.log("\u2139\ufe0f Guardia: el sheet debe ser p\u00fablico (Archivo > Compartir > Publicar en web)");
+})();
+</script>
+
 </body>
 </html>
