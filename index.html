@@ -5625,211 +5625,136 @@ console.log("\u2705 Parche v5.62 OK \u2014 Fix DB + openTaskMod + guardia + esta
 
 
 <script>
-/* PARCHE v5.63 - Fix guardia del dia (guards) + WhatsApp con telefono + menu estado */
+/* PARCHE v5.64 - Fix guardia con query directo + WhatsApp tel + menu estado */
 (function(){
 "use strict";
 
-/* === FIX GUARDIA DEL DIA ===
-   La variable correcta es "guards" (no "guardias").
-   Interceptar renderGuardDay para capturar datos cuando carguen.
-*/
+/* === GUARDIA DEL DIA - query directo a Supabase === */
 window._todayGuarda=null;
+window._guardiaTelCache={};
 
-// Interceptar renderGuardDay — se llama cuando se cargan/actualizan guardias
-window.renderGuardDay=(function(orig){
-  return function(){
-    var r=orig?orig.apply(this,arguments):undefined;
-    // Extraer datos del DOM que renderGuardDay acaba de pintar
-    setTimeout(function(){
-      _captureGuardiaFromDOM();
-      // Actualizar la card en el dashboard Hoy si está visible
-      var pHoy=document.getElementById("p-hoy");
-      if(pHoy&&pHoy.style.display!=="none"){
-        _updateGuardCardHoy();
+// Cargar guardia directamente de la BD cuando se necesite
+function _loadGuardiaFromDB(hoy,callback){
+  var db=window.db||(typeof db!=="undefined"?db:null);
+  if(!db){callback(null);return;}
+  // Intentar tabla "guardias"
+  var q=db.from("guardias").select("*");
+  if(q&&q.then){
+    q.then(function(r){
+      if(r&&r.data&&r.data.length){
+        // Buscar la guardia de hoy por múltiples campos de fecha
+        var found=null;
+        var ahora=new Date(hoy);
+        for(var i=0;i<r.data.length;i++){
+          var g=r.data[i];
+          // Por fecha exacta
+          var fields=[g.fecha,g.dia,g.desde,g.lunes,g.inicio,g.start,g.date];
+          var matchExact=false;
+          for(var j=0;j<fields.length;j++){
+            if(fields[j]&&String(fields[j]).slice(0,10)===hoy){matchExact=true;break;}
+          }
+          if(matchExact){found=g;break;}
+          // Por rango
+          if(!found){
+            var d1=new Date(g.desde||g.lunes||g.inicio||g.start||"");
+            var d2=new Date(g.hasta||g.fin||g.end||"");
+            if(!isNaN(d1.getTime())){
+              if(isNaN(d2.getTime()))d2=new Date(d1.getTime()+6*86400000);
+              if(ahora>=d1&&ahora<=d2){found=g;break;}
+            }
+          }
+        }
+        // Si no hay match, tomar el último
+        if(!found)found=r.data[r.data.length-1];
+        if(found){
+          window._todayGuarda={
+            titular:found.titular||found.nombre||found.persona||found.encargado||"",
+            soporte:found.soporte||found.apoyo||found.suplente||""
+          };
+        }
       }
-    },100);
-    return r;
-  };
-})(window.renderGuardDay);
-
-function _captureGuardiaFromDOM(){
-  // Buscar la guardia en el módulo original de guardias
-  var guardPage=document.getElementById("p-guardias");
-  if(!guardPage)return;
-  
-  // Buscar el elemento que muestra "titular" actual
-  var allText=guardPage.querySelectorAll("[class*=guard],[class*=Guard],[id*=guard],[id*=Guard]");
-  
-  // Buscar también el bf-guardia del briefing
-  var bfGuard=document.getElementById("bf-guardia");
-  if(bfGuard&&bfGuard.textContent.trim()){
-    var lines=bfGuard.textContent.trim().split(/[
-,/]+/).map(function(s){return s.trim();}).filter(Boolean);
-    if(lines.length>=1){
-      window._todayGuarda={titular:lines[0],soporte:lines[1]||""};
-      return;
-    }
-  }
-  
-  // Leer de guards[] array con heurística de fecha
-  var hoy=typeof iso==="function"&&typeof TODAY!=="undefined"?iso(TODAY):new Date().toISOString().slice(0,10);
-  var arr=typeof guards!=="undefined"&&Array.isArray(guards)?guards:[];
-  if(!arr.length)return;
-  
-  // Buscar por fecha en múltiples campos
-  var found=arr.find(function(g){
-    var dateFields=[g.fecha,g.dia,g.desde,g.inicio,g.date,g.lunes,g.semana_inicio,g.fechaInicio];
-    return dateFields.some(function(f){return f&&String(f).slice(0,10)===hoy;});
-  });
-  
-  // Si no hay match exacto, buscar por rango de fechas
-  if(!found){
-    var ahora=new Date(hoy);
-    found=arr.find(function(g){
-      var d1=new Date(g.desde||g.lunes||g.inicio||g.start||"");
-      var d2=new Date(g.hasta||g.fin||g.end||"");
-      if(isNaN(d1.getTime()))return false;
-      if(isNaN(d2.getTime()))d2=new Date(d1.getTime()+6*24*60*60*1000);
-      return ahora>=d1&&ahora<=d2;
-    });
-  }
-  
-  // Si aún no, tomar el último creado/más reciente
-  if(!found&&arr.length){
-    found=arr[arr.length-1];
-  }
-  
-  if(found){
-    window._todayGuarda={
-      titular:found.titular||found.nombre||found.persona||found.agente||found.encargado||"",
-      soporte:found.soporte||found.apoyo||found.suplente||found.soporte2||""
-    };
-  }
+      callback(window._todayGuarda);
+    }).then(null,function(){callback(null);});
+  }else callback(null);
 }
 
-function _updateGuardCardHoy(){
-  var card=document.getElementById("hoy-guardia-card");
-  if(!card)return;
-  var cb=card.querySelector("[data-guardia-body]");
-  if(!cb)return;
-  while(cb.firstChild)cb.removeChild(cb.firstChild);
-  
-  var g=window._todayGuarda;
-  if(!g||(!g.titular&&!g.soporte)){
-    var e=document.createElement("div");e.style.cssText="font-size:12px;color:#9ca3af;padding:8px 0;text-align:center";e.textContent="Sin guardia registrada para hoy";
-    cb.appendChild(e);return;
+// Renderizar la card de guardia en el panel Hoy
+function _renderGuardiaCard(container,guarda){
+  while(container.firstChild)container.removeChild(container.firstChild);
+  if(!guarda||(!guarda.titular&&!guarda.soporte)){
+    var e=document.createElement("div");
+    e.style.cssText="font-size:12px;color:#9ca3af;padding:8px 0;text-align:center";
+    e.textContent="Sin guardia registrada para hoy";
+    container.appendChild(e);return;
   }
   var mbs=typeof teams!=="undefined"&&Array.isArray(teams)?teams:[];
-  var row=document.createElement("div");row.style.cssText="display:flex;gap:12px;align-items:center;flex-wrap:wrap";
-  function mkGM(nombre2,rol2){
+  var row=document.createElement("div");
+  row.style.cssText="display:flex;gap:12px;align-items:center;flex-wrap:wrap";
+  function mkChip(nombre2,rol2){
     if(!nombre2)return;
     var m2=mbs.find(function(x){return x.nombre===nombre2;})||{};
-    var chip=document.createElement("div");chip.style.cssText="display:flex;align-items:center;gap:8px;background:var(--bg2,#f8fafc);border-radius:10px;padding:8px 14px";
-    var av2=document.createElement("div");av2.style.cssText="width:36px;height:36px;border-radius:50%;background:"+(m2.color||"#667eea")+";color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px";av2.textContent=(nombre2||"?").slice(0,2).toUpperCase();
+    var chip=document.createElement("div");
+    chip.style.cssText="display:flex;align-items:center;gap:8px;background:var(--bg2,#f8fafc);border-radius:10px;padding:8px 14px";
+    var av2=document.createElement("div");
+    av2.style.cssText="width:36px;height:36px;border-radius:50%;background:"+(m2.color||"#667eea")+";color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px";
+    av2.textContent=(nombre2).slice(0,2).toUpperCase();
     var info2=document.createElement("div");
     var n3=document.createElement("div");n3.style.cssText="font-size:13px;font-weight:700;color:var(--txt,#111827)";n3.textContent=nombre2;
     var r3=document.createElement("div");r3.style.cssText="font-size:11px;color:#6b7280;margin-top:1px";r3.textContent=rol2;
     info2.appendChild(n3);info2.appendChild(r3);chip.appendChild(av2);chip.appendChild(info2);row.appendChild(chip);
   }
-  mkGM(g.titular,"Titular");mkGM(g.soporte,"Soporte");
-  cb.appendChild(row);
+  mkChip(guarda.titular,"Titular");mkChip(guarda.soporte,"Soporte");
+  container.appendChild(row);
 }
 
-// Re-renderizar Hoy con guardia cuando se carguen los datos
-window.nav=(function(orig){
-  return function(id,tab,sb){
-    if(id!=="agente"){window._agenteActual=null;var pa=document.getElementById("p-agente");if(pa)pa.style.display="none";}
-    if(id==="hoy"){
-      setTimeout(function(){
-        _captureGuardiaFromDOM();
-        if(typeof _renderHoy==="function")_renderHoy();
-      },200);
-    }
-    if(orig)return orig.apply(this,arguments);
-  };
-})(window.nav);
-
-/* === FIX WHATSAPP CON TELEFONO ===
-   Busca el teléfono en teams. Si no tiene, pide ingresarlo.
-*/
-window._agEnviarWA=function(nombre){
-  var tareas=window._agTareas||[];if(typeof window._applyOv==="function")window._applyOv(tareas);
-  var mbs=typeof teams!=="undefined"&&Array.isArray(teams)?teams:[];
-  var m=mbs.find(function(x){return x.nombre===nombre;})||{};
-  
-  // Obtener o pedir teléfono
-  var phone=(m.telefono||m.phone||m.cel||m.celular||m.whatsapp||"").replace(/[^0-9]/g,"");
-  
-  // Si no hay teléfono guardado, mostrar un dialog para ingresar
-  if(!phone){
-    var inputPhone=window.prompt(
-      "\ud83d\udcf2 Teléfono de "+nombre+" (con código de país, ej: 542983xxxxxx)",
-      ""
-    );
-    if(inputPhone===null)return; // canceló
-    phone=(inputPhone||"").replace(/[^0-9]/g,"");
-  }
-  
-  var pU=tareas.filter(function(t){return t.estado==="Pendiente"&&t.prioridad==="Alta";});
-  var pE=tareas.filter(function(t){return t.estado==="En proceso";});
-  var pO=tareas.filter(function(t){return t.estado==="Pendiente"&&t.prioridad!=="Alta";});
-  var pL=tareas.filter(function(t){return t.estado==="Listo s/publicar";});
-  var meses=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
-  var now=new Date();var fecha=now.getDate()+" de "+meses[now.getMonth()]+" "+now.getFullYear();
-  var lines=["\ud83d\udccb *Tareas de "+nombre+"*","\ud83d\udcc5 "+fecha,""];
-  if(pU.length){lines.push("\ud83d\udd34 *URGENTES:*");pU.forEach(function(t,i){lines.push((i+1)+". "+t.descripcion);});lines.push("");}
-  if(pE.length){lines.push("\ud83d\udd35 *EN PROCESO:*");pE.forEach(function(t,i){lines.push((i+1)+". "+t.descripcion);});lines.push("");}
-  if(pL.length){lines.push("\ud83d\udfe3 *LISTO P/PUBLICAR:*");pL.forEach(function(t,i){lines.push((i+1)+". "+t.descripcion);});lines.push("");}
-  if(pO.length){lines.push("\ud83d\udfe1 *PENDIENTES:*");pO.forEach(function(t,i){lines.push((i+1)+". "+t.descripcion);});lines.push("");}
-  lines.push("\u2014 "+nombre+" | "+now.getDate()+"/"+("0"+(now.getMonth()+1)).slice(-2)+"/"+now.getFullYear());
-  var msg=lines.join("\n");
-  var url=phone?"https://wa.me/"+phone+"?text="+encodeURIComponent(msg):"https://wa.me/?text="+encodeURIComponent(msg);
-  window.open(url,"_blank");
-  if(typeof toast==="function")toast("\ud83d\udcf2 Abriendo WhatsApp"+(phone?" para "+nombre:"")+"...");
-};
-
-/* === MENU ESTADO (fix syntax error del v5.62b) === */
+/* === MENU DE ESTADO (sin regex) === */
 document.addEventListener("click",function(e){window._lastCX=e.clientX;window._lastCY=e.clientY;},true);
 
 window.agCambiarEstado=function(id){
   var oldMenu=document.getElementById("ag-estado-menu");
-  if(oldMenu){oldMenu.remove();document.getElementById("ag-estado-overlay")&&document.getElementById("ag-estado-overlay").remove();return;}
+  if(oldMenu){oldMenu.remove();var ov=document.getElementById("ag-estado-ov");if(ov)ov.remove();return;}
   var arr=window._agTareas||[];
   var t=arr.find(function(x){return String(x.id)===String(id);});
   if(!t)return;
   var cx=window._lastCX||300,cy=window._lastCY||200;
-  var menuW=192;
-  var menuLeft=Math.min(cx,window.innerWidth-menuW-16);
-  var menuTop=cy+8;if(menuTop+240>window.innerHeight)menuTop=cy-240;
+  var mW=192,mLeft=Math.min(cx,window.innerWidth-mW-16),mTop=cy+8;
+  if(mTop+250>window.innerHeight)mTop=cy-250;
   var estados=[
     {val:"Pendiente",icon:"\ud83d\udfe1",bg:"#fef3c7",col:"#92400e",desc:"Sin iniciar"},
     {val:"En proceso",icon:"\ud83d\udd35",bg:"#dbeafe",col:"#1e40af",desc:"En progreso"},
     {val:"Listo s/publicar",icon:"\ud83d\udfe3",bg:"#ede9fe",col:"#4c1d95",desc:"Lista p/publicar"},
     {val:"Completo",icon:"\ud83d\udfe2",bg:"#d1fae5",col:"#065f46",desc:"Tarea terminada"}
   ];
-  if(!document.getElementById("menu-anim-style")){var st=document.createElement("style");st.id="menu-anim-style";st.textContent="@keyframes fadeInMenu{from{opacity:0;transform:scale(.94) translateY(-4px)}to{opacity:1;transform:scale(1) translateY(0)}}";document.head.appendChild(st);}
-  var overlay=document.createElement("div");overlay.id="ag-estado-overlay";overlay.style.cssText="position:fixed;inset:0;z-index:9998;background:transparent";document.body.appendChild(overlay);
+  if(!document.getElementById("menu-anim-css")){
+    var st=document.createElement("style");st.id="menu-anim-css";
+    st.textContent="@keyframes fadeMenu{from{opacity:0;transform:scale(.94) translateY(-4px)}to{opacity:1;transform:scale(1) translateY(0)}}";
+    document.head.appendChild(st);
+  }
+  var overlay=document.createElement("div");overlay.id="ag-estado-ov";
+  overlay.style.cssText="position:fixed;inset:0;z-index:9998;background:transparent";
+  document.body.appendChild(overlay);
   var menu=document.createElement("div");menu.id="ag-estado-menu";
-  menu.style.cssText="position:fixed;z-index:9999;background:#fff;border:1.5px solid #e5e7eb;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.2);padding:8px;width:"+menuW+"px;left:"+menuLeft+"px;top:"+menuTop+"px;animation:fadeInMenu .12s ease";
-  var mh=document.createElement("div");mh.style.cssText="font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.06em;padding:2px 6px 8px;border-bottom:1px solid #f3f4f6;margin-bottom:4px";mh.textContent="Cambiar estado";menu.appendChild(mh);
+  menu.style.cssText="position:fixed;z-index:9999;background:#fff;border:1.5px solid #e5e7eb;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.2);padding:8px;width:"+mW+"px;left:"+mLeft+"px;top:"+mTop+"px;animation:fadeMenu .12s ease";
+  var mh=document.createElement("div");mh.style.cssText="font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.06em;padding:2px 6px 8px;border-bottom:1px solid #f3f4f6;margin-bottom:4px";mh.textContent="Cambiar estado";
+  menu.appendChild(mh);
   estados.forEach(function(est){
-    var isCurrent=t.estado===est.val;
+    var isCurr=t.estado===est.val;
     var item=document.createElement("div");
-    item.style.cssText="display:flex;align-items:center;gap:8px;padding:8px 8px;border-radius:9px;cursor:pointer;background:"+(isCurrent?est.bg:"transparent")+";margin-bottom:2px";
-    item.onmouseover=function(){if(!isCurrent)item.style.background="#f9fafb";};
-    item.onmouseout=function(){if(!isCurrent)item.style.background="transparent";};
+    item.style.cssText="display:flex;align-items:center;gap:8px;padding:8px;border-radius:9px;cursor:pointer;background:"+(isCurr?est.bg:"transparent")+";margin-bottom:2px";
+    item.onmouseover=function(){if(!isCurr)item.style.background="#f9fafb";};
+    item.onmouseout=function(){if(!isCurr)item.style.background="transparent";};
     var dot=document.createElement("span");dot.style.cssText="width:22px;height:22px;border-radius:7px;background:"+est.bg+";color:"+est.col+";display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;border:1px solid "+est.col+"44";dot.textContent=est.icon;
     var info=document.createElement("div");info.style.flex="1";
-    var lbl=document.createElement("div");lbl.style.cssText="font-size:12px;font-weight:"+(isCurrent?700:500)+";color:"+(isCurrent?est.col:"#374151");lbl.textContent=est.val;
+    var lbl=document.createElement("div");lbl.style.cssText="font-size:12px;font-weight:"+(isCurr?700:500)+";color:"+(isCurr?est.col:"#374151");lbl.textContent=est.val;
     var sub=document.createElement("div");sub.style.cssText="font-size:10px;color:#9ca3af;margin-top:1px";sub.textContent=est.desc;
     info.appendChild(lbl);info.appendChild(sub);item.appendChild(dot);item.appendChild(info);
-    if(isCurrent){var ck=document.createElement("span");ck.style.cssText="font-size:13px;color:"+est.col+";flex-shrink:0";ck.textContent="\u2713";item.appendChild(ck);}
+    if(isCurr){var ck=document.createElement("span");ck.style.cssText="font-size:13px;color:"+est.col+";flex-shrink:0";ck.textContent="\u2713";item.appendChild(ck);}
     item.onclick=function(ev){
       ev.stopPropagation();
       t.estado=est.val;if(typeof window._setOv==="function")window._setOv(id,est.val);
       if(typeof tasks!=="undefined"){var g=tasks.find(function(x){return String(x.id)===String(id);});if(g)g.estado=est.val;}
-      var db=window.db||(typeof db!=="undefined"?db:null);
-      if(db){var q=db.from("tareas").update({estado:est.val,updated_at:new Date().toISOString()}).eq("id",id);if(q&&q.then)q.then(function(r){if(r&&r.error)console.warn(r.error);});}
+      var db2=window.db||(typeof db!=="undefined"?db:null);
+      if(db2){var q=db2.from("tareas").update({estado:est.val,updated_at:new Date().toISOString()}).eq("id",id);if(q&&q.then)q.then(function(r){if(r&&r.error)console.warn(r.error);});}
       overlay.remove();menu.remove();
       if(typeof _agUICustom==="function")_agUICustom();
       if(typeof toast==="function")toast(est.icon+" "+est.val);
@@ -5840,50 +5765,63 @@ window.agCambiarEstado=function(id){
   overlay.onclick=function(){overlay.remove();menu.remove();};
 };
 
-/* === ACTUALIZAR _renderHoy para usar el id en guardia card === */
-var _origRenderHoy=window._renderHoy;
-window._renderHoy=function(){
-  _captureGuardiaFromDOM();
-  if(_origRenderHoy)_origRenderHoy.apply(this,arguments);
-  // Marcar la card de guardia con ID especial
-  var page=document.getElementById("p-hoy");if(!page)return;
-  var cards=page.querySelectorAll("[style*='grid-column']");
-  cards.forEach(function(c){
-    if(c.textContent.includes("Guardia del d")){
-      c.id="hoy-guardia-card";
-      var body=c.querySelector("[style*='padding:12px']");
-      if(body)body.setAttribute("data-guardia-body","1");
-    }
-  });
-  // Si ya tenemos la guardia, actualizar
-  if(window._todayGuarda)_updateGuardCardHoy();
-  // Si no, buscar de guards[] directamente
-  else{
-    var arr=typeof guards!=="undefined"&&Array.isArray(guards)?guards:[];
-    if(arr.length){_captureGuardiaFromDOM();if(window._todayGuarda)_updateGuardCardHoy();}
-    else{
-      // Intentar cargar de Supabase directamente
-      var db2=window.db||(typeof db!=="undefined"?db:null);
-      if(db2){
-        db2.from("guardias").select("*").order("id",{ascending:false}).limit(10)
-          .then(function(r){
-            if(r&&r.data&&r.data.length){
-              var hoy2=typeof iso==="function"&&typeof TODAY!=="undefined"?iso(TODAY):new Date().toISOString().slice(0,10);
-              var found=r.data.find(function(g){return Object.values(g).some(function(v){return v&&String(v).slice(0,10)===hoy2;});})||r.data[0];
-              if(found){window._todayGuarda={titular:found.titular||found.nombre||"",soporte:found.soporte||""};}
-              _updateGuardCardHoy();
-            }
-          }).then(null,function(){});
-      }
-    }
+/* === WHATSAPP CON TELEFONO (localStorage) === */
+window._agEnviarWA=function(nombre){
+  var tareas=window._agTareas||[];if(typeof window._applyOv==="function")window._applyOv(tareas);
+  var mbs=typeof teams!=="undefined"&&Array.isArray(teams)?teams:[];
+  var m=mbs.find(function(x){return x.nombre===nombre;})||{};
+  // Buscar teléfono: en teams, en cache local, o pedir
+  var lsKey="wa_tel_"+nombre.toLowerCase().replace(/[^a-z]/g,"_");
+  var phone=(m.telefono||m.phone||m.cel||m.celular||"").replace(/[^0-9]/g,"");
+  if(!phone){
+    var cached=localStorage.getItem(lsKey)||"";
+    if(cached)phone=cached;
   }
+  if(!phone){
+    var inp=window.prompt("\ud83d\udcf2 N\u00famero de WhatsApp de "+nombre+"\n(Formato: 54 + c\u00f3digo de \u00e1rea + n\u00famero, ej: 542983123456)","54");
+    if(inp===null)return;
+    phone=(inp||"").replace(/[^0-9]/g,"");
+    if(phone.length>6)localStorage.setItem(lsKey,phone);
+  }
+  var pU=tareas.filter(function(t){return t.estado==="Pendiente"&&t.prioridad==="Alta";});
+  var pE=tareas.filter(function(t){return t.estado==="En proceso";});
+  var pO=tareas.filter(function(t){return t.estado==="Pendiente"&&t.prioridad!=="Alta";});
+  var pL=tareas.filter(function(t){return t.estado==="Listo s/publicar";});
+  var meses=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+  var now=new Date();
+  var lines=["\ud83d\udccb *Tareas de "+nombre+"*","\ud83d\udcc5 "+now.getDate()+" de "+meses[now.getMonth()]+" "+now.getFullYear(),""];
+  if(pU.length){lines.push("\ud83d\udd34 *URGENTES:*");pU.forEach(function(t,i){lines.push((i+1)+". "+t.descripcion);});lines.push("");}
+  if(pE.length){lines.push("\ud83d\udd35 *EN PROCESO:*");pE.forEach(function(t,i){lines.push((i+1)+". "+t.descripcion);});lines.push("");}
+  if(pL.length){lines.push("\ud83d\udfe3 *LISTO P/PUBLICAR:*");pL.forEach(function(t,i){lines.push((i+1)+". "+t.descripcion);});lines.push("");}
+  if(pO.length){lines.push("\ud83d\udfe1 *PENDIENTES:*");pO.forEach(function(t,i){lines.push((i+1)+". "+t.descripcion);});lines.push("");}
+  lines.push("\u2014 Total: "+(pU.length+pE.length+pO.length+pL.length)+" pendientes");
+  var msg=lines.join("\n");
+  var url=phone?"https://wa.me/"+phone+"?text="+encodeURIComponent(msg):"https://wa.me/?text="+encodeURIComponent(msg);
+  window.open(url,"_blank");
+  if(typeof toast==="function")toast("\ud83d\udcf2 Enviando a "+nombre+(phone?" ("+phone.slice(-4)+"...)":"")+"...");
 };
 
-// Inicializar captura de guardia al cargar
-setTimeout(function(){_captureGuardiaFromDOM();},2000);
-setTimeout(function(){_captureGuardiaFromDOM();},5000);
+/* === OVERRIDE _renderHoy para incluir guardia async === */
+var _origRH=window._renderHoy;
+window._renderHoy=function(){
+  if(_origRH)_origRH.apply(this,arguments);
+  // Encontrar la card de guardia y cargar async
+  var hoy=typeof iso==="function"&&typeof TODAY!=="undefined"?iso(TODAY):new Date().toISOString().slice(0,10);
+  _loadGuardiaFromDB(hoy,function(guarda){
+    // Buscar el container de guardia en el panel Hoy
+    var pHoy=document.getElementById("p-hoy");if(!pHoy)return;
+    var allCards=pHoy.querySelectorAll("[style*='grid-column: 1']");
+    if(!allCards.length)allCards=pHoy.querySelectorAll("[style*='grid-column:1']");
+    allCards.forEach(function(card){
+      if(card.textContent.includes("Guardia del d")){
+        var body=Array.from(card.children).find(function(c){return c.style.padding&&c.style.padding.includes("12px");});
+        if(body)_renderGuardiaCard(body,guarda);
+      }
+    });
+  });
+};
 
-console.log("\u2705 v5.63 - Fix guardia(guards) + WhatsApp tel + menu estado OK");
+console.log("\u2705 v5.64 - Guardia async + WhatsApp tel + menu estado limpio");
 })();
 </script>
 </body>
