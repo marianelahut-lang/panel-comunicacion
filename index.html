@@ -5623,5 +5623,85 @@ console.log("\u2705 Parche v5.62 OK \u2014 Fix DB + openTaskMod + guardia + esta
 
 
 
+
+<script>
+/* MINI-PARCHE v5.62b - Menu estado con posicion del click */
+(function(){
+"use strict";
+
+// Guardar posicion del ultimo click para posicionar el menu
+document.addEventListener("click",function(e){window._lastCX=e.clientX;window._lastCY=e.clientY;},true);
+
+window.agCambiarEstado=function(id){
+  var oldMenu=document.getElementById("ag-estado-menu");
+  if(oldMenu){oldMenu.remove();return;}
+  var arr=window._agTareas||[];
+  var t=arr.find(function(x){return String(x.id)===String(id);});
+  if(!t)return;
+
+  var cx=window._lastCX||300;
+  var cy=window._lastCY||200;
+  var menuW=190;
+  var menuLeft=Math.min(cx,window.innerWidth-menuW-16);
+  var menuTop=cy+8;
+  if(menuTop+220>window.innerHeight)menuTop=cy-220;
+
+  var estados=[
+    {val:"Pendiente",icon:"\ud83d\udfe1",bg:"#fef3c7",col:"#92400e",desc:"Sin iniciar"},
+    {val:"En proceso",icon:"\ud83d\udd35",bg:"#dbeafe",col:"#1e40af",desc:"En progreso"},
+    {val:"Listo s/publicar",icon:"\ud83d\udfe3",bg:"#ede9fe",col:"#4c1d95",desc:"Lista p/publicar"},
+    {val:"Completo",icon:"\ud83d\udfe2",bg:"#d1fae5",col:"#065f46",desc:"Terminada"}
+  ];
+
+  var overlay=document.createElement("div");
+  overlay.id="ag-estado-overlay";
+  overlay.style.cssText="position:fixed;inset:0;z-index:9998;background:transparent";
+  document.body.appendChild(overlay);
+
+  var menu=document.createElement("div");
+  menu.id="ag-estado-menu";
+  menu.style.cssText="position:fixed;z-index:9999;background:#fff;border:1.5px solid #e5e7eb;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.2);padding:8px;width:"+menuW+"px;left:"+menuLeft+"px;top:"+menuTop+"px;animation:fadeInMenu .12s ease";
+
+  // Agregar keyframe animation
+  if(!document.getElementById("menu-anim-style")){var st=document.createElement("style");st.id="menu-anim-style";st.textContent="@keyframes fadeInMenu{from{opacity:0;transform:scale(.95) translateY(-4px)}to{opacity:1;transform:scale(1) translateY(0)}}";document.head.appendChild(st);}
+
+  var mh=document.createElement("div");
+  mh.style.cssText="font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.06em;padding:2px 6px 8px;border-bottom:1px solid #f3f4f6;margin-bottom:4px";
+  mh.textContent="Cambiar estado";
+  menu.appendChild(mh);
+
+  estados.forEach(function(est){
+    var isCurrent=t.estado===est.val;
+    var item=document.createElement("div");
+    item.style.cssText="display:flex;align-items:center;gap:8px;padding:8px 8px;border-radius:9px;cursor:pointer;background:"+(isCurrent?est.bg:"transparent")+";margin-bottom:2px;transition:background .1s";
+    item.onmouseover=function(){if(!isCurrent)item.style.background="#f9fafb";};
+    item.onmouseout=function(){if(!isCurrent)item.style.background="transparent";};
+    var dot=document.createElement("span");dot.style.cssText="width:22px;height:22px;border-radius:7px;background:"+est.bg+";color:"+est.col+";display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;border:1px solid "+est.col+"44";dot.textContent=est.icon;
+    var info=document.createElement("div");info.style.flex="1";
+    var lbl=document.createElement("div");lbl.style.cssText="font-size:12px;font-weight:"+(isCurrent?700:500)+";color:"+(isCurrent?est.col:"#374151")";lbl.textContent=est.val;
+    var sub=document.createElement("div");sub.style.cssText="font-size:10px;color:#9ca3af;margin-top:1px";sub.textContent=est.desc;
+    info.appendChild(lbl);info.appendChild(sub);
+    item.appendChild(dot);item.appendChild(info);
+    if(isCurrent){var ck=document.createElement("span");ck.style.cssText="font-size:13px;color:"+est.col+";flex-shrink:0";ck.textContent="\u2713";item.appendChild(ck);}
+    item.onclick=function(ev){
+      ev.stopPropagation();
+      t.estado=est.val;window._setOv(id,est.val);
+      if(typeof tasks!=="undefined"){var g=tasks.find(function(x){return String(x.id)===String(id);});if(g)g.estado=est.val;}
+      var db=window.db||(typeof db!=="undefined"?db:null);
+      if(db){var q=db.from("tareas").update({estado:est.val,updated_at:new Date().toISOString()}).eq("id",id);if(q&&q.then)q.then(function(r){if(r&&r.error)console.warn(r.error);});}
+      overlay.remove();menu.remove();
+      if(typeof _agUICustom==="function")_agUICustom();
+      if(typeof toast==="function")toast(est.icon+" "+est.val);
+    };
+    menu.appendChild(item);
+  });
+
+  document.body.appendChild(menu);
+  overlay.onclick=function(){overlay.remove();menu.remove();};
+};
+
+console.log("\u2705 v5.62b men\u00fa de estado con posici\u00f3n del click");
+})();
+</script>
 </body>
 </html>
