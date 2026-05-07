@@ -6054,5 +6054,257 @@ console.log("\u2139\ufe0f Guardia: el sheet debe ser p\u00fablico (Archivo > Com
 })();
 </script>
 
+
+<script>
+/* PARCHE v5.66 - GSheets guardias parser + Publicaciones dia/semana */
+(function(){
+"use strict";
+
+var GSHEET_ID="1jVUzC2WHuBz1m8dqE5aRod96ha8JBCLF8OKSgVhEGGw";
+var GSHEET_CSV="https://docs.google.com/spreadsheets/d/"+GSHEET_ID+"/export?format=csv&gid=0";
+
+function _parseCSV(text){
+  var rows=[];
+  text.split("\n").forEach(function(line){
+    if(!line.trim())return;
+    var cols=[],cur="",inQ=false;
+    for(var i=0;i<line.length;i++){
+      var c=line[i];
+      if(c==='"'){inQ=!inQ;}else if(c===","&&!inQ){cols.push(cur.trim());cur="";}else cur+=c;
+    }
+    cols.push(cur.trim());
+    rows.push(cols);
+  });
+  return rows;
+}
+
+function _expandName(n){
+  var map={"mary":"Marianela","yesi":"Yesi","mai":"Maiten","debb":"Debora","deb":"Debora","lina":"Lina","nai":"Nai","sofia":"Sofia"};
+  return map[(n||"").toLowerCase()]||n;
+}
+
+function _parsearGuardiaHoy(csvText){
+  var today=new Date();
+  var todayDay=today.getDate();
+  var todayDow=today.getDay(); // 0=Dom...6=Sab
+  var dowIdx=todayDow===0?7:todayDow; // 1=Lun...7=Dom
+  var rows=_parseCSV(csvText);
+
+  // Buscar sección PROGRAMACION SEMANAL
+  var secIdx=-1;
+  for(var i=0;i<rows.length;i++){
+    var j=rows[i].join("").toUpperCase().replace(/[^A-Z]/g,"");
+    if(j.includes("PROGRAMACI")&&j.includes("SEMANAL")){secIdx=i;break;}
+  }
+  if(secIdx===-1){console.warn("GSheets: no se encontro PROGRAMACION SEMANAL");return null;}
+
+  // Buscar semana de hoy en el calendario de arriba
+  var semanaHoy=-1,colDia=dowIdx;
+  for(var i=0;i<secIdx;i++){
+    var row=rows[i];
+    var sem=parseInt(row[0]||row[1]||"");
+    if(isNaN(sem)||sem<1)continue;
+    for(var j=1;j<row.length;j++){
+      var v=parseInt(row[j]);
+      if(v===todayDay&&row[j]!==""){semanaHoy=sem;colDia=j;break;}
+    }
+    if(semanaHoy!==-1)break;
+  }
+
+  // Buscar en la sección de programación
+  for(var i=secIdx+2;i<rows.length;i++){
+    var row=rows[i];
+    var s=parseInt(row[0]);
+    if(s===semanaHoy||semanaHoy===-1){
+      var celda=(row[colDia]||"").trim();
+      if(celda&&celda.includes("/")){
+        var p=celda.split("/");
+        return {titular:_expandName(p[0]),soporte:_expandName(p[1]||""),_raw:celda,_source:"gsheets"};
+      }
+      if(semanaHoy===-1&&celda)break; // tomar primera fila si no se encontró semana
+    }
+  }
+  return null;
+}
+
+window._loadGuardiaFromDB=function(hoy,callback){
+  fetch(GSHEET_CSV,{cache:"no-store"})
+    .then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return r.text();})
+    .then(function(csv){
+      var g=_parsearGuardiaHoy(csv);
+      if(g&&(g.titular||g.soporte)){window._todayGuarda=g;callback(g);}
+      else _sbGuardia(hoy,callback);
+    })
+    .catch(function(e){
+      console.warn("\u26a0\ufe0f GSheets no disponible (publicarlo en web CSV):",e.message);
+      _sbGuardia(hoy,callback);
+    });
+};
+
+function _sbGuardia(hoy,callback){
+  var db=window.db||(typeof db!=="undefined"?db:null);
+  if(!db){callback(null);return;}
+  var q=db.from("guardias").select("*");
+  if(q&&q.then)q.then(function(r){
+    if(r&&r.data&&r.data.length){
+      var ahora=new Date(hoy),found=null;
+      for(var i=0;i<r.data.length;i++){
+        var g=r.data[i];
+        var f=[g.fecha,g.dia,g.desde,g.lunes,g.inicio,g.start,g.date];
+        for(var j=0;j<f.length;j++){if(f[j]&&String(f[j]).slice(0,10)===hoy){found=g;break;}}
+        if(found)break;
+        if(!found){var d1=new Date(g.desde||g.lunes||""),d2=new Date(g.hasta||g.fin||"");if(!isNaN(d1.getTime())){if(isNaN(d2.getTime()))d2=new Date(d1.getTime()+6*86400000);if(ahora>=d1&&ahora<=d2){found=g;break;}}}
+      }
+      if(!found)found=r.data[r.data.length-1];
+      if(found){window._todayGuarda={titular:found.titular||found.nombre||"",soporte:found.soporte||found.apoyo||""};callback(window._todayGuarda);}
+      else callback(null);
+    }else callback(null);
+  }).then(null,function(){callback(null);});
+  else callback(null);
+}
+
+window._renderGuardiaCard=function(container,guarda){
+  while(container.firstChild)container.removeChild(container.firstChild);
+  if(!guarda||(!guarda.titular&&!guarda.soporte)){
+    var e=document.createElement("div");e.style.cssText="font-size:12px;color:#9ca3af;padding:8px 0;text-align:center";
+    e.textContent="Sin guardia. Publicar el sheet: Archivo > Publicar en la web > CSV";
+    container.appendChild(e);return;
+  }
+  var mbs=typeof teams!=="undefined"&&Array.isArray(teams)?teams:[];
+  var row=document.createElement("div");row.style.cssText="display:flex;gap:12px;align-items:center;flex-wrap:wrap";
+  function mkC(n,rol){
+    if(!n)return;
+    var m=mbs.find(function(x){return(x.nombre||"").toLowerCase()===n.toLowerCase();})||{};
+    var chip=document.createElement("div");chip.style.cssText="display:flex;align-items:center;gap:8px;background:var(--bg2,#f8fafc);border-radius:10px;padding:8px 14px";
+    var av=document.createElement("div");av.style.cssText="width:36px;height:36px;border-radius:50%;background:"+(m.color||"#667eea")+";color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px";av.textContent=n.slice(0,2).toUpperCase();
+    var info=document.createElement("div");
+    var na=document.createElement("div");na.style.cssText="font-size:13px;font-weight:700;color:var(--txt,#111827)";na.textContent=n;
+    var ro=document.createElement("div");ro.style.cssText="font-size:11px;color:#6b7280;margin-top:1px";ro.textContent=rol;
+    info.appendChild(na);info.appendChild(ro);chip.appendChild(av);chip.appendChild(info);row.appendChild(chip);
+  }
+  mkC(guarda.titular,"Titular");mkC(guarda.soporte,"Soporte");
+  container.appendChild(row);
+  if(guarda._raw){
+    var src=document.createElement("div");src.style.cssText="font-size:10px;color:#9ca3af;margin-top:6px";
+    src.textContent="\ud83d\udcc4 "+guarda._raw+" (Google Sheets)";
+    container.appendChild(src);
+  }
+};
+
+var _origRH=window._renderHoy;
+window._renderHoy=function(){
+  if(_origRH)_origRH.apply(this,arguments);
+  var hoy=typeof iso==="function"&&typeof TODAY!=="undefined"?iso(TODAY):new Date().toISOString().slice(0,10);
+  window._loadGuardiaFromDB(hoy,function(g){
+    var ph=document.getElementById("p-hoy");if(!ph)return;
+    ph.querySelectorAll("div[style]").forEach(function(d){
+      if(d.textContent.includes("Guardia del d")){
+        Array.from(d.children).forEach(function(c){
+          var s=c.getAttribute("style")||"";
+          if(s.includes("padding:12px")||s.includes("padding: 12px"))window._renderGuardiaCard(c,g);
+        });
+      }
+    });
+  });
+};
+
+/* === PUBLICACIONES: TOGGLE DIA/SEMANA === */
+(function(){
+  var _vista="dia";
+  
+  function _addToggle(){
+    var pPub=document.getElementById("p-publicaciones");if(!pPub)return;
+    if(document.getElementById("pub-toggle"))return;
+    var ptop=pPub.querySelector(".ptop");if(!ptop)return;
+    
+    var tog=document.createElement("div");tog.id="pub-toggle";
+    tog.style.cssText="display:flex;gap:4px;margin:0 8px";
+    
+    function mkB(lbl,v){
+      var b=document.createElement("button");b.textContent=lbl;b.setAttribute("data-v",v);
+      b.style.cssText="padding:5px 12px;font-size:12px;font-weight:600;border-radius:8px;cursor:pointer;font-family:inherit;border:1.5px solid;transition:all .15s;border-color:"+(v===_vista?"#667eea":"var(--bdr,#e5e7eb)")+";background:"+(v===_vista?"#667eea":"transparent")+";color:"+(v===_vista?"#fff":"var(--sub,#6b7280)")";
+      b.onclick=function(){
+        _vista=v;
+        tog.querySelectorAll("button").forEach(function(x){
+          var active=x.getAttribute("data-v")===v;
+          x.style.background=active?"#667eea":"transparent";
+          x.style.color=active?"#fff":"var(--sub,#6b7280)";
+          x.style.borderColor=active?"#667eea":"var(--bdr,#e5e7eb)";
+        });
+        _aplicar();
+      };
+      return b;
+    }
+    
+    tog.appendChild(mkB("\ud83d\udcc5 Hoy","dia"));
+    tog.appendChild(mkB("\ud83d\uddd3\ufe0f Semana","semana"));
+    
+    // Insertar antes del botón + Nueva publicación
+    var btnNew=ptop.querySelector("button[onclick*=nueva],[onclick*=pub],.btn-nueva");
+    if(btnNew)ptop.insertBefore(tog,btnNew);else ptop.appendChild(tog);
+    
+    _aplicar();
+  }
+  
+  function _aplicar(){
+    var pPub=document.getElementById("p-publicaciones");if(!pPub)return;
+    var todayNum=new Date().getDate();
+    
+    // Buscar las columnas de días en la vista semanal
+    // El calendario semanal tiene columnas con encabezados de días
+    var dayHeaders=pPub.querySelectorAll(".day-header,.pub-day,[class*=day-col],[class*=pub-col]");
+    
+    if(dayHeaders.length){
+      dayHeaders.forEach(function(col){
+        if(_vista==="semana"){col.style.display="";return;}
+        // En vista día: mostrar solo la columna de hoy
+        var txt=(col.textContent||"").replace(/[^0-9]/g," ").trim();
+        var nums=txt.split(/s+/).map(function(n){return parseInt(n);}).filter(function(n){return !isNaN(n);});
+        var isHoy=nums.indexOf(todayNum)>=0||col.classList.contains("today")||col.classList.contains("hoy");
+        col.style.display=isHoy?"":"none";
+      });
+    }
+    
+    // Actualizar el subtítulo de la página
+    var sub=pPub.querySelector(".psub");
+    if(sub){
+      var dias=["Domingo","Lunes","Martes","Mi\u00e9rcoles","Jueves","Viernes","S\u00e1bado"];
+      var now=new Date();
+      sub.textContent=_vista==="dia"?dias[now.getDay()]+" "+now.getDate()+" de mayo":"Semana del "+_getInicioSemana();
+    }
+  }
+  
+  function _getInicioSemana(){
+    var d=new Date();var day=d.getDay();var diff=d.getDate()-day+(day===0?-6:1);
+    var lun=new Date(d.setDate(diff));
+    var meses=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+    return lun.getDate()+" de "+meses[lun.getMonth()];
+  }
+  
+  window.renderPubDay=(function(o){return function(){if(o)o.apply(this,arguments);setTimeout(function(){_addToggle();},150);};})(window.renderPubDay);
+  window.renderWeek=(function(o){return function(){if(o)o.apply(this,arguments);setTimeout(function(){_addToggle();},150);};})(window.renderWeek);
+  
+  window.nav=(function(orig){
+    return function(id,tab,sb){
+      if(id!=="agente"){window._agenteActual=null;var pa=document.getElementById("p-agente");if(pa)pa.style.display="none";}
+      if(id==="hoy")setTimeout(function(){if(typeof _renderHoy==="function")_renderHoy();},100);
+      if(id==="publicaciones")setTimeout(function(){_addToggle();_aplicar();},300);
+      if(orig)return orig.apply(this,arguments);
+    };
+  })(window.nav);
+})();
+
+/* CSS iconos ag-tab */
+(function(){
+  var old=document.getElementById("ta-tab-fix");if(old)old.remove();
+  var st=document.createElement("style");st.id="ta-tab-fix";
+  st.textContent=".ag-tab{opacity:1!important;font-size:12px!important;font-weight:600!important;padding:6px 12px!important;border-radius:8px!important;border:none!important;cursor:pointer!important;display:flex!important;align-items:center!important;gap:5px!important;transition:all .15s!important;color:var(--sub,#6b7280)!important;background:transparent!important}.ag-tab.on{background:#fff!important;color:#6d28d9!important;box-shadow:0 1px 4px rgba(0,0,0,.12)!important}.ag-tab img{width:16px!important;height:16px!important;opacity:.8!important}.ag-tab.on img{opacity:1!important;filter:hue-rotate(260deg) saturate(3) brightness(.7)!important}";
+  document.head.appendChild(st);
+})();
+
+console.log("\u2705 v5.66 OK - GSheets guardias + Publicaciones dia/semana + ag-tab fix");
+})();
+</script>
+
 </body>
 </html>
