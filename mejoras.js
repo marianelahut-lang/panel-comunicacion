@@ -1,4 +1,4 @@
-// === PANEL MEJORAS v3.2 - Municipalidad de Tres Arroyos ===
+// === PANEL MEJORAS v3.3 - Municipalidad de Tres Arroyos ===
 (function(){
 "use strict";
 
@@ -18,19 +18,71 @@ s.textContent = [
 ].join("");
 document.head.appendChild(s);
 
+// Inyectar panel Reclamos en el DOM
+function inyectarPanelReclamos(){
+  if(document.getElementById("p-reclamos")) return;
+  var div = document.createElement("div");
+  div.id = "p-reclamos";
+  div.className = "content";
+  div.style.cssText = "display:none;flex-direction:column;height:100%;overflow:hidden";
+  div.innerHTML = [
+    "<div class=ptop style=flex-shrink:0;padding:10px 16px;border-bottom:1px solid #e5e7eb>",
+    "<div style=display:flex;align-items:center;justify-content:space-between>",
+    "<div><div class=ptitle>Reclamos municipales</div>",
+    "<div class=psub id=rec-subtitle>Cargando...</div></div></div>",
+    "<div style=display:flex;gap:0;border-bottom:0.5px solid #e5e7eb;margin-top:10px>",
+    "<button class=rec-tab id=rec-tab-nuevo onclick=setRecTab('nuevo') style=padding:7px 14px;border:none;border-bottom:2px solid transparent;background:transparent;cursor:pointer;font-size:12px;font-weight:500;color:#6d28d9;border-bottom-color:#6d28d9>+ Nuevo</button>",
+    "<button class=rec-tab id=rec-tab-historial onclick=setRecTab('historial') style=padding:7px 14px;border:none;border-bottom:2px solid transparent;background:transparent;cursor:pointer;font-size:12px;font-weight:500;color:#6b7280>Historial</button>",
+    "<button class=rec-tab id=rec-tab-admin onclick=setRecTab('admin') style=padding:7px 14px;border:none;border-bottom:2px solid transparent;background:transparent;cursor:pointer;font-size:12px;font-weight:500;color:#6b7280>Administrar</button>",
+    "</div></div>",
+    "<div id=rec-content style=flex:1;overflow-y:auto;padding:16px></div>"
+  ].join("");
+  var ref = document.querySelector(".content");
+  if(ref && ref.parentNode) ref.parentNode.appendChild(div);
+  else document.body.appendChild(div);
+}
+
+// Inyectar boton Reclamos en sidebar
+function inyectarBtnReclamos(){
+  if(document.getElementById("sbi-reclamos")) return;
+  var pubBtn = null;
+  document.querySelectorAll(".sbi").forEach(function(b){
+    if((b.getAttribute("onclick")||"").indexOf("publicaciones") >= 0) pubBtn = b;
+  });
+  var btn = document.createElement("button");
+  btn.id = "sbi-reclamos";
+  btn.className = "sbi";
+  btn.setAttribute("onclick", "nav('reclamos',null,this);loadReclamos()");
+  btn.innerHTML = [
+    "<svg viewBox=0 0 24 24 style=width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round>",
+    "<circle cx=12 cy=12 r=10></circle>",
+    "<line x1=12 y1=8 x2=12 y2=12></line>",
+    "<line x1=12 y1=16 x2=12.01 y2=16></line></svg>",
+    "Reclamos"
+  ].join("");
+  if(pubBtn && pubBtn.parentNode){
+    pubBtn.parentNode.insertBefore(btn, pubBtn.nextSibling);
+  } else {
+    var sb = document.querySelector(".sb");
+    if(sb) sb.appendChild(btn);
+  }
+}
+
 // Cargar reclamos.js
 window.cargarReclamos = function(){
   if(window._rL) return;
   var sc = document.createElement("script");
   sc.src = "reclamos.js";
-  sc.onload = function(){ window._rL = true; setTimeout(initRec, 400); };
+  sc.onload = function(){
+    window._rL = true;
+    setTimeout(function(){
+      if(typeof window.initReclamos === "function") window.initReclamos();
+      inyectarPanelReclamos();
+      inyectarBtnReclamos();
+    }, 400);
+  };
   document.head.appendChild(sc);
 };
-function initRec(){
-  if(typeof window.initReclamos === "function") window.initReclamos();
-  if(typeof window.inyectarPanelReclamos === "function") window.inyectarPanelReclamos();
-  if(typeof window.inyectarBtnReclamos === "function") window.inyectarBtnReclamos();
-}
 
 // Ocultar Metricas
 function ocultarMetricas(){
@@ -96,7 +148,7 @@ function patchNav(){
       if(page === "publicaciones"){ insertTogglePub(); applyPV(); }
       if(page === "reclamos"){
         window.cargarReclamos();
-        setTimeout(function(){ if(typeof window.loadReclamos==="function") window.loadReclamos(); }, 500);
+        setTimeout(function(){ if(typeof window.loadReclamos==="function") window.loadReclamos(); }, 600);
       }
     }, 80);
   };
@@ -111,7 +163,7 @@ function init(){
   setTimeout(function(){
     var pP = document.getElementById("p-publicaciones");
     if(pP && getComputedStyle(pP).display !== "none"){ insertTogglePub(); applyPV(); }
-  }, 700);
+  }, 800);
 }
 
 if(document.readyState === "loading"){
