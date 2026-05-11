@@ -38,7 +38,7 @@ function inyectarPanelReclamos(){
     "<div id=rec-content style=flex:1;overflow-y:auto;padding:16px></div>"
   ].join("");
    var ref = document.getElementById("main");
-if(ref) ref.appendChild(div);
+   if(ref) ref.appendChild(div);
   else document.body.appendChild(div);
 }
 
