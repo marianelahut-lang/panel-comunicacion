@@ -26,8 +26,8 @@ function _patchAll(){
 var btnTd=document.querySelector('[onclick*="abrirTareasDiarias"]');
 if(btnTd)btnTd.style.display='none';
 // 2. Remove Realizadas column from tablero (hide col-header + col items)
-document.querySelectorAll('[data-estado="Realizada"],[id*="col-realizada"],.tcol').forEach(function(el){
-var lbl=el.querySelector('.tcol-title,.col-label');
+document.querySelectorAll('[data-estado="Realizada"],[id*="col-realizada"],.kcol').forEach(function(el){
+var lbl=el.querySelector('.kcol-h span,span,.kcol-title');
 if(lbl&&lbl.textContent.trim()==='Realizada')el.style.display='none';
 });
 // 3. Fix WhatsApp in agent panel to send pending+en-proceso tasks
@@ -35,7 +35,7 @@ if(typeof window.agCambiarEstado!=='undefined'){
 var waBtn=document.querySelector('#p-agente button[onclick*="tdEnviarWA"],#p-agente .btn-pri');
 }
 }
-setsetTimeout(function(){_patchAll();},1200);
+setTimeout(function(){_patchAll();},1200);
 if(document.readyState==='loading').rec-wa{background:#25d366;color:#fff;width:100%;padding:10px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;display:flex;align-items:center;justify-content:center;gap:7px}
 .rec-wa:disabled{background:#d1d5db;cursor:not-allowed}
 .rec-sm{padding:4px 7px;border:0.5px solid #e5e7eb;border-radius:5px;background:transparent;cursor:pointer;font-size:11px}
@@ -49,7 +49,7 @@ body.dark .pv-btn{background:#252830!important;color:#8892a4!important;border-co
 body.dark .pv-btn.on{background:#6d28d9!important;color:#fff!important;border-color:#6d28d9!important}
 body.dark .rec-av{background:#2d2d5e;color:#a78bfa}
 body.dark .rec-sm{border-color:#373b47;color:#8892a4}
-.ptitle{font-size:15px!important;font-weight:600!important}#p-agente .ntab{color:rgba(55,65,81,.7)!important;background:transparent!important}#p-agente .ntab:hover{color:#374151!important;background:rgba(55,65,81,.08)!important}#p-agente .ntab.on{background:rgba(102,126,234,.12)!important;color:#667eea!important}body.dark #p-agente .ntab{color:rgba(148,163,184,.9)!important}body.dark #p-agente .ntab.on{color:#a78bfa!important;background:rgba(167,139,250,.15)!important}#p-agente .ntab{color:rgba(55,65,81,.7)!important;background:transparent!important}#p-agente .ntab:hover{color:#374151!important;background:rgba(55,65,81,.08)!important}#p-agente .ntab.on{background:rgba(102,126,234,.12)!important;color:#667eea!important}#p-agente .ntab{color:rgba(55,65,81,.7)!important;background:transparent!important}
+.ptitle{font-size:15px!important;font-weight:600!important}#p-agente .ntab{color:rgba(55,65,81,.7)!important;background:transparent!important}#p-agente .ntab:hover{color:#374151!important;background:rgba(55,65,81,.08)!important}#p-agente .ntab.on{background:rgba(102,126,234,.12)!important;color:#667eea!important}body.dark #p-agente .ntab{color:rgba(148,163,184,.9)!important}body.dark #p-agente .ntab.on{color:#a78bfa!important;background:rgba(167,139,250,.15)!important}#fp-dw{display:none!important}#p-agente .ntab{color:rgba(55,65,81,.7)!important;background:transparent!important}#p-agente .ntab:hover{color:#374151!important;background:rgba(55,65,81,.08)!important}#p-agente .ntab.on{background:rgba(102,126,234,.12)!important;color:#667eea!important}#p-agente .ntab{color:rgba(55,65,81,.7)!important;background:transparent!important}
 .content{animation:pvFade .15s ease}
 @keyframes pvFade{from{opacity:.85}to{opacity:1}}
 `;
