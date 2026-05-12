@@ -1,23 +1,22 @@
 /* ============================================================
    MEJORAS1.JS - Panel Comunicación Tres Arroyos
-   v1.2 · Correcciones, UX y módulo Reclamos
+   v1.3 · Fix badges + Reclamos + UX
    ------------------------------------------------------------
    1. Captura errores globales para que un fallo no rompa el panel.
-   2. Limpia el texto fantasma "Tareas del d..." del sidebar.
-   3. Reconstruye el menú lateral copiando los botones de la barra
+   2. FIX del error "Cannot set properties of null (textContent)":
+      garantiza que los IDs sbt/sbm/sbag (badges contadores que el
+      código original requiere) existan siempre en el DOM.
+   3. Limpia el texto fantasma "Tareas del d..." del sidebar.
+   4. Reconstruye el menú lateral copiando los botones de la barra
       superior (Hoy, Tablero, Material, Agenda, Calendario,
-      Guardias, Equipo, Medios, Recursos) y agrega Reclamos.
-      Elimina "Filtrar persona" y "Todas las personas".
-   4. MÓDULO RECLAMOS: guía de derivación con una tarjeta por tipo
-      de reclamo, el funcionario asignado y un botón directo de
-      WhatsApp con mensaje predefinido. Intenta leer la tabla
-      'reclamos' de Supabase; si no existe usa los datos del xlsx
-      como respaldo. Incluye sección de contactos adicionales.
-   5. Agrega un selector rápido de estado en cada tarjeta del
-      kanban con guardado automático en Supabase.
-   6. Refuerza el color de cada estado del Kanban, estilos limpios
-      en el sidebar y dark mode coherente.
-   7. Reglas responsive para PC y celular.
+      Guardias, Equipo, Medios, Recursos) + Reclamos. Elimina
+      "Filtrar persona" y "Todas las personas".
+   5. MÓDULO RECLAMOS: guía de derivación con tarjetas por tipo
+      de reclamo, funcionario asignado y botón directo de WhatsApp.
+      Lee tabla 'reclamos' de Supabase o usa datos del xlsx local.
+   6. Selector rápido de estado en cada tarjeta del Kanban con
+      guardado automático en Supabase.
+   7. Estilos + dark mode + responsive PC y celular.
    ============================================================ */
 (function(){
   "use strict";
@@ -304,6 +303,22 @@
       sb.appendChild(btnRec);
     }
 
+    // CRÍTICO: el código original espera encontrar elementos con ID
+    // "sbt", "sbm" y "sbag" en el DOM para actualizar contadores.
+    // Si no existen, document.getElementById("sbt").textContent tira
+    // "Cannot set properties of null (setting 'textContent')".
+    // Como respaldo siempre creamos los placeholders ocultos.
+    asegurarBadgePlaceholders(sb);
+
+    // Visualizar el badge de Calendario (sbag) dentro del botón nuevo
+    var btnCal = sb.querySelector('.sbi[data-mid="calendario"]');
+    var sbag = document.getElementById("sbag");
+    if(btnCal && sbag){
+      sbag.style.cssText = "background:#ede9fe;color:#6d28d9;font-size:9px;" +
+        "font-weight:700;padding:2px 7px;border-radius:10px;margin-left:auto";
+      btnCal.appendChild(sbag);
+    }
+
     // Reinsertar elementos preservados (ocultos) para que las funciones
     // del script principal (renderPersons, actualizarFPanel, etc.) sigan
     // encontrándolos y no tiren error.
@@ -313,6 +328,24 @@
     // Marcar el botón activo según la página visible
     actualizarBotonActivo();
     return true;
+  }
+
+  function asegurarBadgePlaceholders(sb){
+    // Estos IDs son referenciados por el código original con
+    // document.getElementById(id).textContent = ...
+    // Si no existen, falla. Garantizamos que siempre existan.
+    var ids = ["sbt", "sbm", "sbag"];
+    var contenedor = sb || document.querySelector("aside.sb") || document.body;
+    ids.forEach(function(id){
+      if(!document.getElementById(id)){
+        var span = document.createElement("span");
+        span.id = id;
+        span.className = "sbadge";
+        span.textContent = "0";
+        span.style.display = "none";
+        contenedor.appendChild(span);
+      }
+    });
   }
 
   function actualizarBotonActivo(){
@@ -559,6 +592,7 @@
   /* -------- INICIALIZACIÓN -------- */
   function init(){
     inyectarEstilos();
+    asegurarBadgePlaceholders();   // ANTES de cualquier otra cosa
     limpiarSidebar();
     crearContenedoresFaltantes();
     sincronizarMenuLateral();
@@ -568,6 +602,7 @@
     // Re-aplicar correcciones por si el script inline cargó después
     var n = 0;
     var iv = setInterval(function(){
+      asegurarBadgePlaceholders();
       // Si el sidebar todavía no fue reemplazado (porque .ntabs no estaba
       // listo al momento del init), reintentar.
       var sb = document.querySelector("aside.sb");
@@ -584,7 +619,7 @@
     }, 500);
 
     try {
-      console.log("%c[mejoras1.js v1.2] correcciones + reclamos aplicado",
+      console.log("%c[mejoras1.js v1.3] correcciones + reclamos + badge-fix",
                   "color:#7c3aed;font-weight:bold");
     } catch(_){}
   }
