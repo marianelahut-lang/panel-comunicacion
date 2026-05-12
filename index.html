@@ -938,11 +938,7 @@ body.dark #bf-tareas>div,body.dark #bf-pubs>div,body.dark #bf-eventos>div{backgr
 
   <div class="body">
     <aside class="sb">
-      <div class="sb-sec">Panel</div>
-      <button class="sbi on" onclick="nav('tablero',null,this)"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Tablero<span class="sbadge hot" id="sbt">0</span></button>
-      <button class="sbi" onclick="nav('material',null,this)"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Material<span class="sbadge" id="sbm">0</span></button>
-      <button class="sbi" onclick="nav('publicaciones',null,this)"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>Publicaciones</button>
-      <button class="sbi" onclick="nav('calendario',null,this)"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Calendario<span class="sbadge" id="sbag">0</span></button>
+Tareas del d      <button class="sbi" onclick="nav('calendario',null,this)"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Calendario<span class="sbadge" id="sbag">0</span></button>
       <div class="div"></div>
       <div class="sb-sec">Equipo</div>
       <button class="sbi" onclick="nav('guardias',null,this)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Guardias</button>
@@ -952,9 +948,9 @@ body.dark #bf-tareas>div,body.dark #bf-pubs>div,body.dark #bf-eventos>div{backgr
       <button class="sbi" onclick="nav('entrevistas',null,this)"><svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>Entrevistas</button>
       <button class="sbi" onclick="nav('contactos',null,this)"><svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Contactos medios</button>
       <div class="div"></div>
-      <div class="sb-sec">Filtrar persona</div>
+      <div class="sb-sec" style="display:none">Filtrar persona</div>
       <!-- Panel de persona seleccionada -->
-      <div id="fpanel" style="display:none;margin:4px 8px 6px">
+      <div id="fPanel" style="display:none" style="display:none;margin:4px 8px 6px">
         <div style="background:#ede9fe;border-radius:8px;padding:8px 10px;border:1px solid #c4b5fd">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
             <span style="font-size:11px;font-weight:700;color:#6d28d9" id="fpanel-name"></span>
@@ -969,7 +965,7 @@ body.dark #bf-tareas>div,body.dark #bf-pubs>div,body.dark #bf-eventos>div{backgr
           </div>
         </div>
       </div>
-      <div id="sbpersons"></div>
+      <div id="sbpersons" style="display:none"></div>
     </aside>
 
     <div class="content" id="main">
@@ -5269,8 +5265,7 @@ console.log('v5.53 patch OK - bugfixes: cal events + tareas diarias');
 .ag-task{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:10px;border:1px solid var(--bdr);background:var(--bg2);margin-bottom:8px;transition:all .15s}
 .ag-task:hover{border-color:var(--acc)}
 .ag-task.done{opacity:.55}
-.ag-task.done .ag-task-desc{text-decoration:line-through;color:var(--sub)}
-.ag-task-check{width:18px;height:18px;cursor:pointer;flex-shrink:0;margin-top:1px;accent-color:var(--acc)}
+id="ag-tab-hoy" onclick="agShowTab('hoy')" class="ntab on" style-fix="light".ag-task-check{width:18px;height:18px;cursor:pointer;flex-shrink:0;margin-top:1px;accent-color:var(--acc)}
 .ag-task-body{flex:1;min-width:0}
 .ag-task-desc{font-size:13px;color:var(--txt);line-height:1.4;margin-bottom:4px}
 .ag-task-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
