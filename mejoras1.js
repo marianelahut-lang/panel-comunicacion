@@ -1,6 +1,6 @@
 /* ============================================================
    MEJORAS1.JS - Panel Comunicación Tres Arroyos
-   v2.5 · Contactos medios CRUD + fix filtros agente
+   v2.6 · Calendario legible + fix definitivo panel agente
    ------------------------------------------------------------
    1. Captura errores globales sin romper la UI.
    2. Garantiza placeholders sbt/sbm/sbag (fix textContent null).
@@ -1542,7 +1542,34 @@
       "body.dark .rec-hist-grupo-name{color:#f1f5f9!important}",
       "body.dark .rec-hist-item:hover{background:#2a2d38!important}",
       "body.dark .rec-hist-vecino{color:#f1f5f9!important}",
-      /* === REDISEÑO PANEL AGENTE (Equipo / Guardias) v2.3 === */
+      /* === MEJORAS CALENDARIO / AGENDA === */
+      /* Eventos: texto más legible, padding, hover expandido */
+      "#p-calendario [class*='ev'],#p-calendario [class*='evento'],#p-calendario [class*='event']," +
+        "#p-agenda [class*='ev'],#p-agenda [class*='evento']," +
+        "#p-publicaciones [class*='ev']{" +
+        "font-size:11px!important;padding:4px 7px!important;border-radius:6px!important;" +
+        "font-weight:600!important;line-height:1.35!important;transition:all .15s ease!important;" +
+        "overflow:hidden!important;text-overflow:ellipsis!important}",
+      "#p-calendario [class*='evento']:hover,#p-calendario .ev:hover," +
+        "#p-agenda [class*='evento']:hover,#p-agenda .ev:hover{" +
+        "z-index:50!important;transform:scale(1.04)!important;" +
+        "box-shadow:0 4px 14px rgba(0,0,0,.18)!important;" +
+        "overflow:visible!important;white-space:normal!important}",
+      /* Forzar visibilidad de íconos y texto dentro de eventos */
+      "#p-calendario [class*='ev'] *,#p-agenda [class*='ev'] *," +
+        "#p-publicaciones [class*='ev'] *{opacity:1!important;filter:none!important}",
+      /* Headers de días (LUN/MAR/MIÉ) más prominentes */
+      "#p-calendario [class*='dia-head'],#p-calendario [class*='day-head']," +
+        "#p-calendario th{font-weight:800!important;font-size:11px!important;letter-spacing:.05em!important}",
+      /* Hora del evento más visible */
+      "#p-calendario [class*='hora'],#p-agenda [class*='hora']{" +
+        "font-size:10px!important;font-weight:700!important;opacity:.85!important}",
+      /* Texto truncado: tooltip al hover (usando el atributo title nativo si existe) */
+      "#p-calendario [class*='ev'][title]:hover::after{" +
+        "content:attr(title);position:absolute;background:#1f2937;color:#fff;" +
+        "padding:6px 10px;border-radius:6px;font-size:11px;font-weight:600;" +
+        "z-index:1000;white-space:normal;max-width:280px;box-shadow:0 4px 14px rgba(0,0,0,.25);" +
+        "left:0;top:100%;margin-top:4px;pointer-events:none}",
       /* 1) Forzar visibilidad de iconos/emojis */
       "#p-equipo *,#p-guardias *{opacity:1!important}",
       "#p-equipo button,#p-equipo a,#p-guardias button,#p-guardias a{opacity:1!important;filter:none!important}",
@@ -1669,107 +1696,87 @@
   }
 
   // Refuerzo: estilo y visibilidad de los botones de filtro (Hoy, Pendientes,
-  // Esta semana, Todas) del panel agente. Detecta por TEXTO no por selector
-  // CSS, porque el HTML original no usa clases predecibles.
+  // Esta semana, Todas) del panel agente. Detecta por TEXTO y aplica estilos
+  // INDIVIDUALES con setProperty para vencer cualquier CSS heredado.
   function arreglarFiltrosAgente(){
-    var conts = [document.getElementById("p-equipo"), document.getElementById("p-guardias")].filter(Boolean);
     var REG_FILTRO = /^[\s\u200d\ufe0f📅⏳📋📆🗓️⏰]*(?:Hoy|Pendientes|Esta\s+semana|Todas|Esta\s+sem\.?|Mañana)[\s\u200d\ufe0f]*$/i;
-    conts.forEach(function(cont){
-      if(cont.style.display === "none") return;
-      cont.querySelectorAll("button").forEach(function(btn){
-        if(btn.__m1FiltroStyled) return;
-        var cls = String(btn.className || "");
-        if(/(?:rec-|cm-|estado-selector|sbi)/.test(cls)) return;
-        var txt = (btn.textContent || "").trim();
-        if(!REG_FILTRO.test(txt)) return;
-        // Es un botón de filtro: aplicar estilos directamente
-        btn.style.setProperty("padding", "8px 14px", "important");
-        btn.style.setProperty("border-radius", "8px", "important");
-        btn.style.setProperty("border", "1.5px solid #e5e7eb", "important");
-        btn.style.setProperty("background", "#fff", "important");
-        btn.style.setProperty("color", "#374151", "important");
-        btn.style.setProperty("font-size", "11px", "important");
-        btn.style.setProperty("font-weight", "700", "important");
-        btn.style.setProperty("cursor", "pointer", "important");
-        btn.style.setProperty("margin-right", "6px", "important");
-        btn.style.setProperty("opacity", "1", "important");
-        btn.style.setProperty("display", "inline-flex", "important");
-        btn.style.setProperty("align-items", "center", "important");
-        btn.style.setProperty("gap", "6px", "important");
-        // Hacer visibles los iconos/emojis dentro
-        btn.querySelectorAll("*").forEach(function(child){
-          child.style.setProperty("opacity", "1", "important");
-          child.style.setProperty("color", "inherit", "important");
-          child.style.setProperty("filter", "none", "important");
-          child.style.setProperty("visibility", "visible", "important");
-        });
-        btn.__m1FiltroStyled = true;
+    document.querySelectorAll("button").forEach(function(btn){
+      if(btn.__m1FiltroStyled) return;
+      var cls = String(btn.className || "");
+      if(/(?:rec-|cm-|estado-selector|sbi|ntab)/.test(cls)) return;
+      var txt = (btn.textContent || "").trim();
+      if(!REG_FILTRO.test(txt)) return;
+
+      // Aplicar estilos al botón
+      var s = btn.style;
+      s.setProperty("padding",        "8px 14px",                "important");
+      s.setProperty("border-radius",  "8px",                     "important");
+      s.setProperty("border",         "1.5px solid #e5e7eb",     "important");
+      s.setProperty("background",     "#fff",                    "important");
+      s.setProperty("color",          "#374151",                 "important");
+      s.setProperty("font-size",      "11px",                    "important");
+      s.setProperty("font-weight",    "700",                     "important");
+      s.setProperty("cursor",         "pointer",                 "important");
+      s.setProperty("margin-right",   "6px",                     "important");
+      s.setProperty("opacity",        "1",                       "important");
+      s.setProperty("visibility",     "visible",                 "important");
+      s.setProperty("filter",         "none",                    "important");
+      s.setProperty("display",        "inline-flex",             "important");
+      s.setProperty("align-items",    "center",                  "important");
+      s.setProperty("gap",            "6px",                     "important");
+      // Y a TODOS los descendientes (spans, iconos, emojis…)
+      btn.querySelectorAll("*").forEach(function(child){
+        var cs = child.style;
+        cs.setProperty("opacity",    "1",        "important");
+        cs.setProperty("color",      "inherit",  "important");
+        cs.setProperty("filter",     "none",     "important");
+        cs.setProperty("visibility", "visible",  "important");
       });
+      btn.__m1FiltroStyled = true;
     });
   }
 
-  // Oculta los botones WhatsApp y "Tareas del día" del detalle de agente
-  // (la usuaria pidió eliminarlos porque se superponían y no los usa).
-  // Búsqueda agresiva: en todo el documento, por texto y onclick.
+  // Oculta los botones WhatsApp y "Tareas del día" en cualquier parte del DOM
+  // (excepto dentro de mis propios componentes y de tarjetas de reclamos/contactos).
   function ocultarBotonesAgente(){
     document.querySelectorAll("button, a").forEach(function(el){
       if(el.__m1Hidden) return;
       // No tocar mis propios controles
       var cls = String(el.className || "");
-      if(/(?:rec-|estado-selector|sbi|ntab|sbadge)/.test(cls)) return;
-      var id = String(el.id || "");
-      if(/(?:rec-|estado-)/.test(id)) return;
+      if(/(?:rec-|cm-|estado-selector|sbi|ntab|sbadge)/.test(cls)) return;
 
       var txt = (el.textContent || "").trim();
       var txtL = txt.toLowerCase();
-      var onclick = (el.getAttribute("onclick") || "").toLowerCase();
-      var href = (el.getAttribute("href") || "").toLowerCase();
-      var title = (el.getAttribute("title") || "").toLowerCase();
 
-      // Coincidencia exacta o muy cercana
+      // Detección por TEXTO EXACTO
       var esWhatsApp =
         txtL === "whatsapp" ||
         txtL === "📱 whatsapp" ||
         txtL === "💬 whatsapp" ||
-        /^[\s\u200d\ufe0f]*(?:📱|💬|📞)?[\s\u200d\ufe0f]*whatsapp[\s\u200d\ufe0f]*$/i.test(txt) ||
-        onclick.indexOf("whatsappagente") >= 0 ||
-        onclick.indexOf("abrirwaagente") >= 0 ||
-        title === "whatsapp";
+        /^[\s\u200d\ufe0f]*(?:📱|💬|📞)?[\s\u200d\ufe0f]*whatsapp[\s\u200d\ufe0f]*$/i.test(txt);
 
       var esTareasDelDia =
-        /^[\s\u200d\ufe0f📋📆📅]*tareas del d[íi]a[\s\u200d\ufe0f]*$/i.test(txt) ||
-        onclick.indexOf("tareasdeldi") >= 0 ||
-        onclick.indexOf("tareas_del_dia") >= 0 ||
-        title.indexOf("tareas del d") >= 0;
+        /^[\s\u200d\ufe0f📋📆📅]*tareas del d[íi]a[\s\u200d\ufe0f]*$/i.test(txt);
 
       if(!esWhatsApp && !esTareasDelDia) return;
 
-      // Excepción: NO ocultar enlaces a wa.me dentro de tarjetas de reclamos,
-      // ni botones de WA dentro de tarjetas de funcionarios.
-      if(esWhatsApp){
-        var parent = el.parentElement;
-        var maxLevels = 6, lvl = 0;
-        while(parent && lvl < maxLevels){
-          var pc = String(parent.className || "");
-          if(/(?:rec-card|rec-item|rec-func-card|rec-extra|rec-hist-item|rec-grid)/.test(pc)){
-            return; // está dentro de mis componentes, no tocar
-          }
-          parent = parent.parentElement;
-          lvl++;
+      // Excepción: NO ocultar si está dentro de tarjetas de reclamos/contactos/funcionarios
+      var parent = el.parentElement;
+      var maxLevels = 8, lvl = 0;
+      while(parent && lvl < maxLevels){
+        var pc = String(parent.className || "");
+        if(/(?:rec-card|rec-item|rec-func-card|rec-extra|rec-hist-item|cm-card|cm-grid|rec-grid)/.test(pc)){
+          return;
         }
-        // También dejar pasar si está dentro de mensajes WA de la lista
-        if(href.indexOf("wa.me") >= 0){
-          var anc = el.closest(".rec-item, .rec-card, .rec-extra, .rec-func-card, .rec-hist-item");
-          if(anc) return;
-        }
+        parent = parent.parentElement;
+        lvl++;
       }
 
-      // Si está visible y arriba en pantalla, ocultar
-      var rect = el.getBoundingClientRect();
-      if(rect.top < 250 && rect.width > 0){
-        el.style.setProperty("display", "none", "important");
-        el.__m1Hidden = true;
-      }
+      // Ocultar con varias técnicas para vencer estilos heredados
+      el.style.setProperty("display",    "none",   "important");
+      el.style.setProperty("visibility", "hidden", "important");
+      el.setAttribute("aria-hidden", "true");
+      el.__m1Hidden = true;
     });
   }
 
@@ -1822,7 +1829,7 @@
     } catch(_){}
 
     try {
-      console.log("%c[mejoras1.js v2.5] contactos medios CRUD + fix filtros",
+      console.log("%c[mejoras1.js v2.6] calendario legible + fix agente",
                   "color:#7c3aed;font-weight:bold");
     } catch(_){}
   }
