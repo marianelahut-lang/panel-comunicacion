@@ -1,26 +1,25 @@
 /* ============================================================
    MEJORAS1.JS - Panel Comunicación Tres Arroyos
-   v2.1 · Agenda funcionarios + fixes panel Equipo
+   v2.2 · Historial + Equipo funcional
    ------------------------------------------------------------
    1. Captura errores globales sin romper la UI.
    2. Garantiza placeholders sbt/sbm/sbag (fix textContent null).
    3. Limpia "Tareas del d..." y deduplica botones del sidebar.
-   4. Reconstruye el menú lateral con los botones de la nav
-      superior + Reclamos. Oculta "Filtrar persona" / "Todas
-      las personas". Renombra Publicaciones → Agenda. Oculta
-      Métricas.
-   5. MÓDULO RECLAMOS COMPLETO con 4 pestañas:
-      · Lista: ver reclamos cargados, filtrar, cambiar estado,
-        enviar por WhatsApp con todos los datos, borrar.
-      · Nuevo: formulario con tipo, funcionario (auto-asignado
-        desde la agenda), datos del vecino y descripción.
-      · Funcionarios: AGENDA CRUD (agregar / editar / borrar).
-        Se inicializa con los 19 contactos del xlsx.
-      · Derivación rápida: guía tipo → funcionario.
-   6. Selector rápido de estado en cada tarjeta del Kanban.
-      Oculta columna "Realizada" (redundante con "Lista").
-   7. Fixes panel Equipo: iconos visibles + botones top-right
-      (WhatsApp/Tareas del día/Cerrar) separados sin superposición.
+   4. Menú lateral con botones de la nav superior + Reclamos.
+      Renombra Publicaciones → Agenda. Oculta Métricas.
+   5. MÓDULO RECLAMOS con 4 pestañas:
+      · 📋 Lista · ➕ Nuevo · 👥 Funcionarios (CRUD) · 📊 Historial
+      El Historial agrupa los reclamos por TIPO o por FUNCIONARIO
+      con toggle, estadísticas globales y acceso rápido al detalle.
+   6. PANEL EQUIPO FUNCIONAL:
+      · Selector de estado en cada tarea del agente
+        (Pendiente / En proceso / Lista / Lista para publicar),
+        guardado automático en Supabase.
+      · Oculta los botones "WhatsApp" y "Tareas del día" del
+        top del detalle del agente (pedido por usuaria).
+      · Iconos visibles, sin solapamientos.
+   7. Selector rápido de estado en el Kanban y oculta la columna
+      "Realizada" (redundante con "Lista").
    8. Estilos + dark mode + responsive PC y celular.
    ============================================================ */
 (function(){
@@ -154,7 +153,7 @@
         '<button class="rec-tab" data-tab="lista" onclick="window._recTab(\'lista\')">📋 Lista</button>' +
         '<button class="rec-tab" data-tab="nuevo" onclick="window._recTab(\'nuevo\')">➕ Nuevo reclamo</button>' +
         '<button class="rec-tab" data-tab="funcionarios" onclick="window._recTab(\'funcionarios\')">👥 Funcionarios</button>' +
-        '<button class="rec-tab" data-tab="derivacion" onclick="window._recTab(\'derivacion\')">📞 Derivación rápida</button>' +
+        '<button class="rec-tab" data-tab="historial" onclick="window._recTab(\'historial\')">📊 Historial</button>' +
       '</div>' +
       '<div id="rec-content"></div>';
     // Tab por defecto: si hay reclamos, mostrar lista. Si no, formulario.
@@ -170,7 +169,7 @@
     if(tab === "nuevo")             cont.innerHTML = renderFormNuevo();
     else if(tab === "lista")        cont.innerHTML = renderListaReclamos();
     else if(tab === "funcionarios") cont.innerHTML = renderAgendaFuncionarios();
-    else if(tab === "derivacion")   cont.innerHTML = renderGuiaDerivacion();
+    else if(tab === "historial")    cont.innerHTML = renderHistorialReclamos();
   };
 
   // ============ FORMULARIO NUEVO RECLAMO ============
@@ -599,6 +598,114 @@
     });
   };
 
+  // ============ HISTORIAL DE RECLAMOS (agrupado por tipo o funcionario) ============
+  function renderHistorialReclamos(){
+    var lista = cargarReclamosVecinos();
+    if(!lista.length){
+      return '<div class="rec-empty">' +
+        '<div style="font-size:48px;margin-bottom:12px">📭</div>' +
+        '<div class="rec-empty-title">No hay reclamos para mostrar</div>' +
+        '<div class="rec-empty-sub">Los reclamos cargados van a aparecer agrupados acá.</div>' +
+        '<button class="rec-btn rec-btn-pri" onclick="window._recTab(\'nuevo\')" style="margin-top:14px">' +
+          '➕ Cargar primer reclamo</button>' +
+        '</div>';
+    }
+
+    var modo = window._recHistMode || "tipo";
+
+    // Estadísticas globales
+    var estadoCount = { pendiente: 0, "en-proceso": 0, resuelto: 0 };
+    lista.forEach(function(r){
+      if(estadoCount[r.estado] !== undefined) estadoCount[r.estado]++;
+    });
+
+    // Toolbar con toggle de modo
+    var toolbar = '<div class="rec-hist-toolbar">' +
+      '<div class="rec-hist-modes">' +
+        '<button class="rec-hist-mode' + (modo==="tipo" ? " on" : "") + '" ' +
+          'onclick="window._recHistSetMode(\'tipo\')">📂 Por tipo</button>' +
+        '<button class="rec-hist-mode' + (modo==="funcionario" ? " on" : "") + '" ' +
+          'onclick="window._recHistSetMode(\'funcionario\')">👤 Por funcionario</button>' +
+      '</div>' +
+      '<div class="rec-hist-stats">' +
+        '<span class="rec-hist-stat" style="background:#fef3c7;color:#92400e">🟡 ' + estadoCount.pendiente + ' pend.</span>' +
+        '<span class="rec-hist-stat" style="background:#dbeafe;color:#1e40af">🔵 ' + estadoCount["en-proceso"] + ' en proc.</span>' +
+        '<span class="rec-hist-stat" style="background:#d1fae5;color:#065f46">✅ ' + estadoCount.resuelto + ' resueltos</span>' +
+        '<span class="rec-hist-stat" style="background:#ede9fe;color:#5b21b6;font-weight:800">Total: ' + lista.length + '</span>' +
+      '</div>' +
+      '</div>';
+
+    // Agrupar
+    var grupos = {};
+    lista.forEach(function(r){
+      var key = modo === "tipo" ? (r.tipo || "Sin tipo") : (r.funcionario || "Sin asignar");
+      if(!grupos[key]) grupos[key] = [];
+      grupos[key].push(r);
+    });
+
+    // Render grupos ordenados (por cantidad descendente)
+    var keys = Object.keys(grupos).sort(function(a, b){ return grupos[b].length - grupos[a].length; });
+
+    var html = keys.map(function(key){
+      var arr = grupos[key];
+      var icono = modo === "tipo" ?
+        (ICONO_RECLAMO[(key || "").toLowerCase().trim()] || "📌") :
+        "👤";
+
+      var itemsHTML = arr.map(function(r){
+        var estadoInfo = ESTADOS_RECLAMO.find(function(e){ return e.id === r.estado; }) || ESTADOS_RECLAMO[0];
+        var fechaCorta = "";
+        try { fechaCorta = new Date(r.fecha_creacion).toLocaleDateString("es-AR", { day:"2-digit", month:"2-digit", year:"2-digit" }); } catch(_){}
+        var meta = modo === "tipo" ?
+          escapeHTML(r.funcionario || "Sin asignar") :
+          escapeHTML(r.tipo || "");
+        return '<div class="rec-hist-item" onclick="window._recVerDetalle(\'' + r.id + '\')">' +
+          '<span class="rec-hist-estado" title="' + estadoInfo.label + '" ' +
+            'style="background:' + estadoInfo.bg + ';color:' + estadoInfo.color + '">' +
+            estadoInfo.emoji + '</span>' +
+          '<div class="rec-hist-info">' +
+            '<div class="rec-hist-vecino">' + escapeHTML(r.vecino) + '</div>' +
+            '<div class="rec-hist-meta">' + meta + ' · ' + fechaCorta + '</div>' +
+          '</div>' +
+          '<div class="rec-hist-actions">' +
+            '<button class="rec-btn-mini" onclick="event.stopPropagation();window._recEditar(\'' + r.id + '\')" title="Editar">✏️</button>' +
+            '<button class="rec-btn-mini rec-btn-wa-mini" onclick="event.stopPropagation();window._recEnviarWA(\'' + r.id + '\')" title="WhatsApp">💬</button>' +
+          '</div>' +
+        '</div>';
+      }).join("");
+
+      return '<div class="rec-hist-grupo">' +
+        '<div class="rec-hist-grupo-head">' +
+          '<span class="rec-hist-grupo-ico">' + icono + '</span>' +
+          '<span class="rec-hist-grupo-name">' + escapeHTML(key) + '</span>' +
+          '<span class="rec-hist-grupo-count">' + arr.length + '</span>' +
+        '</div>' +
+        '<div class="rec-hist-grupo-items">' + itemsHTML + '</div>' +
+      '</div>';
+    }).join("");
+
+    return toolbar + '<div class="rec-hist-grupos">' + html + '</div>';
+  }
+
+  window._recHistSetMode = function(modo){
+    window._recHistMode = modo;
+    window._recTab("historial");
+  };
+
+  window._recVerDetalle = function(id){
+    // Cambiar a tab Lista, scrollear y resaltar el reclamo
+    window._recTab("lista");
+    setTimeout(function(){
+      var el = document.querySelector('.rec-item[data-id="' + id + '"]');
+      if(el){
+        try { el.scrollIntoView({ behavior:"smooth", block:"center" }); } catch(_){}
+        el.style.transition = "box-shadow .3s";
+        el.style.boxShadow = "0 0 0 3px #7c3aed";
+        setTimeout(function(){ el.style.boxShadow = ""; }, 2000);
+      }
+    }, 250);
+  };
+
   // ============ GUÍA DE DERIVACIÓN (tipo → funcionario) ============
   function renderGuiaDerivacion(){
     var cards = RECLAMOS_DATA.map(function(r){
@@ -889,27 +996,43 @@
   }
 
   function agregarSelectoresEnTarjetas(){
-    var tarjetas = document.querySelectorAll(".kanban .tc");
+    // Busca tarjetas de tareas en el Kanban Y en el panel de detalle del agente
+    var selectores = [
+      ".kanban .tc",
+      "#p-equipo .tc",
+      "#p-guardias .tc",
+      "#p-equipo [onclick*='editTask']",
+      "#p-guardias [onclick*='editTask']"
+    ].join(",");
+    var tarjetas = document.querySelectorAll(selectores);
     tarjetas.forEach(function(tc){
       if(tc.querySelector(".estado-selector-m1")) return;
-      // ID
+      // Si tc es un elemento interno con onclick, subir al contenedor padre razonable
+      // (a veces el onclick está en el div externo y la "tarjeta visible" es ese)
       var onclick = tc.getAttribute("onclick") || "";
       var m = onclick.match(/editTask\(['"]([^'"]+)['"]\)/);
       if(!m) return;
       var id = m[1];
-      // Estado actual = nombre de la columna
-      var col = tc.closest(".kcol");
+
+      // Determinar estado actual
       var estadoActual = "Pendiente";
+      // 1) Si está dentro del Kanban, leer la columna
+      var col = tc.closest(".kcol");
       if(col){
         var hdr = col.querySelector(".khdr .kt");
         if(hdr){
           var lbl = (hdr.textContent || "").replace(/[\d\s]+$/g,"").trim();
           if(ESTADOS.indexOf(lbl) >= 0) estadoActual = lbl;
-          else if(lbl === "Lista para publicar") estadoActual = "Lista para publicar";
         }
+      } else {
+        // 2) Panel agente: buscar pills/badges con el estado actual en la tarjeta
+        var txtNodo = tc.textContent || "";
+        ESTADOS.forEach(function(e){
+          if(txtNodo.indexOf(e) >= 0) estadoActual = e;
+        });
       }
+
       var color = COLOR_ESTADO[estadoActual] || "#6b7280";
-      // Crear select
       var sel = document.createElement("select");
       sel.className = "estado-selector-m1";
       sel.setAttribute("data-id", id);
@@ -1101,7 +1224,43 @@
       "body.dark .rec-func-card-name{color:#f1f5f9!important}",
       "body.dark .rec-func-card-tel{color:#cbd5e1!important}",
       "body.dark .rec-func-form{background:#252830!important;border-color:#7c3aed!important}",
-      /* === FIXES PANEL EQUIPO / AGENTE === */
+      /* === Historial de reclamos (agrupado) === */
+      ".rec-hist-toolbar{display:flex;justify-content:space-between;align-items:center;" +
+        "margin-bottom:14px;flex-wrap:wrap;gap:10px}",
+      ".rec-hist-modes{display:flex;gap:6px}",
+      ".rec-hist-mode{padding:7px 12px;border-radius:7px;border:1px solid #e5e7eb;" +
+        "background:#fff;font-size:11px;font-weight:600;cursor:pointer;color:#6b7280;" +
+        "font-family:Inter,sans-serif;transition:all .15s;display:inline-flex;align-items:center;gap:6px}",
+      ".rec-hist-mode:hover{background:#f9fafb;color:#111827}",
+      ".rec-hist-mode.on{background:#7c3aed!important;color:#fff!important;border-color:#7c3aed!important}",
+      ".rec-hist-stats{display:flex;gap:6px;flex-wrap:wrap}",
+      ".rec-hist-stat{padding:3px 9px;border-radius:10px;font-size:10px;font-weight:700}",
+      ".rec-hist-grupo{margin-bottom:14px;background:#fff;border:1px solid #e5e7eb;" +
+        "border-radius:10px;overflow:hidden}",
+      ".rec-hist-grupo-head{display:flex;align-items:center;gap:10px;padding:10px 14px;" +
+        "background:#f9fafb;border-bottom:1px solid #e5e7eb}",
+      ".rec-hist-grupo-ico{font-size:18px}",
+      ".rec-hist-grupo-name{font-size:13px;font-weight:700;color:#111827;flex:1}",
+      ".rec-hist-grupo-count{background:#ede9fe;color:#6d28d9;padding:2px 8px;" +
+        "border-radius:10px;font-size:10px;font-weight:700}",
+      ".rec-hist-grupo-items{padding:6px 8px}",
+      ".rec-hist-item{display:flex;align-items:center;gap:10px;padding:8px 10px;" +
+        "border-radius:6px;cursor:pointer;transition:background .15s}",
+      ".rec-hist-item:hover{background:#f9fafb}",
+      ".rec-hist-estado{font-size:14px;padding:3px 7px;border-radius:5px;font-weight:700;" +
+        "min-width:30px;text-align:center}",
+      ".rec-hist-info{flex:1;min-width:0}",
+      ".rec-hist-vecino{font-size:12px;font-weight:700;color:#111827}",
+      ".rec-hist-meta{font-size:10px;color:#6b7280;margin-top:2px}",
+      ".rec-hist-actions{display:flex;gap:4px;flex-shrink:0}",
+      /* Dark mode historial */
+      "body.dark .rec-hist-mode{background:#252830!important;color:#94a3b8!important;border-color:#373b47!important}",
+      "body.dark .rec-hist-mode:hover{background:#2d3140!important;color:#e2e8f0!important}",
+      "body.dark .rec-hist-grupo{background:#252830!important;border-color:#373b47!important}",
+      "body.dark .rec-hist-grupo-head{background:#1e2128!important;border-color:#373b47!important}",
+      "body.dark .rec-hist-grupo-name{color:#f1f5f9!important}",
+      "body.dark .rec-hist-item:hover{background:#2a2d38!important}",
+      "body.dark .rec-hist-vecino{color:#f1f5f9!important}",
       /* Asegurar que los iconos/emojis de botones sean visibles */
       "#p-equipo button,#p-equipo a,#p-guardias button,#p-guardias a{opacity:1!important}",
       "#p-equipo button *,#p-guardias button *{opacity:1!important;color:inherit}",
@@ -1187,6 +1346,49 @@
     document.head.appendChild(st);
   }
 
+  // Oculta los botones WhatsApp y "Tareas del día" del detalle de agente
+  // (la usuaria pidió eliminarlos porque se superponían y no los usa)
+  function ocultarBotonesAgente(){
+    var contenedores = [
+      document.getElementById("p-equipo"),
+      document.getElementById("p-guardias")
+    ].filter(Boolean);
+    contenedores.forEach(function(cont){
+      cont.querySelectorAll("button, a").forEach(function(el){
+        if(el.__m1Hidden) return;
+        if(el.className && String(el.className).indexOf("rec-") >= 0) return;
+        if(el.className && String(el.className).indexOf("estado-selector") >= 0) return;
+        var txt = (el.textContent || "").toLowerCase().trim();
+        var onclick = (el.getAttribute("onclick") || "").toLowerCase();
+        var href = (el.getAttribute("href") || "").toLowerCase();
+        var esWhatsApp =
+          txt === "whatsapp" || txt === "💬 whatsapp" ||
+          /^\s*(?:📱|💬|📞)?\s*whatsapp\s*$/i.test(el.textContent || "") ||
+          onclick.indexOf("whatsapp") >= 0 ||
+          onclick.indexOf("abrirwa") >= 0 ||
+          href.indexOf("wa.me") >= 0;
+        var esTareasDelDia =
+          txt.indexOf("tareas del d") === 0 ||
+          onclick.indexOf("tareasdeldi") >= 0 ||
+          onclick.indexOf("tareas_del_d") >= 0;
+        // Solo ocultarlos cuando están en el TOP del detalle del agente
+        // (NO ocultar botones dentro de tarjetas de tareas individuales).
+        // Heurística: si el elemento está dentro de algo que parece ser
+        // un encabezado / barra superior (primeros 300px desde arriba del
+        // contenedor) → ocultar.
+        if(esWhatsApp || esTareasDelDia){
+          var rect = el.getBoundingClientRect();
+          var contRect = cont.getBoundingClientRect();
+          var distTop = rect.top - contRect.top;
+          if(distTop < 200){
+            el.style.display = "none";
+            el.__m1Hidden = true;
+          }
+        }
+      });
+    });
+  }
+
   /* -------- INICIALIZACIÓN -------- */
   function init(){
     inyectarEstilos();
@@ -1209,17 +1411,32 @@
       deduplicarSidebar();
       ocultarFiltroPersonas();
       ocultarColumnaRealizada();
+      ocultarBotonesAgente();
       if(!window.nav || !window.nav.__patcheadoActivo) patchearNav();
       if(!window.renderKanban || !window.renderKanban.__patcheadoEstado){
         patchearRenderKanban();
       }
       actualizarBotonActivo();
       agregarSelectoresEnTarjetas();
-      if(++n >= 12) clearInterval(iv);
+      if(++n >= 16) clearInterval(iv);
     }, 500);
 
+    // Observador global del main: cuando se abre el detalle de un agente,
+    // re-aplicar fixes (ocultar botones, agregar selectores)
     try {
-      console.log("%c[mejoras1.js v2.1] agenda + fixes equipo",
+      var main = document.getElementById("main");
+      if(main){
+        var moMain = new MutationObserver(function(){
+          ocultarBotonesAgente();
+          agregarSelectoresEnTarjetas();
+          ocultarColumnaRealizada();
+        });
+        moMain.observe(main, { childList: true, subtree: true });
+      }
+    } catch(_){}
+
+    try {
+      console.log("%c[mejoras1.js v2.2] historial + equipo funcional",
                   "color:#7c3aed;font-weight:bold");
     } catch(_){}
   }
