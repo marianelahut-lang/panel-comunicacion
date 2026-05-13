@@ -1,27 +1,31 @@
 /* ============================================================
    MEJORAS1.JS - Panel Comunicación Tres Arroyos
-   v2.3 · Rediseño panel agente + ocultar WhatsApp/Tareas día
+   v2.5 · Contactos medios CRUD + fix filtros agente
    ------------------------------------------------------------
    1. Captura errores globales sin romper la UI.
    2. Garantiza placeholders sbt/sbm/sbag (fix textContent null).
    3. Limpia "Tareas del d..." y deduplica botones del sidebar.
-   4. Menú lateral con botones de la nav superior + Reclamos.
-      Renombra Publicaciones → Agenda. Oculta Métricas.
+   4. Menú lateral con botones de la nav superior + Reclamos +
+      Contactos medios. Renombra Publicaciones → Agenda. Oculta
+      Métricas.
    5. MÓDULO RECLAMOS con 4 pestañas:
-      · 📋 Lista · ➕ Nuevo · 👥 Funcionarios · 📊 Historial
-   6. PANEL AGENTE rediseñado:
-      · Iconos y emojis visibles (Hoy/Pendientes/Esta semana/Todas)
-      · Filtros con estilo de pills modernas (hover, activo violeta)
-      · Barra de progreso con gradiente rojo→naranja→verde
-      · Tareas con hover lift effect y animación de entrada
-      · Checkboxes más grandes con color de marca
-      · Botón "+ Agregar" con gradiente violeta
-      · Botones "WhatsApp" y "Tareas del día" del header ocultos
-        de forma agresiva (CSS + JS por texto, onclick y posición)
-      · Selector de estado en cada tarea (Pendiente/En proceso/
-        Lista/Lista para publicar) con guardado en Supabase
-   7. Selector rápido de estado en el Kanban + oculta "Realizada".
-   8. Estilos + dark mode + responsive PC y celular.
+      📋 Lista · ➕ Nuevo · 👥 Funcionarios · 📊 Historial
+   6. MÓDULO CONTACTOS DE MEDIOS (CRUD):
+      · Tarjetas con avatar, nombre, medio, teléfono, email, sector
+      · Botones de WhatsApp y Mail directos
+      · Buscador + filtro por medio
+      · Agregar / Editar / Borrar
+      · Inicializado con los 8 contactos del módulo v5.33
+      · Persistencia en localStorage
+   7. PANEL AGENTE rediseñado:
+      · Iconos visibles, animaciones, barra de progreso con
+        gradiente, botón "+ Agregar" prominente
+      · Filtros (Hoy/Pendientes/Esta semana/Todas) detectados
+        por TEXTO y estilizados desde JS (más robusto)
+      · Botones "WhatsApp" y "Tareas del día" ocultos
+      · Selector de estado por tarea con guardado en Supabase
+   8. Selector rápido de estado en el Kanban + oculta "Realizada".
+   9. Estilos + dark mode + responsive PC y celular.
    ============================================================ */
 (function(){
   "use strict";
@@ -707,6 +711,209 @@
     }, 250);
   };
 
+  // ============ MÓDULO CONTACTOS DE MEDIOS (CRUD) ============
+  var CONTACTOS_MEDIOS_KEY = "panel-comunicacion-contactos-medios-v1";
+  var COLORES_AVATAR = ["#7c3aed","#3b82f6","#10b981","#f59e0b","#ef4444",
+                        "#ec4899","#8b5cf6","#06b6d4","#14b8a6","#f97316"];
+
+  function cargarContactosMedios(){
+    try {
+      var raw = localStorage.getItem(CONTACTOS_MEDIOS_KEY);
+      if(raw){
+        var parsed = JSON.parse(raw);
+        if(Array.isArray(parsed) && parsed.length) return parsed;
+      }
+    } catch(_){}
+    // Inicialización con los 8 contactos del módulo viejo (v5.33)
+    var base = [
+      { id:"cm1", nombre:"Jose Luis Basualdo",   medio:"Lu24",                telefono:"", email:"", sector:"" },
+      { id:"cm2", nombre:"Julio Scarabotti",     medio:"Comunidad Argentina", telefono:"", email:"", sector:"Municipio" },
+      { id:"cm3", nombre:"Adriana Gaitán",       medio:"FM Hit",              telefono:"", email:"", sector:"" },
+      { id:"cm4", nombre:"Milena Marcovecchio",  medio:"Via País",            telefono:"", email:"", sector:"" },
+      { id:"cm5", nombre:"Alejandro Vis",        medio:"La Voz del Pueblo",   telefono:"", email:"", sector:"" },
+      { id:"cm6", nombre:"Fernando Catalano",    medio:"Onda Uno",            telefono:"", email:"", sector:"" },
+      { id:"cm7", nombre:"Luis Ferrin",          medio:"Grupo 105",           telefono:"", email:"", sector:"" },
+      { id:"cm8", nombre:"Dengue",               medio:"FM Hit",              telefono:"", email:"", sector:"" }
+    ];
+    guardarContactosMedios(base);
+    return base;
+  }
+
+  function guardarContactosMedios(lista){
+    try {
+      localStorage.setItem(CONTACTOS_MEDIOS_KEY, JSON.stringify(lista));
+      return true;
+    } catch(e){ console.error("[mejoras1] Error guardando contactos medios:", e); return false; }
+  }
+
+  function iniciales(nombre){
+    return (nombre || "?").split(/\s+/).slice(0,2)
+      .map(function(p){ return (p[0]||"").toUpperCase(); }).join("");
+  }
+
+  function colorAvatar(id){
+    var sum = 0;
+    for(var i = 0; i < id.length; i++) sum += id.charCodeAt(i);
+    return COLORES_AVATAR[sum % COLORES_AVATAR.length];
+  }
+
+  function renderContactosMediosModulo(){
+    var cont = document.getElementById("p-contactos");
+    if(!cont) return;
+    var lista = cargarContactosMedios();
+
+    // Lista única de medios para el filtro
+    var medios = {};
+    lista.forEach(function(c){ if(c.medio) medios[c.medio] = true; });
+    var mediosArr = Object.keys(medios).sort();
+    var mediosOpts = '<option value="">Todos los medios</option>' +
+      mediosArr.map(function(m){
+        return '<option value="' + escapeHTML(m) + '">' + escapeHTML(m) + '</option>';
+      }).join("");
+
+    cont.innerHTML =
+      '<div class="ptop">' +
+        '<div>' +
+          '<div class="ptitle">Contactos de medios</div>' +
+          '<div class="psub">Periodistas y medios de Tres Arroyos · ' +
+            lista.length + ' contacto' + (lista.length===1?'':'s') + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="cm-toolbar">' +
+        '<input id="cm-search" class="cm-search" placeholder="🔍 Buscar nombre, medio..." oninput="window._cmFiltrar()">' +
+        '<select id="cm-filtro-medio" class="cm-select" onchange="window._cmFiltrar()">' + mediosOpts + '</select>' +
+        '<button class="rec-btn rec-btn-pri" onclick="window._cmNuevo()">+ Agregar contacto</button>' +
+      '</div>' +
+      '<div id="cm-form-container"></div>' +
+      '<div id="cm-grid" class="cm-grid">' + renderContactosMediosCards(lista) + '</div>';
+  }
+
+  function renderContactosMediosCards(lista){
+    return lista.map(function(c){
+      var color = colorAvatar(c.id);
+      var ini = iniciales(c.nombre || "?");
+      var waBtn = c.telefono ?
+        '<a class="cm-btn cm-btn-wa" href="https://wa.me/' + normalizarTelefono(c.telefono) +
+          '" target="_blank" rel="noopener">💬 WA</a>' :
+        '<button class="cm-btn cm-btn-disabled" disabled title="Sin teléfono">💬 WA</button>';
+      var mailBtn = c.email ?
+        '<a class="cm-btn cm-btn-mail" href="mailto:' + escapeHTML(c.email) + '">✉️ Mail</a>' :
+        '<button class="cm-btn cm-btn-disabled" disabled title="Sin email">✉️ Mail</button>';
+      var searchKey = ((c.nombre||"") + " " + (c.medio||"") + " " + (c.sector||"")).toLowerCase();
+      return '<div class="cm-card" data-id="' + c.id + '" ' +
+        'data-medio="' + escapeHTML(c.medio||"") + '" ' +
+        'data-search="' + escapeHTML(searchKey) + '">' +
+        '<div class="cm-card-head">' +
+          '<div class="cm-avatar" style="background:' + color + '">' + escapeHTML(ini) + '</div>' +
+          '<div class="cm-card-info">' +
+            '<div class="cm-card-nombre">' + escapeHTML(c.nombre) + '</div>' +
+            '<div class="cm-card-medio">📻 ' + escapeHTML(c.medio || "—") +
+              (c.sector ? ' · <span class="cm-card-sector">' + escapeHTML(c.sector) + '</span>' : "") +
+            '</div>' +
+            (c.telefono ? '<div class="cm-card-tel">📞 ' + escapeHTML(formatearTel(c.telefono)) + '</div>' : "") +
+            (c.email ? '<div class="cm-card-email">✉️ ' + escapeHTML(c.email) + '</div>' : "") +
+          '</div>' +
+        '</div>' +
+        '<div class="cm-card-actions">' +
+          waBtn + mailBtn +
+          '<button class="rec-btn-mini" onclick="window._cmEditar(\'' + c.id + '\')" title="Editar">✏️</button>' +
+          '<button class="rec-btn-mini rec-btn-del" onclick="window._cmBorrar(\'' + c.id + '\')" title="Borrar">🗑️</button>' +
+        '</div>' +
+      '</div>';
+    }).join("");
+  }
+
+  function renderContactoMedioForm(c){
+    var editing = !!c;
+    c = c || {};
+    return '<form class="rec-form rec-func-form" ' +
+      'onsubmit="return window._cmGuardar(event, \'' + (editing ? c.id : '') + '\')">' +
+      '<div class="rec-form-row2">' +
+        '<div><label>Nombre *</label>' +
+          '<input id="cm-nombre" required value="' + escapeHTML(c.nombre || "") + '" placeholder="Ej: Juan Pérez"></div>' +
+        '<div><label>Medio *</label>' +
+          '<input id="cm-medio" required value="' + escapeHTML(c.medio || "") + '" placeholder="Ej: Lu24, FM Hit..."></div>' +
+      '</div>' +
+      '<div class="rec-form-row2">' +
+        '<div><label>Teléfono</label>' +
+          '<input id="cm-tel" value="' + escapeHTML(c.telefono || "") + '" placeholder="5492983449098"></div>' +
+        '<div><label>Email</label>' +
+          '<input id="cm-email" type="email" value="' + escapeHTML(c.email || "") + '" placeholder="contacto@medio.com"></div>' +
+      '</div>' +
+      '<div class="rec-form-row">' +
+        '<label>Sector / Programa</label>' +
+        '<input id="cm-sector" value="' + escapeHTML(c.sector || "") + '" placeholder="Ej: Municipio, Deportes, Cultura...">' +
+      '</div>' +
+      '<div class="rec-form-actions">' +
+        '<button type="button" class="rec-btn rec-btn-sec" ' +
+          'onclick="document.getElementById(\'cm-form-container\').innerHTML=\'\'">Cancelar</button>' +
+        '<button type="submit" class="rec-btn rec-btn-pri">💾 ' +
+          (editing ? "Guardar cambios" : "Agregar contacto") + '</button>' +
+      '</div>' +
+    '</form>';
+  }
+
+  window._cmNuevo = function(){
+    var c = document.getElementById("cm-form-container");
+    if(c) c.innerHTML = renderContactoMedioForm(null);
+  };
+
+  window._cmEditar = function(id){
+    var lista = cargarContactosMedios();
+    var c = lista.find(function(x){ return x.id === id; });
+    if(!c) return;
+    var cont = document.getElementById("cm-form-container");
+    if(cont) cont.innerHTML = renderContactoMedioForm(c);
+  };
+
+  window._cmGuardar = function(ev, id){
+    if(ev) ev.preventDefault();
+    var nombre = ((document.getElementById("cm-nombre") || {}).value || "").trim();
+    var medio  = ((document.getElementById("cm-medio")  || {}).value || "").trim();
+    var tel    = normalizarTelefono((document.getElementById("cm-tel") || {}).value || "");
+    var email  = ((document.getElementById("cm-email")  || {}).value || "").trim();
+    var sector = ((document.getElementById("cm-sector") || {}).value || "").trim();
+    if(!nombre || !medio){
+      toast("Nombre y medio son obligatorios", true);
+      return false;
+    }
+    var lista = cargarContactosMedios();
+    if(id){
+      var c = lista.find(function(x){ return x.id === id; });
+      if(c){ c.nombre=nombre; c.medio=medio; c.telefono=tel; c.email=email; c.sector=sector; }
+    } else {
+      lista.push({
+        id: "cm" + Date.now() + Math.floor(Math.random()*1000),
+        nombre:nombre, medio:medio, telefono:tel, email:email, sector:sector
+      });
+    }
+    if(guardarContactosMedios(lista)){
+      toast(id ? "✓ Contacto actualizado" : "✓ Contacto agregado");
+      renderContactosMediosModulo();
+    }
+    return false;
+  };
+
+  window._cmBorrar = function(id){
+    if(!confirm("¿Borrar este contacto?")) return;
+    var lista = cargarContactosMedios();
+    var nueva = lista.filter(function(x){ return x.id !== id; });
+    if(guardarContactosMedios(nueva)){
+      toast("Contacto eliminado");
+      renderContactosMediosModulo();
+    }
+  };
+
+  window._cmFiltrar = function(){
+    var search = ((document.getElementById("cm-search") || {}).value || "").toLowerCase().trim();
+    var medio  = (document.getElementById("cm-filtro-medio") || {}).value || "";
+    document.querySelectorAll(".cm-card").forEach(function(c){
+      var mS = !search || (c.getAttribute("data-search") || "").indexOf(search) >= 0;
+      var mM = !medio || c.getAttribute("data-medio") === medio;
+      c.style.display = (mS && mM) ? "" : "none";
+    });
+  };
+
   // ============ GUÍA DE DERIVACIÓN (tipo → funcionario) ============
   function renderGuiaDerivacion(){
     var cards = RECLAMOS_DATA.map(function(r){
@@ -750,6 +957,17 @@
       main.appendChild(div);
       renderReclamosModulo();
     }
+
+    // Módulo Contactos de medios (CRUD)
+    var contactosDiv = document.getElementById("p-contactos");
+    if(!contactosDiv){
+      contactosDiv = document.createElement("div");
+      contactosDiv.id = "p-contactos";
+      contactosDiv.style.cssText = "display:none;overflow-y:auto;height:100%";
+      main.appendChild(contactosDiv);
+    }
+    // Renderizar el módulo (sobrescribe el contenido si existía)
+    renderContactosMediosModulo();
 
     [
       { id:"p-recursos", titulo:"Recursos",  subtitulo:"Documentos y enlaces del equipo" },
@@ -950,9 +1168,20 @@
     if(window.nav.__patcheadoActivo) return true;
     var orig = window.nav;
     window.nav = function(){
+      var pageId = arguments[0];
       var r;
       try { r = orig.apply(this, arguments); } catch(e){ console.warn(e); }
-      setTimeout(actualizarBotonActivo, 20);
+      setTimeout(function(){
+        actualizarBotonActivo();
+        // Re-renderizar mis módulos al entrar (por si el código original
+        // sobrescribió el contenido)
+        if(pageId === "contactos"){
+          var cont = document.getElementById("p-contactos");
+          if(cont && !cont.querySelector(".cm-card, .cm-toolbar")){
+            renderContactosMediosModulo();
+          }
+        }
+      }, 30);
       return r;
     };
     window.nav.__patcheadoActivo = true;
@@ -1238,7 +1467,45 @@
       "body.dark .rec-func-card-name{color:#f1f5f9!important}",
       "body.dark .rec-func-card-tel{color:#cbd5e1!important}",
       "body.dark .rec-func-form{background:#252830!important;border-color:#7c3aed!important}",
-      /* === Historial de reclamos (agrupado) === */
+      /* === Módulo Contactos de medios === */
+      "#p-contactos{padding:0 16px 24px}",
+      "#p-contactos .ptop{padding:14px 0 12px;margin-bottom:0}",
+      ".cm-toolbar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}",
+      ".cm-search{flex:1;min-width:200px;padding:8px 12px;border:1.5px solid #e5e7eb;" +
+        "border-radius:8px;font-size:12px;outline:none;font-family:Inter,sans-serif;background:#fff}",
+      ".cm-search:focus{border-color:#7c3aed;box-shadow:0 0 0 3px rgba(124,58,237,.1)}",
+      ".cm-select{padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:12px;" +
+        "font-family:Inter,sans-serif;background:#fff;cursor:pointer;outline:none}",
+      ".cm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}",
+      ".cm-card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px;" +
+        "display:flex;flex-direction:column;gap:10px;transition:all .15s}",
+      ".cm-card:hover{box-shadow:0 6px 18px rgba(0,0,0,.08);border-color:#c4b5fd;transform:translateY(-2px)}",
+      ".cm-card-head{display:flex;gap:12px;align-items:flex-start}",
+      ".cm-avatar{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;" +
+        "justify-content:center;color:#fff;font-size:14px;font-weight:800;flex-shrink:0;" +
+        "box-shadow:0 2px 6px rgba(0,0,0,.15);font-family:Inter,sans-serif}",
+      ".cm-card-info{flex:1;min-width:0}",
+      ".cm-card-nombre{font-size:14px;font-weight:700;color:#111827;margin-bottom:3px;line-height:1.2}",
+      ".cm-card-medio{font-size:11px;color:#6b7280;font-weight:600}",
+      ".cm-card-sector{color:#7c3aed;font-weight:700}",
+      ".cm-card-tel{font-size:10px;color:#4b5563;font-family:monospace;margin-top:4px}",
+      ".cm-card-email{font-size:10px;color:#4b5563;margin-top:2px;word-break:break-all}",
+      ".cm-card-actions{display:flex;gap:6px;flex-wrap:wrap;padding-top:8px;border-top:1px solid #f3f4f6}",
+      ".cm-btn{padding:6px 10px;border-radius:6px;font-size:11px;font-weight:700;" +
+        "text-decoration:none;display:inline-flex;align-items:center;gap:4px;" +
+        "font-family:Inter,sans-serif;transition:all .15s;border:none;cursor:pointer}",
+      ".cm-btn-wa{background:#25d366;color:#fff!important}",
+      ".cm-btn-wa:hover{background:#1ebe5b;transform:scale(1.05)}",
+      ".cm-btn-mail{background:#3b82f6;color:#fff!important}",
+      ".cm-btn-mail:hover{background:#2563eb;transform:scale(1.05)}",
+      ".cm-btn-disabled{background:#e5e7eb;color:#9ca3af;cursor:not-allowed}",
+      /* Dark mode Contactos medios */
+      "body.dark .cm-search,body.dark .cm-select{background:#252830!important;color:#e2e8f0!important;border-color:#373b47!important}",
+      "body.dark .cm-card{background:#252830!important;border-color:#373b47!important}",
+      "body.dark .cm-card-nombre{color:#f1f5f9!important}",
+      "body.dark .cm-card-medio{color:#cbd5e1!important}",
+      "body.dark .cm-card-tel,body.dark .cm-card-email{color:#94a3b8!important}",
+      "body.dark .cm-btn-disabled{background:#373b47!important;color:#6b7280!important}",
       ".rec-hist-toolbar{display:flex;justify-content:space-between;align-items:center;" +
         "margin-bottom:14px;flex-wrap:wrap;gap:10px}",
       ".rec-hist-modes{display:flex;gap:6px}",
@@ -1401,6 +1668,46 @@
     document.head.appendChild(st);
   }
 
+  // Refuerzo: estilo y visibilidad de los botones de filtro (Hoy, Pendientes,
+  // Esta semana, Todas) del panel agente. Detecta por TEXTO no por selector
+  // CSS, porque el HTML original no usa clases predecibles.
+  function arreglarFiltrosAgente(){
+    var conts = [document.getElementById("p-equipo"), document.getElementById("p-guardias")].filter(Boolean);
+    var REG_FILTRO = /^[\s\u200d\ufe0f📅⏳📋📆🗓️⏰]*(?:Hoy|Pendientes|Esta\s+semana|Todas|Esta\s+sem\.?|Mañana)[\s\u200d\ufe0f]*$/i;
+    conts.forEach(function(cont){
+      if(cont.style.display === "none") return;
+      cont.querySelectorAll("button").forEach(function(btn){
+        if(btn.__m1FiltroStyled) return;
+        var cls = String(btn.className || "");
+        if(/(?:rec-|cm-|estado-selector|sbi)/.test(cls)) return;
+        var txt = (btn.textContent || "").trim();
+        if(!REG_FILTRO.test(txt)) return;
+        // Es un botón de filtro: aplicar estilos directamente
+        btn.style.setProperty("padding", "8px 14px", "important");
+        btn.style.setProperty("border-radius", "8px", "important");
+        btn.style.setProperty("border", "1.5px solid #e5e7eb", "important");
+        btn.style.setProperty("background", "#fff", "important");
+        btn.style.setProperty("color", "#374151", "important");
+        btn.style.setProperty("font-size", "11px", "important");
+        btn.style.setProperty("font-weight", "700", "important");
+        btn.style.setProperty("cursor", "pointer", "important");
+        btn.style.setProperty("margin-right", "6px", "important");
+        btn.style.setProperty("opacity", "1", "important");
+        btn.style.setProperty("display", "inline-flex", "important");
+        btn.style.setProperty("align-items", "center", "important");
+        btn.style.setProperty("gap", "6px", "important");
+        // Hacer visibles los iconos/emojis dentro
+        btn.querySelectorAll("*").forEach(function(child){
+          child.style.setProperty("opacity", "1", "important");
+          child.style.setProperty("color", "inherit", "important");
+          child.style.setProperty("filter", "none", "important");
+          child.style.setProperty("visibility", "visible", "important");
+        });
+        btn.__m1FiltroStyled = true;
+      });
+    });
+  }
+
   // Oculta los botones WhatsApp y "Tareas del día" del detalle de agente
   // (la usuaria pidió eliminarlos porque se superponían y no los usa).
   // Búsqueda agresiva: en todo el documento, por texto y onclick.
@@ -1489,6 +1796,7 @@
       ocultarFiltroPersonas();
       ocultarColumnaRealizada();
       ocultarBotonesAgente();
+      arreglarFiltrosAgente();
       if(!window.nav || !window.nav.__patcheadoActivo) patchearNav();
       if(!window.renderKanban || !window.renderKanban.__patcheadoEstado){
         patchearRenderKanban();
@@ -1499,12 +1807,13 @@
     }, 500);
 
     // Observador global del main: cuando se abre el detalle de un agente,
-    // re-aplicar fixes (ocultar botones, agregar selectores)
+    // re-aplicar fixes (ocultar botones, agregar selectores, arreglar filtros)
     try {
       var main = document.getElementById("main");
       if(main){
         var moMain = new MutationObserver(function(){
           ocultarBotonesAgente();
+          arreglarFiltrosAgente();
           agregarSelectoresEnTarjetas();
           ocultarColumnaRealizada();
         });
@@ -1513,7 +1822,7 @@
     } catch(_){}
 
     try {
-      console.log("%c[mejoras1.js v2.4] + contactos medios en sidebar",
+      console.log("%c[mejoras1.js v2.5] contactos medios CRUD + fix filtros",
                   "color:#7c3aed;font-weight:bold");
     } catch(_){}
   }
