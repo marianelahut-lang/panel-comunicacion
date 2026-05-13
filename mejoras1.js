@@ -1,22 +1,28 @@
 /* ============================================================
    MEJORAS1.JS - Panel Comunicación Tres Arroyos
-   v3.3 · Tipos reclamo + modal pub OK + guardia con responsable
+   v3.6 · ARREGLA BOTÓN PROGRAMAR (shim getSelCuentaStr)
    ------------------------------------------------------------
-   NUEVO en esta versión:
-   · 5 tipos de reclamo nuevos: Higiene urbana, Barrido y
-     limpieza, Desarrollo Social, Salud, Localidades.
-   · El modal "Programar publicación" del panel original
-     vuelve a funcionar (sacamos el cierre forzado).
-   · Cualquier publicación que entre a la tabla
-     `publicaciones` (de mi modal o del panel original) si
-     es ≥15hs genera automáticamente una tarea con
-     responsable = el de la publicación → aparece en el
-     panel del agente.
-   · CSS calendario más agresivo (eventos legibles).
+   PROBLEMA DETECTADO en consola del usuario (v3.3):
+   · "Uncaught ReferenceError: getSelCuentaStr is not defined
+      at saveProgram (panel-comunicacion:2690:16)"
+   · El panel original llama a una función que no existe →
+     el botón "Programar" del modal de publicaciones nunca
+     guardaba nada.
    ------------------------------------------------------------
-   Los Reclamos vecinales y los Funcionarios se guardan en
-   Supabase (sincronizados entre agentes, tiempo real).
-   El módulo "Contactos de medios" lo maneja el panel original.
+   FIX v3.6:
+   · Definimos window.getSelCuentaStr() acá. Detecta la
+     cuenta seleccionada en el modal (Facebook/Instagram/
+     TikTok/etc + Municipalidad/Pablo Garate).
+   · El botón "Programar" ahora SÍ guarda en Supabase.
+   · Limpieza del panel "Hoy" cuando aparece info vieja
+     incongruente con "Sin guardia registrada para hoy".
+   ------------------------------------------------------------
+   También incluye TODO lo de v3.5:
+   · Panel del agente rediseñado (5 stats, días vencidos,
+     selector de estado, botón WhatsApp único).
+   · Sección "Publicaciones de guardia esta semana" en el
+     panel de Guardias (con tu publicación de las 20:00).
+   · Tareas automáticas YA NO van al Tablero.
    ------------------------------------------------------------
    1. Captura errores globales sin romper la UI.
    2. Garantiza placeholders sbt/sbm/sbag (fix textContent null).
@@ -1176,51 +1182,12 @@
     var w = document.getElementById("ap-guardia-warning");
     if(hi && w) w.style.display = esHorarioGuardia(hi.value) ? "block" : "none";
   };
-  // Crea una tarea de guardia en Supabase (tabla `tareas`) cuando una
-  // publicación es a partir de las 15:00.
-  // v3.3: Responsable = el de la publicación (para que aparezca en
-  // el panel del agente). Si no hay, queda "Guardia".
+  // v3.4: DESHABILITADO. La usuaria pidió que las publicaciones ≥15hs no
+  // generen tarea en el Tablero (se superponía con "Lista para publicar" y
+  // "Tablero material"). Ahora se muestran en una sección custom dentro
+  // del panel de Guardias (renderGuardiasPublicaciones más abajo).
   async function crearTareaGuardiaSpb(pub){
-    var db = spb();
-    if(!db) return false;
-    var fechaTxt = pub.fecha || "";
-    var redTxt = pub.red ? (pub.red.charAt(0).toUpperCase()+pub.red.slice(1))
-                         : (pub.cuenta ? String(pub.cuenta) : "");
-    var desc = "🔔 GUARDIA · " + (redTxt ? "[" + redTxt + "] " : "") +
-               (pub.descripcion || "") +
-               " (" + fechaTxt + " · " + (pub.hora||"") + ")";
-    var responsable = (pub.responsable && String(pub.responsable).trim())
-                        ? String(pub.responsable).trim()
-                        : "Guardia";
-    var tarea = {
-      descripcion: desc,
-      responsable: responsable,
-      prioridad: "Alta",
-      estado: "Pendiente",
-      observaciones: "Generada automáticamente desde publicación ≥15hs"
-    };
-    try {
-      // Probar primero sin id (asumiendo default gen_random_uuid)
-      var res = await db.from("tareas").insert([tarea]);
-      if(res.error){
-        // Si falla por id NULL, intentar con uuid generado del lado cliente
-        var uuid = (window.crypto && window.crypto.randomUUID)
-          ? window.crypto.randomUUID()
-          : "guard-" + Date.now() + "-" + Math.floor(Math.random()*1e6);
-        tarea.id = uuid;
-        res = await db.from("tareas").insert([tarea]);
-      }
-      if(res.error){
-        console.warn("[mejoras1] No pude crear tarea de guardia:", res.error);
-        return false;
-      }
-      // Forzar re-render del Kanban si el panel original lo tiene
-      try { if(typeof window.renderKanban === "function") window.renderKanban(); } catch(_){}
-      return true;
-    } catch(e){
-      console.warn("[mejoras1] Excepción creando tarea guardia:", e);
-      return false;
-    }
+    return false;
   }
 
   window._apGuardar = function(ev, id){
@@ -2677,38 +2644,58 @@
   // Oculta los botones WhatsApp y "Tareas del día" en cualquier parte del DOM
   // (excepto dentro de mis propios componentes y de tarjetas de reclamos/contactos).
   function ocultarBotonesAgente(){
-    document.querySelectorAll("button, a").forEach(function(el){
+    // v3.5: ahora busca en TODOS los elementos chicos, no solo button/a.
+    // Los botones del panel del agente pueden ser div/span con click handlers.
+    document.querySelectorAll("button, a, div, span").forEach(function(el){
       if(el.__m1Hidden) return;
       // No tocar mis propios controles
       var cls = String(el.className || "");
-      if(/(?:rec-|cm-|estado-selector|sbi|ntab|sbadge)/.test(cls)) return;
+      if(/(?:rec-|cm-|estado-selector|sbi|ntab|sbadge|m1-)/.test(cls)) return;
 
       var txt = (el.textContent || "").trim();
       var txtL = txt.toLowerCase();
+      if(!txt || txt.length > 35) return;  // muy largo para ser un botón
+
+      // Excluir elementos con muchos hijos (no son botones)
+      if(el.children.length > 2) return;
 
       // Detección por TEXTO EXACTO
       var esWhatsApp =
         txtL === "whatsapp" ||
         txtL === "📱 whatsapp" ||
         txtL === "💬 whatsapp" ||
-        /^[\s\u200d\ufe0f]*(?:📱|💬|📞)?[\s\u200d\ufe0f]*whatsapp[\s\u200d\ufe0f]*$/i.test(txt);
+        txtL === "📅 whatsapp" ||
+        /^[\s\u200d\ufe0f]*(?:📱|💬|📞|📅|📆)?[\s\u200d\ufe0f]*whatsapp[\s\u200d\ufe0f]*$/i.test(txt);
 
       var esTareasDelDia =
         /^[\s\u200d\ufe0f📋📆📅]*tareas del d[íi]a[\s\u200d\ufe0f]*$/i.test(txt);
 
-      if(!esWhatsApp && !esTareasDelDia) return;
+      var esCerrar =
+        /^[\s\u200d\ufe0f×✕✖]*\s*cerrar\s*$/i.test(txt);
+
+      if(!esWhatsApp && !esTareasDelDia && !esCerrar) return;
 
       // Excepción: NO ocultar si está dentro de tarjetas de reclamos/contactos/funcionarios
       var parent = el.parentElement;
       var maxLevels = 8, lvl = 0;
       while(parent && lvl < maxLevels){
         var pc = String(parent.className || "");
-        if(/(?:rec-card|rec-item|rec-func-card|rec-extra|rec-hist-item|cm-card|cm-grid|rec-grid)/.test(pc)){
+        if(/(?:rec-card|rec-item|rec-func-card|rec-extra|rec-hist-item|cm-card|cm-grid|rec-grid|kanban|kcol|m1-)/.test(pc)){
           return;
         }
         parent = parent.parentElement;
         lvl++;
       }
+
+      // Excepción: si el botón está dentro de "Guardias semanales" (panel original
+      // de guardias, captura 3) — esos botones WA Marianela/WA Yesi son útiles ahí
+      var inGuardiasSemanales = false;
+      var cur = el.parentElement;
+      for(var i = 0; i < 12 && cur; i++){
+        if(cur.id === "p-guardias") { inGuardiasSemanales = true; break; }
+        cur = cur.parentElement;
+      }
+      if(inGuardiasSemanales) return;
 
       // Ocultar con varias técnicas para vencer estilos heredados
       el.style.setProperty("display",    "none",   "important");
@@ -2716,6 +2703,426 @@
       el.setAttribute("aria-hidden", "true");
       el.__m1Hidden = true;
     });
+  }
+
+  // ============ v3.6: SHIM PARA EL PANEL ORIGINAL ============
+  // El panel original llama a getSelCuentaStr() desde saveProgram() pero esa
+  // función no está definida (bug del panel). Eso rompe el botón "Programar".
+  // Acá la definimos. Lee la cuenta seleccionada del modal de publicaciones.
+  if(typeof window.getSelCuentaStr !== "function"){
+    window.getSelCuentaStr = function(){
+      var modal = document.querySelector("[role='dialog'], .modal, [class*='modal']");
+      if(!modal) modal = document;
+      var sel = modal.querySelector("input[type='radio']:checked, input[type='checkbox']:checked");
+      if(sel && sel.value) return sel.value;
+      var bloques = modal.querySelectorAll("[class*='cuenta'], [class*='account'], [data-cuenta]");
+      for(var i = 0; i < bloques.length; i++){
+        var b = bloques[i];
+        if(b.getAttribute("data-cuenta")) return b.getAttribute("data-cuenta");
+        var hijo = b.querySelector(".on, .active, .selected, [aria-selected='true']");
+        if(hijo){
+          return hijo.getAttribute("data-cuenta") ||
+                 hijo.getAttribute("data-value") ||
+                 (hijo.textContent || "").trim().toLowerCase().split(/\s+/)[0];
+        }
+      }
+      var candidatos = modal.querySelectorAll("[style*='border']");
+      for(var j = 0; j < candidatos.length; j++){
+        var st = window.getComputedStyle(candidatos[j]);
+        if(st.borderColor && /124,\s*58,\s*237|7c3aed|6d28d9|139,\s*92,\s*246/i.test(st.borderColor + " " + st.borderTopColor)){
+          var t = (candidatos[j].textContent || "").toLowerCase();
+          var prefijo = "";
+          if(t.indexOf("facebook") >= 0)      prefijo = "fb";
+          else if(t.indexOf("instagram") >= 0) prefijo = "ig";
+          else if(t.indexOf("tiktok") >= 0)    prefijo = "tt";
+          else if(t.indexOf("youtube") >= 0)   prefijo = "yt";
+          else if(t.indexOf("whatsapp") >= 0)  prefijo = "wa";
+          else if(t.indexOf("twitter") >= 0)   prefijo = "tw";
+          var sufijo = "";
+          if(t.indexOf("municipalidad") >= 0 || t.indexOf("muni") >= 0) sufijo = "m";
+          else if(t.indexOf("pablo") >= 0 || t.indexOf("intendente") >= 0) sufijo = "p";
+          if(prefijo) return sufijo ? (prefijo + "-" + sufijo) : prefijo;
+        }
+      }
+      return "fb-m";
+    };
+    console.log("[mejoras1] Shim getSelCuentaStr instalado");
+  }
+
+  // v3.6: Limpiar el panel "Hoy" cuando hay info desactualizada.
+  // Si aparece "Sin guardia registrada para hoy", ocultar el bloque
+  // "Listo para publicar" que viene justo después (suele tener tareas viejas).
+  function limpiarPanelHoyDesactualizado(){
+    var todos = document.querySelectorAll("*");
+    var sinGuardia = null;
+    for(var i = 0; i < todos.length; i++){
+      var t = (todos[i].textContent || "").trim();
+      if(t === "Sin guardia registrada para hoy" && todos[i].children.length === 0){
+        sinGuardia = todos[i];
+        break;
+      }
+    }
+    if(!sinGuardia) return;
+    // Buscar el contenedor (panel "Guardia del día")
+    var bloqueGuardia = sinGuardia;
+    for(var lvl = 0; lvl < 8 && bloqueGuardia; lvl++){
+      // Subir hasta encontrar un contenedor "card-like"
+      var st = window.getComputedStyle(bloqueGuardia);
+      if(st.backgroundColor && st.backgroundColor !== "rgba(0, 0, 0, 0)" && st.backgroundColor !== "transparent"){
+        // Buscar el siguiente bloque hermano que tenga "Listo para publicar" o similar
+        var sig = bloqueGuardia.nextElementSibling;
+        var intentos = 0;
+        while(sig && intentos < 5){
+          var txt = (sig.textContent || "").toLowerCase();
+          if(txt.indexOf("listo para publicar") >= 0 || txt.indexOf("listo p/publicar") >= 0){
+            if(!sig.__m1HoyHidden){
+              sig.style.setProperty("display", "none", "important");
+              sig.__m1HoyHidden = true;
+            }
+            break;
+          }
+          sig = sig.nextElementSibling;
+          intentos++;
+        }
+        break;
+      }
+      bloqueGuardia = bloqueGuardia.parentElement;
+    }
+  }
+
+  // ============ v3.5: REDISEÑO PANEL AGENTE + PUBS EN GUARDIAS ============
+
+  // Detecta si estamos viendo el panel detalle de un agente
+  // (cuando hay un "← Equipo" o "← Guardias" visible).
+  function detectarVistaAgente(){
+    var candidatos = document.querySelectorAll("button, a, span, div");
+    for(var i = 0; i < candidatos.length; i++){
+      var el = candidatos[i];
+      if(el.children.length > 1) continue;
+      var t = (el.textContent || "").trim();
+      // "← Equipo" o "← Guardias" típicos del header
+      if(/^[\s]*←[\s]*(Equipo|Guardias)[\s]*$/.test(t)){
+        // Verificar que sea clickeable o tenga aspecto de botón
+        try {
+          var r = el.getBoundingClientRect();
+          if(r.width === 0 || r.height === 0) continue;
+        } catch(_){ continue; }
+        return el;
+      }
+    }
+    return null;
+  }
+
+  // Busca el nombre del agente en el panel actual
+  function detectarNombreAgente(){
+    // Estrategia: buscar un elemento grande (heading-style) cerca del subtítulo
+    // "Responsable de equipo" o que esté solo en una línea grande
+    var posibles = document.querySelectorAll("h1, h2, h3, .ptitle, [class*='title']");
+    for(var i = 0; i < posibles.length; i++){
+      var t = (posibles[i].textContent || "").trim();
+      if(!t || t.length > 30) continue;
+      // Excluir títulos genéricos
+      if(/equipo|tarea|guardia|tablero|material|agenda|calendario|reclamo|recurso|contacto|medio|comunicaci/i.test(t)) continue;
+      // Verificar visibilidad
+      try {
+        var r = posibles[i].getBoundingClientRect();
+        if(r.width === 0) continue;
+      } catch(_){ continue; }
+      return t;
+    }
+    return "Agente";
+  }
+
+  // Inyecta panel agente custom (con stats nuevas y lista de tareas)
+  async function inyectarPanelAgenteCustom(){
+    if(document.getElementById("m1-panel-agente")) return false;
+
+    var btnVolver = detectarVistaAgente();
+    if(!btnVolver) return false;
+
+    // Encontrar el contenedor padre razonable
+    var cont = null;
+    var cur = btnVolver;
+    for(var i = 0; i < 12 && cur; i++){
+      if(cur.id === "p-equipo" || cur.id === "p-guardias") { cont = cur; break; }
+      cur = cur.parentElement;
+    }
+    if(!cont){
+      // Como fallback, usar el "main"
+      cont = document.getElementById("main");
+    }
+    if(!cont) return false;
+
+    var nombre = detectarNombreAgente();
+
+    // Cargar tareas de Supabase filtradas por nombre del agente
+    var tareas = [];
+    var db = spb();
+    if(db){
+      try {
+        var res = await db.from("tareas").select("*").ilike("responsable", "%"+nombre+"%");
+        if(!res.error) tareas = res.data || [];
+      } catch(e){ console.warn("[mejoras1] error cargando tareas agente:", e); }
+    }
+
+    // Stats
+    var asignadas = tareas.length;
+    var realizadas = tareas.filter(function(t){
+      return /completo|realizado|hecho|listo p\/publicar|publicad/i.test(t.estado||"");
+    }).length;
+    var enProceso = tareas.filter(function(t){
+      return /^en proceso$|^proceso/i.test(t.estado||"");
+    }).length;
+    var pendientes = tareas.filter(function(t){
+      return /^pendiente/i.test(t.estado||"");
+    }).length;
+    var tareasVencidas = tareas.filter(function(t){
+      if(!/pendiente|proceso/i.test(t.estado||"")) return false;
+      if(!t.created_at) return false;
+      var dias = (Date.now() - new Date(t.created_at).getTime()) / 86400000;
+      return dias > 7;
+    });
+    var vencidas = tareasVencidas.length;
+    var porcentaje = asignadas > 0 ? Math.round((realizadas / asignadas) * 100) : 0;
+
+    // Función para formatear "hace X días"
+    function diasDesde(iso){
+      if(!iso) return "";
+      var d = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+      if(d === 0) return "hoy";
+      if(d === 1) return "hace 1d";
+      return "hace " + d + "d";
+    }
+
+    function escapeHTML2(s){
+      return String(s||"").replace(/[&<>"']/g, function(c){
+        return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+      });
+    }
+
+    // Tareas a mostrar: pendientes y en proceso primero (vencidas arriba),
+    // luego completadas
+    function diff(t){
+      if(!t.created_at) return 0;
+      return Math.floor((Date.now() - new Date(t.created_at).getTime()) / 86400000);
+    }
+    var activas = tareas.filter(function(t){ return /pendiente|proceso/i.test(t.estado||""); });
+    var hechas = tareas.filter(function(t){ return !/pendiente|proceso/i.test(t.estado||""); });
+    activas.sort(function(a, b){ return diff(b) - diff(a); }); // las más viejas arriba
+    var ordenadas = activas.concat(hechas);
+
+    var tareasHTML = ordenadas.map(function(t){
+      var estado = t.estado || "Pendiente";
+      var esVencida = tareasVencidas.indexOf(t) >= 0;
+      var esHecha = !/pendiente|proceso/i.test(estado);
+      var color = esHecha ? "#22c55e"
+                : esVencida ? "#ef4444"
+                : /proceso/i.test(estado) ? "#f59e0b"
+                : "#3b82f6";
+      var dias = diasDesde(t.created_at);
+      var diasColor = esVencida ? "background:#fee2e2;color:#991b1b" :
+                      esHecha   ? "background:#d1fae5;color:#047857" :
+                                  "background:#fef3c7;color:#854d0e";
+      var textoTacho = esHecha ? "text-decoration:line-through;opacity:.65" : "";
+      // Selector de estado
+      var opciones = ["Pendiente","En proceso","Lista","Lista para publicar","Completo"].map(function(e){
+        return '<option value="'+e+'"'+(e===estado?' selected':'')+'>'+e+'</option>';
+      }).join('');
+      return ''+
+        '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-left:3px solid '+color+';background:#fff;border:1px solid #e5e7eb;border-left-width:3px;border-radius:4px;margin-bottom:6px">'+
+          '<div style="flex:1;min-width:0">'+
+            '<div style="font-size:13px;color:#111827;'+textoTacho+'">'+escapeHTML2(t.descripcion||"")+'</div>'+
+            '<div style="font-size:11px;color:#6b7280;margin-top:4px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">'+
+              '<span>'+escapeHTML2(t.prioridad||"Media")+'</span>'+
+              '<span>·</span>'+
+              '<select onchange="window.cambiarEstadoTarea(\''+t.id+'\', this.value)" style="font-size:11px;padding:2px 6px;border-radius:4px;border:1px solid '+color+';color:'+color+';font-weight:600;cursor:pointer">'+opciones+'</select>'+
+            '</div>'+
+          '</div>'+
+          '<span style="font-size:11px;padding:3px 8px;border-radius:4px;font-weight:600;'+diasColor+'">'+escapeHTML2(dias)+'</span>'+
+        '</div>';
+    }).join("");
+
+    if(!tareasHTML){
+      tareasHTML = '<div style="padding:30px;text-align:center;color:#9ca3af;font-size:13px">Sin tareas asignadas a '+escapeHTML2(nombre)+'</div>';
+    }
+
+    // Construir HTML del panel custom
+    var html = ''+
+      '<div id="m1-panel-agente" style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;margin-bottom:16px;font-family:Inter,sans-serif">'+
+        // Header
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px">'+
+          '<div style="display:flex;align-items:center;gap:12px">'+
+            '<div style="width:42px;height:42px;border-radius:50%;background:#ede9fe;color:#7c3aed;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px">'+
+              escapeHTML2(nombre.substring(0,2).toUpperCase())+'</div>'+
+            '<div>'+
+              '<div style="font-size:18px;font-weight:700;color:#7c3aed">'+escapeHTML2(nombre)+'</div>'+
+              '<div style="font-size:12px;color:#6b7280">'+asignadas+' tareas asignadas · '+vencidas+' vencidas</div>'+
+            '</div>'+
+          '</div>'+
+          '<button onclick="window._waTareasAgente(\''+escapeHTML2(nombre)+'\')" style="background:#22c55e;color:white;border:none;padding:9px 14px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">📱 WhatsApp con tareas del día</button>'+
+        '</div>'+
+        // Stats (5 tarjetas)
+        '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px">'+
+          '<div style="background:#f3f4f6;border-radius:8px;padding:12px"><div style="font-size:11px;color:#6b7280;margin-bottom:4px">Asignadas</div><div style="font-size:22px;font-weight:700;color:#111827">'+asignadas+'</div></div>'+
+          '<div style="background:#ecfdf5;border-radius:8px;padding:12px"><div style="font-size:11px;color:#047857;margin-bottom:4px">Realizadas</div><div style="font-size:22px;font-weight:700;color:#047857">'+realizadas+'</div></div>'+
+          '<div style="background:#fef9c3;border-radius:8px;padding:12px"><div style="font-size:11px;color:#854d0e;margin-bottom:4px">En proceso</div><div style="font-size:22px;font-weight:700;color:#854d0e">'+enProceso+'</div></div>'+
+          '<div style="background:'+(vencidas>0?'#fee2e2':'#f3f4f6')+';border-radius:8px;padding:12px"><div style="font-size:11px;color:'+(vencidas>0?'#991b1b':'#6b7280')+';margin-bottom:4px">Vencidas</div><div style="font-size:22px;font-weight:700;color:'+(vencidas>0?'#991b1b':'#9ca3af')+'">'+vencidas+'</div></div>'+
+          '<div style="background:#ede9fe;border-radius:8px;padding:12px"><div style="font-size:11px;color:#5b21b6;margin-bottom:4px">% completado</div><div style="font-size:22px;font-weight:700;color:#5b21b6">'+porcentaje+'%</div></div>'+
+        '</div>'+
+        // Barra progreso
+        '<div style="margin-bottom:16px">'+
+          '<div style="display:flex;justify-content:space-between;font-size:11px;color:#6b7280;margin-bottom:6px"><span>Progreso general</span><span style="font-weight:700">'+realizadas+' / '+asignadas+' tareas</span></div>'+
+          '<div style="height:8px;background:#f3f4f6;border-radius:4px;overflow:hidden"><div style="height:100%;width:'+porcentaje+'%;background:#22c55e;border-radius:4px;transition:width .3s"></div></div>'+
+        '</div>'+
+        // Lista de tareas
+        '<div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Tareas</div>'+
+        '<div>'+tareasHTML+'</div>'+
+      '</div>';
+
+    // Insertar al INICIO del contenedor
+    cont.insertAdjacentHTML("afterbegin", html);
+
+    // Ocultar el contenido del panel original que viene después
+    // (los 4 stats viejos, el botón "+ Nueva actividad", etc.)
+    var miPanel = document.getElementById("m1-panel-agente");
+    if(miPanel){
+      var siguiente = miPanel.nextElementSibling;
+      while(siguiente){
+        // Solo ocultar los siguientes hermanos
+        siguiente.style.setProperty("display", "none", "important");
+        siguiente = siguiente.nextElementSibling;
+      }
+    }
+
+    return true;
+  }
+
+  // WhatsApp con tareas del día para un agente
+  window._waTareasAgente = function(nombre){
+    if(!_funcionariosCache && !_reclamosCache) {
+      // intentar igual con tareas
+    }
+    var tareas = (_tareasGlobalCache || []).filter(function(t){
+      return new RegExp(nombre, "i").test(t.responsable || "");
+    });
+    // Si no tenemos cache, usar lo que esté en el DOM
+    if(tareas.length === 0){
+      var sels = document.querySelectorAll(".tc, [class*='task']");
+      tareas = []; // no podemos extraer fácilmente, fallback
+    }
+    var hoy = new Date().toLocaleDateString("es-AR", { day:"2-digit", month:"long" });
+    var mensaje = "Hola " + nombre + "! Tareas para hoy " + hoy + ":\n\n";
+    // Pendientes y en proceso, no completadas
+    var activas = tareas.filter(function(t){
+      return /pendiente|proceso/i.test(t.estado||"");
+    });
+    if(activas.length === 0){
+      mensaje += "No hay tareas pendientes. ¡A descansar! 🎉";
+    } else {
+      mensaje += activas.map(function(t, i){
+        return (i+1) + ". " + (t.descripcion || "") + (t.prioridad ? " [" + t.prioridad + "]" : "");
+      }).join("\n");
+    }
+    // Abrir WhatsApp web (sin teléfono específico, el usuario elige)
+    var url = "https://wa.me/?text=" + encodeURIComponent(mensaje);
+    window.open(url, "_blank");
+  };
+
+  var _tareasGlobalCache = [];
+  async function actualizarTareasGlobalCache(){
+    var db = spb();
+    if(!db) return;
+    try {
+      var res = await db.from("tareas").select("*");
+      if(!res.error) _tareasGlobalCache = res.data || [];
+    } catch(_){}
+  }
+
+  // ============ PUBLICACIONES ≥15hs EN PANEL GUARDIAS ============
+  async function renderPublicacionesEnGuardias(){
+    var pG = document.getElementById("p-guardias");
+    if(!pG || pG.style.display === "none") return;
+    // Verificar si ya está renderizado y actualizar
+    var ya = pG.querySelector("#m1-pubs-guardias");
+    if(ya) ya.remove();
+
+    var db = spb();
+    if(!db) return;
+
+    // Calcular lunes-domingo de esta semana
+    var hoy = new Date();
+    var dow = hoy.getDay(); // 0=dom, 1=lun, ...
+    var diasAtras = (dow === 0) ? 6 : (dow - 1);
+    var lunes = new Date(hoy); lunes.setDate(hoy.getDate() - diasAtras);
+    var domingo = new Date(lunes); domingo.setDate(lunes.getDate() + 6);
+    var fmtIso = function(d){ return d.toISOString().substring(0,10); };
+
+    try {
+      var res = await db.from("publicaciones")
+        .select("*")
+        .gte("fecha", fmtIso(lunes))
+        .lte("fecha", fmtIso(domingo))
+        .order("fecha", { ascending: true })
+        .order("hora",  { ascending: true });
+      if(res.error) return;
+      var pubs = res.data || [];
+      var pubsG = pubs.filter(function(p){
+        if(!p.hora) return false;
+        var h = String(p.hora).substring(0,5);
+        return esHorarioGuardia(h);
+      });
+      if(pubsG.length === 0) return;
+
+      // Agrupar por día
+      var porDia = {};
+      pubsG.forEach(function(p){
+        porDia[p.fecha] = porDia[p.fecha] || [];
+        porDia[p.fecha].push(p);
+      });
+
+      var diasOrden = Object.keys(porDia).sort();
+      var diaNom = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
+      function escH(s){
+        return String(s||"").replace(/[&<>"']/g, function(c){
+          return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+        });
+      }
+      var html = ''+
+        '<div id="m1-pubs-guardias" style="background:#fff;border:1px solid #e5e7eb;border-left:4px solid #f59e0b;border-radius:12px;padding:16px 20px;margin:16px 0;font-family:Inter,sans-serif">'+
+          '<div style="font-size:15px;font-weight:700;color:#92400e;margin-bottom:4px">🔔 Publicaciones de guardia esta semana</div>'+
+          '<div style="font-size:12px;color:#6b7280;margin-bottom:14px">Publicaciones programadas a partir de las 15:00 — el agente de guardia las cubre</div>'+
+          diasOrden.map(function(f){
+            var fd = new Date(f + "T12:00:00");
+            var ttl = diaNom[fd.getDay()] + " " + fd.getDate() + "/" + (fd.getMonth()+1);
+            var items = porDia[f].map(function(p){
+              var hh = String(p.hora || "").substring(0,5);
+              var resp = p.responsable ? '<span style="background:#ede9fe;color:#5b21b6;padding:2px 7px;border-radius:4px;font-size:11px;font-weight:600">'+escH(p.responsable)+'</span>' : '';
+              return ''+
+                '<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #f3f4f6;align-items:flex-start">'+
+                  '<span style="font-weight:700;color:#7c3aed;min-width:48px;font-size:13px">'+escH(hh)+'</span>'+
+                  '<div style="flex:1">'+
+                    '<div style="font-size:13px;color:#111827">'+escH(p.descripcion || "")+'</div>'+
+                    '<div style="font-size:11px;color:#6b7280;margin-top:3px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">'+
+                      (p.cuenta ? '<span>'+escH(p.cuenta)+'</span>' : '')+
+                      (p.tipo ? '<span>· '+escH(p.tipo)+'</span>' : '')+
+                      resp+
+                    '</div>'+
+                  '</div>'+
+                '</div>';
+            }).join("");
+            return ''+
+              '<div style="margin-bottom:14px">'+
+                '<div style="font-size:13px;font-weight:700;color:#374151;margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px">'+escH(ttl)+'</div>'+
+                items+
+              '</div>';
+          }).join("")+
+        '</div>';
+
+      // Insertar al final del panel Guardias
+      pG.insertAdjacentHTML("beforeend", html);
+    } catch(e){
+      console.warn("[mejoras1] renderPublicacionesEnGuardias:", e);
+    }
   }
 
   /* -------- INICIALIZACIÓN -------- */
@@ -2787,7 +3194,11 @@
       ocultarColumnaRealizada();
       ocultarBotonesAgente();
       arreglarFiltrosAgente();
-      cerrarModalPublicacionOriginal();
+      // v3.3: NO llamamos cerrarModalPublicacionOriginal (modal del panel debe funcionar)
+      // v3.5: intentar renderizar el panel agente custom y las pubs en guardias
+      try { inyectarPanelAgenteCustom(); } catch(_){}
+      try { renderPublicacionesEnGuardias(); } catch(_){}
+      try { limpiarPanelHoyDesactualizado(); } catch(_){}
       if(!window.nav || !window.nav.__patcheadoActivo) patchearNav();
       if(!window.renderKanban || !window.renderKanban.__patcheadoEstado){
         patchearRenderKanban();
@@ -2797,8 +3208,10 @@
       if(++n >= 16) clearInterval(iv);
     }, 500);
 
-    // Observador global del main: cuando se abre el detalle de un agente,
-    // re-aplicar fixes (ocultar botones, agregar selectores, arreglar filtros)
+    // Cargar cache global de tareas (para "WhatsApp con tareas del día")
+    setTimeout(function(){ actualizarTareasGlobalCache(); }, 2500);
+
+    // Observador global del main
     try {
       var main = document.getElementById("main");
       if(main){
@@ -2807,15 +3220,18 @@
           arreglarFiltrosAgente();
           agregarSelectoresEnTarjetas();
           ocultarColumnaRealizada();
-          cerrarModalPublicacionOriginal();
+          // v3.5: panel agente y pubs en guardias
+          try { inyectarPanelAgenteCustom(); } catch(_){}
+          try { renderPublicacionesEnGuardias(); } catch(_){}
+          try { limpiarPanelHoyDesactualizado(); } catch(_){}
         });
         moMain.observe(main, { childList: true, subtree: true });
       }
     } catch(_){}
 
     try {
-      console.log("%c[mejoras1.js v3.3] +tipos reclamo +modal pub OK +guardia c/responsable",
-                  "color:#7c3aed;font-weight:bold");
+      console.log("%c[mejoras1.js v3.6] FIX botón Programar + rediseño panel agente + pubs guardias",
+                  "color:#7c3aed;font-weight:bold;font-size:13px");
     } catch(_){}
   }
 
