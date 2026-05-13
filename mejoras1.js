@@ -1,23 +1,27 @@
 /* ============================================================
    MEJORAS1.JS - Panel Comunicación Tres Arroyos
-   v2.0 · Módulo Reclamos completo + fixes
+   v2.1 · Agenda funcionarios + fixes panel Equipo
    ------------------------------------------------------------
    1. Captura errores globales sin romper la UI.
    2. Garantiza placeholders sbt/sbm/sbag (fix textContent null).
    3. Limpia "Tareas del d..." y deduplica botones del sidebar.
    4. Reconstruye el menú lateral con los botones de la nav
       superior + Reclamos. Oculta "Filtrar persona" / "Todas
-      las personas" de forma definitiva (MutationObserver).
-   5. MÓDULO RECLAMOS COMPLETO con 3 pestañas:
+      las personas". Renombra Publicaciones → Agenda. Oculta
+      Métricas.
+   5. MÓDULO RECLAMOS COMPLETO con 4 pestañas:
       · Lista: ver reclamos cargados, filtrar, cambiar estado,
         enviar por WhatsApp con todos los datos, borrar.
-      · Nuevo: formulario con tipo, funcionario (auto-asignado),
-        datos del vecino, dirección y descripción.
-      · Derivación: guía rápida tipo → funcionario.
-      Persistencia en localStorage del navegador.
-   6. Selector rápido de estado en cada tarjeta del Kanban con
-      guardado automático en Supabase.
-   7. Estilos + dark mode + responsive PC y celular.
+      · Nuevo: formulario con tipo, funcionario (auto-asignado
+        desde la agenda), datos del vecino y descripción.
+      · Funcionarios: AGENDA CRUD (agregar / editar / borrar).
+        Se inicializa con los 19 contactos del xlsx.
+      · Derivación rápida: guía tipo → funcionario.
+   6. Selector rápido de estado en cada tarjeta del Kanban.
+      Oculta columna "Realizada" (redundante con "Lista").
+   7. Fixes panel Equipo: iconos visibles + botones top-right
+      (WhatsApp/Tareas del día/Cerrar) separados sin superposición.
+   8. Estilos + dark mode + responsive PC y celular.
    ============================================================ */
 (function(){
   "use strict";
@@ -149,7 +153,8 @@
       '<div class="rec-tabs">' +
         '<button class="rec-tab" data-tab="lista" onclick="window._recTab(\'lista\')">📋 Lista</button>' +
         '<button class="rec-tab" data-tab="nuevo" onclick="window._recTab(\'nuevo\')">➕ Nuevo reclamo</button>' +
-        '<button class="rec-tab" data-tab="derivacion" onclick="window._recTab(\'derivacion\')">📞 Guía de derivación</button>' +
+        '<button class="rec-tab" data-tab="funcionarios" onclick="window._recTab(\'funcionarios\')">👥 Funcionarios</button>' +
+        '<button class="rec-tab" data-tab="derivacion" onclick="window._recTab(\'derivacion\')">📞 Derivación rápida</button>' +
       '</div>' +
       '<div id="rec-content"></div>';
     // Tab por defecto: si hay reclamos, mostrar lista. Si no, formulario.
@@ -162,9 +167,10 @@
     });
     var cont = document.getElementById("rec-content");
     if(!cont) return;
-    if(tab === "nuevo")           cont.innerHTML = renderFormNuevo();
-    else if(tab === "lista")      cont.innerHTML = renderListaReclamos();
-    else if(tab === "derivacion") cont.innerHTML = renderGuiaDerivacion();
+    if(tab === "nuevo")             cont.innerHTML = renderFormNuevo();
+    else if(tab === "lista")        cont.innerHTML = renderListaReclamos();
+    else if(tab === "funcionarios") cont.innerHTML = renderAgendaFuncionarios();
+    else if(tab === "derivacion")   cont.innerHTML = renderGuiaDerivacion();
   };
 
   // ============ FORMULARIO NUEVO RECLAMO ============
@@ -177,15 +183,15 @@
           r.icono + ' ' + escapeHTML(r.reclamo) + '</option>';
       }).join("");
 
-    // Lista combinada de funcionarios (derivación + extras)
-    var funcs = RECLAMOS_DATA.map(function(r){ return { nombre: r.funcionario, telefono: r.telefono }; })
-      .concat(FUNCIONARIOS_EXTRA);
+    // Lista de funcionarios desde la AGENDA (CRUD, editable por la usuaria)
+    var funcsAgenda = cargarFuncionariosAgenda();
     var funcOpts = '<option value="">— Elegir funcionario —</option>' +
-      funcs.map(function(f){
+      funcsAgenda.map(function(f){
         var val = f.nombre + "|" + f.telefono;
         var sel = editing && reclamoEditar.funcionario === f.nombre ? " selected" : "";
+        var label = f.nombre + (f.area ? " — " + f.area : "");
         return '<option value="' + escapeHTML(val) + '"' + sel + '>' +
-          escapeHTML(f.nombre) + '</option>';
+          escapeHTML(label) + '</option>';
       }).join("");
 
     var v = reclamoEditar || {};
@@ -231,10 +237,21 @@
   }
 
   window._recAutoFunc = function(){
-    var tipo = document.getElementById("r-tipo").value;
+    var tipoEl = document.getElementById("r-tipo");
+    var selFunc = document.getElementById("r-func");
+    if(!tipoEl || !selFunc) return;
+    var tipo = tipoEl.value;
     var match = RECLAMOS_DATA.find(function(r){ return r.reclamo === tipo; });
-    var sel = document.getElementById("r-func");
-    if(match && sel) sel.value = match.funcionario + "|" + match.telefono;
+    if(!match) return;
+    // Buscar el funcionario sugerido en las opciones (agenda)
+    for(var i = 0; i < selFunc.options.length; i++){
+      var opt = selFunc.options[i];
+      var nombre = (opt.value || "").split("|")[0];
+      if(nombre === match.funcionario){
+        selFunc.selectedIndex = i;
+        return;
+      }
+    }
   };
 
   window._recGuardar = function(ev, idEdit){
@@ -431,6 +448,155 @@
       var psub = document.getElementById("rec-psub");
       if(psub) psub.textContent = nueva.length + ' reclamo' + (nueva.length === 1 ? '' : 's') + ' cargado' + (nueva.length === 1 ? '' : 's');
     }
+  };
+
+  // ============ AGENDA DE FUNCIONARIOS (CRUD) ============
+  var FUNCIONARIOS_STORAGE_KEY = "panel-comunicacion-funcionarios-v1";
+
+  function cargarFuncionariosAgenda(){
+    try {
+      var raw = localStorage.getItem(FUNCIONARIOS_STORAGE_KEY);
+      if(raw){
+        var parsed = JSON.parse(raw);
+        if(Array.isArray(parsed) && parsed.length) return parsed;
+      }
+    } catch(_){}
+    // Inicialización por defecto con los 19 contactos del xlsx
+    var base = RECLAMOS_DATA.map(function(r){
+      return {
+        id: "f" + Math.random().toString(36).slice(2,9),
+        nombre: r.funcionario,
+        telefono: r.telefono,
+        area: ""
+      };
+    }).concat(FUNCIONARIOS_EXTRA.map(function(f){
+      return {
+        id: "f" + Math.random().toString(36).slice(2,9),
+        nombre: f.nombre,
+        telefono: f.telefono,
+        area: ""
+      };
+    }));
+    guardarFuncionariosAgenda(base);
+    return base;
+  }
+
+  function guardarFuncionariosAgenda(lista){
+    try {
+      localStorage.setItem(FUNCIONARIOS_STORAGE_KEY, JSON.stringify(lista));
+      return true;
+    } catch(e){ console.error("[mejoras1] Error guardando agenda:", e); return false; }
+  }
+
+  function renderAgendaFuncionarios(){
+    var lista = cargarFuncionariosAgenda();
+    var cards = lista.map(function(f){
+      var waUrl = "https://wa.me/" + normalizarTelefono(f.telefono);
+      return '<div class="rec-func-card" data-id="' + f.id + '" ' +
+        'data-search="' + escapeHTML(((f.nombre || "") + " " + (f.area || "")).toLowerCase()) + '">' +
+        '<div class="rec-func-card-head">' +
+          '<div class="rec-func-card-name">' + escapeHTML(f.nombre) + '</div>' +
+          (f.area ? '<div class="rec-func-card-area">' + escapeHTML(f.area) + '</div>' : '') +
+        '</div>' +
+        '<div class="rec-func-card-tel">📞 ' + escapeHTML(formatearTel(f.telefono)) + '</div>' +
+        '<div class="rec-func-card-actions">' +
+          '<a class="rec-btn-mini rec-btn-wa-mini" href="' + waUrl + '" target="_blank" rel="noopener">💬 WhatsApp</a>' +
+          '<button class="rec-btn-mini" onclick="window._funcEditar(\'' + f.id + '\')">✏️ Editar</button>' +
+          '<button class="rec-btn-mini rec-btn-del" onclick="window._funcBorrar(\'' + f.id + '\')">🗑️</button>' +
+        '</div>' +
+      '</div>';
+    }).join("");
+
+    return '<div class="rec-func-toolbar">' +
+      '<button class="rec-btn rec-btn-pri" onclick="window._funcNuevo()">+ Agregar funcionario</button>' +
+      '<input class="rec-search" id="func-search" placeholder="🔍 Buscar funcionario o área..." oninput="window._funcFiltrar()">' +
+      '</div>' +
+      '<div id="func-form-container"></div>' +
+      '<div class="rec-func-grid" id="rec-func-grid">' + cards + '</div>';
+  }
+
+  function renderFuncionarioForm(f){
+    var editing = !!f;
+    f = f || {};
+    return '<form class="rec-form rec-func-form" ' +
+      'onsubmit="return window._funcGuardar(event, \'' + (editing ? f.id : '') + '\')">' +
+      '<div class="rec-form-row2">' +
+        '<div>' +
+          '<label>Nombre *</label>' +
+          '<input id="func-nombre" required value="' + escapeHTML(f.nombre || "") + '" placeholder="Ej: Juan Pérez">' +
+        '</div>' +
+        '<div>' +
+          '<label>Área / Cargo</label>' +
+          '<input id="func-area" value="' + escapeHTML(f.area || "") + '" placeholder="Ej: Obras Públicas">' +
+        '</div>' +
+      '</div>' +
+      '<div class="rec-form-row">' +
+        '<label>Teléfono (con código de país) *</label>' +
+        '<input id="func-tel" required value="' + escapeHTML(f.telefono || "") + '" placeholder="5492983449098">' +
+        '<div class="rec-hint">Formato sin espacios ni símbolos. Ej: 5492983449098</div>' +
+      '</div>' +
+      '<div class="rec-form-actions">' +
+        '<button type="button" class="rec-btn rec-btn-sec" onclick="document.getElementById(\'func-form-container\').innerHTML=\'\'">Cancelar</button>' +
+        '<button type="submit" class="rec-btn rec-btn-pri">💾 ' + (editing ? "Guardar cambios" : "Agregar") + '</button>' +
+      '</div>' +
+    '</form>';
+  }
+
+  window._funcNuevo = function(){
+    var c = document.getElementById("func-form-container");
+    if(c) c.innerHTML = renderFuncionarioForm(null);
+  };
+
+  window._funcEditar = function(id){
+    var lista = cargarFuncionariosAgenda();
+    var f = lista.find(function(x){ return x.id === id; });
+    if(!f) return;
+    var c = document.getElementById("func-form-container");
+    if(c) c.innerHTML = renderFuncionarioForm(f);
+  };
+
+  window._funcGuardar = function(ev, id){
+    if(ev) ev.preventDefault();
+    var nombre = ((document.getElementById("func-nombre") || {}).value || "").trim();
+    var area = ((document.getElementById("func-area") || {}).value || "").trim();
+    var tel = normalizarTelefono((document.getElementById("func-tel") || {}).value || "");
+    if(!nombre || !tel){
+      toast("Nombre y teléfono son obligatorios", true);
+      return false;
+    }
+    var lista = cargarFuncionariosAgenda();
+    if(id){
+      var f = lista.find(function(x){ return x.id === id; });
+      if(f){ f.nombre = nombre; f.area = area; f.telefono = tel; }
+    } else {
+      lista.push({
+        id: "f" + Date.now() + Math.floor(Math.random()*1000),
+        nombre: nombre, area: area, telefono: tel
+      });
+    }
+    if(guardarFuncionariosAgenda(lista)){
+      toast(id ? "✓ Funcionario actualizado" : "✓ Funcionario agregado");
+      window._recTab("funcionarios");
+    }
+    return false;
+  };
+
+  window._funcBorrar = function(id){
+    if(!confirm("¿Borrar este funcionario de la agenda? Esta acción no se puede deshacer.")) return;
+    var lista = cargarFuncionariosAgenda();
+    var nueva = lista.filter(function(x){ return x.id !== id; });
+    if(guardarFuncionariosAgenda(nueva)){
+      toast("Funcionario eliminado");
+      window._recTab("funcionarios");
+    }
+  };
+
+  window._funcFiltrar = function(){
+    var search = ((document.getElementById("func-search") || {}).value || "").toLowerCase().trim();
+    document.querySelectorAll(".rec-func-card").forEach(function(c){
+      var match = !search || (c.getAttribute("data-search") || "").indexOf(search) >= 0;
+      c.style.display = match ? "" : "none";
+    });
   };
 
   // ============ GUÍA DE DERIVACIÓN (tipo → funcionario) ============
@@ -915,7 +1081,50 @@
       "body.dark .rec-btn-mini{background:#373b47!important;color:#cbd5e1!important;border-color:#4b5260!important}",
       "body.dark .rec-filtros .rec-search,body.dark .rec-filtros select{" +
         "background:#252830!important;color:#e2e8f0!important;border-color:#373b47!important}",
-      /* === Guía de derivación (igual que antes) === */
+      /* === Agenda de funcionarios === */
+      ".rec-func-toolbar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}",
+      ".rec-func-toolbar .rec-search{flex:1;min-width:200px;padding:8px 12px;border:1.5px solid #e5e7eb;" +
+        "border-radius:8px;font-size:12px;outline:none;font-family:Inter,sans-serif}",
+      ".rec-func-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}",
+      ".rec-func-card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:12px;" +
+        "display:flex;flex-direction:column;gap:8px;transition:all .15s}",
+      ".rec-func-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.07);border-color:#c4b5fd;transform:translateY(-1px)}",
+      ".rec-func-card-head{display:flex;flex-direction:column;gap:2px}",
+      ".rec-func-card-name{font-size:13px;font-weight:700;color:#111827}",
+      ".rec-func-card-area{font-size:10px;color:#6b7280;font-style:italic}",
+      ".rec-func-card-tel{font-size:11px;color:#4b5563;font-family:monospace}",
+      ".rec-func-card-actions{display:flex;gap:5px;flex-wrap:wrap;padding-top:8px;border-top:1px solid #f3f4f6}",
+      ".rec-func-form{background:#f9fafb;padding:14px;border-radius:10px;margin-bottom:14px;" +
+        "border:1px dashed #c4b5fd}",
+      /* Dark mode agenda */
+      "body.dark .rec-func-card{background:#252830!important;border-color:#373b47!important}",
+      "body.dark .rec-func-card-name{color:#f1f5f9!important}",
+      "body.dark .rec-func-card-tel{color:#cbd5e1!important}",
+      "body.dark .rec-func-form{background:#252830!important;border-color:#7c3aed!important}",
+      /* === FIXES PANEL EQUIPO / AGENTE === */
+      /* Asegurar que los iconos/emojis de botones sean visibles */
+      "#p-equipo button,#p-equipo a,#p-guardias button,#p-guardias a{opacity:1!important}",
+      "#p-equipo button *,#p-guardias button *{opacity:1!important;color:inherit}",
+      /* Botones de filtro (Hoy / Pendientes / Esta semana / Todas) más visibles */
+      "#p-equipo .ptop button,#p-equipo button[onclick*='filtrar'],#p-equipo button[onclick*='Filter']," +
+        "#p-equipo button[onclick*='Hoy'],#p-equipo button[onclick*='Semana']{" +
+        "background:#fff!important;border:1px solid #e5e7eb!important;color:#374151!important;" +
+        "padding:7px 12px!important;border-radius:8px!important;font-size:11px!important;" +
+        "font-weight:600!important;cursor:pointer!important;opacity:1!important}",
+      "#p-equipo button[onclick*='filtrar']:hover{background:#f3f4f6!important;border-color:#a78bfa!important}",
+      "body.dark #p-equipo button[onclick*='filtrar']{background:#2a2d38!important;color:#e2e8f0!important;border-color:#373b47!important}",
+      /* Botones del top-right (WhatsApp / Tareas del día / Cerrar): que no se superpongan */
+      "#p-equipo .ptop,#p-guardias .ptop{flex-wrap:wrap!important;gap:10px!important;align-items:center!important}",
+      "#p-equipo [class*='top-actions'],#p-equipo [class*='head-actions'],#p-equipo [class*='agent-actions']{" +
+        "display:flex!important;flex-wrap:wrap!important;gap:8px!important;align-items:center!important;" +
+        "position:relative!important}",
+      "#p-equipo a[href*='wa.me'],#p-equipo button[onclick*='whatsapp'],#p-equipo button[onclick*='WhatsApp']," +
+        "#p-equipo button[onclick*='abrirWa']{" +
+        "margin:0 4px!important;position:relative!important;white-space:nowrap}",
+      "#p-equipo button[onclick*='tareasDel'],#p-equipo button[onclick*='TareasDel']{" +
+        "margin:0 4px!important;position:relative!important;white-space:nowrap}",
+      "#p-equipo button[onclick*='cerrar'],#p-equipo button[onclick*='Cerrar'],#p-equipo button[onclick*='close']{" +
+        "margin:0 4px!important;position:relative!important;white-space:nowrap}",
       ".rec-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));" +
         "gap:12px;margin-bottom:24px}",
       ".rec-card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;" +
@@ -1010,7 +1219,7 @@
     }, 500);
 
     try {
-      console.log("%c[mejoras1.js v2.0] reclamos completo + agenda + sin métricas",
+      console.log("%c[mejoras1.js v2.1] agenda + fixes equipo",
                   "color:#7c3aed;font-weight:bold");
     } catch(_){}
   }
