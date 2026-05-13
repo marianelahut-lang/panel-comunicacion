@@ -1,12 +1,12 @@
 /* ============================================================
    MEJORAS1.JS - Panel Comunicación Tres Arroyos
-   v3.0 · Supabase: reclamos/contactos/funcionarios SINCRONIZADOS
+   v3.1 · Reclamos + Funcionarios sincronizados (Contactos = panel original)
    ------------------------------------------------------------
-   GRAN CAMBIO: los datos ahora se guardan en la base de datos
-   Supabase, no solo en el navegador. Esto significa:
-   · Si Lina carga un reclamo, Marianela lo ve al instante.
-   · Si Marianela carga un teléfono, Lina lo ve.
-   · Si borrás el historial del navegador, NO se pierde nada.
+   Los Reclamos vecinales y los Funcionarios se guardan en
+   Supabase (todos los agentes ven lo mismo, tiempo real, no se
+   pierden al borrar el historial).
+   El módulo "Contactos de medios" (con Gacetilla masiva) lo
+   maneja el panel original, no lo tocamos.
    ------------------------------------------------------------
    1. Captura errores globales sin romper la UI.
    2. Garantiza placeholders sbt/sbm/sbag (fix textContent null).
@@ -1641,15 +1641,9 @@
       renderReclamosModulo();
     }
 
-    // Módulo Contactos de medios (CRUD)
-    var contactosDiv = document.getElementById("p-contactos");
-    if(!contactosDiv){
-      contactosDiv = document.createElement("div");
-      contactosDiv.id = "p-contactos";
-      contactosDiv.style.cssText = "display:none;overflow-y:auto;height:100%";
-      main.appendChild(contactosDiv);
-    }
-    renderContactosMediosModulo();
+    // NOTA v3.1: el módulo "Contactos de medios" lo maneja el panel original
+    // (ya tiene su propia UI con Gacetilla masiva, Julio, Adriana, etc.).
+    // Por eso NO creamos p-contactos ni renderizamos nuestro módulo acá.
 
     // Módulo Agenda de publicaciones (CRUD propio, reemplaza al original)
     var pubDiv = document.getElementById("p-publicaciones");
@@ -1865,20 +1859,11 @@
       try { r = orig.apply(this, arguments); } catch(e){ console.warn(e); }
       setTimeout(function(){
         actualizarBotonActivo();
-        // Re-renderizar mis módulos al entrar (por si el código original
-        // sobrescribió el contenido o intercepta el modal de creación)
-        if(pageId === "contactos"){
-          var cont = document.getElementById("p-contactos");
-          if(cont && !cont.querySelector(".cm-card, .cm-toolbar")){
-            renderContactosMediosModulo();
-          }
-        }
+        // v3.1: NO interceptamos nav('contactos') - lo maneja el panel original
         if(pageId === "publicaciones"){
           var cpub = document.getElementById("p-publicaciones");
           if(cpub){
-            // Siempre re-renderizar para que prevalezca mi módulo
             renderAgendaPublicacionesModulo();
-            // Ocultar el modal original de "Nueva publicación" si está visible
             cerrarModalPublicacionOriginal();
           }
         }
@@ -2598,6 +2583,7 @@
     observarSidebar();
 
     // Inicializar caches desde Supabase (async) y re-renderizar al terminar
+    // v3.1: SOLO Reclamos y Funcionarios. Contactos lo maneja el panel original.
     setTimeout(function(){
       inicializarReclamosDesdeSpb().then(function(){
         renderReclamosModulo();
@@ -2610,18 +2596,9 @@
           }
         });
       });
-      inicializarContactosDesdeSpb().then(function(){
-        renderContactosMediosModulo();
-        configurarRealtime("contactos_medios", function(p){
-          aplicarEventoCache(_contactosCache, p);
-          var pC = document.getElementById("p-contactos");
-          if(pC && pC.style.display !== "none") renderContactosMediosModulo();
-        });
-      });
       inicializarFuncionariosDesdeSpb().then(function(){
         configurarRealtime("funcionarios_agenda", function(p){
           aplicarEventoCache(_funcionariosCache, p);
-          // Si el usuario está en la pestaña funcionarios, re-render
           var t = document.querySelector(".rec-tab.on");
           if(t && t.getAttribute("data-tab") === "funcionarios" && window._recTab){
             window._recTab("funcionarios");
@@ -2670,7 +2647,7 @@
     } catch(_){}
 
     try {
-      console.log("%c[mejoras1.js v3.0.1] Supabase sincronizado (fix null)",
+      console.log("%c[mejoras1.js v3.1] Reclamos+Funcionarios sincronizados · Contactos=original",
                   "color:#7c3aed;font-weight:bold");
     } catch(_){}
   }
