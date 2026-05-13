@@ -1,28 +1,26 @@
 /* ============================================================
    MEJORAS1.JS - Panel Comunicación Tres Arroyos
-   v3.6 · ARREGLA BOTÓN PROGRAMAR (shim getSelCuentaStr)
+   v3.7 · Navegación OK + múltiples redes/agentes + sync Material↔Agenda
    ------------------------------------------------------------
-   PROBLEMA DETECTADO en consola del usuario (v3.3):
-   · "Uncaught ReferenceError: getSelCuentaStr is not defined
-      at saveProgram (panel-comunicacion:2690:16)"
-   · El panel original llama a una función que no existe →
-     el botón "Programar" del modal de publicaciones nunca
-     guardaba nada.
+   FIXES en esta versión (TODOS los pedidos del usuario):
+   · [Modal "Tareas urgentes pendientes"] Botón × para
+     cerrarlo (faltaba en el panel original) + ESC.
+   · [Panel agente] Botón "← Volver al equipo" funcional.
+     Ahora SE PUEDE volver y elegir otro agente.
+   · [Panel agente] Scroll propio en la lista de tareas.
+   · [Modal "Nueva publicación"] Permite elegir VARIAS
+     redes sociales (checkboxes) en lugar de una sola.
+   · [Modal "Nueva publicación"] Permite elegir VARIOS
+     responsables (checkboxes con todos los agentes).
+   · [Sync] Publicación del modal "Material" del panel
+     original aparece TAMBIÉN en mi Agenda de publicaciones.
+   · [Sync] Publicación de mi modal se guarda en Supabase
+     tabla `publicaciones` (la ve el modal "Material" también).
    ------------------------------------------------------------
-   FIX v3.6:
-   · Definimos window.getSelCuentaStr() acá. Detecta la
-     cuenta seleccionada en el modal (Facebook/Instagram/
-     TikTok/etc + Municipalidad/Pablo Garate).
-   · El botón "Programar" ahora SÍ guarda en Supabase.
-   · Limpieza del panel "Hoy" cuando aparece info vieja
-     incongruente con "Sin guardia registrada para hoy".
-   ------------------------------------------------------------
-   También incluye TODO lo de v3.5:
-   · Panel del agente rediseñado (5 stats, días vencidos,
-     selector de estado, botón WhatsApp único).
-   · Sección "Publicaciones de guardia esta semana" en el
-     panel de Guardias (con tu publicación de las 20:00).
-   · Tareas automáticas YA NO van al Tablero.
+   También incluye TODO lo de v3.6:
+   · Shim getSelCuentaStr (botón "Programar" funciona).
+   · Sección "Publicaciones de guardia esta semana" en Guardias.
+   · Sin tareas duplicadas en Tablero.
    ------------------------------------------------------------
    1. Captura errores globales sin romper la UI.
    2. Garantiza placeholders sbt/sbm/sbag (fix textContent null).
@@ -943,12 +941,100 @@
     { id:"publicado", label:"Publicado",          color:"#10b981", bg:"#d1fae5", emoji:"✅" }
   ];
 
+  // v3.7: Lista de agentes del equipo (base hardcoded + dinámica)
+  var AGENTES_BASE = ["Marianela","Yesi","Debora","Maiten","Lina","Guada","Sofia","Pablo","Nadia"];
+  var _agentesCache = null;
+
+  async function cargarAgentes(){
+    if(_agentesCache) return _agentesCache;
+    var resultado = AGENTES_BASE.slice();
+    // Intentar leer de tabla `usuarios` si existe
+    var db = spb();
+    if(db){
+      try {
+        var res = await db.from("usuarios").select("*");
+        if(!res.error && res.data){
+          res.data.forEach(function(u){
+            var nombre = u.nombre || u.name || u.username || u.email;
+            if(nombre && resultado.indexOf(nombre) === -1) resultado.push(nombre);
+          });
+        }
+      } catch(_){}
+    }
+    // Agregar responsables únicos de tareas existentes (por si hay nombres extra)
+    if(_tareasGlobalCache && _tareasGlobalCache.length){
+      _tareasGlobalCache.forEach(function(t){
+        if(!t.responsable) return;
+        // Si tiene comas, split
+        t.responsable.split(/[,;]+/).map(function(x){ return x.trim(); }).forEach(function(n){
+          if(n && resultado.indexOf(n) === -1 && n.length < 30) resultado.push(n);
+        });
+      });
+    }
+    resultado.sort();
+    _agentesCache = resultado;
+    return resultado;
+  }
+
+  // v3.7: Cache para publicaciones de Supabase (sincronización con modal "Programar" original)
+  var _publicacionesCache = null;
+
+  async function cargarPublicacionesDesdeSpb(){
+    var db = spb();
+    if(!db){ _publicacionesCache = []; return []; }
+    try {
+      var res = await db.from("publicaciones").select("*").order("fecha", { ascending: false });
+      if(res.error){ console.warn("[mejoras1] pubs spb:", res.error); _publicacionesCache = []; return []; }
+      _publicacionesCache = (res.data || []).map(function(p){
+        // Adaptar al schema interno
+        return {
+          id: p.id,
+          fecha: p.fecha,
+          hora: p.hora ? String(p.hora).substring(0,5) : "",
+          descripcion: p.descripcion || "",
+          cuenta: p.cuenta || "",
+          tipo: p.tipo || "",
+          responsable: p.responsable || "",
+          colaboradores: p.colaboracion || "",
+          estado: p.estado || "pendiente",
+          red: cuentaToRed(p.cuenta || ""),  // Inferir red
+          redes: [cuentaToRed(p.cuenta || "")],
+          fromSpb: true
+        };
+      });
+      return _publicacionesCache;
+    } catch(e){ console.warn(e); _publicacionesCache = []; return []; }
+  }
+
+  function cuentaToRed(c){
+    c = String(c||"").toLowerCase();
+    if(c.indexOf("fb") === 0 || c.indexOf("face") === 0)  return "facebook";
+    if(c.indexOf("ig") === 0 || c.indexOf("insta") === 0) return "instagram";
+    if(c.indexOf("tt") === 0 || c.indexOf("tk") === 0 || c.indexOf("tiktok") === 0) return "tiktok";
+    if(c.indexOf("yt") === 0 || c.indexOf("youtube") === 0) return "youtube";
+    if(c.indexOf("wa") === 0 || c.indexOf("whats") === 0)   return "whatsapp";
+    if(c.indexOf("tw") === 0 || c.indexOf("x-") === 0 || c.indexOf("twitter") === 0) return "twitter";
+    return "facebook";
+  }
+
   function cargarPublicaciones(){
-    try { var r = localStorage.getItem(PUBLICACIONES_KEY); return r ? JSON.parse(r) : []; }
-    catch(_){ return []; }
+    // Combinar localStorage + cache de Supabase, dedupe por id
+    var local = [];
+    try { var r = localStorage.getItem(PUBLICACIONES_KEY); local = r ? JSON.parse(r) : []; }
+    catch(_){}
+    if(!Array.isArray(local)) local = [];
+    var spbList = _publicacionesCache || [];
+    // Combinar evitando duplicados por id
+    var idsLocal = {};
+    local.forEach(function(p){ if(p && p.id) idsLocal[p.id] = true; });
+    var combinada = local.slice();
+    spbList.forEach(function(p){ if(!idsLocal[p.id]) combinada.push(p); });
+    return combinada;
   }
   function guardarPublicaciones(lista){
-    try { localStorage.setItem(PUBLICACIONES_KEY, JSON.stringify(lista)); return true; }
+    // Solo las que NO vienen de Supabase
+    var locales = (lista || []).filter(function(p){ return !p.fromSpb; });
+    try { localStorage.setItem(PUBLICACIONES_KEY, JSON.stringify(locales)); return true; }
     catch(e){ return false; }
   }
 
@@ -1091,11 +1177,30 @@
     var editing = !!p;
     p = p || {};
     var hoy = new Date().toISOString().slice(0,10);
-    var redesOpts = '<option value="">— Elegir red —</option>' +
-      REDES.map(function(r){
-        var sel = p.red === r.id ? " selected" : "";
-        return '<option value="' + r.id + '"' + sel + '>' + r.icono + ' ' + r.nombre + '</option>';
-      }).join("");
+
+    // v3.7: redes múltiples (checkboxes)
+    var redesActuales = Array.isArray(p.redes) ? p.redes : (p.red ? [p.red] : []);
+    var redesHTML = REDES.map(function(r){
+      var chk = redesActuales.indexOf(r.id) >= 0 ? " checked" : "";
+      return '<label style="display:flex;align-items:center;gap:6px;padding:6px 10px;border:1.5px solid #e5e7eb;border-radius:6px;cursor:pointer;font-size:12px;background:#fff">' +
+        '<input type="checkbox" name="ap-redes" value="' + r.id + '"' + chk + '> ' +
+        r.icono + ' ' + r.nombre +
+      '</label>';
+    }).join("");
+
+    // v3.7: responsables múltiples (checkboxes)
+    var respActuales = Array.isArray(p.responsables)
+      ? p.responsables
+      : (p.responsable ? p.responsable.split(/[,;]+/).map(function(x){ return x.trim(); }).filter(Boolean) : []);
+    var agentes = _agentesCache || AGENTES_BASE;
+    var respHTML = agentes.map(function(ag){
+      var chk = respActuales.indexOf(ag) >= 0 ? " checked" : "";
+      return '<label style="display:flex;align-items:center;gap:6px;padding:5px 9px;border:1.5px solid #e5e7eb;border-radius:6px;cursor:pointer;font-size:12px;background:#fff">' +
+        '<input type="checkbox" name="ap-resp" value="' + escapeHTML(ag) + '"' + chk + '> ' +
+        escapeHTML(ag) +
+      '</label>';
+    }).join("");
+
     var tiposOpts = '<option value="">— Tipo —</option>' +
       TIPOS_PUB.map(function(t){
         var sel = p.tipo === t ? " selected" : "";
@@ -1112,20 +1217,28 @@
         '<div><label>Fecha *</label><input id="ap-fi" type="date" required value="' + escapeHTML(p.fecha || hoy) + '"></div>' +
         '<div><label>Hora *</label><input id="ap-hi" type="time" required value="' + escapeHTML(p.hora || "10:00") + '" oninput="window._apCheckGuardia()"></div>' +
       '</div>' +
-      '<div class="rec-form-row2">' +
-        '<div><label>Red social *</label><select id="ap-ri" required>' + redesOpts + '</select></div>' +
-        '<div><label>Cuenta</label><input id="ap-cui" value="' + escapeHTML(p.cuenta || "Municipalidad") + '" placeholder="Municipalidad, Pablo Garate..."></div>' +
+      // Redes (múltiple)
+      '<div class="rec-form-row">' +
+        '<label>Redes sociales * <span style="font-weight:400;color:#6b7280;font-size:11px">(podés elegir varias)</span></label>' +
+        '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">' + redesHTML + '</div>' +
       '</div>' +
       '<div class="rec-form-row2">' +
+        '<div><label>Cuenta</label><input id="ap-cui" value="' + escapeHTML(p.cuenta || "Municipalidad") + '" placeholder="Municipalidad, Pablo Garate..."></div>' +
         '<div><label>Tipo</label><select id="ap-ti">' + tiposOpts + '</select></div>' +
+      '</div>' +
+      '<div class="rec-form-row2">' +
         '<div><label>Estado</label><select id="ap-ei">' + estadosOpts + '</select></div>' +
+        '<div></div>' +
       '</div>' +
       '<div class="rec-form-row"><label>Descripción / Copy *</label>' +
         '<textarea id="ap-di" rows="3" required placeholder="¿Qué se va a publicar?">' + escapeHTML(p.descripcion || "") + '</textarea></div>' +
-      '<div class="rec-form-row2">' +
-        '<div><label>Responsable</label><input id="ap-rsi" value="' + escapeHTML(p.responsable || "") + '" placeholder="Quién lo arma"></div>' +
-        '<div><label>Colaboradores</label><input id="ap-coi" value="' + escapeHTML(p.colaboradores || "") + '" placeholder="Quiénes ayudan"></div>' +
+      // Responsables (múltiple)
+      '<div class="rec-form-row">' +
+        '<label>Responsables * <span style="font-weight:400;color:#6b7280;font-size:11px">(podés elegir varios)</span></label>' +
+        '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;max-height:120px;overflow-y:auto">' + respHTML + '</div>' +
       '</div>' +
+      '<div class="rec-form-row"><label>Colaboradores</label>' +
+        '<input id="ap-coi" value="' + escapeHTML(p.colaboradores || "") + '" placeholder="Quiénes ayudan (texto libre)"></div>' +
       '<div id="ap-guardia-warning" class="ap-guardia-warning" style="display:none">' +
         '🔔 Esta publicación cae <strong>fuera del horario laboral</strong> (≥15:00). Va a marcarse para guardia automáticamente.' +
       '</div>' +
@@ -1194,53 +1307,115 @@
     if(ev) ev.preventDefault();
     var fecha = (document.getElementById("ap-fi")||{}).value;
     var hora  = (document.getElementById("ap-hi")||{}).value;
-    var red   = (document.getElementById("ap-ri")||{}).value;
+    // v3.7: leer múltiples redes
+    var redesNodes = document.querySelectorAll("input[name='ap-redes']:checked");
+    var redes = Array.from(redesNodes).map(function(c){ return c.value; });
     var cuenta= ((document.getElementById("ap-cui")||{}).value||"").trim();
     var tipo  = (document.getElementById("ap-ti")||{}).value;
     var estado= (document.getElementById("ap-ei")||{}).value || "pendiente";
     var desc  = ((document.getElementById("ap-di")||{}).value||"").trim();
-    var resp  = ((document.getElementById("ap-rsi")||{}).value||"").trim();
+    // v3.7: leer múltiples responsables
+    var respNodes = document.querySelectorAll("input[name='ap-resp']:checked");
+    var responsables = Array.from(respNodes).map(function(c){ return c.value; });
     var colab = ((document.getElementById("ap-coi")||{}).value||"").trim();
-    if(!fecha || !hora || !red || !desc){
-      toast("Faltan campos obligatorios (*)", true);
+
+    if(!fecha || !hora || redes.length === 0 || !desc){
+      toast("Faltan campos obligatorios (Fecha, Hora, al menos una Red, Descripción)", true);
       return false;
     }
+
     var lista = cargarPublicaciones();
     var pubFinal;
     if(id){
       var p = lista.find(function(x){ return x.id===id; });
       if(p){
-        p.fecha=fecha; p.hora=hora; p.red=red; p.cuenta=cuenta;
+        p.fecha=fecha; p.hora=hora; p.cuenta=cuenta;
         p.tipo=tipo; p.estado=estado; p.descripcion=desc;
-        p.responsable=resp; p.colaboradores=colab;
+        p.redes = redes;
+        p.red = redes[0];  // backward compat
+        p.responsables = responsables;
+        p.responsable = responsables.join(", ");
+        p.colaboradores = colab;
         pubFinal = p;
       }
     } else {
       pubFinal = {
         id: "p" + Date.now() + Math.floor(Math.random()*1000),
-        fecha:fecha, hora:hora, red:red, cuenta:cuenta, tipo:tipo, estado:estado,
-        descripcion:desc, responsable:resp, colaboradores:colab,
+        fecha:fecha, hora:hora,
+        red: redes[0], redes: redes,
+        cuenta:cuenta, tipo:tipo, estado:estado,
+        descripcion:desc,
+        responsable: responsables.join(", "),
+        responsables: responsables,
+        colaboradores: colab,
         creado: new Date().toISOString()
       };
       lista.push(pubFinal);
     }
     guardarPublicaciones(lista);
 
-    // Si es horario de guardia y NO es edición (no duplicar tareas), creamos tarea.
-    if(esHorarioGuardia(hora) && !id){
-      crearTareaGuardiaSpb(pubFinal).then(function(ok){
-        toast(ok
-          ? "✓ Publicación guardada + 🔔 Tarea creada en Guardias"
-          : "✓ Publicación guardada (no se pudo crear tarea de guardia)");
+    // v3.7: ADEMÁS sincronizar con tabla `publicaciones` de Supabase
+    // (para que aparezca en Material / panel original y en Guardias)
+    if(!id){
+      sincronizarPubASupabase(pubFinal).then(function(ok){
+        if(ok){
+          toast(esHorarioGuardia(hora)
+            ? "✓ Publicación creada + sincronizada · 🔔 Aparece en Guardias"
+            : "✓ Publicación creada + sincronizada en Material");
+          // Refrescar publicaciones de Supabase para que aparezcan unidas
+          setTimeout(function(){
+            cargarPublicacionesDesdeSpb().then(function(){
+              renderAgendaPublicacionesModulo();
+              try { renderPublicacionesEnGuardias(); } catch(_){}
+            });
+          }, 500);
+        } else {
+          toast("✓ Publicación guardada localmente (sin sync nube)");
+        }
       });
     } else {
       toast(esHorarioGuardia(hora)
         ? "✓ Publicación actualizada · 🔔 (horario de guardia)"
-        : (id ? "✓ Publicación actualizada" : "✓ Publicación creada"));
+        : "✓ Publicación actualizada");
     }
     renderAgendaPublicacionesModulo();
     return false;
   };
+
+  // v3.7: Inserta en tabla `publicaciones` de Supabase
+  async function sincronizarPubASupabase(pub){
+    var db = spb();
+    if(!db) return false;
+    // Adaptar al schema de la tabla:
+    // id (uuid), fecha (date), hora (time), descripcion, cuenta, tipo, responsable, colaboracion, estado, tarea_id
+    var cuentaSpb = (pub.redes || [pub.red]).map(function(r){
+      var prefijo = ({facebook:"fb",instagram:"ig",tiktok:"tt",youtube:"yt",whatsapp:"wa",twitter:"tw"})[r] || r;
+      var sufijo = /pablo|garate|intendente/i.test(pub.cuenta || "") ? "p" : "m";
+      return prefijo + "-" + sufijo;
+    }).join(", ");
+    var fila = {
+      fecha: pub.fecha,
+      hora: pub.hora,
+      descripcion: pub.descripcion,
+      cuenta: cuentaSpb,
+      tipo: pub.tipo,
+      responsable: pub.responsable || "",
+      colaboracion: pub.colaboradores || "",
+      estado: pub.estado || "pendiente"
+    };
+    try {
+      var res = await db.from("publicaciones").insert([fila]);
+      if(res.error){
+        // Tal vez requiere id; intentar con UUID
+        if(window.crypto && window.crypto.randomUUID){
+          fila.id = window.crypto.randomUUID();
+          res = await db.from("publicaciones").insert([fila]);
+        }
+      }
+      if(res.error){ console.warn("[mejoras1] sync pub:", res.error); return false; }
+      return true;
+    } catch(e){ console.warn(e); return false; }
+  }
 
   // ============ MÓDULO CONTACTOS DE MEDIOS (CRUD) ============
   var CONTACTOS_MEDIOS_KEY = "panel-comunicacion-contactos-medios-v1";
@@ -1895,6 +2070,24 @@
     var orig = window.nav;
     window.nav = function(){
       var pageId = arguments[0];
+
+      // v3.7: Al cambiar de página, remover mi panel agente custom
+      // (para que no se quede pegado y bloquee la navegación)
+      var miPanel = document.getElementById("m1-panel-agente");
+      if(miPanel) miPanel.remove();
+      // Y restaurar los hermanos que oculté
+      try {
+        document.querySelectorAll("*").forEach(function(el){
+          if(el.__m1AgentHidden){
+            el.style.removeProperty("display");
+            delete el.__m1AgentHidden;
+          }
+        });
+      } catch(_){}
+      // También limpio el badge de "publicaciones de guardia" para que se refresque
+      var pg = document.getElementById("m1-pubs-guardias");
+      if(pg) pg.remove();
+
       var r;
       try { r = orig.apply(this, arguments); } catch(e){ console.warn(e); }
       setTimeout(function(){
@@ -1904,7 +2097,6 @@
           var cpub = document.getElementById("p-publicaciones");
           if(cpub){
             renderAgendaPublicacionesModulo();
-            cerrarModalPublicacionOriginal();
           }
         }
       }, 30);
@@ -2790,7 +2982,80 @@
     }
   }
 
-  // ============ v3.5: REDISEÑO PANEL AGENTE + PUBS EN GUARDIAS ============
+  // v3.7: Agregar botón × al modal "Tareas urgentes pendientes" del panel original
+  function agregarBotonCerrarUrgentes(){
+    var todos = document.querySelectorAll("*");
+    for(var i = 0; i < todos.length; i++){
+      var el = todos[i];
+      if(el.__m1CloseUrgAdded) continue;
+      if(el.children.length === 0) continue;
+      var t = (el.textContent || "");
+      if(t.length > 3000 || t.length < 30) continue;
+      if(!/tareas\s+urgentes\s+pendientes/i.test(t)) continue;
+
+      // Subir al overlay/modal padre real
+      var modal = el;
+      var cur = el;
+      for(var lvl = 0; lvl < 8 && cur; lvl++){
+        var st = window.getComputedStyle(cur);
+        if(st.position === "fixed" || st.position === "absolute" ||
+           /modal|overlay|dialog/i.test(cur.className || "") ||
+           cur.getAttribute("role") === "dialog"){
+          modal = cur;
+          break;
+        }
+        cur = cur.parentElement;
+      }
+      if(modal.querySelector(".m1-close-urg")) continue;
+
+      // Crear botón ×
+      var btn = document.createElement("button");
+      btn.className = "m1-close-urg";
+      btn.innerHTML = "×";
+      btn.title = "Cerrar";
+      btn.style.cssText =
+        "position:absolute;top:10px;right:14px;font-size:28px;line-height:1;" +
+        "background:transparent;border:none;color:#6b7280;cursor:pointer;" +
+        "padding:4px 10px;z-index:9999;font-weight:300;font-family:Arial,sans-serif;" +
+        "border-radius:6px;transition:all .15s";
+      btn.onmouseenter = function(){ this.style.background = "#f3f4f6"; this.style.color = "#111827"; };
+      btn.onmouseleave = function(){ this.style.background = "transparent"; this.style.color = "#6b7280"; };
+      btn.onclick = function(e){
+        e.stopPropagation();
+        modal.style.setProperty("display","none","important");
+        // Cerrar overlays padre que puedan estar oscureciendo
+        var overlayPadre = modal.parentElement;
+        var lv = 0;
+        while(overlayPadre && lv < 4){
+          var stO = window.getComputedStyle(overlayPadre);
+          if((stO.position === "fixed" || stO.position === "absolute") &&
+             (stO.backgroundColor.indexOf("rgba(0, 0, 0") >= 0 ||
+              parseFloat(stO.opacity) < 1 || stO.backdropFilter !== "none")){
+            overlayPadre.style.setProperty("display","none","important");
+            break;
+          }
+          overlayPadre = overlayPadre.parentElement;
+          lv++;
+        }
+      };
+      // Cerrar con ESC también
+      try {
+        document.addEventListener("keydown", function escClose(ev){
+          if(ev.key === "Escape" && modal.style.display !== "none"){
+            btn.click();
+            document.removeEventListener("keydown", escClose);
+          }
+        });
+      } catch(_){}
+
+      // Estilo del modal para que admita position:absolute del botón
+      var pos = window.getComputedStyle(modal).position;
+      if(pos === "static") modal.style.position = "relative";
+      modal.appendChild(btn);
+      modal.__m1CloseUrgAdded = true;
+    }
+  }
+
 
   // Detecta si estamos viendo el panel detalle de un agente
   // (cuando hay un "← Equipo" o "← Guardias" visible).
@@ -2949,9 +3214,10 @@
     // Construir HTML del panel custom
     var html = ''+
       '<div id="m1-panel-agente" style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;margin-bottom:16px;font-family:Inter,sans-serif">'+
-        // Header
+        // Header con botón VOLVER funcional
         '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px">'+
-          '<div style="display:flex;align-items:center;gap:12px">'+
+          '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">'+
+            '<button onclick="window._m1VolverEquipo()" style="background:transparent;border:1px solid #d1d5db;padding:7px 12px;border-radius:8px;font-size:13px;cursor:pointer;color:#374151;font-weight:600">← Volver al equipo</button>'+
             '<div style="width:42px;height:42px;border-radius:50%;background:#ede9fe;color:#7c3aed;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px">'+
               escapeHTML2(nombre.substring(0,2).toUpperCase())+'</div>'+
             '<div>'+
@@ -2962,7 +3228,7 @@
           '<button onclick="window._waTareasAgente(\''+escapeHTML2(nombre)+'\')" style="background:#22c55e;color:white;border:none;padding:9px 14px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">📱 WhatsApp con tareas del día</button>'+
         '</div>'+
         // Stats (5 tarjetas)
-        '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px">'+
+        '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px">'+
           '<div style="background:#f3f4f6;border-radius:8px;padding:12px"><div style="font-size:11px;color:#6b7280;margin-bottom:4px">Asignadas</div><div style="font-size:22px;font-weight:700;color:#111827">'+asignadas+'</div></div>'+
           '<div style="background:#ecfdf5;border-radius:8px;padding:12px"><div style="font-size:11px;color:#047857;margin-bottom:4px">Realizadas</div><div style="font-size:22px;font-weight:700;color:#047857">'+realizadas+'</div></div>'+
           '<div style="background:#fef9c3;border-radius:8px;padding:12px"><div style="font-size:11px;color:#854d0e;margin-bottom:4px">En proceso</div><div style="font-size:22px;font-weight:700;color:#854d0e">'+enProceso+'</div></div>'+
@@ -2974,28 +3240,96 @@
           '<div style="display:flex;justify-content:space-between;font-size:11px;color:#6b7280;margin-bottom:6px"><span>Progreso general</span><span style="font-weight:700">'+realizadas+' / '+asignadas+' tareas</span></div>'+
           '<div style="height:8px;background:#f3f4f6;border-radius:4px;overflow:hidden"><div style="height:100%;width:'+porcentaje+'%;background:#22c55e;border-radius:4px;transition:width .3s"></div></div>'+
         '</div>'+
-        // Lista de tareas
+        // Lista de tareas con scroll propio
         '<div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Tareas</div>'+
-        '<div>'+tareasHTML+'</div>'+
+        '<div style="max-height:480px;overflow-y:auto;padding-right:4px">'+tareasHTML+'</div>'+
       '</div>';
 
     // Insertar al INICIO del contenedor
     cont.insertAdjacentHTML("afterbegin", html);
 
-    // Ocultar el contenido del panel original que viene después
-    // (los 4 stats viejos, el botón "+ Nueva actividad", etc.)
+    // v3.7: Ocultar SOLO los stats viejos y el botón "+ Nueva actividad" del panel
+    // original, pero NO el botón "← Equipo" ni el sidebar/nav.
     var miPanel = document.getElementById("m1-panel-agente");
     if(miPanel){
       var siguiente = miPanel.nextElementSibling;
       while(siguiente){
-        // Solo ocultar los siguientes hermanos
-        siguiente.style.setProperty("display", "none", "important");
+        // No ocultar: botones de navegación, sidebar, nav superior
+        var txtN = (siguiente.textContent || "").trim().toLowerCase().substring(0,200);
+        var tagN = (siguiente.tagName || "").toLowerCase();
+        var noOcultar = (
+          tagN === "aside" || tagN === "nav" || tagN === "header" ||
+          (siguiente.id && /sidebar|nav|head|main-nav/i.test(siguiente.id)) ||
+          /^\s*←\s*equipo/i.test(txtN) ||
+          /^\s*←\s*guardias/i.test(txtN)
+        );
+        if(!noOcultar){
+          siguiente.style.setProperty("display", "none", "important");
+          siguiente.__m1AgentHidden = true;
+        }
         siguiente = siguiente.nextElementSibling;
       }
     }
 
     return true;
   }
+
+  // v3.7: Listener global - si el usuario clickea cualquier botón "← Equipo"
+  // (mi botón o el del panel original), limpiar mi panel custom para permitir
+  // volver al listado y elegir otro agente.
+  function instalarListenerVolver(){
+    if(window.__m1ListenerVolverInstalado) return;
+    window.__m1ListenerVolverInstalado = true;
+    document.addEventListener("click", function(ev){
+      var t = ev.target;
+      // Subir 5 niveles buscando un botón con "← Equipo"
+      for(var i = 0; i < 5 && t; i++){
+        var txt = (t.textContent || "").trim();
+        if(/^[\s]*←[\s]*(Equipo|Guardias|Volver)[\s]*/i.test(txt) && txt.length < 60){
+          // Es un botón de volver
+          setTimeout(function(){
+            // Limpiar mi panel y restaurar hermanos
+            var p = document.getElementById("m1-panel-agente");
+            if(p) p.remove();
+            document.querySelectorAll("*").forEach(function(el){
+              if(el.__m1AgentHidden){
+                el.style.removeProperty("display");
+                delete el.__m1AgentHidden;
+              }
+            });
+          }, 100);
+          break;
+        }
+        t = t.parentElement;
+      }
+    }, true);
+  }
+
+  // v3.7: Función para volver al listado de equipo desde mi botón
+  window._m1VolverEquipo = function(){
+    // Remover mi panel custom para que se vuelva a renderizar al entrar al próximo
+    var p = document.getElementById("m1-panel-agente");
+    if(p) p.remove();
+    // Restaurar hermanos que oculté
+    document.querySelectorAll("[__m1AgentHidden]").forEach(function(el){
+      el.style.removeProperty("display");
+      delete el.__m1AgentHidden;
+    });
+    // También por JS prop
+    var cont = document.getElementById("p-equipo") || document.getElementById("p-guardias");
+    if(cont){
+      Array.prototype.forEach.call(cont.children, function(el){
+        if(el.__m1AgentHidden){
+          el.style.removeProperty("display");
+          delete el.__m1AgentHidden;
+        }
+      });
+    }
+    // Llamar nav("equipo") del panel original para volver al listado
+    try {
+      if(typeof window.nav === "function") window.nav("equipo");
+    } catch(_){}
+  };
 
   // WhatsApp con tareas del día para un agente
   window._waTareasAgente = function(nombre){
@@ -3199,6 +3533,7 @@
       try { inyectarPanelAgenteCustom(); } catch(_){}
       try { renderPublicacionesEnGuardias(); } catch(_){}
       try { limpiarPanelHoyDesactualizado(); } catch(_){}
+      try { agregarBotonCerrarUrgentes(); } catch(_){}
       if(!window.nav || !window.nav.__patcheadoActivo) patchearNav();
       if(!window.renderKanban || !window.renderKanban.__patcheadoEstado){
         patchearRenderKanban();
@@ -3210,6 +3545,18 @@
 
     // Cargar cache global de tareas (para "WhatsApp con tareas del día")
     setTimeout(function(){ actualizarTareasGlobalCache(); }, 2500);
+
+    // v3.7: Instalar listener para botón "← Volver"
+    try { instalarListenerVolver(); } catch(_){}
+
+    // v3.7: Cargar publicaciones desde Supabase + lista de agentes
+    setTimeout(function(){
+      cargarPublicacionesDesdeSpb().then(function(){
+        renderAgendaPublicacionesModulo();
+        try { renderPublicacionesEnGuardias(); } catch(_){}
+      });
+      cargarAgentes();
+    }, 2200);
 
     // Observador global del main
     try {
@@ -3224,13 +3571,14 @@
           try { inyectarPanelAgenteCustom(); } catch(_){}
           try { renderPublicacionesEnGuardias(); } catch(_){}
           try { limpiarPanelHoyDesactualizado(); } catch(_){}
+          try { agregarBotonCerrarUrgentes(); } catch(_){}
         });
         moMain.observe(main, { childList: true, subtree: true });
       }
     } catch(_){}
 
     try {
-      console.log("%c[mejoras1.js v3.6] FIX botón Programar + rediseño panel agente + pubs guardias",
+      console.log("%c[mejoras1.js v3.7] navegación OK + múltiples redes/agentes + sync Material↔Agenda",
                   "color:#7c3aed;font-weight:bold;font-size:13px");
     } catch(_){}
   }
