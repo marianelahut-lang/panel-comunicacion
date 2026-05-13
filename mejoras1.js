@@ -608,7 +608,8 @@
 
   function cargarFuncionariosAgenda(){
     if(_funcionariosCache && Array.isArray(_funcionariosCache)) return _funcionariosCache;
-    return cargarFuncionariosLocal() || [];
+    var local = cargarFuncionariosLocal();
+    return Array.isArray(local) ? local : [];
   }
   function cargarFuncionariosLocal(){
     try {
@@ -618,7 +619,7 @@
         if(Array.isArray(parsed)) return parsed;
       }
     } catch(_){}
-    return null;
+    return [];
   }
   function guardarFuncionariosLocal(lista){
     try { localStorage.setItem(FUNCIONARIOS_STORAGE_KEY, JSON.stringify(lista)); return true; }
@@ -1201,7 +1202,8 @@
 
   function cargarContactosMedios(){
     if(_contactosCache && Array.isArray(_contactosCache)) return _contactosCache;
-    return cargarContactosMediosLocal();
+    var local = cargarContactosMediosLocal();
+    return Array.isArray(local) ? local : [];
   }
   function cargarContactosMediosLocal(){
     try {
@@ -1211,7 +1213,7 @@
         if(Array.isArray(parsed)) return parsed;
       }
     } catch(_){}
-    return null; // null = nunca se guardó
+    return [];  // <-- siempre array, nunca null
   }
   function guardarContactosMediosLocal(lista){
     try { localStorage.setItem(CONTACTOS_MEDIOS_KEY, JSON.stringify(lista)); return true; }
@@ -1290,11 +1292,11 @@
   function renderContactosMediosModulo(){
     var cont = document.getElementById("p-contactos");
     if(!cont) return;
-    var lista = cargarContactosMedios();
+    var lista = cargarContactosMedios() || [];
 
     // Lista única de medios para el filtro
     var medios = {};
-    lista.forEach(function(c){ if(c.medio) medios[c.medio] = true; });
+    lista.forEach(function(c){ if(c && c.medio) medios[c.medio] = true; });
     var mediosArr = Object.keys(medios).sort();
     var mediosOpts = '<option value="">Todos los medios</option>' +
       mediosArr.map(function(m){
@@ -1330,8 +1332,10 @@
   }
 
   function renderContactosMediosCards(lista){
+    if(!Array.isArray(lista)) lista = [];
     if(!window._cmSeleccionados) window._cmSeleccionados = {};
     return lista.map(function(c){
+      if(!c) return "";
       var color = colorAvatar(c.id);
       var ini = iniciales(c.nombre || "?");
       var checked = window._cmSeleccionados[c.id] ? " checked" : "";
@@ -2666,7 +2670,7 @@
     } catch(_){}
 
     try {
-      console.log("%c[mejoras1.js v3.0] Supabase sincronizado · reclamos/contactos/funcionarios",
+      console.log("%c[mejoras1.js v3.0.1] Supabase sincronizado (fix null)",
                   "color:#7c3aed;font-weight:bold");
     } catch(_){}
   }
