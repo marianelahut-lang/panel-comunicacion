@@ -1,6 +1,13 @@
 /* ============================================================
    MEJORAS1.JS - Panel Comunicación Tres Arroyos
-   v3.1 · Reclamos + Funcionarios sincronizados (Contactos = panel original)
+   v3.2 · Guardia automática + scroll Kanban + calendario legible
+   ------------------------------------------------------------
+   NUEVO en esta versión:
+   · Publicación ≥15:00 → crea tarea automática en tabla `tareas`
+     (responsable "Guardia") visible en el Kanban del panel.
+   · Scroll del Kanban se mantiene al cambiar estado de tareas.
+   · Calendario: eventos más legibles (texto completo, celdas
+     más altas, hover ampliado).
    ------------------------------------------------------------
    Los Reclamos vecinales y los Funcionarios se guardan en
    Supabase (todos los agentes ven lo mismo, tiempo real, no se
@@ -1156,6 +1163,47 @@
     var w = document.getElementById("ap-guardia-warning");
     if(hi && w) w.style.display = esHorarioGuardia(hi.value) ? "block" : "none";
   };
+  // Crea una tarea de guardia en Supabase (tabla `tareas`) cuando una
+  // publicación es a partir de las 15:00. Responsable: "Guardia".
+  async function crearTareaGuardiaSpb(pub){
+    var db = spb();
+    if(!db) return false;
+    var fechaTxt = pub.fecha || "";
+    var redTxt = pub.red ? (pub.red.charAt(0).toUpperCase()+pub.red.slice(1)) : "";
+    var desc = "🔔 GUARDIA · " + (redTxt ? "[" + redTxt + "] " : "") +
+               (pub.descripcion || "") +
+               " (" + fechaTxt + " · " + (pub.hora||"") + ")";
+    var tarea = {
+      descripcion: desc,
+      responsable: "Guardia",
+      prioridad: "Alta",
+      estado: "Pendiente",
+      observaciones: "Generada automáticamente desde Agenda de publicaciones"
+    };
+    try {
+      // Probar primero sin id (asumiendo default gen_random_uuid)
+      var res = await db.from("tareas").insert([tarea]);
+      if(res.error){
+        // Si falla por id NULL, intentar con uuid generado del lado cliente
+        var uuid = (window.crypto && window.crypto.randomUUID)
+          ? window.crypto.randomUUID()
+          : "guard-" + Date.now() + "-" + Math.floor(Math.random()*1e6);
+        tarea.id = uuid;
+        res = await db.from("tareas").insert([tarea]);
+      }
+      if(res.error){
+        console.warn("[mejoras1] No pude crear tarea de guardia:", res.error);
+        return false;
+      }
+      // Forzar re-render del Kanban si el panel original lo tiene
+      try { if(typeof window.renderKanban === "function") window.renderKanban(); } catch(_){}
+      return true;
+    } catch(e){
+      console.warn("[mejoras1] Excepción creando tarea guardia:", e);
+      return false;
+    }
+  }
+
   window._apGuardar = function(ev, id){
     if(ev) ev.preventDefault();
     var fecha = (document.getElementById("ap-fi")||{}).value;
@@ -1172,25 +1220,38 @@
       return false;
     }
     var lista = cargarPublicaciones();
+    var pubFinal;
     if(id){
       var p = lista.find(function(x){ return x.id===id; });
       if(p){
         p.fecha=fecha; p.hora=hora; p.red=red; p.cuenta=cuenta;
         p.tipo=tipo; p.estado=estado; p.descripcion=desc;
         p.responsable=resp; p.colaboradores=colab;
+        pubFinal = p;
       }
     } else {
-      lista.push({
+      pubFinal = {
         id: "p" + Date.now() + Math.floor(Math.random()*1000),
         fecha:fecha, hora:hora, red:red, cuenta:cuenta, tipo:tipo, estado:estado,
         descripcion:desc, responsable:resp, colaboradores:colab,
         creado: new Date().toISOString()
-      });
+      };
+      lista.push(pubFinal);
     }
     guardarPublicaciones(lista);
-    toast(esHorarioGuardia(hora) ?
-      "✓ Guardado · 🔔 Marcada para guardia (≥15:00)" :
-      (id ? "✓ Publicación actualizada" : "✓ Publicación creada"));
+
+    // Si es horario de guardia y NO es edición (no duplicar tareas), creamos tarea.
+    if(esHorarioGuardia(hora) && !id){
+      crearTareaGuardiaSpb(pubFinal).then(function(ok){
+        toast(ok
+          ? "✓ Publicación guardada + 🔔 Tarea creada en Guardias"
+          : "✓ Publicación guardada (no se pudo crear tarea de guardia)");
+      });
+    } else {
+      toast(esHorarioGuardia(hora)
+        ? "✓ Publicación actualizada · 🔔 (horario de guardia)"
+        : (id ? "✓ Publicación actualizada" : "✓ Publicación creada"));
+    }
     renderAgendaPublicacionesModulo();
     return false;
   };
@@ -1986,17 +2047,58 @@
     });
   }
 
+  // ============ PRESERVAR SCROLL EN RE-RENDERS DEL KANBAN ============
+  // El Kanban se re-renderiza al cambiar estado de una tarea, lo que
+  // resetea el scroll de cada columna a 0. Guardamos y restauramos.
+  function _getKanbanScrolls(){
+    var out = { cols:[], main:null };
+    try {
+      // Scrolls individuales de cada columna
+      var cols = document.querySelectorAll(".kanban .kcol, .kanban .kcards, .kanban [class*='col']");
+      cols.forEach(function(c){ out.cols.push({ el:c, top:c.scrollTop, left:c.scrollLeft }); });
+      // Scroll del contenedor principal del panel (la página entera)
+      var main = document.getElementById("main");
+      if(main) out.main = { el:main, top:main.scrollTop, left:main.scrollLeft };
+      // window scroll también (por si el cuerpo es el que scrollea)
+      out.windowY = window.scrollY || 0;
+    } catch(_){}
+    return out;
+  }
+  function _setKanbanScrolls(saved){
+    if(!saved) return;
+    try {
+      saved.cols.forEach(function(c){
+        if(c.el && document.contains(c.el)){
+          c.el.scrollTop = c.top;
+          c.el.scrollLeft = c.left;
+        }
+      });
+      if(saved.main && saved.main.el && document.contains(saved.main.el)){
+        saved.main.el.scrollTop = saved.main.top;
+        saved.main.el.scrollLeft = saved.main.left;
+      }
+      if(typeof saved.windowY === "number") window.scrollTo(0, saved.windowY);
+    } catch(_){}
+  }
+
   function patchearRenderKanban(){
     if(typeof window.renderKanban !== "function") return false;
     if(window.renderKanban.__patcheadoEstado) return true;
     var orig = window.renderKanban;
     window.renderKanban = function(){
+      var scrollsBefore = _getKanbanScrolls();
       var r;
       try { r = orig.apply(this, arguments); } catch(e){ console.warn(e); }
+      // Restaurar scroll de inmediato (para reducir flash)
+      _setKanbanScrolls(scrollsBefore);
       setTimeout(function(){
         agregarSelectoresEnTarjetas();
         ocultarColumnaRealizada();
+        // Re-aplicar scroll después de los selectores
+        _setKanbanScrolls(scrollsBefore);
       }, 40);
+      // Y una vez más para estar seguros (mutaciones tardías)
+      setTimeout(function(){ _setKanbanScrolls(scrollsBefore); }, 150);
       return r;
     };
     window.renderKanban.__patcheadoEstado = true;
@@ -2481,7 +2583,33 @@
         "aside.sb .sbi{flex-shrink:0!important;width:auto!important;" +
           "padding:6px 10px!important}",
         ".ptop{flex-wrap:wrap!important;gap:8px!important}",
-      "}"
+      "}",
+      /* ===== Calendario: más altura y eventos legibles ===== */
+      /* Vista semanal/mensual del módulo Calendario del panel original */
+      ".cal-evt, .cal-event, [class*='evt'], .ev-pill, .evt-pill{" +
+        "padding:5px 7px!important;font-size:11px!important;" +
+        "line-height:1.3!important;border-radius:5px!important;" +
+        "min-height:auto!important;margin-bottom:2px!important;" +
+        "white-space:normal!important;overflow:hidden!important;" +
+        "text-overflow:ellipsis!important;display:block!important}",
+      /* Que el texto del evento no se trunque con ... a la primera línea */
+      ".cal-evt .title, .cal-event .title, [class*='evt'] .title{" +
+        "white-space:normal!important;overflow:hidden!important;" +
+        "display:-webkit-box!important;-webkit-line-clamp:2!important;" +
+        "-webkit-box-orient:vertical!important;font-weight:600!important}",
+      /* Celdas del calendario por hora - más altas */
+      ".cal-hour, .cal-row, .hour-row, [class*='hour-cell']{" +
+        "min-height:42px!important}",
+      /* Celdas del calendario por día - más espacio */
+      ".cal-day, .cal-cell, .day-cell, [class*='day-cell']{" +
+        "min-height:80px!important;padding:4px!important}",
+      /* Hover de eventos: ampliar y mostrar contenido completo */
+      ".cal-evt:hover, .cal-event:hover, [class*='evt']:hover{" +
+        "z-index:50!important;position:relative!important;" +
+        "box-shadow:0 4px 14px rgba(0,0,0,.18)!important;" +
+        "transform:scale(1.02)!important;transition:all .15s!important}",
+      /* Más espacio entre eventos del mismo slot horario */
+      ".cal-slot, .hour-cell{gap:2px!important}",
     ].join("");
     document.head.appendChild(st);
   }
@@ -2647,7 +2775,7 @@
     } catch(_){}
 
     try {
-      console.log("%c[mejoras1.js v3.1] Reclamos+Funcionarios sincronizados · Contactos=original",
+      console.log("%c[mejoras1.js v3.2] +guardia automática +scroll Kanban +calendario",
                   "color:#7c3aed;font-weight:bold");
     } catch(_){}
   }
