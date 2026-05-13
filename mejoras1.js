@@ -1026,7 +1026,7 @@
     // (Métricas: la usuaria pidió eliminarla)
     var OCULTOS = { "metricas": true };
     // Botones a RENOMBRAR: id → nuevo texto
-    var RENOMBRAR = { "publicaciones": "Agenda" };
+    var RENOMBRAR = { "publicaciones": "Agenda de publicaciones" };
 
     // Recordar elementos internos que el código existente referencia
     var fPanel    = document.getElementById("fPanel");
