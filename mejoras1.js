@@ -1,19 +1,22 @@
 /* ============================================================
    MEJORAS1.JS - Panel Comunicación Tres Arroyos
-   v3.2 · Guardia automática + scroll Kanban + calendario legible
+   v3.3 · Tipos reclamo + modal pub OK + guardia con responsable
    ------------------------------------------------------------
    NUEVO en esta versión:
-   · Publicación ≥15:00 → crea tarea automática en tabla `tareas`
-     (responsable "Guardia") visible en el Kanban del panel.
-   · Scroll del Kanban se mantiene al cambiar estado de tareas.
-   · Calendario: eventos más legibles (texto completo, celdas
-     más altas, hover ampliado).
+   · 5 tipos de reclamo nuevos: Higiene urbana, Barrido y
+     limpieza, Desarrollo Social, Salud, Localidades.
+   · El modal "Programar publicación" del panel original
+     vuelve a funcionar (sacamos el cierre forzado).
+   · Cualquier publicación que entre a la tabla
+     `publicaciones` (de mi modal o del panel original) si
+     es ≥15hs genera automáticamente una tarea con
+     responsable = el de la publicación → aparece en el
+     panel del agente.
+   · CSS calendario más agresivo (eventos legibles).
    ------------------------------------------------------------
    Los Reclamos vecinales y los Funcionarios se guardan en
-   Supabase (todos los agentes ven lo mismo, tiempo real, no se
-   pierden al borrar el historial).
-   El módulo "Contactos de medios" (con Gacetilla masiva) lo
-   maneja el panel original, no lo tocamos.
+   Supabase (sincronizados entre agentes, tiempo real).
+   El módulo "Contactos de medios" lo maneja el panel original.
    ------------------------------------------------------------
    1. Captura errores globales sin romper la UI.
    2. Garantiza placeholders sbt/sbm/sbag (fix textContent null).
@@ -80,6 +83,13 @@
     { reclamo:"Terreno en malas condiciones", funcionario:"Gabriel Francia",        telefono:"5492983385858", icono:"🌳" },
     { reclamo:"Inundados",                    funcionario:"Juan Apolonio",          telefono:"5492983409217", icono:"🌊" },
     { reclamo:"Pastos crecidos",              funcionario:"Juan Serna corporativo", telefono:"5491154842469", icono:"🌿" },
+    // ====== NUEVOS TIPOS v3.3 (sin teléfono — la usuaria los completa después) ======
+    { reclamo:"Higiene urbana",               funcionario:"A definir",              telefono:"",             icono:"🧹" },
+    { reclamo:"Barrido y limpieza",           funcionario:"A definir",              telefono:"",             icono:"🧽" },
+    { reclamo:"Desarrollo Social",            funcionario:"A definir",              telefono:"",             icono:"🤝" },
+    { reclamo:"Salud",                        funcionario:"A definir",              telefono:"",             icono:"🏥" },
+    { reclamo:"Localidades",                  funcionario:"A definir",              telefono:"",             icono:"📍" },
+    // ====== Genérico al final ======
     { reclamo:"Otros",                        funcionario:"Julián Tornini",         telefono:"5492983305218", icono:"📋" }
   ];
 
@@ -100,7 +110,10 @@
     "pérdida de agua":"💦","perdida de agua":"💦",
     "calles de tierra":"🛤️","basura en la calle":"🗑️",
     "terreno en malas condiciones":"🌳","inundados":"🌊",
-    "pastos crecidos":"🌿","otros":"📋"
+    "pastos crecidos":"🌿","otros":"📋",
+    // ====== Nuevos v3.3 ======
+    "higiene urbana":"🧹","barrido y limpieza":"🧽",
+    "desarrollo social":"🤝","salud":"🏥","localidades":"📍"
   };
 
   // Estados del seguimiento del reclamo
@@ -1164,21 +1177,27 @@
     if(hi && w) w.style.display = esHorarioGuardia(hi.value) ? "block" : "none";
   };
   // Crea una tarea de guardia en Supabase (tabla `tareas`) cuando una
-  // publicación es a partir de las 15:00. Responsable: "Guardia".
+  // publicación es a partir de las 15:00.
+  // v3.3: Responsable = el de la publicación (para que aparezca en
+  // el panel del agente). Si no hay, queda "Guardia".
   async function crearTareaGuardiaSpb(pub){
     var db = spb();
     if(!db) return false;
     var fechaTxt = pub.fecha || "";
-    var redTxt = pub.red ? (pub.red.charAt(0).toUpperCase()+pub.red.slice(1)) : "";
+    var redTxt = pub.red ? (pub.red.charAt(0).toUpperCase()+pub.red.slice(1))
+                         : (pub.cuenta ? String(pub.cuenta) : "");
     var desc = "🔔 GUARDIA · " + (redTxt ? "[" + redTxt + "] " : "") +
                (pub.descripcion || "") +
                " (" + fechaTxt + " · " + (pub.hora||"") + ")";
+    var responsable = (pub.responsable && String(pub.responsable).trim())
+                        ? String(pub.responsable).trim()
+                        : "Guardia";
     var tarea = {
       descripcion: desc,
-      responsable: "Guardia",
+      responsable: responsable,
       prioridad: "Alta",
       estado: "Pendiente",
-      observaciones: "Generada automáticamente desde Agenda de publicaciones"
+      observaciones: "Generada automáticamente desde publicación ≥15hs"
     };
     try {
       // Probar primero sin id (asumiendo default gen_random_uuid)
@@ -1676,16 +1695,9 @@
   // Cierra el modal "Nueva publicación" del código original cuando aparece
   // (lo abría desde el panel viejo de Publicaciones; ahora usamos mi módulo)
   function cerrarModalPublicacionOriginal(){
-    // Detectar overlays modales que contengan los campos típicos del viejo
-    document.querySelectorAll("[role='dialog'], [class*='modal'], [class*='overlay'], .pubModal").forEach(function(m){
-      if(m.__m1Closed) return;
-      var txt = (m.textContent || "").toLowerCase();
-      if((txt.indexOf("colaboración") >= 0 || txt.indexOf("colaboracion") >= 0) &&
-         txt.indexOf("cuenta") >= 0 && txt.indexOf("responsable") >= 0){
-        m.style.setProperty("display", "none", "important");
-        m.__m1Closed = true;
-      }
-    });
+    // v3.3: DESACTIVADO. El modal del panel original ("Programar publicación")
+    // tiene que funcionar para que la usuaria pueda usarlo. No lo cerramos.
+    return;
   }
 
   function crearContenedoresFaltantes(){
@@ -2584,32 +2596,39 @@
           "padding:6px 10px!important}",
         ".ptop{flex-wrap:wrap!important;gap:8px!important}",
       "}",
-      /* ===== Calendario: más altura y eventos legibles ===== */
-      /* Vista semanal/mensual del módulo Calendario del panel original */
-      ".cal-evt, .cal-event, [class*='evt'], .ev-pill, .evt-pill{" +
-        "padding:5px 7px!important;font-size:11px!important;" +
-        "line-height:1.3!important;border-radius:5px!important;" +
+      /* ===== Calendario v3.3: CSS más agresivo y general ===== */
+      /* Cualquier "tarjetita" dentro de un calendario: hacer texto legible */
+      "[id*='calendar'] [class*='event'], [id*='cal'] [class*='event']," +
+      "[id*='calendar'] [class*='evt'],   [id*='cal'] [class*='evt']," +
+      ".cal-evt, .cal-event, .ev-pill, .evt-pill, .event, .evento{" +
+        "padding:4px 6px!important;font-size:11px!important;" +
+        "line-height:1.25!important;border-radius:4px!important;" +
         "min-height:auto!important;margin-bottom:2px!important;" +
         "white-space:normal!important;overflow:hidden!important;" +
-        "text-overflow:ellipsis!important;display:block!important}",
-      /* Que el texto del evento no se trunque con ... a la primera línea */
-      ".cal-evt .title, .cal-event .title, [class*='evt'] .title{" +
-        "white-space:normal!important;overflow:hidden!important;" +
-        "display:-webkit-box!important;-webkit-line-clamp:2!important;" +
-        "-webkit-box-orient:vertical!important;font-weight:600!important}",
-      /* Celdas del calendario por hora - más altas */
-      ".cal-hour, .cal-row, .hour-row, [class*='hour-cell']{" +
-        "min-height:42px!important}",
-      /* Celdas del calendario por día - más espacio */
-      ".cal-day, .cal-cell, .day-cell, [class*='day-cell']{" +
-        "min-height:80px!important;padding:4px!important}",
+        "text-overflow:clip!important;display:block!important;" +
+        "word-break:break-word!important}",
+      /* Que el título del evento muestre hasta 3 líneas en vez de cortar */
+      "[id*='calendar'] [class*='event'] *, [id*='cal'] [class*='event'] *," +
+      "[id*='calendar'] [class*='evt'] *,   [id*='cal'] [class*='evt'] *{" +
+        "white-space:normal!important;text-overflow:clip!important;" +
+        "overflow:visible!important}",
+      /* Celdas de hora más altas */
+      "[id*='calendar'] [class*='hour'], [id*='cal'] [class*='hour']," +
+      "[id*='calendar'] [class*='row'],  [id*='cal'] [class*='row']," +
+      ".cal-hour, .cal-row, .hour-row{" +
+        "min-height:50px!important}",
+      /* Celdas de día más anchas y altas */
+      "[id*='calendar'] [class*='day'], [id*='cal'] [class*='day']," +
+      ".cal-day, .cal-cell, .day-cell{" +
+        "min-height:90px!important;padding:4px!important;vertical-align:top!important}",
       /* Hover de eventos: ampliar y mostrar contenido completo */
-      ".cal-evt:hover, .cal-event:hover, [class*='evt']:hover{" +
+      "[id*='calendar'] [class*='event']:hover, [id*='cal'] [class*='event']:hover," +
+      "[id*='calendar'] [class*='evt']:hover,   [id*='cal'] [class*='evt']:hover," +
+      ".cal-evt:hover, .cal-event:hover{" +
         "z-index:50!important;position:relative!important;" +
-        "box-shadow:0 4px 14px rgba(0,0,0,.18)!important;" +
-        "transform:scale(1.02)!important;transition:all .15s!important}",
-      /* Más espacio entre eventos del mismo slot horario */
-      ".cal-slot, .hour-cell{gap:2px!important}",
+        "box-shadow:0 6px 18px rgba(0,0,0,.20)!important;" +
+        "transform:scale(1.04)!important;transition:all .15s!important;" +
+        "max-height:none!important;overflow:visible!important}",
     ].join("");
     document.head.appendChild(st);
   }
@@ -2712,6 +2731,7 @@
 
     // Inicializar caches desde Supabase (async) y re-renderizar al terminar
     // v3.1: SOLO Reclamos y Funcionarios. Contactos lo maneja el panel original.
+    // v3.3: + Realtime sobre publicaciones para crear tareas de guardia automáticas.
     setTimeout(function(){
       inicializarReclamosDesdeSpb().then(function(){
         renderReclamosModulo();
@@ -2732,6 +2752,25 @@
             window._recTab("funcionarios");
           }
         });
+      });
+      // v3.3: Escuchar nuevas publicaciones (del panel original o el mío).
+      // Si la hora es ≥15:00, generar tarea de guardia automáticamente.
+      var _pubsProcesadas = {};
+      configurarRealtime("publicaciones", function(p){
+        if(p.eventType !== "INSERT" || !p.new) return;
+        var pub = p.new;
+        if(_pubsProcesadas[pub.id]) return;  // dedupe
+        _pubsProcesadas[pub.id] = true;
+        var hora = pub.hora ? String(pub.hora).substring(0,5) : "";
+        if(!hora) return;
+        if(esHorarioGuardia(hora)){
+          console.log("[mejoras1] Publicación ≥15hs detectada, creando tarea guardia:", pub);
+          crearTareaGuardiaSpb(pub).then(function(ok){
+            if(ok){
+              try { toast("🔔 Tarea de guardia creada (" + (pub.responsable||"sin responsable") + ")"); } catch(_){}
+            }
+          });
+        }
       });
     }, 1500);  // Damos tiempo a que el script inline cree window.db
 
@@ -2775,7 +2814,7 @@
     } catch(_){}
 
     try {
-      console.log("%c[mejoras1.js v3.2] +guardia automática +scroll Kanban +calendario",
+      console.log("%c[mejoras1.js v3.3] +tipos reclamo +modal pub OK +guardia c/responsable",
                   "color:#7c3aed;font-weight:bold");
     } catch(_){}
   }
