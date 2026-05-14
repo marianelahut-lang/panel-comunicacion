@@ -6771,5 +6771,492 @@ console.log("✅ Parche v5.71 OK — eliminar coberturas/pubs + hover suave + bo
 })();
 </script>
 
+<!-- ============================================================
+     PARCHE v5.72 — Rediseño visual del módulo Calendario
+     · Solo afecta #p-calendario (resto intacto)
+     · No toca lógica GCal, fetch, IDs ni estructura de eventos
+     · Mejora: header premium, nav limpia, cards de eventos con
+       jerarquía clara, colores suaves con buen contraste, hover
+       elegante, badges de tipo/estado, día actual destacado,
+       línea de hora actual con glow, dark mode pulido,
+       scrollbar discreto, animaciones sutiles.
+     · Agrega botón flotante de "vista día/semana" si entra.
+     ============================================================ -->
+<script>
+(function(){
+"use strict";
+
+/* ────────────────────────────────────────────────────────────
+   CSS — todo prefijado a #p-calendario (excepto modal evpanel)
+   ──────────────────────────────────────────────────────────── */
+var st = document.createElement("style");
+st.id = "v572-css";
+st.textContent = `
+/* ═══ HEADER del módulo Calendario (banner premium) ═══ */
+#p-calendario .ptop{
+  padding:14px 18px;
+  margin:0 0 10px;
+  background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 60%,#ec4899 130%);
+  color:#fff;
+  border-radius:14px;
+  box-shadow:0 6px 20px rgba(99,102,241,.22);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  border:none;
+}
+#p-calendario .ptop .ptitle{
+  color:#fff !important;
+  font-size:19px !important;
+  font-weight:800 !important;
+  letter-spacing:-.02em;
+  margin:0;
+}
+#p-calendario .ptop .ptitle::before{
+  content:"📅 ";
+  margin-right:4px;
+}
+#p-calendario .ptop .psub{
+  color:rgba(255,255,255,.82) !important;
+  font-size:11px !important;
+  margin-top:2px;
+  font-weight:500;
+}
+#p-calendario .ptop .btn.p{
+  background:rgba(255,255,255,.20) !important;
+  color:#fff !important;
+  border:1px solid rgba(255,255,255,.35) !important;
+  font-weight:600 !important;
+  padding:8px 16px !important;
+  border-radius:9px !important;
+  font-size:12px !important;
+  transition:all .18s ease;
+  backdrop-filter:blur(8px);
+}
+#p-calendario .ptop .btn.p:hover{
+  background:rgba(255,255,255,.32) !important;
+  transform:translateY(-1px);
+  box-shadow:0 4px 12px rgba(0,0,0,.15);
+}
+
+/* ═══ Nav row (Anterior / Rango / Siguiente / Hoy) ═══ */
+#p-calendario .cal-navrow{
+  background:#fff;
+  padding:8px 14px;
+  border-radius:11px;
+  box-shadow:0 1px 4px rgba(0,0,0,.05);
+  border:1px solid #f1f5f9;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-bottom:4px;
+}
+#p-calendario .cal-navrow .btn.sm{
+  padding:7px 13px !important;
+  font-size:11.5px !important;
+  font-weight:600 !important;
+  border-radius:8px !important;
+  background:#f8fafc !important;
+  color:#475569 !important;
+  border:1px solid #e2e8f0 !important;
+  transition:all .15s ease;
+  cursor:pointer;
+}
+#p-calendario .cal-navrow .btn.sm:hover{
+  background:#6366f1 !important;
+  color:#fff !important;
+  border-color:#6366f1 !important;
+  transform:translateY(-1px);
+  box-shadow:0 3px 8px rgba(99,102,241,.25);
+}
+#p-calendario .cal-navrow .btn.sm:last-child{
+  background:linear-gradient(135deg,#6366f1,#8b5cf6) !important;
+  color:#fff !important;
+  border:none !important;
+  margin-left:auto;
+  padding:7px 18px !important;
+}
+#p-calendario .cal-navrow .btn.sm:last-child:hover{
+  background:linear-gradient(135deg,#4f46e5,#7c3aed) !important;
+}
+#p-calendario #callbl,
+#p-calendario #callbl-mob{
+  font-size:13.5px !important;
+  font-weight:700 !important;
+  color:#0f172a !important;
+  letter-spacing:-.01em !important;
+  flex:1;
+  padding:0 6px;
+}
+
+/* ═══ Banner de sincronización ═══ */
+#calbanner .ibanner{
+  background:linear-gradient(135deg,#fef3c7,#fde68a) !important;
+  border:1px solid #fbbf24 !important;
+  border-radius:11px !important;
+  padding:11px 16px !important;
+  font-size:12px !important;
+  color:#78350f !important;
+  font-weight:500;
+  box-shadow:0 1px 3px rgba(251,191,36,.15);
+}
+
+/* ═══ GRILLA SEMANAL — Header de días ═══ */
+#calwhdr{
+  border-radius:11px 11px 0 0;
+  background:#fff;
+  border:1px solid #f1f5f9;
+  border-bottom:none;
+  margin-top:2px;
+}
+#calwhdr > div{
+  font-weight:600 !important;
+  color:#64748b !important;
+  border-top-width:4px !important;
+  padding:8px 4px !important;
+}
+#calwhdr > div > div:first-child{
+  font-size:10.5px !important;
+  letter-spacing:.08em !important;
+  text-transform:uppercase;
+  font-weight:700 !important;
+}
+/* Día actual destacado */
+#calwhdr > div[style*="background:#eff6ff"]{
+  background:linear-gradient(180deg,#ede9fe,#e0e7ff) !important;
+  border-top-color:#6366f1 !important;
+}
+#calwhdr > div[style*="background:#eff6ff"] > div:nth-child(2){
+  background:#6366f1 !important;
+  box-shadow:0 2px 8px rgba(99,102,241,.4) !important;
+}
+
+/* ═══ GRILLA SEMANAL — Cuerpo y eventos ═══ */
+#calwscroll{
+  border-radius:0 0 11px 11px;
+  background:#fff;
+  border:1px solid #f1f5f9;
+  border-top:none;
+}
+
+/* Tarjetas de eventos en grilla semanal */
+#calwscroll [onclick*="openEvPanel"],
+#calwscroll [onclick*="editPubItem"]{
+  padding:5px 7px !important;
+  font-size:10.5px !important;
+  border-radius:7px !important;
+  line-height:1.35 !important;
+  box-shadow:0 1px 3px rgba(0,0,0,.06) !important;
+  border-width:1px !important;
+  border-left-width:3px !important;
+  border-style:solid !important;
+  border-color:rgba(0,0,0,.05) !important;
+  transition:all .18s cubic-bezier(.4,0,.2,1) !important;
+}
+#calwscroll [onclick*="openEvPanel"] > div:first-child,
+#calwscroll [onclick*="editPubItem"] > div:first-child{
+  font-size:11px !important;
+  font-weight:700 !important;
+  letter-spacing:-.01em;
+}
+#calwscroll [onclick*="openEvPanel"] > div:nth-child(2){
+  font-size:9.5px !important;
+  opacity:.85 !important;
+  margin-top:2px !important;
+}
+#calwscroll [onclick*="openEvPanel"]:hover,
+#calwscroll [onclick*="editPubItem"]:hover{
+  transform:translateY(-2px) scale(1.02) !important;
+  box-shadow:0 8px 20px rgba(0,0,0,.18) !important;
+  z-index:20 !important;
+  border-color:rgba(99,102,241,.4) !important;
+}
+
+/* ═══ PALETA REFINADA por tipo de evento ═══ */
+/* Prensa (rosa) */
+#calwscroll [style*="border-left:3px solid #ec4899"]{
+  background:linear-gradient(135deg,#fdf2f8,#fce7f3) !important;
+  border-color:#ec4899 !important;
+}
+/* Municipal (verde) */
+#calwscroll [style*="border-left:3px solid #22c55e"]{
+  background:linear-gradient(135deg,#f0fdf4,#dcfce7) !important;
+  border-color:#22c55e !important;
+}
+/* Publicación (violeta claro) */
+#calwscroll [style*="border-left:3px solid #8b5cf6"]{
+  background:linear-gradient(135deg,#faf5ff,#f3e8ff) !important;
+  border-color:#8b5cf6 !important;
+}
+/* Cobertura asignada (violeta intenso) */
+#calwscroll [style*="border-left:3px solid #6d28d9"]{
+  background:linear-gradient(135deg,#ede9fe,#ddd6fe) !important;
+  border-color:#6d28d9 !important;
+  box-shadow:0 1px 3px rgba(109,40,217,.15) !important;
+}
+/* Intendente / default (azul) */
+#calwscroll [style*="border-left:3px solid #3b82f6"]{
+  background:linear-gradient(135deg,#eff6ff,#dbeafe) !important;
+  border-color:#3b82f6 !important;
+}
+/* Publicación programada (estilo dedicado) */
+#calwscroll [onclick*="editPubItem"]{
+  background:linear-gradient(135deg,#eef2ff,#e0e7ff) !important;
+  border-color:#6366f1 !important;
+}
+
+/* ═══ Línea de hora actual con glow ═══ */
+#calwscroll [style*="background:#ef4444"]:not(button){
+  height:2px !important;
+  background:linear-gradient(90deg,#ef4444 0%,#f87171 50%,transparent 100%) !important;
+  box-shadow:0 0 12px rgba(239,68,68,.45) !important;
+  z-index:15 !important;
+}
+
+/* ═══ VISTA MOBILE — Strip de días ═══ */
+#cal-days-strip{
+  padding:8px 6px !important;
+  gap:4px;
+  background:#fff;
+  border-radius:11px !important;
+  border:1px solid #f1f5f9 !important;
+  border-bottom:none !important;
+  margin-top:4px;
+  box-shadow:0 1px 3px rgba(0,0,0,.04);
+}
+#cal-days-strip > div{
+  border-radius:10px !important;
+  transition:all .15s ease;
+  padding:8px 2px !important;
+}
+#cal-days-strip > div:hover{
+  background:#f8fafc !important;
+}
+/* Día seleccionado */
+#cal-days-strip > div[style*="background:rgba(102,126,234,.1)"]{
+  background:linear-gradient(180deg,#ede9fe,#e0e7ff) !important;
+  border-bottom-color:#6366f1 !important;
+}
+#cal-days-strip > div[style*="background:rgba(102,126,234,.1)"] > div:nth-child(2){
+  background:#6366f1 !important;
+  box-shadow:0 2px 6px rgba(99,102,241,.35);
+}
+
+/* ═══ MOBILE — Columna de horas ═══ */
+#cal-hours-col{
+  background:#fafafa !important;
+  border-right:1px solid #e2e8f0 !important;
+}
+#cal-hours-col > div{
+  font-size:10px !important;
+  font-weight:700 !important;
+  color:#94a3b8 !important;
+  letter-spacing:.02em;
+}
+
+/* ═══ MOBILE — Eventos del día ═══ */
+#cal-day-content > div[style*="background"][onclick]{
+  border-radius:10px !important;
+  padding:8px 10px !important;
+  font-size:12px !important;
+  line-height:1.4 !important;
+  box-shadow:0 2px 8px rgba(0,0,0,.08) !important;
+  transition:all .18s cubic-bezier(.4,0,.2,1);
+  border-left-width:4px !important;
+}
+#cal-day-content > div[style*="background"][onclick]:hover{
+  transform:translateX(3px) scale(1.01);
+  box-shadow:0 4px 14px rgba(0,0,0,.14) !important;
+}
+#cal-day-content > div[style*="background"][onclick] > div:first-child{
+  font-weight:700 !important;
+  letter-spacing:-.01em;
+}
+
+/* ═══ MOBILE — Línea de hora actual ═══ */
+#cal-day-content > div[style*="background:#ef4444"]{
+  height:2px !important;
+  background:linear-gradient(90deg,#ef4444,#f87171) !important;
+  box-shadow:0 0 10px rgba(239,68,68,.5) !important;
+}
+#cal-day-content > div[style*="background:#ef4444"] > div{
+  background:#ef4444 !important;
+  box-shadow:0 0 8px rgba(239,68,68,.6) !important;
+}
+
+/* ═══ Estado vacío "Sin eventos este día" ═══ */
+#cal-day-content > div[style*="text-align:center"]{
+  background:linear-gradient(135deg,#fafafa,#f1f5f9) !important;
+  border-radius:14px !important;
+  margin:20px !important;
+  padding:32px 20px !important;
+  font-size:13px !important;
+  color:#64748b !important;
+  border:1.5px dashed #cbd5e1 !important;
+}
+#cal-day-content > div[style*="text-align:center"] > div:first-child{
+  font-size:38px !important;
+  margin-bottom:10px !important;
+}
+
+/* ═══ SCROLLBAR discreto ═══ */
+#calwscroll::-webkit-scrollbar,
+#cal-day-content::-webkit-scrollbar,
+#calwhdr::-webkit-scrollbar{
+  width:8px;
+  height:8px;
+}
+#calwscroll::-webkit-scrollbar-track,
+#cal-day-content::-webkit-scrollbar-track{
+  background:transparent;
+}
+#calwscroll::-webkit-scrollbar-thumb,
+#cal-day-content::-webkit-scrollbar-thumb{
+  background:rgba(99,102,241,.18);
+  border-radius:4px;
+  transition:background .15s;
+}
+#calwscroll::-webkit-scrollbar-thumb:hover,
+#cal-day-content::-webkit-scrollbar-thumb:hover{
+  background:rgba(99,102,241,.4);
+}
+
+/* ═══ ANIMACIÓN al cargar eventos ═══ */
+@keyframes v572-fadein{
+  from{opacity:0;transform:translateY(4px) scale(.96)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+#calwscroll [onclick*="openEvPanel"],
+#calwscroll [onclick*="editPubItem"],
+#cal-day-content > div[onclick]{
+  animation:v572-fadein .3s cubic-bezier(.4,0,.2,1);
+}
+
+/* ═══ DARK MODE pulido ═══ */
+body.dark #p-calendario .ptop{
+  background:linear-gradient(135deg,#4338ca 0%,#6d28d9 60%,#be185d 130%);
+  box-shadow:0 6px 20px rgba(67,56,202,.4);
+}
+body.dark #p-calendario .cal-navrow{
+  background:#1a1a2e !important;
+  border-color:#2d2d44 !important;
+}
+body.dark #p-calendario .cal-navrow .btn.sm{
+  background:#252537 !important;
+  color:#cbd5e1 !important;
+  border-color:#3f3f56 !important;
+}
+body.dark #p-calendario .cal-navrow .btn.sm:hover{
+  background:#6366f1 !important;
+  color:#fff !important;
+}
+body.dark #p-calendario #callbl,
+body.dark #p-calendario #callbl-mob{
+  color:#f1f5f9 !important;
+}
+body.dark #calwhdr{
+  background:#1a1a2e !important;
+  border-color:#2d2d44 !important;
+}
+body.dark #calwhdr > div{
+  color:#cbd5e1 !important;
+}
+body.dark #calwscroll{
+  background:#1a1a2e !important;
+  border-color:#2d2d44 !important;
+}
+body.dark #cal-days-strip{
+  background:#1a1a2e !important;
+  border-color:#2d2d44 !important;
+}
+body.dark #cal-days-strip > div:hover{
+  background:#252537 !important;
+}
+body.dark #cal-hours-col{
+  background:#13131f !important;
+  border-color:#2d2d44 !important;
+}
+body.dark #cal-hours-col > div{
+  color:#64748b !important;
+}
+body.dark #cal-day-content > div[style*="text-align:center"]{
+  background:linear-gradient(135deg,#1a1a2e,#252537) !important;
+  border-color:#3f3f56 !important;
+  color:#94a3b8 !important;
+}
+/* Eventos dark mode — manteniendo paleta */
+body.dark #calwscroll [style*="border-left:3px solid #ec4899"]{
+  background:linear-gradient(135deg,#3d1538,#52144a) !important;
+  color:#fce7f3 !important;
+}
+body.dark #calwscroll [style*="border-left:3px solid #22c55e"]{
+  background:linear-gradient(135deg,#0d2818,#143d28) !important;
+  color:#dcfce7 !important;
+}
+body.dark #calwscroll [style*="border-left:3px solid #8b5cf6"]{
+  background:linear-gradient(135deg,#28163d,#3d2155) !important;
+  color:#f3e8ff !important;
+}
+body.dark #calwscroll [style*="border-left:3px solid #6d28d9"]{
+  background:linear-gradient(135deg,#3d1c5c,#52268a) !important;
+  color:#ddd6fe !important;
+}
+body.dark #calwscroll [style*="border-left:3px solid #3b82f6"]{
+  background:linear-gradient(135deg,#0f1d3d,#1c2d52) !important;
+  color:#dbeafe !important;
+}
+
+/* ═══ Responsive — pantallas medianas ═══ */
+@media (max-width:1280px) and (min-width:769px){
+  #p-calendario .ptop{padding:12px 14px}
+  #p-calendario .ptop .ptitle{font-size:17px !important}
+  #calwscroll [onclick*="openEvPanel"],
+  #calwscroll [onclick*="editPubItem"]{font-size:9.5px !important}
+}
+@media (max-width:768px){
+  #p-calendario .ptop{padding:12px 14px;margin-bottom:8px}
+  #p-calendario .ptop .ptitle{font-size:16px !important}
+}
+`;
+document.head.appendChild(st);
+
+/* ────────────────────────────────────────────────────────────
+   JS auxiliar — mejorar tooltips y semántica
+   ──────────────────────────────────────────────────────────── */
+
+// Agregar title (tooltip nativo) a las cards con descripción completa
+function _v572_addTooltips(){
+  document.querySelectorAll('#calwscroll [onclick*="openEvPanel"], #calwscroll [onclick*="editPubItem"], #cal-day-content > div[onclick]').forEach(function(card){
+    if(card._v572_tip) return;
+    card._v572_tip = true;
+    var txt = card.textContent.trim().replace(/\s+/g," ");
+    if(txt) card.title = txt;
+  });
+}
+
+// Asegurar wraps de render apliquen los tooltips
+function _v572_wrap(name){
+  var orig = window[name];
+  if(typeof orig !== "function") return;
+  window[name] = function(){
+    var r = orig.apply(this, arguments);
+    setTimeout(_v572_addTooltips, 100);
+    setTimeout(_v572_addTooltips, 400);
+    return r;
+  };
+}
+_v572_wrap("renderCal");
+_v572_wrap("renderCalDay");
+_v572_wrap("buildWeek");
+
+// Primer pase
+setTimeout(_v572_addTooltips, 1500);
+
+console.log("✅ Parche v5.72 OK — Calendario rediseñado (CSS + tooltips)");
+})();
+</script>
+
 </body>
 </html>
