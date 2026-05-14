@@ -3826,7 +3826,7 @@
               redesTxt = '<span style="color:#6b7280">'+escH(p.cuenta)+'</span>';
             }
             return ''+
-              '<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #f3f4f6;align-items:flex-start">'+
+              '<div data-pub-id="'+escH(p.id)+'" data-pub-desc="'+escH((p.descripcion||"").slice(0,40))+'" style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #f3f4f6;align-items:flex-start;position:relative">'+
                 '<span style="font-weight:700;color:#7c3aed;min-width:48px;font-size:13px">'+escH(hh)+'</span>'+
                 '<div style="flex:1">'+
                   '<div style="font-size:13px;color:#111827">'+escH(p.descripcion || "")+'</div>'+
