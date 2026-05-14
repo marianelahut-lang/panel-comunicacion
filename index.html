@@ -222,7 +222,8 @@ body.dark .lfg select,body.dark .lfg input{color:#fff}
 .logo-b{width:28px;height:28px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:#fff}
 .logo-n{font-weight:700;font-size:12px;color:#fff}
 .logo-s{font-size:9px;color:rgba(255,255,255,.3)}
-.ntabs{display:flex;gap:1px;overflow-x:auto}
+.ntabs{display:flex;gap:1px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}
+.ntabs::-webkit-scrollbar{display:none;width:0;height:0}
 .ntab{padding:5px 10px;border-radius:5px;font-size:11px;font-weight:500;cursor:pointer;color:rgba(255,255,255,.45);border:none;background:transparent;font-family:Inter,sans-serif;white-space:nowrap}
 .ntab:hover{color:#fff;background:rgba(255,255,255,.08)}
 .ntab.on{background:rgba(255,255,255,.14);color:#fff}
@@ -1758,8 +1759,11 @@ function popSelects(){
 // Load team names for login dropdown (before login)
 async function loadLoginTeams(){
   try{
-    const tmp=supabase.createClient(SB_URL,SB_KEY);
-    window.db=tmp; // exponer para patch
+    // FIX v5.70: Singleton — un solo cliente Supabase en toda la app
+    if(!window.db || !window.db.from){
+      window.db = supabase.createClient(SB_URL,SB_KEY);
+    }
+    const tmp = window.db;
     const{data}=await tmp.from("usuarios").select("nombre").order("nombre");
     const sel=document.getElementById("lu");
     if(data&&data.length){
@@ -1822,7 +1826,14 @@ function pushNotif(titulo,cuerpo){
 
 async function initApp(){
   try{
-    db=supabase.createClient(SB_URL,SB_KEY);
+    // FIX v5.70: Reutilizar cliente Supabase existente para evitar
+    // "Multiple GoTrueClient instances detected" en consola
+    if(window.db && window.db.from){
+      db = window.db;
+    } else {
+      db = supabase.createClient(SB_URL,SB_KEY);
+      window.db = db;
+    }
     console.log("initApp: loadAll...");
     await loadAll();
     setLive(true);
@@ -5982,23 +5993,33 @@ function _h_repararGuardiaHoy(){
   var ds = _h_hoyISO();
   var g = _h_getGuardiaArr(ds);
   if(!g[0] && !g[1]) return;
+  // FIX v5.70: SOLO actuar sobre divs hoja chiquitos (chips de guardia),
+  // nunca sobre contenedores grandes. Reglas estrictas:
+  //  · El div NO debe tener hijos (chips son texto plano corruptos)
+  //  · O bien tiene 1-2 hijos Y su textContent es < 60 chars
+  //  · El textContent debe contener UN solo nombre roto, no varios
   pH.querySelectorAll("div").forEach(function(d){
-    var t = (d.textContent || "");
-    if(/[A-Z]{2}[A-Z][a-z]+(titular|soporte|Titular|Soporte)/.test(t) && d.children.length <= 6){
-      var role = /titular/i.test(t) ? "Titular" : /soporte/i.test(t) ? "Soporte" : "";
-      var nombre = role === "Titular" ? g[0] : g[1];
-      if(!nombre) return;
-      var m = _h_getMiembro(nombre) || {};
-      var color = m.color || "#667eea";
-      d.innerHTML =
-        '<div style="display:flex;align-items:center;gap:10px;background:#f0f4ff;border-radius:12px;padding:10px 16px;min-width:140px">'+
-          '<div style="width:40px;height:40px;border-radius:50%;background:'+color+';color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0">'+nombre.slice(0,2).toUpperCase()+'</div>'+
-          '<div>'+
-            '<div style="font-size:14px;font-weight:700;color:#111827">'+nombre+'</div>'+
-            '<div style="font-size:11px;color:#667eea;font-weight:600;margin-top:2px;letter-spacing:.04em;text-transform:uppercase">'+role+'</div>'+
-          '</div>'+
-        '</div>';
-    }
+    var t = (d.textContent || "").trim();
+    // Texto demasiado largo → es un contenedor, no un chip
+    if(t.length > 60) return;
+    // Hijos: máximo 2 (avatar+texto, o solo texto)
+    if(d.children.length > 2) return;
+    // Patrón roto específico: iniciales(2 mays seguidas) + Nombre + rol pegados
+    // Ej: "MAMaitenTitular" pero NO "MAMaitenTitularLILinaSoporte" (dos chips fusionados)
+    if(!/^[A-Z]{2}[A-Z][a-záéíóúñ]+(titular|soporte|Titular|Soporte)$/.test(t)) return;
+    var role = /titular/i.test(t) ? "Titular" : "Soporte";
+    var nombre = role === "Titular" ? g[0] : g[1];
+    if(!nombre) return;
+    var m = _h_getMiembro(nombre) || {};
+    var color = m.color || "#667eea";
+    d.innerHTML =
+      '<div style="display:flex;align-items:center;gap:10px;background:#f0f4ff;border-radius:12px;padding:10px 16px;min-width:140px">'+
+        '<div style="width:40px;height:40px;border-radius:50%;background:'+color+';color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0">'+nombre.slice(0,2).toUpperCase()+'</div>'+
+        '<div>'+
+          '<div style="font-size:14px;font-weight:700;color:#111827">'+nombre+'</div>'+
+          '<div style="font-size:11px;color:#667eea;font-weight:600;margin-top:2px;letter-spacing:.04em;text-transform:uppercase">'+role+'</div>'+
+        '</div>'+
+      '</div>';
   });
 }
 
