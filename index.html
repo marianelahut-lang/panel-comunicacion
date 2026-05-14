@@ -7258,5 +7258,99 @@ console.log("✅ Parche v5.72 OK — Calendario rediseñado (CSS + tooltips)");
 })();
 </script>
 
+<!-- ============================================================
+     PARCHE v5.73 — Botón eliminar en "Publicaciones de guardia
+     esta semana" (bloque #m1-pubs-guardias)
+     · Inyecta 🗑 al final de cada item
+     · Usa la función eliminarPubDirecto() del v5.71
+     · Detecta el bloque cuando se renderiza (MutationObserver)
+     ============================================================ -->
+<script>
+(function(){
+"use strict";
+
+function _v573_inyectarBotones(){
+  var bloque = document.getElementById("m1-pubs-guardias");
+  if(!bloque) return;
+  // Cada item tiene data-pub-id="..." (lo agregamos en mejoras1.js)
+  bloque.querySelectorAll('[data-pub-id]').forEach(function(item){
+    if(item._v573_done) return;
+    item._v573_done = true;
+    var id = item.getAttribute("data-pub-id");
+    var desc = item.getAttribute("data-pub-desc") || "";
+    if(!id) return;
+    // Crear botón eliminar
+    var btn = document.createElement("button");
+    btn.innerHTML = "🗑";
+    btn.title = "Eliminar publicación";
+    btn.className = "v573-del-pubg";
+    btn.style.cssText = "padding:5px 9px;background:transparent;border:1px solid #fecaca;border-radius:7px;color:#dc2626;font-size:12px;cursor:pointer;font-family:inherit;opacity:.5;transition:opacity .15s,background .15s,color .15s,transform .1s;align-self:flex-start;flex-shrink:0;line-height:1";
+    btn.onmouseenter = function(){
+      btn.style.opacity = "1";
+      btn.style.background = "#dc2626";
+      btn.style.color = "#fff";
+      btn.style.transform = "scale(1.05)";
+    };
+    btn.onmouseleave = function(){
+      btn.style.opacity = ".5";
+      btn.style.background = "transparent";
+      btn.style.color = "#dc2626";
+      btn.style.transform = "scale(1)";
+    };
+    btn.onclick = function(ev){
+      ev.stopPropagation();
+      if(typeof window.eliminarPubDirecto === "function"){
+        window.eliminarPubDirecto(id, desc);
+      } else {
+        alert("Función eliminarPubDirecto no disponible. Recargá la página.");
+      }
+    };
+    item.appendChild(btn);
+  });
+}
+
+// Observer: cuando aparezca #m1-pubs-guardias o cambie su contenido,
+// reinyectar los botones
+(function(){
+  var pending = false;
+  function schedule(){
+    if(pending) return;
+    pending = true;
+    setTimeout(function(){
+      pending = false;
+      _v573_inyectarBotones();
+    }, 150);
+  }
+  // Observar todo el body para detectar la aparición del bloque
+  // (es un cost bajo, el bloque se inserta una sola vez por render)
+  try {
+    var obs = new MutationObserver(schedule);
+    obs.observe(document.body, {childList: true, subtree: true});
+  } catch(e){
+    console.warn("[v5.73] MutationObserver no disponible:", e);
+  }
+})();
+
+// Primer pase tras carga
+setTimeout(_v573_inyectarBotones, 1500);
+setTimeout(_v573_inyectarBotones, 3500);
+
+// CSS: hover suave en la fila completa del item al pasar el mouse
+(function(){
+  var st = document.createElement("style");
+  st.id = "v573-css";
+  st.textContent = [
+    '#m1-pubs-guardias [data-pub-id]{transition:background .12s ease;border-radius:6px;padding-right:8px !important}',
+    '#m1-pubs-guardias [data-pub-id]:hover{background:rgba(239,68,68,.04)}',
+    '#m1-pubs-guardias [data-pub-id]:hover .v573-del-pubg{opacity:1 !important}',
+    'body.dark #m1-pubs-guardias [data-pub-id]:hover{background:rgba(239,68,68,.08)}'
+  ].join("\n");
+  document.head.appendChild(st);
+})();
+
+console.log("✅ Parche v5.73 OK — 🗑 en Publicaciones de guardia esta semana");
+})();
+</script>
+
 </body>
 </html>
