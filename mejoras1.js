@@ -1,21 +1,23 @@
 /* ============================================================
    MEJORAS1.JS - Panel Comunicación Tres Arroyos
-   v3.9 · Pubs en Guardias robusto + Hoy como pantalla inicial
+   v3.10 · Sidebar funcional + Panel Hoy con datos reales
    ------------------------------------------------------------
    FIXES en esta versión:
-   · [Publicaciones en Guardias] La sección naranja ahora
-     SÍ aparece. Antes buscaba solo "#p-guardias" pero el
-     contenedor real tiene otro id. Ahora busca por título
-     "Guardias semanales" como fallback.
-   · [Publicaciones en Guardias] Lee TANTO de mi módulo
-     (localStorage) como de Supabase. Antes solo Supabase.
-   · [Publicaciones en Guardias] Aparece el bloque aunque
-     no haya publicaciones (mensaje "No hay publicaciones..."
-     para que la usuaria sepa que el sistema funciona).
-   · [Pantalla inicial] Cuando se carga el panel, se va
-     automáticamente a "Hoy" (no al calendario).
-   · [Publicaciones en Guardias] Ordena por hora dentro
-     del día. Muestra iconos de redes sociales.
+   · [Sidebar] Los botones del menú lateral ahora funcionan
+     sí o sí: usan addEventListener directo + fallback manual
+     si window.nav() está roto. Con logs en consola para
+     debuggear.
+   · [Panel Hoy] Reemplazado el contenido del panel "Hoy"
+     con un diseño nuevo que SÍ muestra:
+       - Header oscuro con saludo + fecha + 4 stats
+       - Publicaciones de hoy (lee de localStorage+Supabase)
+       - Guardia del día (titular + soporte, leído del DOM)
+       - Tareas urgentes pendientes
+   · [Guardia del día] Detecta automáticamente quién está
+     de titular y soporte hoy desde el panel "Guardias
+     semanales" del panel original.
+   · Al navegar a otra página, mi panel custom se limpia
+     para que se vuelva a renderizar correctamente.
    ------------------------------------------------------------
    También incluye TODO lo de v3.7 y anteriores:
    · Botón "← Volver al equipo" funcional (navegación OK).
@@ -1957,17 +1959,35 @@
     var tabs = ntabs.querySelectorAll(".ntab");
     if(!tabs.length) return false;
 
-    // Botones de la nav superior a OCULTAR del sidebar
-    // (Métricas: la usuaria pidió eliminarla)
     var OCULTOS = { "metricas": true };
-    // Botones a RENOMBRAR: id → nuevo texto
     var RENOMBRAR = { "publicaciones": "Agenda de publicaciones" };
 
-    // Recordar elementos internos que el código existente referencia
     var fPanel    = document.getElementById("fPanel");
     var sbpersons = document.getElementById("sbpersons");
 
-    // Construir nuevos botones a partir de la nav superior
+    // v3.10: Helper para navegación robusta con fallback manual
+    function navegarA(pageId, btnRef){
+      console.log("[mejoras1] Navegando a:", pageId);
+      try {
+        if(typeof window.nav === "function"){
+          window.nav(pageId, null, btnRef);
+          return;
+        }
+      } catch(e){ console.warn("[mejoras1] nav() falló:", e); }
+      // Fallback: mostrar p-XXX manualmente
+      try {
+        var paginas = document.querySelectorAll("[id^='p-']");
+        paginas.forEach(function(p){ p.style.display = "none"; });
+        var target = document.getElementById("p-" + pageId);
+        if(target){
+          target.style.display = "";
+          console.log("[mejoras1] Fallback: mostrando #p-" + pageId);
+        } else {
+          console.warn("[mejoras1] No encuentro #p-" + pageId);
+        }
+      } catch(e){ console.warn(e); }
+    }
+
     var frag = document.createDocumentFragment();
     var yaIncluidos = {};
     tabs.forEach(function(tab){
@@ -1975,56 +1995,70 @@
       var m = onclick.match(/nav\(['"]([^'"]+)['"]/);
       if(!m) return;
       var id = m[1];
-      if(OCULTOS[id]) return;          // saltar los ocultos
-      if(yaIncluidos[id]) return;      // deduplicar
+      if(OCULTOS[id]) return;
+      if(yaIncluidos[id]) return;
       yaIncluidos[id] = true;
 
       var labelRaw = (tab.textContent || "").trim();
       var label = labelRaw.replace(
         /^[\u2600-\u27BF\uD83C-\uDBFF\uDC00-\uDFFF\uFE0F\u200D]+\s*/, ""
       );
-      // Aplicar renombre si corresponde
       if(RENOMBRAR[id]) label = RENOMBRAR[id];
       var icon = ICON_MAP[id] || "•";
 
       var btn = document.createElement("button");
       btn.className = "sbi";
       btn.setAttribute("data-mid", id);
-      btn.setAttribute("onclick", "nav('" + id + "',null,this)");
+      btn.type = "button";
       btn.innerHTML =
         '<span style="font-size:14px;width:20px;display:inline-block;' +
         'text-align:center;flex-shrink:0">' + icon + '</span>' +
         '<span style="flex:1;text-align:left">' + label + '</span>';
+      // v3.10: addEventListener directo en lugar de onclick attribute
+      (function(pageId){
+        btn.addEventListener("click", function(ev){
+          ev.preventDefault();
+          ev.stopPropagation();
+          navegarA(pageId, btn);
+        });
+      })(id);
       frag.appendChild(btn);
     });
 
-    // Vaciar el sidebar y poner el nuevo contenido
     sb.innerHTML = "";
     sb.appendChild(frag);
 
-    // Agregar "Reclamos" al final si no estaba en la nav superior
+    // Agregar "Reclamos" al final si no estaba
     if(!sb.querySelector('.sbi[data-mid="reclamos"]')){
       var btnRec = document.createElement("button");
       btnRec.className = "sbi";
+      btnRec.type = "button";
       btnRec.setAttribute("data-mid", "reclamos");
-      btnRec.setAttribute("onclick", "nav('reclamos',null,this)");
       btnRec.innerHTML =
         '<span style="font-size:14px;width:20px;display:inline-block;' +
         'text-align:center;flex-shrink:0">📢</span>' +
         '<span style="flex:1;text-align:left">Reclamos</span>';
+      btnRec.addEventListener("click", function(ev){
+        ev.preventDefault(); ev.stopPropagation();
+        navegarA("reclamos", btnRec);
+      });
       sb.appendChild(btnRec);
     }
 
-    // Agregar "Contactos medios" al final si no estaba en la nav superior
+    // Agregar "Contactos medios" al final si no estaba
     if(!sb.querySelector('.sbi[data-mid="contactos"]')){
       var btnCM = document.createElement("button");
       btnCM.className = "sbi";
+      btnCM.type = "button";
       btnCM.setAttribute("data-mid", "contactos");
-      btnCM.setAttribute("onclick", "nav('contactos',null,this)");
       btnCM.innerHTML =
         '<span style="font-size:14px;width:20px;display:inline-block;' +
         'text-align:center;flex-shrink:0">📞</span>' +
         '<span style="flex:1;text-align:left">Contactos medios</span>';
+      btnCM.addEventListener("click", function(ev){
+        ev.preventDefault(); ev.stopPropagation();
+        navegarA("contactos", btnCM);
+      });
       sb.appendChild(btnCM);
     }
 
@@ -2109,7 +2143,10 @@
       // (para que no se quede pegado y bloquee la navegación)
       var miPanel = document.getElementById("m1-panel-agente");
       if(miPanel) miPanel.remove();
-      // Y restaurar los hermanos que oculté
+      // v3.10: También quitar mi panel "Hoy" para que se re-renderice
+      var miHoy = document.getElementById("m1-panel-hoy");
+      if(miHoy) miHoy.remove();
+      // Restaurar hermanos que oculté
       try {
         document.querySelectorAll("*").forEach(function(el){
           if(el.__m1AgentHidden){
@@ -2117,8 +2154,15 @@
             delete el.__m1AgentHidden;
           }
         });
+        // Restaurar hijos del p-hoy
+        var pH = document.getElementById("p-hoy");
+        if(pH){
+          Array.prototype.forEach.call(pH.children, function(el){
+            if(el.id !== "m1-panel-hoy") el.style.removeProperty("display");
+          });
+        }
       } catch(_){}
-      // También limpio el badge de "publicaciones de guardia" para que se refresque
+      // También limpio el badge de "publicaciones de guardia"
       var pg = document.getElementById("m1-pubs-guardias");
       if(pg) pg.remove();
 
@@ -3468,7 +3512,157 @@
     } catch(_){}
   }
 
-  // ============ PUBLICACIONES ≥15hs EN PANEL GUARDIAS ============
+  // ============ v3.10: PANEL "HOY" CUSTOM ============
+  // El panel original tiene un "Hoy" que muchas veces aparece vacío
+  // (no lee bien las publicaciones de mi módulo). Lo reemplazamos.
+  async function renderPanelHoyCustom(){
+    // Detectar si la página activa es "Hoy"
+    var pHoy = document.getElementById("p-hoy");
+    if(!pHoy) return;
+    var st = window.getComputedStyle(pHoy);
+    if(st.display === "none") return;
+    if(pHoy.offsetWidth < 100) return;
+
+    // No renderizar dos veces seguidas
+    if(pHoy.querySelector("#m1-panel-hoy")) return;
+
+    var hoyDate = new Date();
+    var hoyStr = hoyDate.toISOString().substring(0,10);
+    var diaNombre = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"][hoyDate.getDay()];
+    var meses = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+    var fechaFmt = diaNombre + " " + hoyDate.getDate() + " de " + meses[hoyDate.getMonth()] + " de " + hoyDate.getFullYear();
+
+    var hh = hoyDate.getHours();
+    var saludo = hh < 12 ? "Buenos días" : hh < 19 ? "Buenas tardes" : "Buenas noches";
+    var saludoEmoji = hh < 12 ? "☀️" : hh < 19 ? "🌤️" : "🌙";
+
+    // Cargar publicaciones de hoy
+    var pubs = cargarPublicaciones().filter(function(p){ return p && p.fecha === hoyStr; });
+    pubs.sort(function(a, b){ return (a.hora || "").localeCompare(b.hora || ""); });
+    var pubsGuardia = pubs.filter(function(p){
+      return p.hora && esHorarioGuardia(String(p.hora).substring(0,5));
+    });
+
+    // Cargar tareas urgentes (Alta) pendientes/en proceso
+    var tareasUrgentes = (_tareasGlobalCache || []).filter(function(t){
+      return /alta|urgent/i.test(t.prioridad || "") &&
+             /pendiente|proceso/i.test(t.estado || "");
+    });
+    var tareasTotalPend = (_tareasGlobalCache || []).filter(function(t){
+      return /pendiente|proceso/i.test(t.estado || "");
+    }).length;
+
+    // Detectar guardia del día desde el DOM
+    var guardiaTitular = "", guardiaSoporte = "";
+    try {
+      var diaNum = hoyDate.getDate();
+      var mesAbbr = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"][hoyDate.getMonth()];
+      var todos = document.querySelectorAll("*");
+      for(var i = 0; i < todos.length; i++){
+        var el = todos[i];
+        if(el.children.length > 0) continue;
+        var t = (el.textContent || "").trim();
+        if(!new RegExp("^" + diaNum + "\\s+" + mesAbbr, "i").test(t)) continue;
+        var col = el.parentElement;
+        for(var lv = 0; lv < 6 && col; lv++){
+          var tCol = col.textContent || "";
+          if(/titular/i.test(tCol) && /soporte/i.test(tCol)){
+            var titMatch = tCol.match(/([A-ZÁÉÍÓÚ][a-záéíóúñ]+)\s*titular/i);
+            var supMatch = tCol.match(/([A-ZÁÉÍÓÚ][a-záéíóúñ]+)\s*soporte/i);
+            if(titMatch) guardiaTitular = titMatch[1];
+            if(supMatch) guardiaSoporte = supMatch[1];
+            break;
+          }
+          col = col.parentElement;
+        }
+        if(guardiaTitular) break;
+      }
+    } catch(_){}
+
+    function escH(s){
+      return String(s||"").replace(/[&<>"']/g, function(c){
+        return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+      });
+    }
+
+    // HTML del panel
+    var statPubs = pubs.length;
+    var statUrg = tareasUrgentes.length;
+    var statPend = tareasTotalPend;
+    var statGuard = pubsGuardia.length;
+
+    var html =
+      '<div id="m1-panel-hoy" style="font-family:Inter,sans-serif">'+
+        // Header oscuro
+        '<div style="background:linear-gradient(135deg,#1e1b4b,#312e81);color:#fff;border-radius:14px;padding:24px 28px;margin-bottom:18px">'+
+          '<div style="font-size:13px;opacity:.85">'+escH(saludo)+' '+saludoEmoji+', Marianela!</div>'+
+          '<div style="font-size:24px;font-weight:700;margin-top:2px">'+escH(fechaFmt)+'</div>'+
+          '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:18px">'+
+            '<div style="background:rgba(255,255,255,.07);border-radius:10px;padding:12px"><div style="font-size:26px;font-weight:700;color:#fde047">'+statPend+'</div><div style="font-size:11px;opacity:.85;margin-top:2px">📋 PENDIENTES</div></div>'+
+            '<div style="background:rgba(255,255,255,.07);border-radius:10px;padding:12px"><div style="font-size:26px;font-weight:700;color:#fca5a5">'+statUrg+'</div><div style="font-size:11px;opacity:.85;margin-top:2px">🔥 URGENTES</div></div>'+
+            '<div style="background:rgba(255,255,255,.07);border-radius:10px;padding:12px"><div style="font-size:26px;font-weight:700;color:#c4b5fd">'+statPubs+'</div><div style="font-size:11px;opacity:.85;margin-top:2px">📅 PUBLICAR HOY</div></div>'+
+            '<div style="background:rgba(255,255,255,.07);border-radius:10px;padding:12px"><div style="font-size:26px;font-weight:700;color:#86efac">'+statGuard+'</div><div style="font-size:11px;opacity:.85;margin-top:2px">🛡️ DE GUARDIA</div></div>'+
+          '</div>'+
+        '</div>'+
+
+        // Grid 2 columnas: Publicaciones hoy + Guardia del día
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">'+
+
+          // Publicaciones de hoy
+          '<div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px 18px">'+
+            '<div style="font-size:14px;font-weight:700;color:#111827;margin-bottom:12px">📅 Publicaciones de hoy</div>'+
+            (pubs.length === 0
+              ? '<div style="font-size:13px;color:#9ca3af;text-align:center;padding:14px 0">Sin publicaciones para hoy</div>'
+              : pubs.map(function(p){
+                  var hora = String(p.hora || "").substring(0,5);
+                  var esG = esHorarioGuardia(hora);
+                  var rNames = (p.redes||[p.red]).filter(Boolean).join(", ");
+                  return '<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #f3f4f6">'+
+                    '<span style="font-weight:700;color:'+(esG?"#dc2626":"#7c3aed")+';min-width:48px;font-size:13px">'+hora+(esG?' 🔔':'')+'</span>'+
+                    '<div style="flex:1;font-size:13px;color:#111827">'+escH(p.descripcion||"").substring(0,80)+
+                    (rNames?' <span style="font-size:11px;color:#6b7280">['+escH(rNames)+']</span>':'')+
+                    (p.responsable?'<div style="font-size:11px;color:#6b7280;margin-top:2px">'+escH(p.responsable)+'</div>':'')+
+                    '</div>'+
+                  '</div>';
+                }).join(""))+
+          '</div>'+
+
+          // Guardia del día
+          '<div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px 18px">'+
+            '<div style="font-size:14px;font-weight:700;color:#111827;margin-bottom:12px">🛡️ Guardia del día</div>'+
+            (guardiaTitular
+              ? '<div style="display:flex;flex-direction:column;gap:10px">'+
+                  '<div style="display:flex;align-items:center;gap:10px"><div style="width:36px;height:36px;border-radius:50%;background:#ede9fe;color:#7c3aed;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px">'+escH(guardiaTitular.substring(0,2).toUpperCase())+'</div><div><div style="font-size:13px;font-weight:600">'+escH(guardiaTitular)+'</div><div style="font-size:11px;color:#6b7280">Titular</div></div></div>'+
+                  (guardiaSoporte ? '<div style="display:flex;align-items:center;gap:10px"><div style="width:36px;height:36px;border-radius:50%;background:#fef3c7;color:#854d0e;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px">'+escH(guardiaSoporte.substring(0,2).toUpperCase())+'</div><div><div style="font-size:13px;font-weight:600">'+escH(guardiaSoporte)+'</div><div style="font-size:11px;color:#6b7280">Soporte</div></div></div>' : '')+
+                  (pubsGuardia.length>0 ? '<div style="margin-top:8px;padding-top:10px;border-top:1px solid #f3f4f6;font-size:11px;color:#92400e"><strong>'+pubsGuardia.length+' publicación'+(pubsGuardia.length===1?'':'es')+'</strong> a cargo de la guardia hoy</div>' : '')+
+                '</div>'
+              : '<div style="font-size:13px;color:#9ca3af;text-align:center;padding:14px 0">No se detectó guardia para hoy</div>')+
+          '</div>'+
+        '</div>'+
+
+        // Tareas urgentes (debajo, ancho completo)
+        '<div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px 18px">'+
+          '<div style="font-size:14px;font-weight:700;color:#111827;margin-bottom:12px">🔥 Tareas urgentes pendientes</div>'+
+          (tareasUrgentes.length === 0
+            ? '<div style="font-size:13px;color:#9ca3af;text-align:center;padding:14px 0">✓ Sin tareas urgentes pendientes</div>'
+            : tareasUrgentes.slice(0,10).map(function(t){
+                return '<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #f3f4f6;align-items:flex-start">'+
+                  '<span style="width:8px;height:8px;border-radius:50%;background:#ef4444;margin-top:7px;flex-shrink:0"></span>'+
+                  '<div style="flex:1"><div style="font-size:13px;color:#111827">'+escH(t.descripcion||"").substring(0,140)+'</div>'+
+                  (t.responsable?'<div style="font-size:11px;color:#6b7280;margin-top:2px">'+escH(t.responsable)+'</div>':'')+
+                  '</div></div>';
+              }).join(""))+
+          (tareasUrgentes.length > 10 ? '<div style="text-align:center;font-size:11px;color:#6b7280;margin-top:8px">+ '+(tareasUrgentes.length-10)+' más</div>' : '')+
+        '</div>'+
+      '</div>';
+
+    // Esconder el contenido original del p-hoy y poner el mío
+    Array.prototype.forEach.call(pHoy.children, function(el){
+      if(el.id !== "m1-panel-hoy") el.style.display = "none";
+    });
+    pHoy.insertAdjacentHTML("afterbegin", html);
+  }
+
   async function renderPublicacionesEnGuardias(){
     // v3.9: Buscar el contenedor del panel Guardias de varias formas
     var pG = document.getElementById("p-guardias");
@@ -3670,6 +3864,7 @@
       // v3.5: intentar renderizar el panel agente custom y las pubs en guardias
       try { inyectarPanelAgenteCustom(); } catch(_){}
       try { renderPublicacionesEnGuardias(); } catch(_){}
+      try { renderPanelHoyCustom(); } catch(_){}
       try { limpiarPanelHoyDesactualizado(); } catch(_){}
       try { agregarBotonCerrarUrgentes(); } catch(_){}
       try { limpiarEncodingRoto(); } catch(_){}
@@ -3732,6 +3927,7 @@
           // v3.5: panel agente y pubs en guardias
           try { inyectarPanelAgenteCustom(); } catch(_){}
           try { renderPublicacionesEnGuardias(); } catch(_){}
+          try { renderPanelHoyCustom(); } catch(_){}
           try { limpiarPanelHoyDesactualizado(); } catch(_){}
           try { agregarBotonCerrarUrgentes(); } catch(_){}
           try { limpiarEncodingRoto(); } catch(_){}
@@ -3741,7 +3937,7 @@
     } catch(_){}
 
     try {
-      console.log("%c[mejoras1.js v3.9] Pubs en Guardias robusto + Hoy como inicio",
+      console.log("%c[mejoras1.js v3.10] Sidebar funcional + Panel Hoy con datos reales",
                   "color:#7c3aed;font-weight:bold;font-size:13px");
     } catch(_){}
   }
