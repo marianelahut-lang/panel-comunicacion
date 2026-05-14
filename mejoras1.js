@@ -3564,30 +3564,32 @@
       return /pendiente|proceso/i.test(t.estado || "");
     }).length;
 
-    // Detectar guardia del día desde el DOM
+    // FIX v5.69: Detectar guardia del día usando las funciones globales
+    // (en vez del parser DOM con regex que producía "MAMaitentitularLILina")
     var guardiaTitular = "", guardiaSoporte = "";
     try {
-      var diaNum = hoyDate.getDate();
-      var mesAbbr = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"][hoyDate.getMonth()];
-      var todos = document.querySelectorAll("*");
-      for(var i = 0; i < todos.length; i++){
-        var el = todos[i];
-        if(el.children.length > 0) continue;
-        var t = (el.textContent || "").trim();
-        if(!new RegExp("^" + diaNum + "\\s+" + mesAbbr, "i").test(t)) continue;
-        var col = el.parentElement;
-        for(var lv = 0; lv < 6 && col; lv++){
-          var tCol = col.textContent || "";
-          if(/titular/i.test(tCol) && /soporte/i.test(tCol)){
-            var titMatch = tCol.match(/([A-ZÁÉÍÓÚ][a-záéíóúñ]+)\s*titular/i);
-            var supMatch = tCol.match(/([A-ZÁÉÍÓÚ][a-záéíóúñ]+)\s*soporte/i);
-            if(titMatch) guardiaTitular = titMatch[1];
-            if(supMatch) guardiaSoporte = supMatch[1];
-            break;
-          }
-          col = col.parentElement;
+      // Prioridad 1: función getGuardia() del index.html (lee guardOverrides + WD + WE)
+      if(typeof getGuardia === "function"){
+        var arr = getGuardia(hoyStr) || [];
+        if(arr.length){
+          guardiaTitular = arr[0] || "";
+          guardiaSoporte = arr[1] || "";
         }
-        if(guardiaTitular) break;
+      }
+      // Prioridad 2 (fallback): guards[] de Supabase si existe
+      if(!guardiaTitular && typeof guards !== "undefined" && Array.isArray(guards)){
+        var hoyMatch = null;
+        for(var i = 0; i < guards.length && !hoyMatch; i++){
+          var g = guards[i];
+          var fs = [g.fecha, g.dia, g.desde, g.lunes, g.inicio, g.start, g.date];
+          for(var j = 0; j < fs.length; j++){
+            if(fs[j] && String(fs[j]).slice(0,10) === hoyStr){ hoyMatch = g; break; }
+          }
+        }
+        if(hoyMatch){
+          guardiaTitular = hoyMatch.titular || hoyMatch.nombre || "";
+          guardiaSoporte = hoyMatch.soporte || hoyMatch.apoyo || "";
+        }
       }
     } catch(_){}
 
@@ -3597,11 +3599,52 @@
       });
     }
 
+    // FIX v5.69: Cargar TODAS las actividades del calendario del día (agendas + Google Calendar)
+    var eventosHoy = [];
+    try {
+      var srcEv = [];
+      if(typeof agendas !== "undefined" && Array.isArray(agendas)) srcEv = srcEv.concat(agendas);
+      if(typeof gcalEvs !== "undefined" && Array.isArray(gcalEvs)) srcEv = srcEv.concat(gcalEvs);
+      var seenEv = {};
+      eventosHoy = srcEv.filter(function(ev){
+        if(!ev || String(ev.fecha||"").slice(0,10) !== hoyStr || ev.cancelado) return false;
+        if(ev.tipo === "entrevista") return false; // las entrevistas tienen su propio bloque
+        var k = (ev.descripcion||"").slice(0,30) + "|" + (ev.hora||"");
+        if(seenEv[k]) return false;
+        seenEv[k] = 1;
+        return true;
+      }).sort(function(a,b){ return (a.hora||"00:00").localeCompare(b.hora||"00:00"); });
+    } catch(_){}
+
     // HTML del panel
     var statPubs = pubs.length;
     var statUrg = tareasUrgentes.length;
     var statPend = tareasTotalPend;
     var statGuard = pubsGuardia.length;
+
+    // Card "Agenda del día" — todas las actividades del calendario
+    var htmlAgenda =
+      '<div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px 18px;margin-bottom:16px">'+
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">'+
+          '<div style="font-size:14px;font-weight:700;color:#111827">📅 Agenda del día <span style="font-size:11px;color:#6b7280;font-weight:500">('+eventosHoy.length+' '+(eventosHoy.length===1?'evento':'eventos')+')</span></div>'+
+          '<button onclick="if(typeof nav===\'function\')nav(\'calendario\')" style="font-size:11px;padding:5px 11px;background:#ede9fe;color:#6d28d9;border:none;border-radius:7px;cursor:pointer;font-weight:600;font-family:inherit">Ver calendario →</button>'+
+        '</div>'+
+        (eventosHoy.length === 0
+          ? '<div style="font-size:13px;color:#9ca3af;text-align:center;padding:14px 0">Sin actividades en la agenda para hoy</div>'
+          : eventosHoy.map(function(ev){
+              var hora2 = ev.hora ? String(ev.hora).substring(0,5) : "—";
+              var tipoCol = ev.tipo === "prensa" ? "#ec4899" : ev.tipo === "municipal" ? "#22c55e" : ev.tipo === "publicacion" ? "#8b5cf6" : "#3b82f6";
+              var tipoIco = ev.tipo === "prensa" ? "📻" : ev.tipo === "municipal" ? "🏛" : ev.tipo === "publicacion" ? "📱" : "🗓";
+              return '<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #f3f4f6;align-items:center">'+
+                '<span style="font-size:14px;flex-shrink:0">'+tipoIco+'</span>'+
+                '<span style="font-weight:700;color:'+tipoCol+';min-width:52px;font-size:12px">'+escH(hora2)+'</span>'+
+                '<div style="flex:1;min-width:0">'+
+                  '<div style="font-size:13px;color:#111827;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">'+escH(ev.descripcion||"")+'</div>'+
+                  (ev.lugar ? '<div style="font-size:11px;color:#6b7280;margin-top:1px">📍 '+escH(ev.lugar)+'</div>' : '')+
+                '</div>'+
+              '</div>';
+            }).join(""))+
+      '</div>';
 
     var html =
       '<div id="m1-panel-hoy" style="font-family:Inter,sans-serif">'+
@@ -3616,6 +3659,9 @@
             '<div style="background:rgba(255,255,255,.07);border-radius:10px;padding:12px"><div style="font-size:26px;font-weight:700;color:#86efac">'+statGuard+'</div><div style="font-size:11px;opacity:.85;margin-top:2px">🛡️ DE GUARDIA</div></div>'+
           '</div>'+
         '</div>'+
+
+        // FIX v5.69: Agenda del día (TODAS las actividades del calendario)
+        htmlAgenda +
 
         // Grid 2 columnas: Publicaciones hoy + Guardia del día
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">'+
