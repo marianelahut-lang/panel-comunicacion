@@ -6426,5 +6426,350 @@ console.log("✅ Parche v5.69 OK — interfaz de guardia rediseñada + pubs ≥1
 })();
 </script>
 
+<!-- ============================================================
+     PARCHE v5.71 — Eliminar coberturas/publicaciones + visual
+     · window.eliminarEvento(id) — soft delete de agenda
+     · window.eliminarPubDirecto(id) — borrado de pub directo
+     · Botón 🗑 inline en cards (hover-visible)
+     · Botón 🗑 en modal evpanel
+     · CSS conservador: hover suave, sombras finas,
+       botones de guardia compactos
+     · NO toca estructura HTML del index original
+     · NO toca datos guardados (excepto cancelado=true en agenda)
+     ============================================================ -->
+<script>
+(function(){
+"use strict";
+
+/* ────────────────────────────────────────────────────────────
+   FUNCIÓN: Eliminar evento del calendario (soft delete)
+   ──────────────────────────────────────────────────────────── */
+window.eliminarEvento = async function(id, descripcion){
+  if(!id) return;
+  var desc = (descripcion || "este evento").slice(0, 60);
+  if(!window.confirm('¿Eliminar "' + desc + '"?\n\nSe quitará del calendario, agenda y guardias.')) return;
+
+  // 1. Soft delete en array local (cancelado=true)
+  try {
+    if(typeof agendas !== "undefined" && Array.isArray(agendas)){
+      var idx = -1;
+      for(var i = 0; i < agendas.length; i++){
+        if(String(agendas[i].id) === String(id)){ idx = i; break; }
+      }
+      if(idx !== -1) agendas[idx].cancelado = true;
+    }
+  } catch(e){ console.warn("[v5.71] agendas update:", e); }
+
+  // 2. Limpiar cobSel
+  try { if(typeof cobSel !== "undefined") delete cobSel[id]; } catch(_){}
+
+  // 3. Limpiar _pubGuardia si era una pub-guardia
+  try {
+    if(window._pubGuardia){
+      window._pubGuardia = window._pubGuardia.filter(function(e){
+        return e.id !== id && e.id !== "pub_" + id;
+      });
+    }
+  } catch(_){}
+
+  // 4. Refrescar vistas (lo que esté visible se renderiza)
+  ["renderCal","renderCalDay","renderGuardias","renderGuardDay","renderWeek","renderPubDay","updateBadges","closeEvPanel"]
+    .forEach(function(fn){ try { if(typeof window[fn] === "function") window[fn](); } catch(e){} });
+
+  if(typeof toast === "function") toast("✓ Evento eliminado");
+
+  // 5. Sincronizar con Supabase (no bloqueante — la UI ya se actualizó)
+  try {
+    if(window.db && window.db.from){
+      var r = await window.db.from("agenda").update({cancelado: true}).eq("id", id);
+      if(r && r.error){
+        console.warn("[v5.71] Sync error:", r.error.message);
+        if(typeof toast === "function") toast("⚠ Error sync: " + r.error.message, "warn");
+      }
+    }
+  } catch(e){ console.warn("[v5.71] sync exception:", e); }
+};
+
+/* ────────────────────────────────────────────────────────────
+   FUNCIÓN: Eliminar publicación directa (sin abrir modal)
+   ──────────────────────────────────────────────────────────── */
+window.eliminarPubDirecto = async function(id, descripcion){
+  if(!id) return;
+  var desc = (descripcion || "esta publicación").slice(0, 60);
+  if(!window.confirm('¿Eliminar "' + desc + '"?\n\nNo se puede deshacer.')) return;
+
+  // 1. Quitar del array local
+  try {
+    if(typeof pubs !== "undefined" && Array.isArray(pubs)){
+      var idx = -1;
+      for(var i = 0; i < pubs.length; i++){
+        if(String(pubs[i].id) === String(id)){ idx = i; break; }
+      }
+      if(idx !== -1) pubs.splice(idx, 1);
+    }
+  } catch(e){ console.warn("[v5.71] pubs splice:", e); }
+
+  // 2. Limpiar _pubGuardia y cobSel
+  try {
+    if(window._pubGuardia){
+      window._pubGuardia = window._pubGuardia.filter(function(e){
+        return e.id !== "pub_" + id;
+      });
+    }
+    if(typeof cobSel !== "undefined") delete cobSel["pub_" + id];
+  } catch(_){}
+
+  // 3. Activar lock anti-resync (compatible con deletePub original)
+  window._pubSavingLock = true;
+  setTimeout(function(){ window._pubSavingLock = false; }, 3000);
+
+  // 4. Refrescar vistas
+  ["renderWeek","renderPubDay","renderGuardias","renderGuardDay","renderCal","renderCalDay","updateBadges"]
+    .forEach(function(fn){ try { if(typeof window[fn] === "function") window[fn](); } catch(e){} });
+
+  if(typeof toast === "function") toast("✓ Publicación eliminada");
+
+  // 5. Sincronizar con Supabase
+  try {
+    if(window.db && window.db.from){
+      var r = await window.db.from("publicaciones").delete().eq("id", id);
+      if(r && r.error){
+        console.warn("[v5.71] Sync error:", r.error.message);
+        if(typeof toast === "function") toast("⚠ Error sync: " + r.error.message, "warn");
+      }
+    }
+  } catch(e){ console.warn("[v5.71] sync exception:", e); }
+};
+
+/* ────────────────────────────────────────────────────────────
+   INYECCIÓN: Botón eliminar en modal evpanel
+   ──────────────────────────────────────────────────────────── */
+(function(){
+  var orig = window.openEvPanel;
+  if(typeof orig !== "function") return;
+  window.openEvPanel = function(e){
+    var r = orig.apply(this, arguments);
+    setTimeout(function(){
+      var panel = document.getElementById("evpanel");
+      if(!panel) return;
+      // Limpiar previo
+      var prev = panel.querySelector(".v571-del-btn");
+      if(prev) prev.remove();
+      // Buscar la fila de botones del footer
+      var ftr = panel.querySelector(".evp-ftr");
+      if(!ftr) return;
+      var btnsRow = ftr.querySelector("div[style*='display:flex']");
+      if(!btnsRow) return;
+      // Crear botón eliminar
+      var delBtn = document.createElement("button");
+      delBtn.className = "v571-del-btn";
+      delBtn.innerHTML = "🗑";
+      delBtn.title = "Eliminar evento";
+      delBtn.style.cssText = "padding:8px 12px;border-radius:7px;border:1px solid #fecaca;background:#fff;color:#dc2626;font-size:13px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;flex:0 0 44px;transition:background .15s,color .15s";
+      delBtn.onmouseenter = function(){ delBtn.style.background = "#dc2626"; delBtn.style.color = "#fff"; };
+      delBtn.onmouseleave = function(){ delBtn.style.background = "#fff"; delBtn.style.color = "#dc2626"; };
+      delBtn.onclick = function(){
+        if(!window.evPanel_ev) return;
+        // Solo permitir eliminar eventos NO sincronizados de GCal
+        if(window.evPanel_ev.gcal){
+          if(typeof toast === "function") toast("⚠ Los eventos de Google Calendar se eliminan desde Google", "warn");
+          else alert("Los eventos de Google Calendar se eliminan desde Google.");
+          return;
+        }
+        window.eliminarEvento(window.evPanel_ev.id, window.evPanel_ev.descripcion);
+      };
+      btnsRow.appendChild(delBtn);
+    }, 50);
+    return r;
+  };
+})();
+
+/* ────────────────────────────────────────────────────────────
+   INYECCIÓN: Botón eliminar en cards de calendario semanal
+   ──────────────────────────────────────────────────────────── */
+function _v571_inyectarEnCalendario(){
+  // Cards de eventos: openEvPanel(...)
+  document.querySelectorAll('#calwscroll [onclick*="openEvPanel"], #wscroll [onclick*="openEvPanel"]').forEach(function(card){
+    if(card._v571_done) return;
+    card._v571_done = true;
+    var oc = card.getAttribute("onclick") || "";
+    // Extraer ID del JSON.stringify(e).replace(/"/g,'&quot;') — buscar &quot;id&quot;:&quot;...&quot;
+    var m = oc.match(/&quot;id&quot;:\s*&quot;?([^,&}\s"]+)/);
+    if(!m){
+      // Caso id numérico sin comillas
+      m = oc.match(/&quot;id&quot;:\s*(\d+)/);
+    }
+    if(!m) return;
+    var id = m[1];
+    // Detectar si es GCal (no debe ser eliminable)
+    if(/&quot;gcal&quot;:\s*true/.test(oc)) return;
+    if(card.querySelector(".v571-card-del")) return;
+    card.style.position = "relative";
+    var btn = document.createElement("button");
+    btn.className = "v571-card-del";
+    btn.innerHTML = "🗑";
+    btn.title = "Eliminar";
+    btn.style.cssText = "position:absolute;top:1px;right:1px;width:16px;height:16px;border-radius:50%;border:none;background:rgba(220,38,38,.9);color:#fff;font-size:8px;cursor:pointer;opacity:0;transition:opacity .15s,transform .1s;line-height:1;padding:0;display:flex;align-items:center;justify-content:center;font-family:inherit;z-index:6";
+    btn.onclick = function(ev){
+      ev.stopPropagation();
+      var titleEl = card.querySelector("div");
+      var desc = titleEl ? titleEl.textContent.replace(/^[^a-zA-ZÁÉÍÓÚáéíóúñÑ]+/, "") : "";
+      window.eliminarEvento(id, desc.slice(0, 50));
+    };
+    card.addEventListener("mouseenter", function(){ btn.style.opacity = "1"; });
+    card.addEventListener("mouseleave", function(){ btn.style.opacity = "0"; });
+    card.appendChild(btn);
+  });
+
+  // Cards de publicaciones en buildWeek: editPubItem(...)
+  document.querySelectorAll('#wscroll [onclick*="editPubItem"]').forEach(function(card){
+    if(card._v571_done) return;
+    card._v571_done = true;
+    var oc = card.getAttribute("onclick") || "";
+    var m = oc.match(/editPubItem\(['"]([^'"]+)['"]\)/);
+    if(!m) return;
+    var id = m[1];
+    if(card.querySelector(".v571-card-del")) return;
+    card.style.position = "relative";
+    var btn = document.createElement("button");
+    btn.className = "v571-card-del";
+    btn.innerHTML = "🗑";
+    btn.title = "Eliminar publicación";
+    btn.style.cssText = "position:absolute;top:1px;right:1px;width:16px;height:16px;border-radius:50%;border:none;background:rgba(220,38,38,.9);color:#fff;font-size:8px;cursor:pointer;opacity:0;transition:opacity .15s;line-height:1;padding:0;display:flex;align-items:center;justify-content:center;font-family:inherit;z-index:6";
+    btn.onclick = function(ev){
+      ev.stopPropagation();
+      var titleEl = card.querySelector("div");
+      var desc = titleEl ? titleEl.textContent : "";
+      window.eliminarPubDirecto(id, desc.slice(0, 50));
+    };
+    card.addEventListener("mouseenter", function(){ btn.style.opacity = "1"; });
+    card.addEventListener("mouseleave", function(){ btn.style.opacity = "0"; });
+    card.appendChild(btn);
+  });
+}
+
+/* ────────────────────────────────────────────────────────────
+   INYECCIÓN: Botón eliminar en cards de #pub-day-list (mobile)
+   ──────────────────────────────────────────────────────────── */
+function _v571_inyectarEnPubDay(){
+  var list = document.getElementById("pub-day-list");
+  if(!list) return;
+  list.querySelectorAll('[onclick*="editPubMod"]').forEach(function(card){
+    if(card._v571_done) return;
+    card._v571_done = true;
+    var oc = card.getAttribute("onclick") || "";
+    var m = oc.match(/editPubMod\(['"]([^'"]+)['"]\)/);
+    if(!m) return;
+    var id = m[1];
+    if(card.querySelector(".v571-card-del-mobile")) return;
+    card.style.position = "relative";
+    var btn = document.createElement("button");
+    btn.className = "v571-card-del-mobile";
+    btn.innerHTML = "🗑";
+    btn.title = "Eliminar publicación";
+    btn.style.cssText = "position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;border:1px solid #fecaca;background:#fff;color:#dc2626;font-size:12px;cursor:pointer;line-height:1;padding:0;display:flex;align-items:center;justify-content:center;font-family:inherit;z-index:5;transition:background .15s,color .15s";
+    btn.onmouseenter = function(){ btn.style.background = "#dc2626"; btn.style.color = "#fff"; };
+    btn.onmouseleave = function(){ btn.style.background = "#fff"; btn.style.color = "#dc2626"; };
+    btn.onclick = function(ev){
+      ev.stopPropagation();
+      var descEl = card.querySelector('[style*="font-size:13px"]');
+      var desc = descEl ? descEl.textContent : "";
+      window.eliminarPubDirecto(id, desc.slice(0, 50));
+    };
+    card.appendChild(btn);
+  });
+}
+
+/* ────────────────────────────────────────────────────────────
+   WRAP de funciones de render para post-procesar
+   ──────────────────────────────────────────────────────────── */
+function _v571_wrap(name, after){
+  var orig = window[name];
+  if(typeof orig !== "function") return;
+  window[name] = function(){
+    var r = orig.apply(this, arguments);
+    setTimeout(after, 80);
+    setTimeout(after, 300);  // 2do intento por las dudas
+    return r;
+  };
+}
+_v571_wrap("renderCal", _v571_inyectarEnCalendario);
+_v571_wrap("renderWeek", _v571_inyectarEnCalendario);
+_v571_wrap("buildWeek", _v571_inyectarEnCalendario);
+_v571_wrap("renderPubDay", _v571_inyectarEnPubDay);
+
+/* MutationObserver como red de seguridad */
+(function(){
+  var pending = false;
+  function schedule(){
+    if(pending) return;
+    pending = true;
+    setTimeout(function(){
+      pending = false;
+      try {
+        _v571_inyectarEnCalendario();
+        _v571_inyectarEnPubDay();
+      } catch(_){}
+    }, 200);
+  }
+  var obs = new MutationObserver(schedule);
+  ["calwscroll","wscroll","pub-day-list"].forEach(function(id){
+    var n = 0, iv = setInterval(function(){
+      var el = document.getElementById(id);
+      if(el){
+        try { obs.observe(el, {childList:true, subtree:true}); } catch(_){}
+        clearInterval(iv);
+      }
+      if(++n >= 20) clearInterval(iv);
+    }, 500);
+  });
+})();
+
+/* ────────────────────────────────────────────────────────────
+   CSS conservador — mejoras visuales sin tocar HTML
+   ──────────────────────────────────────────────────────────── */
+(function(){
+  var st = document.createElement("style");
+  st.id = "v571-css";
+  st.textContent = [
+    /* Hover suave en cards del calendario semanal */
+    '#calwscroll [onclick*="openEvPanel"], #wscroll [onclick*="openEvPanel"], #wscroll [onclick*="editPubItem"]{transition:transform .15s ease,box-shadow .15s ease}',
+    '#calwscroll [onclick*="openEvPanel"]:hover, #wscroll [onclick*="openEvPanel"]:hover, #wscroll [onclick*="editPubItem"]:hover{transform:translateY(-1px);box-shadow:0 3px 10px rgba(0,0,0,.12) !important;z-index:7 !important}',
+    /* Hover en cards de publicaciones mobile */
+    '#pub-day-list > div{transition:box-shadow .15s ease,transform .12s ease}',
+    '#pub-day-list > div:hover{box-shadow:0 4px 14px rgba(0,0,0,.08) !important;transform:translateY(-1px)}',
+    /* Hover en cards de cobertura del panel guardias */
+    '#gwcontent .gwd:hover{box-shadow:0 4px 14px rgba(0,0,0,.08);transition:box-shadow .15s ease}',
+    /* Botones de guardia más compactos */
+    '.gwnb{padding:5px 8px !important;font-size:10px !important;border-radius:6px !important;margin-top:3px}',
+    /* Suavizar las cards de pubs guardia */
+    '.pubs-guardia-bloque{box-shadow:0 1px 3px rgba(146,64,14,.06) !important}',
+    /* Botones eliminar — animación al hover */
+    '.v571-card-del:hover{transform:scale(1.15) !important;background:#dc2626 !important}',
+    /* Estados visuales — badges más legibles */
+    '.kc, .kt{transition:all .15s ease}',
+    /* Sombras finas en lugar de bordes gruesos */
+    '#gwcontent .gwd{box-shadow:0 1px 3px rgba(0,0,0,.04)}',
+    /* Mejorar legibilidad de textos chicos */
+    '.gwags{line-height:1.3 !important}',
+    /* Dark mode hover */
+    'body.dark #calwscroll [onclick*="openEvPanel"]:hover, body.dark #wscroll [onclick*="openEvPanel"]:hover{box-shadow:0 3px 10px rgba(0,0,0,.4) !important}',
+    'body.dark #pub-day-list > div:hover{box-shadow:0 4px 14px rgba(0,0,0,.3) !important}',
+    /* Tooltip nativo más cómodo */
+    '.v571-card-del,.v571-card-del-mobile,.v571-del-btn{font-family:Inter,sans-serif}'
+  ].join("\n");
+  document.head.appendChild(st);
+})();
+
+/* Boot: primer pase post-render */
+setTimeout(function(){
+  try { _v571_inyectarEnCalendario(); } catch(_){}
+  try { _v571_inyectarEnPubDay(); } catch(_){}
+}, 1500);
+
+console.log("✅ Parche v5.71 OK — eliminar coberturas/pubs + hover suave + botones compactos");
+})();
+</script>
+
 </body>
 </html>
