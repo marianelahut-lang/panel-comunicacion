@@ -1,26 +1,25 @@
 /* ============================================================
    MEJORAS1.JS - Panel Comunicación Tres Arroyos
-   v3.7 · Navegación OK + múltiples redes/agentes + sync Material↔Agenda
+   v3.8 · Sin duplicación + texto corrupto limpiado
    ------------------------------------------------------------
-   FIXES en esta versión (TODOS los pedidos del usuario):
-   · [Modal "Tareas urgentes pendientes"] Botón × para
-     cerrarlo (faltaba en el panel original) + ESC.
-   · [Panel agente] Botón "← Volver al equipo" funcional.
-     Ahora SE PUEDE volver y elegir otro agente.
-   · [Panel agente] Scroll propio en la lista de tareas.
-   · [Modal "Nueva publicación"] Permite elegir VARIAS
-     redes sociales (checkboxes) en lugar de una sola.
-   · [Modal "Nueva publicación"] Permite elegir VARIOS
-     responsables (checkboxes con todos los agentes).
-   · [Sync] Publicación del modal "Material" del panel
-     original aparece TAMBIÉN en mi Agenda de publicaciones.
-   · [Sync] Publicación de mi modal se guarda en Supabase
-     tabla `publicaciones` (la ve el modal "Material" también).
+   FIXES en esta versión:
+   · [Publicaciones duplicadas] Resuelto. Ahora las
+     publicaciones usan UUID consistente entre localStorage
+     y Supabase. Además dedup por contenido (descripción +
+     fecha + hora) para limpiar duplicados existentes.
+   · [Modal de inicio con texto ÃÂ¡ÂÂÂ¥] Limpieza
+     automática. Los caracteres rotos se reemplazan con
+     algo legible. Botón "× Cerrar", "📅 Ver calendario",
+     "🛡️ Ver guardias", "+ Nueva tarea", "🛡️ Guardia del día",
+     "📅 Publicaciones programadas", "🔴 Tareas urgentes
+     pendientes" se renombran correctamente.
    ------------------------------------------------------------
-   También incluye TODO lo de v3.6:
-   · Shim getSelCuentaStr (botón "Programar" funciona).
-   · Sección "Publicaciones de guardia esta semana" en Guardias.
-   · Sin tareas duplicadas en Tablero.
+   También incluye TODO lo de v3.7 y anteriores:
+   · Botón "← Volver al equipo" funcional (navegación OK).
+   · Múltiples redes/responsables en mi modal.
+   · Sync mi Agenda ↔ Material (panel original).
+   · Botón × en modal "Tareas urgentes pendientes".
+   · Shim getSelCuentaStr para que "Programar" funcione.
    ------------------------------------------------------------
    1. Captura errores globales sin romper la UI.
    2. Garantiza placeholders sbt/sbm/sbag (fix textContent null).
@@ -1018,18 +1017,47 @@
   }
 
   function cargarPublicaciones(){
-    // Combinar localStorage + cache de Supabase, dedupe por id
+    // v3.8: Combinar localStorage + Supabase con DOBLE dedupe
+    //  (por id Y por contenido descripcion+fecha+hora) para evitar duplicados
+    //  cuando una publicación se subió con id distinto local vs cloud.
     var local = [];
     try { var r = localStorage.getItem(PUBLICACIONES_KEY); local = r ? JSON.parse(r) : []; }
     catch(_){}
     if(!Array.isArray(local)) local = [];
     var spbList = _publicacionesCache || [];
-    // Combinar evitando duplicados por id
+
+    function contentKey(p){
+      return ((p.descripcion||"").substring(0,40).toLowerCase().trim()) + "|" +
+             (p.fecha||"") + "|" + (p.hora||"");
+    }
+
+    // Primero, indexar locales por id y contenido
     var idsLocal = {};
-    local.forEach(function(p){ if(p && p.id) idsLocal[p.id] = true; });
+    var keysLocal = {};
+    local.forEach(function(p){
+      if(!p) return;
+      if(p.id) idsLocal[p.id] = true;
+      keysLocal[contentKey(p)] = true;
+    });
+
+    // Agregar de Supabase solo lo que NO esté ya local
     var combinada = local.slice();
-    spbList.forEach(function(p){ if(!idsLocal[p.id]) combinada.push(p); });
-    return combinada;
+    spbList.forEach(function(p){
+      if(idsLocal[p.id]) return;
+      if(keysLocal[contentKey(p)]) return;
+      combinada.push(p);
+    });
+
+    // Última pasada: deduplicar dentro de la lista combinada (por contenido)
+    var seen = {};
+    var unica = [];
+    combinada.forEach(function(p){
+      var k = contentKey(p);
+      if(seen[k]) return;
+      seen[k] = true;
+      unica.push(p);
+    });
+    return unica;
   }
   function guardarPublicaciones(lista){
     // Solo las que NO vienen de Supabase
@@ -1307,14 +1335,12 @@
     if(ev) ev.preventDefault();
     var fecha = (document.getElementById("ap-fi")||{}).value;
     var hora  = (document.getElementById("ap-hi")||{}).value;
-    // v3.7: leer múltiples redes
     var redesNodes = document.querySelectorAll("input[name='ap-redes']:checked");
     var redes = Array.from(redesNodes).map(function(c){ return c.value; });
     var cuenta= ((document.getElementById("ap-cui")||{}).value||"").trim();
     var tipo  = (document.getElementById("ap-ti")||{}).value;
     var estado= (document.getElementById("ap-ei")||{}).value || "pendiente";
     var desc  = ((document.getElementById("ap-di")||{}).value||"").trim();
-    // v3.7: leer múltiples responsables
     var respNodes = document.querySelectorAll("input[name='ap-resp']:checked");
     var responsables = Array.from(respNodes).map(function(c){ return c.value; });
     var colab = ((document.getElementById("ap-coi")||{}).value||"").trim();
@@ -1332,15 +1358,20 @@
         p.fecha=fecha; p.hora=hora; p.cuenta=cuenta;
         p.tipo=tipo; p.estado=estado; p.descripcion=desc;
         p.redes = redes;
-        p.red = redes[0];  // backward compat
+        p.red = redes[0];
         p.responsables = responsables;
         p.responsable = responsables.join(", ");
         p.colaboradores = colab;
         pubFinal = p;
       }
     } else {
+      // v3.8: Usar UUID consistente para que sea el mismo en local y Supabase
+      // (evita el problema de duplicación que tuvo v3.7)
+      var nuevoId = (window.crypto && window.crypto.randomUUID)
+        ? window.crypto.randomUUID()
+        : "p" + Date.now() + "-" + Math.floor(Math.random()*1e9).toString(16);
       pubFinal = {
-        id: "p" + Date.now() + Math.floor(Math.random()*1000),
+        id: nuevoId,
         fecha:fecha, hora:hora,
         red: redes[0], redes: redes,
         cuenta:cuenta, tipo:tipo, estado:estado,
@@ -1354,21 +1385,19 @@
     }
     guardarPublicaciones(lista);
 
-    // v3.7: ADEMÁS sincronizar con tabla `publicaciones` de Supabase
-    // (para que aparezca en Material / panel original y en Guardias)
     if(!id){
       sincronizarPubASupabase(pubFinal).then(function(ok){
         if(ok){
           toast(esHorarioGuardia(hora)
-            ? "✓ Publicación creada + sincronizada · 🔔 Aparece en Guardias"
-            : "✓ Publicación creada + sincronizada en Material");
-          // Refrescar publicaciones de Supabase para que aparezcan unidas
+            ? "✓ Publicación creada · 🔔 Aparece en Guardias"
+            : "✓ Publicación creada en Material/Agenda");
+          // Refrescar publicaciones de Supabase
           setTimeout(function(){
             cargarPublicacionesDesdeSpb().then(function(){
               renderAgendaPublicacionesModulo();
               try { renderPublicacionesEnGuardias(); } catch(_){}
             });
-          }, 500);
+          }, 600);
         } else {
           toast("✓ Publicación guardada localmente (sin sync nube)");
         }
@@ -1386,8 +1415,6 @@
   async function sincronizarPubASupabase(pub){
     var db = spb();
     if(!db) return false;
-    // Adaptar al schema de la tabla:
-    // id (uuid), fecha (date), hora (time), descripcion, cuenta, tipo, responsable, colaboracion, estado, tarea_id
     var cuentaSpb = (pub.redes || [pub.red]).map(function(r){
       var prefijo = ({facebook:"fb",instagram:"ig",tiktok:"tt",youtube:"yt",whatsapp:"wa",twitter:"tw"})[r] || r;
       var sufijo = /pablo|garate|intendente/i.test(pub.cuenta || "") ? "p" : "m";
@@ -1403,11 +1430,15 @@
       colaboracion: pub.colaboradores || "",
       estado: pub.estado || "pendiente"
     };
+    // v3.8: Si el id ya es un UUID válido, lo reutilizamos. Si no, omitimos.
+    if(pub.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(pub.id)){
+      fila.id = pub.id;
+    }
     try {
       var res = await db.from("publicaciones").insert([fila]);
       if(res.error){
-        // Tal vez requiere id; intentar con UUID
-        if(window.crypto && window.crypto.randomUUID){
+        // Reintentar con UUID generado si la BD lo requiere
+        if(!fila.id && window.crypto && window.crypto.randomUUID){
           fila.id = window.crypto.randomUUID();
           res = await db.from("publicaciones").insert([fila]);
         }
@@ -3274,7 +3305,69 @@
     return true;
   }
 
-  // v3.7: Listener global - si el usuario clickea cualquier botón "← Equipo"
+  // v3.8: Limpiar caracteres mal codificados del modal de bienvenida.
+  // El panel original tiene un bug de encoding: emojis aparecen como
+  // "ÃÂ¡ÂÂÂ¥", "ÃÂ¢¶¶", etc. Los detectamos y limpiamos del DOM.
+  function limpiarEncodingRoto(){
+    var todos = document.querySelectorAll("*");
+    for(var i = 0; i < todos.length; i++){
+      var el = todos[i];
+      if(el.children.length > 0) continue;
+      if(el.__m1Limpio) continue;
+      var t = el.textContent || "";
+      // Detectar el patrón típico de UTF-8 doblemente codificado
+      if(!/Ã[Â\u0080-\u00ff]/.test(t) && t.indexOf("ÃÂ") < 0) continue;
+      // Mapeo de patrones rotos comunes a algo razonable
+      var limpio = t
+        .replace(/Ã¢Â¶Â±?\s*Cerrar/g, "× Cerrar")
+        .replace(/Ã°Â?Â\u0091Â\u008B|ÃÂ¡ÂÂÂ¥/g, "👋")
+        .replace(/Ã°Â?Â?Â?/g, "")              // emoji genérico
+        .replace(/Ã¢\u0080[\u0080-\u00bf]+/g, "—") // dashes raros
+        .replace(/Ã[Â\u0080-\u00ff][\u0080-\u00bf]?[\u0080-\u00bf]?/g, "") // restos
+        .replace(/Â/g, "")
+        .replace(/[\u0080-\u009f]/g, "")
+        .replace(/\s{2,}/g, " ")
+        .trim();
+      if(limpio !== t && limpio.length > 0){
+        el.textContent = limpio;
+      } else if(limpio.length === 0 && t.length > 0){
+        // Si toda la línea era basura, vaciamos pero conservamos el espacio
+        el.textContent = "";
+      }
+      el.__m1Limpio = true;
+    }
+
+    // Caso especial: si el modal de inicio tiene un título "Buenas noches"/"Buenos días"
+    // con basura al final, lo reemplazamos por algo limpio.
+    var saludos = document.querySelectorAll("h1, h2, h3");
+    for(var j = 0; j < saludos.length; j++){
+      var st = saludos[j];
+      var raw = st.textContent || "";
+      if(/buenas?\s+(noches|d[ií]as|tardes)/i.test(raw) && /Ã/.test(raw)){
+        var nombre = (raw.match(/,\s*([A-Z][a-záéíóúñ]+)/) || [])[1] || "";
+        var hora = new Date().getHours();
+        var saludo = hora < 12 ? "Buenos días" : hora < 19 ? "Buenas tardes" : "Buenas noches";
+        st.textContent = saludo + (nombre ? ", " + nombre : "") + "!";
+      }
+    }
+
+    // Botón "× Cerrar" del modal de inicio: si tiene encoding roto, arreglarlo
+    document.querySelectorAll("button, [role='button']").forEach(function(b){
+      if(b.__m1BtnLimpio) return;
+      var tb = b.textContent || "";
+      if(/Ã/.test(tb)){
+        if(/cerrar/i.test(tb)) b.textContent = "× Cerrar";
+        else if(/ver\s+calendario/i.test(tb)) b.textContent = "📅 Ver calendario";
+        else if(/ver\s+guardias/i.test(tb)) b.textContent = "🛡️ Ver guardias";
+        else if(/nueva\s+tarea/i.test(tb)) b.textContent = "+ Nueva tarea";
+        else if(/guardia\s+del\s+d/i.test(tb)) b.textContent = "🛡️ Guardia del día";
+        else if(/publicaciones\s+programadas/i.test(tb)) b.textContent = "📅 Publicaciones programadas";
+        else if(/tareas\s+urgentes/i.test(tb)) b.textContent = "🔴 Tareas urgentes pendientes";
+        b.__m1BtnLimpio = true;
+      }
+    });
+  }
+
   // (mi botón o el del panel original), limpiar mi panel custom para permitir
   // volver al listado y elegir otro agente.
   function instalarListenerVolver(){
@@ -3534,6 +3627,7 @@
       try { renderPublicacionesEnGuardias(); } catch(_){}
       try { limpiarPanelHoyDesactualizado(); } catch(_){}
       try { agregarBotonCerrarUrgentes(); } catch(_){}
+      try { limpiarEncodingRoto(); } catch(_){}
       if(!window.nav || !window.nav.__patcheadoActivo) patchearNav();
       if(!window.renderKanban || !window.renderKanban.__patcheadoEstado){
         patchearRenderKanban();
@@ -3572,13 +3666,14 @@
           try { renderPublicacionesEnGuardias(); } catch(_){}
           try { limpiarPanelHoyDesactualizado(); } catch(_){}
           try { agregarBotonCerrarUrgentes(); } catch(_){}
+          try { limpiarEncodingRoto(); } catch(_){}
         });
         moMain.observe(main, { childList: true, subtree: true });
       }
     } catch(_){}
 
     try {
-      console.log("%c[mejoras1.js v3.7] navegación OK + múltiples redes/agentes + sync Material↔Agenda",
+      console.log("%c[mejoras1.js v3.8] Sin duplicación + texto corrupto limpiado",
                   "color:#7c3aed;font-weight:bold;font-size:13px");
     } catch(_){}
   }
