@@ -1,23 +1,27 @@
 /* ============================================================
    MEJORAS1.JS - Panel Comunicación Tres Arroyos
-   v3.10 · Sidebar funcional + Panel Hoy con datos reales
+   v3.11 · OPTIMIZADO para no trabar la página
    ------------------------------------------------------------
-   FIXES en esta versión:
-   · [Sidebar] Los botones del menú lateral ahora funcionan
-     sí o sí: usan addEventListener directo + fallback manual
-     si window.nav() está roto. Con logs en consola para
-     debuggear.
-   · [Panel Hoy] Reemplazado el contenido del panel "Hoy"
-     con un diseño nuevo que SÍ muestra:
-       - Header oscuro con saludo + fecha + 4 stats
-       - Publicaciones de hoy (lee de localStorage+Supabase)
-       - Guardia del día (titular + soporte, leído del DOM)
-       - Tareas urgentes pendientes
-   · [Guardia del día] Detecta automáticamente quién está
-     de titular y soporte hoy desde el panel "Guardias
-     semanales" del panel original.
-   · Al navegar a otra página, mi panel custom se limpia
-     para que se vuelva a renderizar correctamente.
+   FIXES en esta versión (urgente):
+   · MutationObserver con DEBOUNCE de 300ms. Antes corría
+     en cada cambio del DOM (cientos de veces por segundo) →
+     trababa el navegador. Ahora solo cada 300ms máximo.
+   · limpiarEncodingRoto() optimizada:
+       - Solo corre si detecta texto roto en el body
+       - Solo busca en elementos relevantes (button/h/span/div/p)
+       - Procesa máximo 500 elementos por ejecución
+       - Limita a 50 ejecuciones totales por sesión
+   · No bloquea el render con loops largos.
+   ------------------------------------------------------------
+   Incluye TODO lo de v3.10:
+   · Sidebar funcional con addEventListener + fallback
+   · Panel Hoy con datos reales (publicaciones del día,
+     guardia del día con titular/soporte, tareas urgentes)
+   · Modal "Tareas urgentes" cerrable con ×
+   · Múltiples redes/responsables en mi modal
+   · Sync mi Agenda ↔ Material (panel original)
+   · Shim getSelCuentaStr para que "Programar" funcione
+   · Sin tareas duplicadas en Tablero
    ------------------------------------------------------------
    También incluye TODO lo de v3.7 y anteriores:
    · Botón "← Volver al equipo" funcional (navegación OK).
@@ -3352,53 +3356,61 @@
     return true;
   }
 
-  // v3.8: Limpiar caracteres mal codificados del modal de bienvenida.
-  // El panel original tiene un bug de encoding: emojis aparecen como
-  // "ÃÂ¡ÂÂÂ¥", "ÃÂ¢¶¶", etc. Los detectamos y limpiamos del DOM.
+  // v3.11: Optimizado - solo se ejecuta si detecta texto roto en el body.
+  var _limpiezaEncContador = 0;
   function limpiarEncodingRoto(){
-    var todos = document.querySelectorAll("*");
-    for(var i = 0; i < todos.length; i++){
+    // Check rápido: si el body NO tiene texto roto, no hacer nada
+    if(_limpiezaEncContador > 50) return;  // No correr indefinidamente
+    var bodyTxt = document.body ? document.body.textContent : "";
+    if(bodyTxt.indexOf("ÃÂ") < 0 && !/Ã[Â\u0080-\u00ff]/.test(bodyTxt.substring(0, 5000))){
+      return; // No hay texto roto, salir
+    }
+    _limpiezaEncContador++;
+
+    var todos = document.querySelectorAll("button, h1, h2, h3, span, div, p");
+    var limites = 500; // máximo de elementos a procesar por ejecución
+    for(var i = 0; i < todos.length && limites > 0; i++){
       var el = todos[i];
       if(el.children.length > 0) continue;
       if(el.__m1Limpio) continue;
       var t = el.textContent || "";
-      // Detectar el patrón típico de UTF-8 doblemente codificado
-      if(!/Ã[Â\u0080-\u00ff]/.test(t) && t.indexOf("ÃÂ") < 0) continue;
-      // Mapeo de patrones rotos comunes a algo razonable
+      if(!/Ã[Â\u0080-\u00ff]/.test(t) && t.indexOf("ÃÂ") < 0){
+        el.__m1Limpio = true;
+        continue;
+      }
+      limites--;
       var limpio = t
         .replace(/Ã¢Â¶Â±?\s*Cerrar/g, "× Cerrar")
         .replace(/Ã°Â?Â\u0091Â\u008B|ÃÂ¡ÂÂÂ¥/g, "👋")
-        .replace(/Ã°Â?Â?Â?/g, "")              // emoji genérico
-        .replace(/Ã¢\u0080[\u0080-\u00bf]+/g, "—") // dashes raros
-        .replace(/Ã[Â\u0080-\u00ff][\u0080-\u00bf]?[\u0080-\u00bf]?/g, "") // restos
+        .replace(/Ã°Â?Â?Â?/g, "")
+        .replace(/Ã¢\u0080[\u0080-\u00bf]+/g, "—")
+        .replace(/Ã[Â\u0080-\u00ff][\u0080-\u00bf]?[\u0080-\u00bf]?/g, "")
         .replace(/Â/g, "")
         .replace(/[\u0080-\u009f]/g, "")
         .replace(/\s{2,}/g, " ")
         .trim();
-      if(limpio !== t && limpio.length > 0){
+      if(limpio !== t){
         el.textContent = limpio;
-      } else if(limpio.length === 0 && t.length > 0){
-        // Si toda la línea era basura, vaciamos pero conservamos el espacio
-        el.textContent = "";
       }
       el.__m1Limpio = true;
     }
 
-    // Caso especial: si el modal de inicio tiene un título "Buenas noches"/"Buenos días"
-    // con basura al final, lo reemplazamos por algo limpio.
+    // Caso especial: títulos "Buenas noches" con basura
     var saludos = document.querySelectorAll("h1, h2, h3");
     for(var j = 0; j < saludos.length; j++){
       var st = saludos[j];
+      if(st.__m1Saludo) continue;
       var raw = st.textContent || "";
       if(/buenas?\s+(noches|d[ií]as|tardes)/i.test(raw) && /Ã/.test(raw)){
         var nombre = (raw.match(/,\s*([A-Z][a-záéíóúñ]+)/) || [])[1] || "";
         var hora = new Date().getHours();
         var saludo = hora < 12 ? "Buenos días" : hora < 19 ? "Buenas tardes" : "Buenas noches";
         st.textContent = saludo + (nombre ? ", " + nombre : "") + "!";
+        st.__m1Saludo = true;
       }
     }
 
-    // Botón "× Cerrar" del modal de inicio: si tiene encoding roto, arreglarlo
+    // Botones con encoding roto
     document.querySelectorAll("button, [role='button']").forEach(function(b){
       if(b.__m1BtnLimpio) return;
       var tb = b.textContent || "";
@@ -3915,29 +3927,41 @@
       cargarAgentes();
     }, 2200);
 
-    // Observador global del main
+    // Observador global del main con DEBOUNCE (v3.11) — no traba la página
     try {
       var main = document.getElementById("main");
       if(main){
+        var _moTimer = null;
+        var _moEjecutando = false;
         var moMain = new MutationObserver(function(){
-          ocultarBotonesAgente();
-          arreglarFiltrosAgente();
-          agregarSelectoresEnTarjetas();
-          ocultarColumnaRealizada();
-          // v3.5: panel agente y pubs en guardias
-          try { inyectarPanelAgenteCustom(); } catch(_){}
-          try { renderPublicacionesEnGuardias(); } catch(_){}
-          try { renderPanelHoyCustom(); } catch(_){}
-          try { limpiarPanelHoyDesactualizado(); } catch(_){}
-          try { agregarBotonCerrarUrgentes(); } catch(_){}
-          try { limpiarEncodingRoto(); } catch(_){}
+          // Si ya hay un timer pendiente, no agendar otro
+          if(_moTimer) return;
+          // Si está ejecutando ahora mismo, esperar
+          if(_moEjecutando) return;
+          _moTimer = setTimeout(function(){
+            _moTimer = null;
+            _moEjecutando = true;
+            try {
+              ocultarBotonesAgente();
+              arreglarFiltrosAgente();
+              agregarSelectoresEnTarjetas();
+              ocultarColumnaRealizada();
+              try { inyectarPanelAgenteCustom(); } catch(_){}
+              try { renderPublicacionesEnGuardias(); } catch(_){}
+              try { renderPanelHoyCustom(); } catch(_){}
+              try { limpiarPanelHoyDesactualizado(); } catch(_){}
+              try { agregarBotonCerrarUrgentes(); } catch(_){}
+              try { limpiarEncodingRoto(); } catch(_){}
+            } catch(e){ console.warn("[mejoras1] MO error:", e); }
+            _moEjecutando = false;
+          }, 300);  // Esperar 300ms antes de ejecutar (debounce)
         });
         moMain.observe(main, { childList: true, subtree: true });
       }
     } catch(_){}
 
     try {
-      console.log("%c[mejoras1.js v3.10] Sidebar funcional + Panel Hoy con datos reales",
+      console.log("%c[mejoras1.js v3.11] Optimizado - no traba la página + debounce MO",
                   "color:#7c3aed;font-weight:bold;font-size:13px");
     } catch(_){}
   }
