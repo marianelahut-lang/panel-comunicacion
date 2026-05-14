@@ -7352,5 +7352,241 @@ console.log("✅ Parche v5.73 OK — 🗑 en Publicaciones de guardia esta seman
 })();
 </script>
 
+<!-- ============================================================
+     PARCHE v5.74 — Hardening del eliminar publicación
+     · Antes solo limpiaba pubs[] global → la pub reaparecía
+       desde localStorage de mejoras1.js
+     · Ahora también limpia localStorage
+       (key: panel-comunicacion-publicaciones-v1)
+     · DOM hide inmediato al confirmar (UX reactiva)
+     · Logging visible en consola para depurar
+     · Estiliza el bloque "Publicaciones de guardia esta semana"
+       que vive en p-guardias (parche v5.72 no llegaba ahí)
+     ============================================================ -->
+<script>
+(function(){
+"use strict";
+
+var LS_KEY = "panel-comunicacion-publicaciones-v1";
+
+/* Limpiar localStorage que maneja mejoras1.js */
+function _v574_limpiarLocalStorage(id){
+  try {
+    var raw = localStorage.getItem(LS_KEY);
+    if(!raw) return false;
+    var arr = JSON.parse(raw) || [];
+    if(!Array.isArray(arr)) return false;
+    var antes = arr.length;
+    arr = arr.filter(function(p){ return p && String(p.id) !== String(id); });
+    if(arr.length < antes){
+      localStorage.setItem(LS_KEY, JSON.stringify(arr));
+      console.log("[v5.74] localStorage limpiado para id:", id);
+      return true;
+    }
+    console.log("[v5.74] id no estaba en localStorage:", id);
+    return false;
+  } catch(e){
+    console.warn("[v5.74] localStorage error:", e);
+    return false;
+  }
+}
+
+/* Ocultar el item del DOM inmediatamente con animación */
+function _v574_hideDomItem(id){
+  try {
+    var safeId = (window.CSS && CSS.escape) ? CSS.escape(String(id)) : String(id).replace(/"/g, '\\"');
+    var items = document.querySelectorAll('[data-pub-id="' + safeId + '"]');
+    items.forEach(function(item){
+      item.style.transition = "opacity .25s ease, transform .25s ease, max-height .3s ease, padding .25s ease";
+      item.style.maxHeight = item.offsetHeight + "px";
+      requestAnimationFrame(function(){
+        item.style.opacity = "0";
+        item.style.transform = "translateX(20px)";
+        item.style.maxHeight = "0";
+        item.style.paddingTop = "0";
+        item.style.paddingBottom = "0";
+        item.style.borderBottomWidth = "0";
+        setTimeout(function(){ try { item.remove(); } catch(_){} }, 320);
+      });
+    });
+  } catch(e){ console.warn("[v5.74] hide DOM error:", e); }
+}
+
+/* SOBREESCRIBIR window.eliminarPubDirecto con versión robusta */
+window.eliminarPubDirecto = async function(id, descripcion){
+  console.log("[v5.74] eliminarPubDirecto:", id, descripcion);
+  if(!id){
+    console.warn("[v5.74] llamado sin id");
+    return;
+  }
+  var desc = (descripcion || "esta publicación").slice(0, 60);
+  if(!window.confirm('¿Eliminar "' + desc + '"?\n\nNo se puede deshacer.')){
+    console.log("[v5.74] usuario canceló");
+    return;
+  }
+
+  // 1. Hide del DOM inmediato (UX reactiva)
+  _v574_hideDomItem(id);
+
+  // 2. Limpiar localStorage de mejoras1.js
+  _v574_limpiarLocalStorage(id);
+
+  // 3. Limpiar array global pubs[]
+  try {
+    if(typeof pubs !== "undefined" && Array.isArray(pubs)){
+      var idx = -1;
+      for(var i = 0; i < pubs.length; i++){
+        if(String(pubs[i].id) === String(id)){ idx = i; break; }
+      }
+      if(idx !== -1){
+        pubs.splice(idx, 1);
+        console.log("[v5.74] pubs[] limpiado idx:", idx);
+      }
+    }
+  } catch(e){ console.warn("[v5.74] pubs splice:", e); }
+
+  // 4. Limpiar _pubGuardia y cobSel
+  try {
+    if(window._pubGuardia){
+      window._pubGuardia = window._pubGuardia.filter(function(e){
+        return e.id !== "pub_" + id && e.id !== id;
+      });
+    }
+    if(typeof cobSel !== "undefined"){
+      delete cobSel["pub_" + id];
+      delete cobSel[id];
+    }
+  } catch(_){}
+
+  // 5. Lock anti-resync
+  window._pubSavingLock = true;
+  setTimeout(function(){ window._pubSavingLock = false; }, 3000);
+
+  // 6. Toast inmediato
+  if(typeof toast === "function") toast("✓ Publicación eliminada");
+
+  // 7. Re-render de TODAS las vistas posibles
+  ["renderWeek","renderPubDay","renderGuardias","renderGuardDay","renderCal","renderCalDay","updateBadges","renderPublicacionesEnGuardias"]
+    .forEach(function(fn){
+      try { if(typeof window[fn] === "function") window[fn](); } catch(e){}
+    });
+
+  // 8. Sync Supabase (no bloqueante)
+  try {
+    if(window.db && window.db.from){
+      var r = await window.db.from("publicaciones").delete().eq("id", id);
+      if(r && r.error){
+        console.warn("[v5.74] Supabase delete error:", r.error.message);
+      } else {
+        console.log("[v5.74] Supabase delete OK");
+      }
+    } else {
+      console.warn("[v5.74] window.db no disponible");
+    }
+  } catch(e){ console.warn("[v5.74] sync exception:", e); }
+};
+
+/* ────────────────────────────────────────────────────────────
+   ESTILO para el bloque "Publicaciones de guardia esta semana"
+   (este bloque vive en #m1-pubs-guardias y no estaba en v5.72)
+   ──────────────────────────────────────────────────────────── */
+(function(){
+  var st = document.createElement("style");
+  st.id = "v574-css";
+  st.textContent = `
+  /* Bloque #m1-pubs-guardias — diseño consistente con v5.72 */
+  #m1-pubs-guardias{
+    border-radius:14px !important;
+    border:none !important;
+    border-left:4px solid #f59e0b !important;
+    box-shadow:0 4px 16px rgba(245,158,11,.08) !important;
+    background:linear-gradient(135deg,#fffbeb 0%,#fef3c7 100%) !important;
+    padding:18px 22px !important;
+    margin:18px 0 !important;
+  }
+  #m1-pubs-guardias > div:first-child{
+    font-size:16px !important;
+    letter-spacing:-.01em;
+    color:#78350f !important;
+  }
+  #m1-pubs-guardias > div:nth-child(2){
+    color:#92400e !important;
+    margin-bottom:16px !important;
+  }
+  /* Encabezado de cada día */
+  #m1-pubs-guardias > div > div[style*="text-transform:uppercase"]{
+    background:rgba(245,158,11,.12);
+    padding:6px 12px !important;
+    border-radius:7px;
+    display:inline-block;
+    margin-bottom:8px !important;
+    color:#78350f !important;
+    font-size:11px !important;
+    letter-spacing:.05em !important;
+  }
+  /* Item de publicación — fondo limpio sobre el bloque amarillo */
+  #m1-pubs-guardias [data-pub-id]{
+    background:rgba(255,255,255,.7);
+    border-radius:9px !important;
+    margin-bottom:4px;
+    padding:10px 12px !important;
+    border-bottom:none !important;
+    transition:background .15s ease,transform .12s ease;
+  }
+  #m1-pubs-guardias [data-pub-id]:hover{
+    background:#fff !important;
+    transform:translateX(2px);
+    box-shadow:0 2px 8px rgba(0,0,0,.05);
+  }
+  #m1-pubs-guardias [data-pub-id]:hover .v573-del-pubg{
+    opacity:1 !important;
+  }
+  /* Hora destacada */
+  #m1-pubs-guardias [data-pub-id] > span:first-child{
+    font-size:14px !important;
+    color:#7c3aed !important;
+    font-weight:800 !important;
+  }
+  /* Descripción */
+  #m1-pubs-guardias [data-pub-id] > div > div:first-child{
+    font-weight:500 !important;
+    color:#111827 !important;
+  }
+  /* Botón eliminar — mejor visibilidad */
+  .v573-del-pubg{
+    background:#fff !important;
+    border:1px solid #fca5a5 !important;
+    color:#dc2626 !important;
+    padding:6px 10px !important;
+    border-radius:8px !important;
+    font-size:13px !important;
+    opacity:.55 !important;
+    box-shadow:0 1px 2px rgba(220,38,38,.06);
+  }
+  .v573-del-pubg:hover{
+    background:#dc2626 !important;
+    color:#fff !important;
+    opacity:1 !important;
+    transform:scale(1.08) !important;
+    box-shadow:0 4px 10px rgba(220,38,38,.3) !important;
+  }
+  /* Dark mode */
+  body.dark #m1-pubs-guardias{
+    background:linear-gradient(135deg,#1a1207 0%,#2a1d0a 100%) !important;
+    border-left-color:#f59e0b !important;
+  }
+  body.dark #m1-pubs-guardias > div:first-child{ color:#fde68a !important; }
+  body.dark #m1-pubs-guardias > div:nth-child(2){ color:#fcd34d !important; }
+  body.dark #m1-pubs-guardias [data-pub-id]{ background:rgba(0,0,0,.25); }
+  body.dark #m1-pubs-guardias [data-pub-id]:hover{ background:rgba(0,0,0,.4) !important; }
+  body.dark #m1-pubs-guardias [data-pub-id] > div > div:first-child{ color:#f1f5f9 !important; }
+  `;
+  document.head.appendChild(st);
+})();
+
+console.log("✅ Parche v5.74 OK — eliminar pubs hardened + estilo bloque guardia");
+})();
+</script>
+
 </body>
 </html>
