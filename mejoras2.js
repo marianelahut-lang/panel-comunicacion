@@ -424,25 +424,22 @@
 
   // ─── F1.2 — CARGAR ITEMS DEL DÍA (eventos + publicaciones) ─
 
-  // FIX v2: Cache propio de publicaciones de Supabase.
-  // mejoras1 las guarda en _publicacionesCache dentro de su IIFE
-  // (variable privada, no accesible). Hacemos nuestra propia query.
+  // FIX v3: window.agendas y window.gcalEvs NO están expuestas como
+  // globales (son `let` en el scope del panel). Hacemos fetch directo
+  // a Supabase para AMBAS tablas: publicaciones Y agenda.
   var _m2PubsSpb = [];
+  var _m2AgendaSpb = [];
   var _m2PubsSpbLoading = null;
-  var _m2PubsSpbRefreshTimer = null;
+  var _m2AgendaSpbLoading = null;
+  var _m2RefreshTimer = null;
 
   function fetchPubsSpb(hoyStr){
-    // Singleton: si hay una request activa, devolverla
     if(_m2PubsSpbLoading) return _m2PubsSpbLoading;
-
     if(!window.db || typeof window.db.from !== "function"){
       return Promise.resolve(_m2PubsSpb);
     }
-
     _m2PubsSpbLoading = window.db
-      .from("publicaciones")
-      .select("*")
-      .eq("fecha", hoyStr)
+      .from("publicaciones").select("*").eq("fecha", hoyStr)
       .then(function(res){
         if(res && !res.error && Array.isArray(res.data)){
           _m2PubsSpb = res.data;
@@ -451,32 +448,54 @@
         return _m2PubsSpb;
       })
       .catch(function(e){
-        console.warn("[m2/F1] fetchPubsSpb error:", e);
+        console.warn("[m2/F1] fetchPubsSpb:", e);
         _m2PubsSpbLoading = null;
         return _m2PubsSpb;
       });
-
     return _m2PubsSpbLoading;
   }
 
-  // Refresca pubs cada 30s y re-renderiza la timeline al llegar datos
-  function iniciarRefreshPubsSpb(){
-    if(_m2PubsSpbRefreshTimer) return;
-    var hoyStr = new Date().toISOString().substring(0,10);
+  function fetchAgendaSpb(hoyStr){
+    if(_m2AgendaSpbLoading) return _m2AgendaSpbLoading;
+    if(!window.db || typeof window.db.from !== "function"){
+      return Promise.resolve(_m2AgendaSpb);
+    }
+    _m2AgendaSpbLoading = window.db
+      .from("agenda").select("*").eq("fecha", hoyStr)
+      .then(function(res){
+        if(res && !res.error && Array.isArray(res.data)){
+          _m2AgendaSpb = res.data;
+        }
+        _m2AgendaSpbLoading = null;
+        return _m2AgendaSpb;
+      })
+      .catch(function(e){
+        console.warn("[m2/F1] fetchAgendaSpb:", e);
+        _m2AgendaSpbLoading = null;
+        return _m2AgendaSpb;
+      });
+    return _m2AgendaSpbLoading;
+  }
 
-    // Primera carga inmediata
-    fetchPubsSpb(hoyStr).then(function(){
-      rerenderTimeline();
-    });
+  // Refresh ambas tablas cada 30s y re-renderiza al llegar datos
+  function iniciarRefreshDatosSpb(){
+    if(_m2RefreshTimer) return;
 
-    // Refresh cada 30s mientras la pestaña esté visible
-    _m2PubsSpbRefreshTimer = setInterval(function(){
-      if(document.hidden) return;
-      // Si cambió el día (cruce de medianoche), recalcular
-      var hoy2 = new Date().toISOString().substring(0,10);
-      fetchPubsSpb(hoy2).then(function(){
+    function refrescarTodo(){
+      var hoyStr = new Date().toISOString().substring(0,10);
+      Promise.all([
+        fetchPubsSpb(hoyStr),
+        fetchAgendaSpb(hoyStr)
+      ]).then(function(){
         rerenderTimeline();
       });
+    }
+
+    refrescarTodo(); // primera carga inmediata
+
+    _m2RefreshTimer = setInterval(function(){
+      if(document.hidden) return;
+      refrescarTodo();
     }, 30000);
   }
 
@@ -485,9 +504,13 @@
     var items = [];
     var seenEv = {}, seenPub = {};
 
-    // [a] Eventos del calendario (agendas locales + Google Cal)
+    // [a] Eventos del calendario — combina TODAS las fuentes:
+    //   1. _m2AgendaSpb    : nuestra query directa a Supabase tabla agenda
+    //   2. window.agendas  : si por casualidad el panel la expone (fallback)
+    //   3. window.gcalEvs  : Google Calendar (si está expuesto)
     try {
       var srcEv = [];
+      if(Array.isArray(_m2AgendaSpb))  srcEv = srcEv.concat(_m2AgendaSpb);
       if(typeof window.agendas !== "undefined" && Array.isArray(window.agendas))
         srcEv = srcEv.concat(window.agendas);
       if(typeof window.gcalEvs !== "undefined" && Array.isArray(window.gcalEvs))
@@ -496,12 +519,13 @@
       srcEv.forEach(function(ev){
         if(!ev || String(ev.fecha || "").slice(0,10) !== hoyStr || ev.cancelado) return;
         if(ev.tipo === "entrevista") return; // las entrevistas tienen su propio bloque
+        if(ev.tipo === "publicacion") return; // las pubs se manejan en [b]
         var k = (ev.descripcion || "").slice(0,30) + "|" + (ev.hora || "");
         if(seenEv[k]) return;
         seenEv[k] = 1;
         items.push({
           kind: "evento",
-          hora: ev.hora || "",
+          hora: ev.hora ? String(ev.hora).substring(0,5) : "",
           desc: ev.descripcion || "",
           lugar: ev.lugar || "",
           subtipo: ev.tipo || ""
@@ -510,8 +534,8 @@
     } catch(e){ console.warn("[m2/F1] eventos:", e); }
 
     // [b] Publicaciones — combina TODAS las fuentes:
-    //   1. _m2PubsSpb        : nuestra query directa a Supabase (FIX v2)
-    //   2. window.pubs       : tabla del panel original
+    //   1. _m2PubsSpb        : query directa a Supabase publicaciones
+    //   2. window.pubs       : tabla del panel original (si está expuesta)
     //   3. localStorage      : publicaciones locales de mejoras1
     try {
       var srcPubs = [];
@@ -527,14 +551,12 @@
       srcPubs.forEach(function(p){
         if(!p) return;
         if(String(p.fecha || "").slice(0,10) !== hoyStr) return;
-        // Normalizar hora a HH:MM
         var hora = p.hora ? String(p.hora).substring(0,5) : "";
         var desc = p.descripcion || "";
         var k = desc.slice(0,40) + "|" + hora;
         if(seenPub[k]) return;
         seenPub[k] = 1;
 
-        // Detectar redes/cuenta (varios formatos posibles)
         var redes = "";
         if(p.redes) redes = (Array.isArray(p.redes) ? p.redes : [p.redes]).filter(Boolean).join(", ");
         else if(p.red) redes = p.red;
@@ -711,9 +733,10 @@
       //     (loadAll() de Supabase puede tardar 1-3 segundos)
       iniciarPollerTimeline();
 
-      // [6] FIX v2: arrancar fetch directo a Supabase de publicaciones,
-      //     porque mejoras1 las guarda en _publicacionesCache privado.
-      iniciarRefreshPubsSpb();
+      // [6] FIX v3: arrancar fetch directo a Supabase de publicaciones Y eventos.
+      //     mejoras1 guarda esos datos en variables PRIVADAS (let, _publicacionesCache)
+      //     que no son accesibles desde window. Por eso fetcheamos nosotros.
+      iniciarRefreshDatosSpb();
     } catch(e){
       console.warn("[mejoras2/F1] aplicarMejorasHoy fallo:", e);
       panelHoy.removeAttribute("data-m2f1");
