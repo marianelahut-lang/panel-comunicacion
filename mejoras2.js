@@ -423,6 +423,63 @@
   }
 
   // ─── F1.2 — CARGAR ITEMS DEL DÍA (eventos + publicaciones) ─
+
+  // FIX v2: Cache propio de publicaciones de Supabase.
+  // mejoras1 las guarda en _publicacionesCache dentro de su IIFE
+  // (variable privada, no accesible). Hacemos nuestra propia query.
+  var _m2PubsSpb = [];
+  var _m2PubsSpbLoading = null;
+  var _m2PubsSpbRefreshTimer = null;
+
+  function fetchPubsSpb(hoyStr){
+    // Singleton: si hay una request activa, devolverla
+    if(_m2PubsSpbLoading) return _m2PubsSpbLoading;
+
+    if(!window.db || typeof window.db.from !== "function"){
+      return Promise.resolve(_m2PubsSpb);
+    }
+
+    _m2PubsSpbLoading = window.db
+      .from("publicaciones")
+      .select("*")
+      .eq("fecha", hoyStr)
+      .then(function(res){
+        if(res && !res.error && Array.isArray(res.data)){
+          _m2PubsSpb = res.data;
+        }
+        _m2PubsSpbLoading = null;
+        return _m2PubsSpb;
+      })
+      .catch(function(e){
+        console.warn("[m2/F1] fetchPubsSpb error:", e);
+        _m2PubsSpbLoading = null;
+        return _m2PubsSpb;
+      });
+
+    return _m2PubsSpbLoading;
+  }
+
+  // Refresca pubs cada 30s y re-renderiza la timeline al llegar datos
+  function iniciarRefreshPubsSpb(){
+    if(_m2PubsSpbRefreshTimer) return;
+    var hoyStr = new Date().toISOString().substring(0,10);
+
+    // Primera carga inmediata
+    fetchPubsSpb(hoyStr).then(function(){
+      rerenderTimeline();
+    });
+
+    // Refresh cada 30s mientras la pestaña esté visible
+    _m2PubsSpbRefreshTimer = setInterval(function(){
+      if(document.hidden) return;
+      // Si cambió el día (cruce de medianoche), recalcular
+      var hoy2 = new Date().toISOString().substring(0,10);
+      fetchPubsSpb(hoy2).then(function(){
+        rerenderTimeline();
+      });
+    }, 30000);
+  }
+
   function cargarItemsDelDia(){
     var hoyStr = new Date().toISOString().substring(0,10);
     var items = [];
@@ -452,13 +509,14 @@
       });
     } catch(e){ console.warn("[m2/F1] eventos:", e); }
 
-    // [b] Publicaciones — combina TODAS las fuentes posibles:
-    //   - window.pubs        : tabla publicaciones de Supabase (panel original)
-    //   - localStorage 'panel-comunicacion-publicaciones-v1' (mejoras1)
-    //   - window._publicacionesCache (cache interno de mejoras1, si está expuesto)
+    // [b] Publicaciones — combina TODAS las fuentes:
+    //   1. _m2PubsSpb        : nuestra query directa a Supabase (FIX v2)
+    //   2. window.pubs       : tabla del panel original
+    //   3. localStorage      : publicaciones locales de mejoras1
     try {
       var srcPubs = [];
-      if(Array.isArray(window.pubs)) srcPubs = srcPubs.concat(window.pubs);
+      if(Array.isArray(_m2PubsSpb))     srcPubs = srcPubs.concat(_m2PubsSpb);
+      if(Array.isArray(window.pubs))    srcPubs = srcPubs.concat(window.pubs);
 
       try {
         var raw = localStorage.getItem("panel-comunicacion-publicaciones-v1");
@@ -466,28 +524,33 @@
         if(Array.isArray(local)) srcPubs = srcPubs.concat(local);
       } catch(_){}
 
-      if(Array.isArray(window._publicacionesCache)){
-        srcPubs = srcPubs.concat(window._publicacionesCache);
-      }
-
       srcPubs.forEach(function(p){
         if(!p) return;
         if(String(p.fecha || "").slice(0,10) !== hoyStr) return;
-        var k = (p.descripcion || "").slice(0,40) + "|" + (p.hora || "");
+        // Normalizar hora a HH:MM
+        var hora = p.hora ? String(p.hora).substring(0,5) : "";
+        var desc = p.descripcion || "";
+        var k = desc.slice(0,40) + "|" + hora;
         if(seenPub[k]) return;
         seenPub[k] = 1;
-        var rNames = (p.redes || [p.red]).filter(Boolean).join(", ");
+
+        // Detectar redes/cuenta (varios formatos posibles)
+        var redes = "";
+        if(p.redes) redes = (Array.isArray(p.redes) ? p.redes : [p.redes]).filter(Boolean).join(", ");
+        else if(p.red) redes = p.red;
+        else if(p.cuenta) redes = p.cuenta;
+
         items.push({
           kind: "publicacion",
-          hora: p.hora || "",
-          desc: p.descripcion || "",
+          hora: hora,
+          desc: desc,
           responsable: p.responsable || "",
-          redes: rNames
+          redes: redes
         });
       });
     } catch(e){ console.warn("[m2/F1] pubs:", e); }
 
-    // [d] Ordenar por hora ascendente
+    // [c] Ordenar por hora ascendente
     items.sort(function(a, b){
       return (a.hora || "99:99").localeCompare(b.hora || "99:99");
     });
@@ -647,6 +710,10 @@
       // [5] Iniciar poller para re-renderizar cuando lleguen datos async
       //     (loadAll() de Supabase puede tardar 1-3 segundos)
       iniciarPollerTimeline();
+
+      // [6] FIX v2: arrancar fetch directo a Supabase de publicaciones,
+      //     porque mejoras1 las guarda en _publicacionesCache privado.
+      iniciarRefreshPubsSpb();
     } catch(e){
       console.warn("[mejoras2/F1] aplicarMejorasHoy fallo:", e);
       panelHoy.removeAttribute("data-m2f1");
