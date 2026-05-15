@@ -1,356 +1,303 @@
 /* ============================================================
-MEJORAS3.JS - Panel Comunicación Tres Arroyos v4.0
-Prompts 1-5: HOY separado / Calendario / Guardia / WhatsApp / Visual
+MEJORAS3.JS v2 - Panel Comunicación Tres Arroyos
+FIXES: Separación módulos + Guardia operativa
 ============================================================
-IMPORTANTE: Solo agrega CSS/comportamiento visual.
-NO modifica datos, funcionarios, reclamos, sincronización ni BD.
+CORRECCIONES:
+1. p-tablero OCULTO cuando no es la pestaña activa
+2. Material y Reclamos sin tablero superpuesto
+3. Columna Realizada eliminada del kanban
+4. Panel guardia rediseñado (desde 15hs, cronológico)
+5. Botones WhatsApp por agente
+NO modifica datos ni lógica funcional.
 ============================================================ */
 (function(){
 "use strict";
 
-/* ========================================================
-CSS GENERAL (Prompt 5 - Mejora Visual)
-======================================================== */
-var CSS_M3 = "m3-css-main";
+/* CSS */
 function inyectarCSS(){
-if(document.getElementById(CSS_M3)) return;
+if(document.getElementById("m4css")) return;
 var css = [
-"/* HOY SEPARADO */",
-"#m3-hoy-wrapper{display:flex;flex-direction:column;gap:16px;padding:16px 0}",
-"#m3-hoy-wrapper .m3-section-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6b7280;margin:0 0 8px 0;padding-bottom:6px;border-bottom:1px solid #e5e7eb}",
-"body.dark #m3-hoy-wrapper .m3-section-title{color:#9ca3af;border-color:#374151}",
-"/* CARD BASE */",
-".m3-card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.06);margin-bottom:12px}",
-"body.dark .m3-card{background:#1f2937;border-color:#374151}",
-"/* GRID HOY */",
-".m3-hoy-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}",
-"@media(max-width:900px){.m3-hoy-grid{grid-template-columns:1fr}}",
-"/* TIMELINE */",
-".m3-timeline-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid #f3f4f6;font-size:13px}",
-"body.dark .m3-timeline-item{border-color:#374151}",
-".m3-timeline-item:last-child{border-bottom:none}",
-".m3-timeline-hora{font-size:12px;font-weight:700;color:#6366f1;min-width:42px;padding-top:1px}",
-".m3-timeline-tipo-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:600;padding:2px 6px;border-radius:20px;min-width:60px;justify-content:center;margin-top:1px}",
-".m3-badge-evento{background:#dbeafe;color:#1d4ed8}",
-".m3-badge-pub{background:#d1fae5;color:#065f46}",
-".m3-badge-cobertura{background:#fef3c7;color:#92400e}",
-".m3-badge-radio{background:#ede9fe;color:#5b21b6}",
-"body.dark .m3-badge-evento{background:#1e3a5f;color:#93c5fd}",
-"body.dark .m3-badge-pub{background:#064e3b;color:#6ee7b7}",
-"body.dark .m3-badge-cobertura{background:#451a03;color:#fde68a}",
-"body.dark .m3-badge-radio{background:#2e1065;color:#c4b5fd}",
-".m3-timeline-texto{flex:1;font-size:13px;line-height:1.4;color:#111827}",
-"body.dark .m3-timeline-texto{color:#e5e7eb}",
-".m3-empty{text-align:center;color:#9ca3af;font-size:13px;padding:20px 0}",
-"/* TABLERO SEPARADO */",
-"#p-tablero::before{content:'TABLERO DE TAREAS';display:block;font-size:11px;font-weight:700;letter-spacing:.1em;color:#6b7280;padding:12px 0 4px 0;border-top:2px solid #e5e7eb;margin-bottom:4px}",
-"body.dark #p-tablero::before{color:#9ca3af;border-color:#374151}",
-"/* GUARDIA REDISEÑO */",
-"#m3-guardia-panel{display:flex;flex-direction:column;gap:14px;margin-top:20px}",
-".m3-guardia-header{display:flex;align-items:center;gap:12px;padding:14px 16px;background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%);border-radius:12px;color:#fff}",
-".m3-guardia-fecha{font-size:18px;font-weight:700}",
-".m3-guardia-fecha-sub{font-size:12px;opacity:.85;margin-top:1px}",
-".m3-agentes-row{display:flex;gap:10px;flex-wrap:wrap}",
-".m3-agente-card{flex:1;min-width:200px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,.06)}",
-"body.dark .m3-agente-card{background:#1f2937;border-color:#374151}",
-".m3-agente-role{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}",
-".m3-role-titular{color:#6366f1}",
-".m3-role-soporte{color:#10b981}",
-".m3-agente-nombre{font-size:15px;font-weight:700;color:#111827;margin-bottom:2px}",
-"body.dark .m3-agente-nombre{color:#f9fafb}",
-".m3-agente-horario{font-size:12px;color:#6b7280;margin-bottom:8px}",
-".m3-btn-wa{display:flex;align-items:center;justify-content:center;gap:6px;background:#25d366;color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer;width:100%;transition:background .15s,transform .1s}",
-".m3-btn-wa:hover{background:#1da851;transform:translateY(-1px)}",
-".m3-guardia-actividades{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.06)}",
-"body.dark .m3-guardia-actividades{background:#1f2937;border-color:#374151}",
-".m3-section-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6b7280;margin:0 0 8px 0;padding-bottom:6px;border-bottom:1px solid #e5e7eb}",
-"body.dark .m3-section-title{color:#9ca3af;border-color:#374151}",
-".m3-guardia-item{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid #f3f4f6;font-size:13px}",
-"body.dark .m3-guardia-item{border-color:#374151}",
-".m3-guardia-item:last-child{border-bottom:none}",
-".m3-guardia-hora{font-size:13px;font-weight:700;color:#6366f1;min-width:44px}",
-".m3-guardia-titulo{font-size:13px;font-weight:600;color:#111827;margin-bottom:2px;line-height:1.3}",
-"body.dark .m3-guardia-titulo{color:#f9fafb}",
-".m3-empty-state{text-align:center;padding:24px 16px;color:#9ca3af;font-size:13px}",
-"/* TOAST */",
-"#m3-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);background:#1f2937;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:500;z-index:99999;transition:transform .25s ease;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.3)}",
-"#m3-toast.show{transform:translateX(-50%) translateY(0)}",
-"/* VISUAL GENERAL (Prompt 5) */",
-".content{padding:16px 20px!important}",
-"@media(max-width:768px){.content{padding:12px 12px!important}}"
+"/* TABLERO: oculto por default, solo visible cuando activo */",
+"#p-tablero{display:none!important}",
+"body.m4tab-tablero #p-tablero{display:flex!important}",
+"/* Quitar ::before de mejoras3 */",
+"#p-tablero::before{display:none!important;content:none!important}",
+"/* Columna Realizada oculta */",
+".m4col-hide{display:none!important}",
+"/* GUARDIA rediseño */",
+"#m4gwrap{padding:0 0 24px 0}",
+".m4gh{background:linear-gradient(135deg,#4f46e5,#7c3aed);border-radius:14px;padding:18px 20px;color:#fff;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}",
+".m4gh h2{font-size:20px;font-weight:700;margin:0 0 2px 0}",
+".m4gh p{font-size:12px;opacity:.85;margin:0}",
+".m4ghr{font-size:13px;background:rgba(255,255,255,.2);padding:6px 12px;border-radius:20px;font-weight:600}",
+".m4ag-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px}",
+".m4ag-card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px 16px;box-shadow:0 1px 4px rgba(0,0,0,.06)}",
+"body.dark .m4ag-card{background:#1f2937;border-color:#374151}",
+".m4ag-rol{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}",
+".m4rol-tit{color:#4f46e5}",
+".m4rol-sop{color:#10b981}",
+".m4ag-nom{font-size:16px;font-weight:700;color:#111827;margin-bottom:2px}",
+"body.dark .m4ag-nom{color:#f9fafb}",
+".m4ag-hor{font-size:12px;color:#6b7280;margin-bottom:10px}",
+".m4wabtn{display:flex;align-items:center;justify-content:center;gap:6px;background:#25d366;color:#fff;border:none;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:600;cursor:pointer;width:100%;transition:background .15s}",
+".m4wabtn:hover{background:#1da851}",
+".m4acts{background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)}",
+"body.dark .m4acts{background:#1f2937;border-color:#374151}",
+".m4acts-hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#f9fafb;border-bottom:1px solid #e5e7eb}",
+"body.dark .m4acts-hdr{background:#111827;border-color:#374151}",
+".m4acts-hdr h3{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6b7280;margin:0}",
+".m4cnt-badge{font-size:11px;background:#ede9fe;color:#5b21b6;padding:3px 8px;border-radius:20px;font-weight:600}",
+".m4act{display:flex;align-items:flex-start;gap:12px;padding:11px 16px;border-bottom:1px solid #f3f4f6;transition:background .1s}",
+"body.dark .m4act{border-color:#374151}",
+".m4act:last-child{border-bottom:none}",
+".m4act:hover{background:#f9fafb}",
+"body.dark .m4act:hover{background:#374151}",
+".m4act-hora{font-size:13px;font-weight:700;color:#4f46e5;min-width:48px;padding-top:1px}",
+".m4badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;margin-top:3px;white-space:nowrap}",
+".m4bc{background:#fef3c7;color:#92400e}",
+".m4bp{background:#d1fae5;color:#065f46}",
+".m4be{background:#dbeafe;color:#1d4ed8}",
+".m4br{background:#ede9fe;color:#5b21b6}",
+".m4act-tit{font-size:13px;font-weight:600;color:#111827;line-height:1.4}",
+"body.dark .m4act-tit{color:#f9fafb}",
+".m4act-sub{font-size:11px;color:#6b7280}",
+".m4empty{text-align:center;padding:28px 16px;color:#9ca3af;font-size:13px}"
 ].join("\n");
 var st = document.createElement("style");
-st.id = CSS_M3;
+st.id = "m4css";
 st.textContent = css;
 document.head.appendChild(st);
 }
 
-/* TOAST */
-function m3Toast(msg){
-var t = document.getElementById("m3-toast");
-if(!t){ t = document.createElement("div"); t.id = "m3-toast"; document.body.appendChild(t); }
-t.textContent = msg;
-t.classList.add("show");
-setTimeout(function(){ t.classList.remove("show"); }, 2500);
-}
-
-/* ========================================================
-PROMPT 1 — PANEL HOY SEPARADO DEL TABLERO
-Muestra: actividades del día, eventos, publicaciones, coberturas
-======================================================== */
-function construirPanelHoy(){
-var panelHoy = document.getElementById("p-hoy");
-if(!panelHoy) return;
-if(document.getElementById("m3-hoy-wrapper")) return;
-var hoy = new Date();
-var yyyy = hoy.getFullYear();
-var mm = String(hoy.getMonth()+1).padStart(2,"0");
-var dd = String(hoy.getDate()).padStart(2,"0");
-var fechaHoy = yyyy+"-"+mm+"-"+dd;
-var items = [];
-// 1. Coberturas (guardOverrides localStorage)
-try {
-  var gd = JSON.parse(localStorage.getItem("guardOverrides")||"{}");
-  if(gd[fechaHoy] && gd[fechaHoy].coberturas){
-    gd[fechaHoy].coberturas.forEach(function(c){
-      items.push({ hora: c.hora||"", tipo: c.tipo||"cobertura", texto: c.titulo||c.text||"Cobertura" });
-    });
+/* === FIX NAVEGACION: Ocultar tablero cuando no esta activo === */
+function checkTablero(){
+var tb = document.getElementById("p-tablero");
+if(!tb) return;
+// Contar paneles visibles que NO son el tablero
+var visible = 0;
+document.querySelectorAll("#main > div[id^='p-']").forEach(function(p){
+  if(p.id !== "p-tablero"){
+    var d = p.style.display;
+    if(d !== "none") visible++;
   }
-} catch(e){}
-// 2. Publicaciones del DOM
-try {
-  document.querySelectorAll("[data-pub-fecha=\""+fechaHoy+"\"], .ap-item[data-fecha=\""+fechaHoy+"\"]").forEach(function(el){
-    var hora = el.dataset.hora||el.dataset.pubHora||"";
-    var txt = (el.querySelector(".ap-titulo,.pub-titulo")||{}).textContent||el.textContent.trim().substring(0,70);
-    if(txt.trim()) items.push({ hora:hora, tipo:"pub", texto:txt.trim().substring(0,80) });
-  });
-} catch(e){}
-// 3. Eventos del calendario del DOM
-try {
-  document.querySelectorAll("[data-cal-date=\""+fechaHoy+"\"] .cal-event,.cal-event[data-date=\""+fechaHoy+"\"]").forEach(function(el){
-    var hora = el.dataset.hora||(el.querySelector(".cal-hora")||{}).textContent||"";
-    var txt = ((el.querySelector(".cal-titulo,.cal-text")||{}).textContent||el.textContent).trim().substring(0,80);
-    if(txt) items.push({ hora:hora, tipo:"evento", texto:txt });
-  });
-} catch(e){}
-items.sort(function(a,b){ return parseInt((a.hora||"").replace(":",""))-parseInt((b.hora||"").replace(":",""));});
-var DIAS = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
-var MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
-var ft = DIAS[hoy.getDay()]+", "+hoy.getDate()+" de "+MESES[hoy.getMonth()]+" de "+yyyy;
-var html = "<div id='m3-hoy-wrapper'>";
-html += "<div class='m3-section-title'>📅 HOY — "+ft+"</div>";
-html += "<div class='m3-card'>";
-html += "<div class='m3-section-title'>📋 Actividades del Día</div>";
-if(items.length === 0){
-  html += "<div class='m3-empty'>Sin actividades cargadas para hoy</div>";
+});
+if(visible > 0){
+  // Otro panel activo: ocultar tablero
+  tb.style.setProperty("display","none","important");
+  document.body.classList.remove("m4tab-tablero");
 } else {
-  items.forEach(function(item){
-    var bc = item.tipo==="evento"?"m3-badge-evento":(item.tipo==="pub"?"m3-badge-pub":(item.tipo==="radio"?"m3-badge-radio":"m3-badge-cobertura"));
-    var bi = item.tipo==="evento"?"🗓":(item.tipo==="pub"?"📢":(item.tipo==="radio"?"📻":"📷"));
-    var bl = item.tipo==="evento"?"Evento":(item.tipo==="pub"?"Pub.":(item.tipo==="radio"?"Radio":"Cob."));
-    html += "<div class='m3-timeline-item'>";
-    html += "<span class='m3-timeline-hora'>"+(item.hora||"--:--")+"</span>";
-    html += "<span class='m3-timeline-tipo-badge "+bc+"'>"+ bi+" "+bl+"</span>";
-    html += "<span class='m3-timeline-texto'>"+item.texto+"</span>";
-    html += "</div>";
-  });
+  // Solo tablero: mostrar
+  tb.style.removeProperty("display");
+  document.body.classList.add("m4tab-tablero");
 }
-html += "</div></div>";
-panelHoy.insertAdjacentHTML("afterbegin", html);
 }
 
-/* ========================================================
-PROMPT 2 — FIX CALENDARIO
-======================================================== */
-function fixCalendario(){
-var cal = document.getElementById("p-calendario");
-if(!cal) return;
-var obs = new MutationObserver(function(muts){
-  muts.forEach(function(m){
-    if(m.attributeName==="style"||m.attributeName==="class"){
-      if(cal.style.display!=="none"&&cal.offsetParent) setTimeout(renderAgendaCal,150);
+function parchearNav(){
+if(window._m4navOK) return;
+// Parchear función nav() global
+if(window.nav){
+  var orig = window.nav;
+  window.nav = function(sec, extra, btn){
+    orig.apply(this, arguments);
+    var esTablero = (sec && (sec.indexOf("tablero") !== -1 || sec.indexOf("p-tablero") !== -1));
+    if(esTablero){
+      document.body.classList.add("m4tab-tablero");
+      var tb = document.getElementById("p-tablero");
+      if(tb) tb.style.removeProperty("display");
+    } else {
+      setTimeout(checkTablero, 50);
+    }
+  };
+  window._m4navOK = true;
+}
+// Parchear botones .sbi del sidebar
+document.querySelectorAll(".sbi").forEach(function(btn){
+  if(btn.dataset.m4p) return;
+  btn.dataset.m4p = "1";
+  btn.addEventListener("click", function(){
+    setTimeout(checkTablero, 80);
+  });
+});
+// Parchear botones .ntab del topnav
+document.querySelectorAll(".ntab").forEach(function(btn){
+  if(btn.dataset.m4p) return;
+  btn.dataset.m4p = "1";
+  btn.addEventListener("click", function(){
+    var txt = btn.textContent.trim().toLowerCase();
+    if(txt.indexOf("tablero") !== -1){
+      document.body.classList.add("m4tab-tablero");
+      var tb = document.getElementById("p-tablero");
+      if(tb) tb.style.removeProperty("display");
+    } else {
+      setTimeout(checkTablero, 80);
     }
   });
 });
-obs.observe(cal,{attributes:true});
-document.querySelectorAll("[data-tab='calendario'],[onclick*='calendario']").forEach(function(b){
-  b.addEventListener("click",function(){ setTimeout(renderAgendaCal,300); });
-});
 }
-function renderAgendaCal(){
-var cc = document.getElementById("cal-day-content");
-if(!cc) return;
-cc.style.display="none";
-requestAnimationFrame(function(){
-  cc.style.display="";
-  var sc = document.getElementById("calwscroll");
-  if(sc){ var h=new Date().getHours(); sc.scrollTop=Math.max(0,(h-1)*60); }
+
+/* === FIX KANBAN: Ocultar columna Realizada === */
+function ocultarRealizada(){
+document.querySelectorAll(".kcol").forEach(function(col){
+  if(col.classList.contains("m4col-hide")) return;
+  var h = col.querySelector(".khdr");
+  if(h && h.textContent.trim().toLowerCase().indexOf("realiz") !== -1){
+    col.classList.add("m4col-hide");
+  }
 });
 }
 
-/* ========================================================
-PROMPT 3 — PANEL DE GUARDIA REDISEÑADO (desde 15hs)
-======================================================== */
-function redisenarGuardia(){
-var gpanel = document.getElementById("p-guardias");
-if(!gpanel||document.getElementById("m3-guardia-panel")) return;
+/* === GUARDIA REDISEÑO === */
+function buildGuardia(){
+var gp = document.getElementById("p-guardias");
+if(!gp || document.getElementById("m4gwrap")) return;
 var hoy = new Date();
 var DIAS=["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
 var MESES=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
 var ft=DIAS[hoy.getDay()]+" "+hoy.getDate()+" de "+MESES[hoy.getMonth()];
-var yyyy=hoy.getFullYear();
-var mm=String(hoy.getMonth()+1).padStart(2,"0");
-var dd=String(hoy.getDate()).padStart(2,"0");
+var yyyy=hoy.getFullYear(),mm=String(hoy.getMonth()+1).padStart(2,"0"),dd=String(hoy.getDate()).padStart(2,"0");
 var fk=yyyy+"-"+mm+"-"+dd;
-var agentes=[];
-var acts=[];
-// Detectar agentes del día del DOM existente
-var gdc=document.getElementById("guard-day-content");
-if(gdc){
-  gdc.querySelectorAll("[class*='titular']").forEach(function(el){ if(el.textContent.trim()) agentes.push({rol:"Titular",nombre:el.textContent.trim(),color:"m3-role-titular"}); });
-  gdc.querySelectorAll("[class*='soporte']").forEach(function(el){ if(el.textContent.trim()) agentes.push({rol:"Soporte",nombre:el.textContent.trim(),color:"m3-role-soporte"}); });
-  gdc.querySelectorAll("[class*='gcob'],[class*='cobertura']").forEach(function(el){
-    var horaEl=el.querySelector("[class*='hora']");
-    var hora=horaEl?horaEl.textContent.trim():"";
-    var hn=parseInt((hora.replace(":","").replace("hs","").replace("h","").trim()||"0"));
-    if(hn>=1500){
-      var tEl=el.querySelector("[class*='titulo'],[class*='text']");
-      var txt=tEl?tEl.textContent.trim():el.textContent.trim().substring(0,60);
-      if(txt) acts.push({hora:hora,tipo:"cobertura",titulo:txt});
-    }
-  });
-}
-// Coberturas desde localStorage (desde 15hs)
+var agentes=[],acts=[];
+// Leer datos desde localStorage
 try{
   var gd=JSON.parse(localStorage.getItem("guardOverrides")||"{}");
-  if(gd[fk]&&gd[fk].coberturas) gd[fk].coberturas.forEach(function(c){
-    var hn=parseInt((c.hora||"").replace(":",""));
-    if(hn>=1500){
-      var exists=acts.some(function(a){ return a.titulo===(c.titulo||c.text); });
-      if(!exists) acts.push({hora:c.hora||"",tipo:c.tipo||"cobertura",titulo:c.titulo||c.text||"Cobertura"});
-    }
+  var day=gd[fk]||{};
+  if(day.titular) agentes.push({rol:"Titular",nom:day.titular,rc:"m4rol-tit"});
+  if(day.soporte) agentes.push({rol:"Soporte",nom:day.soporte,rc:"m4rol-sop"});
+  if(day.coberturas) day.coberturas.forEach(function(c){
+    var h=parseInt((c.hora||"0000").replace(":",""));
+    if(h>=1500) acts.push({hora:c.hora||"",tipo:c.tipo||"cob",tit:c.titulo||c.text||"Cobertura"});
   });
 }catch(e){}
-acts.sort(function(a,b){ return parseInt((a.hora||"").replace(":",""))-parseInt((b.hora||"").replace(":",""));});
-// Deduplicar agentes
-var nombresVistos={};
-agentes=agentes.filter(function(a){ if(nombresVistos[a.nombre]) return false; nombresVistos[a.nombre]=true; return true; });
-var html="<div id='m3-guardia-panel'>";
-html+="<div class='m3-guardia-header'><div><div class='m3-guardia-fecha'>🛡️ Guardia del Día</div><div class='m3-guardia-fecha-sub'>"+ft+" · Actividades desde las 15:00 hs</div></div></div>";
-if(agentes.length>0){
-  html+="<div class='m3-agentes-row'>";
-  agentes.forEach(function(ag){
-    html+="<div class='m3-agente-card'>";
-    html+="<div class='m3-agente-role "+ag.color+"'>" +ag.rol+"</div>";
-    html+="<div class='m3-agente-nombre'>"+ ag.nombre+"</div>";
-    html+="<div class='m3-agente-horario'>Horario: 15:00 — 23:59 hs</div>";
-    html+="<button class='m3-btn-wa' data-agente='"+ag.nombre+"' onclick='m3EnviarWA(this)'>📱 WhatsApp</button>";
-    html+="</div>";
+// Leer del DOM de guardias existente
+var gdc=document.getElementById("guard-day-content");
+if(gdc){
+  gdc.querySelectorAll("[class*=titular],[class*=agent-tit]").forEach(function(el){
+    var n=el.textContent.trim();
+    if(n && n.length>1 && !agentes.find(function(a){return a.nom===n;})){
+      agentes.push({rol:"Titular",nom:n,rc:"m4rol-tit"});
+    }
   });
-  html+="</div>";
+  gdc.querySelectorAll("[class*=soporte],[class*=agent-sop]").forEach(function(el){
+    var n=el.textContent.trim();
+    if(n && n.length>1 && !agentes.find(function(a){return a.nom===n;})){
+      agentes.push({rol:"Soporte",nom:n,rc:"m4rol-sop"});
+    }
+  });
+  gdc.querySelectorAll("[class*=gcob],[class*=cob-item]").forEach(function(el){
+    var hEl=el.querySelector("[class*=hora]");
+    var hora=hEl?hEl.textContent.trim():"";
+    var hNum=parseInt(hora.replace(":","").replace(/[^0-9]/g,"") || "0");
+    if(hNum>=1500){
+      var tEl=el.querySelector("[class*=titulo],[class*=text]");
+      var txt=tEl?tEl.textContent.trim():el.textContent.trim().substring(0,60);
+      if(txt&&!acts.find(function(a){return a.tit===txt;})){
+        acts.push({hora:hora,tipo:"cob",tit:txt});
+      }
+    }
+  });
 }
-html+="<div class='m3-guardia-actividades'>";
-html+="<div class='m3-section-title'>📋 Actividades desde las 15:00 hs</div>";
+acts.sort(function(a,b){
+  return parseInt((a.hora||"").replace(":",""))-parseInt((b.hora||"").replace(":",""));
+});
+// Build HTML
+var h="<div id='m4gwrap'>";
+h+="<div class='m4gh'><div class='m4gh-left'><h2>🛡️ Guardia del Día</h2><p>"+ft+" · Actividades desde las 15:00 hs</p></div></div>";
+if(agentes.length>0){
+  h+="<div class='m4ag-grid'>";
+  agentes.forEach(function(ag){
+    h+="<div class='m4ag-card'>";
+    h+="<div class='m4ag-rol "+ag.rc+"'>" +ag.rol+"</div>";
+    h+="<div class='m4ag-nom'>"+ag.nom+"</div>";
+    h+="<div class='m4ag-hor'>⏰ 15:00 — 23:59 hs</div>";
+    h+="<button class='m4wabtn' data-agente='"+ag.nom+"' onclick='m4WA(this)'>📱 Enviar WhatsApp</button>";
+    h+="</div>";
+  });
+  h+="</div>";
+}
+h+="<div class='m4acts'>";
+h+="<div class='m4acts-hdr'><h3>📋 Actividades desde las 15:00 hs</h3>";
+if(acts.length>0) h+="<span class='m4cnt-badge'>"+acts.length+" actividades</span>";
+h+="</div>";
 if(acts.length===0){
-  html+="<div class='m3-empty-state'>Sin actividades de guardia cargadas para hoy</div>";
+  h+="<div class='m4empty'>Sin actividades de guardia cargadas para hoy</div>";
 } else {
   acts.forEach(function(act){
-    var ic=act.tipo==="pub"?"📢":(act.tipo==="radio"?"📻":"📷");
-    var bc=act.tipo==="pub"?"m3-badge-pub":(act.tipo==="radio"?"m3-badge-radio":"m3-badge-cobertura");
-    var bl=act.tipo==="pub"?"Pub.":(act.tipo==="radio"?"Radio":"Cob.");
-    html+="<div class='m3-guardia-item'>";
-    html+="<span class='m3-guardia-hora'>"+(act.hora||"--:--")+"</span>";
-    html+="<div><div class='m3-guardia-titulo'>"+act.titulo+"</div>";
-    html+="<span class='m3-timeline-tipo-badge "+bc+"'>"+ic+" "+bl+"</span></div>";
-    html+="</div>";
+    var ico=act.tipo==="pub"?"📢":(act.tipo==="radio"?"📻":(act.tipo==="evento"?"🗓️":"📷"));
+    var bc=act.tipo==="pub"?"m4bp":(act.tipo==="radio"?"m4br":(act.tipo==="evento"?"m4be":"m4bc"));
+    var bl=act.tipo==="pub"?"Publicación":(act.tipo==="radio"?"Radio":(act.tipo==="evento"?"Evento":"Cobertura"));
+    h+="<div class='m4act'>";
+    h+="<div class='m4act-hora'>"+(act.hora||"—")+"</div>";
+    h+="<div><div class='m4act-tit'>"+act.tit+"</div>";
+    h+="<span class='m4badge "+bc+"'>"+ ico+" "+bl+"</span></div>";
+    h+="</div>";
   });
 }
-html+="</div></div>";
-var wrapper=document.createElement("div");
-wrapper.innerHTML=html;
-gpanel.appendChild(wrapper.firstElementChild);
+h+="</div></div>";
+var wr=document.createElement("div");
+wr.innerHTML=h;
+gp.insertBefore(wr.firstElementChild, gp.firstChild);
 }
 
-/* ========================================================
-PROMPT 4 — BOTÓN WHATSAPP POR AGENTE
-======================================================== */
-window.m3EnviarWA = function(btn){
-var nombre = btn ? (btn.dataset.agente||btn.textContent.replace(/[📱WA\s]/g,"")) : "";
-if(!nombre){ m3Toast("No se pudo identificar el agente"); return; }
+/* === WHATSAPP === */
+window.m4WA=function(btn){
+var nom=btn?btn.dataset.agente:"";
+if(!nom) return;
 var hoy=new Date();
-var yyyy=hoy.getFullYear();
-var mm=String(hoy.getMonth()+1).padStart(2,"0");
-var dd=String(hoy.getDate()).padStart(2,"0");
-var fk=yyyy+"-"+mm+"-"+dd;
 var DIAS=["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
 var MESES=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
-var ft=DIAS[hoy.getDay()]+", "+hoy.getDate()+" de "+MESES[hoy.getMonth()]+" de "+yyyy;
-var cobs=[]; var pubs=[];
+var ft=DIAS[hoy.getDay()]+", "+hoy.getDate()+" de "+MESES[hoy.getMonth()]+" de "+hoy.getFullYear();
+var yyyy=hoy.getFullYear(),mm=String(hoy.getMonth()+1).padStart(2,"0"),dd=String(hoy.getDate()).padStart(2,"0");
+var fk=yyyy+"-"+mm+"-"+dd;
+var cobs=[],pubs=[];
 try{
   var gd=JSON.parse(localStorage.getItem("guardOverrides")||"{}");
-  if(gd[fk]&&gd[fk].coberturas) gd[fk].coberturas.forEach(function(c){
-    var hn=parseInt((c.hora||"").replace(":",""));
-    if(hn>=1500){
-      if(c.tipo==="pub") pubs.push((c.hora||"")+" - "+(c.titulo||c.text||"Publicación"));
+  var day=gd[fk]||{};
+  if(day.coberturas) day.coberturas.forEach(function(c){
+    var hh=parseInt((c.hora||"0").replace(":",""));
+    if(hh>=1500){
+      if(c.tipo==="pub") pubs.push((c.hora||"")+" - "+(c.titulo||c.text||"Pub."));
       else cobs.push((c.hora||"")+" - "+(c.titulo||c.text||"Cobertura"));
     }
   });
 }catch(e){}
-var msg="Hola "+nombre+", estas son tus coberturas de hoy 👋\n\n";
+var msg="Hola "+nom+", estas son tus coberturas de hoy 👋\n\n";
 msg+="📅 *"+ft+"*\n";
-msg+="⏰ *Horario de guardia:* 15:00 — 23:59 hs\n\n";
-if(cobs.length>0){ msg+="📷 *Coberturas:*\n"; cobs.forEach(function(c){ msg+="  • "+c+"\n"; }); msg+="\n"; }
-if(pubs.length>0){ msg+="📢 *Publicaciones programadas:*\n"; pubs.forEach(function(p){ msg+="  • "+p+"\n"; }); msg+="\n"; }
-if(cobs.length===0&&pubs.length===0) msg+="✅ Sin actividades de guardia cargadas por ahora.\n";
-msg+="\n_Panel Comunicación - Municipalidad de Tres Arroyos_";
+msg+="⏰ *Horario:* 15:00 — 23:59 hs\n\n";
+if(cobs.length>0){msg+="📷 *Coberturas:*\n";cobs.forEach(function(c){msg+="  • "+c+"\n";});msg+="\n";}
+if(pubs.length>0){msg+="📢 *Publicaciones:*\n";pubs.forEach(function(p){msg+="  • "+p+"\n";});msg+="\n";}
+if(!cobs.length&&!pubs.length) msg+="✅ Sin actividades por ahora.\n";
+msg+="\n_Panel Comunicación — Muni Tres Arroyos_";
 window.open("https://wa.me/?text="+encodeURIComponent(msg),"_blank");
 };
 
-/* Agregar botones WA en tarjetas de agente del DOM existente */
-function agregarBotonesWA(){
-document.querySelectorAll(".guard-day-col,.gday-col,[class*=guard-day]").forEach(function(col){
-  if(col.querySelector(".m3-wa-added")) return;
-  col.querySelectorAll("[class*=titular],[class*=soporte]").forEach(function(el){
-    var nombre=el.textContent.trim();
-    if(!nombre||nombre.length<2) return;
-    if(el.nextElementSibling&&el.nextElementSibling.classList.contains("m3-wa-added")) return;
-    var btn=document.createElement("button");
-    btn.className="m3-btn-wa m3-wa-added";
-    btn.style.cssText="font-size:11px;padding:5px 8px;margin-top:4px;width:auto";
-    btn.innerHTML="📱 WA";
-    btn.dataset.agente=nombre;
-    btn.addEventListener("click",function(){ window.m3EnviarWA(this); });
-    el.parentNode.insertBefore(btn,el.nextSibling);
-  });
-});
-}
-
-/* ========================================================
-INICIALIZACIÓN
-======================================================== */
-function inicializar(){
+/* === INIT === */
+function init(){
 inyectarCSS();
 setTimeout(function(){
-  construirPanelHoy();
-  fixCalendario();
-  redisenarGuardia();
-  agregarBotonesWA();
-  // Botones WA en guardias semanales existentes
-  document.querySelectorAll("[id*=wa-btn],[class*=wa-btn],[class*=wabtn]").forEach(function(b){
-    if(b.dataset.agenteWaM3) return;
-    b.dataset.agenteWaM3="1";
-    var orig=b.onclick;
-    b.addEventListener("click",function(e){ e.stopPropagation(); window.m3EnviarWA(b); e.preventDefault(); });
-  });
-}, 900);
-// MutationObserver para nuevos elementos
-new MutationObserver(function(){ agregarBotonesWA(); }).observe(document.getElementById("main")||document.body,{childList:true,subtree:true});
+  parchearNav();
+  ocultarRealizada();
+  buildGuardia();
+  checkTablero();
+}, 700);
+// Recheck en intervalo
+var n=0;
+var iv=setInterval(function(){
+  parchearNav();
+  ocultarRealizada();
+  checkTablero();
+  if(++n>=15) clearInterval(iv);
+}, 400);
+// Observer en #main
+var main=document.getElementById("main");
+if(main){
+  new MutationObserver(function(){checkTablero();ocultarRealizada();}).observe(main,{attributes:true,subtree:true,attributeFilter:["style"]});
+}
 }
 
 if(document.readyState==="loading"){
-  document.addEventListener("DOMContentLoaded",inicializar);
+  document.addEventListener("DOMContentLoaded",init);
 } else {
-  setTimeout(inicializar, 400);
+  setTimeout(init,300);
 }
 
 })();
