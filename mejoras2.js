@@ -452,48 +452,40 @@
       });
     } catch(e){ console.warn("[m2/F1] eventos:", e); }
 
-    // [b] Publicaciones locales (de mejoras1)
+    // [b] Publicaciones — combina TODAS las fuentes posibles:
+    //   - window.pubs        : tabla publicaciones de Supabase (panel original)
+    //   - localStorage 'panel-comunicacion-publicaciones-v1' (mejoras1)
+    //   - window._publicacionesCache (cache interno de mejoras1, si está expuesto)
     try {
-      var raw = localStorage.getItem("panel-comunicacion-publicaciones-v1");
-      var pubsLocal = raw ? JSON.parse(raw) : [];
-      if(Array.isArray(pubsLocal)){
-        pubsLocal.forEach(function(p){
-          if(!p || String(p.fecha || "").slice(0,10) !== hoyStr) return;
-          var k = (p.descripcion || "").slice(0,40) + "|" + (p.hora || "");
-          if(seenPub[k]) return;
-          seenPub[k] = 1;
-          var rNames = (p.redes || [p.red]).filter(Boolean).join(", ");
-          items.push({
-            kind: "publicacion",
-            hora: p.hora || "",
-            desc: p.descripcion || "",
-            responsable: p.responsable || "",
-            redes: rNames
-          });
-        });
-      }
-    } catch(e){ console.warn("[m2/F1] pubs local:", e); }
+      var srcPubs = [];
+      if(Array.isArray(window.pubs)) srcPubs = srcPubs.concat(window.pubs);
 
-    // [c] Publicaciones cacheadas globalmente (Supabase, si están)
-    try {
-      var pc = window._publicacionesCache;
-      if(Array.isArray(pc)){
-        pc.forEach(function(p){
-          if(!p || String(p.fecha || "").slice(0,10) !== hoyStr) return;
-          var k = (p.descripcion || "").slice(0,40) + "|" + (p.hora || "");
-          if(seenPub[k]) return;
-          seenPub[k] = 1;
-          var rNames = (p.redes || [p.red]).filter(Boolean).join(", ");
-          items.push({
-            kind: "publicacion",
-            hora: p.hora || "",
-            desc: p.descripcion || "",
-            responsable: p.responsable || "",
-            redes: rNames
-          });
-        });
+      try {
+        var raw = localStorage.getItem("panel-comunicacion-publicaciones-v1");
+        var local = raw ? JSON.parse(raw) : [];
+        if(Array.isArray(local)) srcPubs = srcPubs.concat(local);
+      } catch(_){}
+
+      if(Array.isArray(window._publicacionesCache)){
+        srcPubs = srcPubs.concat(window._publicacionesCache);
       }
-    } catch(e){ console.warn("[m2/F1] pubs cache:", e); }
+
+      srcPubs.forEach(function(p){
+        if(!p) return;
+        if(String(p.fecha || "").slice(0,10) !== hoyStr) return;
+        var k = (p.descripcion || "").slice(0,40) + "|" + (p.hora || "");
+        if(seenPub[k]) return;
+        seenPub[k] = 1;
+        var rNames = (p.redes || [p.red]).filter(Boolean).join(", ");
+        items.push({
+          kind: "publicacion",
+          hora: p.hora || "",
+          desc: p.descripcion || "",
+          responsable: p.responsable || "",
+          redes: rNames
+        });
+      });
+    } catch(e){ console.warn("[m2/F1] pubs:", e); }
 
     // [d] Ordenar por hora ascendente
     items.sort(function(a, b){
@@ -606,7 +598,11 @@
   function aplicarMejorasHoy(){
     var panelHoy = document.getElementById("m1-panel-hoy");
     if(!panelHoy) return;
-    if(panelHoy.getAttribute("data-m2f1") === "1") return;
+    if(panelHoy.getAttribute("data-m2f1") === "1") {
+      // Ya se aplicaron los cambios estructurales; solo refrescar timeline
+      rerenderTimeline();
+      return;
+    }
     panelHoy.setAttribute("data-m2f1", "1");
 
     try {
@@ -647,11 +643,56 @@
           gridPadre.style.gridTemplateColumns = "1fr";
         }
       }
+
+      // [5] Iniciar poller para re-renderizar cuando lleguen datos async
+      //     (loadAll() de Supabase puede tardar 1-3 segundos)
+      iniciarPollerTimeline();
     } catch(e){
       console.warn("[mejoras2/F1] aplicarMejorasHoy fallo:", e);
-      // Si algo falla, sacar el flag para que el observer reintente
       panelHoy.removeAttribute("data-m2f1");
     }
+  }
+
+  // ─── F1.5b — RE-RENDER LIVIANO DE LA TIMELINE ─────────────
+  // Vuelve a renderizar SOLO la timeline (no los botones ni la estructura)
+  // cuando los datos async terminan de cargar. Compara firmas para no
+  // re-renderizar de gusto.
+  function rerenderTimeline(){
+    var panelHoy = document.getElementById("m1-panel-hoy");
+    if(!panelHoy) return;
+
+    // Si el panel HOY no está visible (otra pestaña activa), saltar
+    if(panelHoy.offsetParent === null) return;
+
+    var oldTimeline = panelHoy.querySelector(".m2-card-hoy");
+    if(!oldTimeline) return; // estructura todavía no aplicada
+
+    var items = cargarItemsDelDia();
+
+    // Firma para detectar cambios reales (evita parpadeo)
+    var sig = items.length + ":" + items.map(function(i){
+      return i.kind.charAt(0) + (i.hora || "") + (i.desc || "").substring(0,25);
+    }).join("|");
+
+    if(panelHoy.getAttribute("data-m2-sig") === sig) return;
+    panelHoy.setAttribute("data-m2-sig", sig);
+
+    var temp = document.createElement("div");
+    temp.innerHTML = renderTimelineHTML(items);
+    var newCard = temp.firstChild;
+    if(newCard) oldTimeline.parentNode.replaceChild(newCard, oldTimeline);
+  }
+
+  // Poller liviano: cada 2s mira si hay cambios mientras HOY está visible.
+  // Se detiene solo si la pestaña se va a background.
+  var _m2Poller = null;
+  function iniciarPollerTimeline(){
+    if(_m2Poller) return;
+    _m2Poller = setInterval(function(){
+      // No correr si pestaña en background (evitar consumo)
+      if(document.hidden) return;
+      rerenderTimeline();
+    }, 2000);
   }
 
   // ─── F1.6 — OBSERVER PARA DETECTAR RE-RENDERS ─────────────
