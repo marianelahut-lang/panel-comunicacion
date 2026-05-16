@@ -1,290 +1,75 @@
-/* MEJORAS3.JS v6 */
+/* MEJORAS3.JS v7 */
 (function(){"use strict";
 
-function inyectarCSS(){
-  if(document.getElementById("m4css")) return;
-  var s=document.createElement("style");s.id="m4css";
-  var css="";
-  css+="#p-guardias .ptop,#p-guardias .gw-navrow,#p-guardias .acts.gw-mobile,#p-guardias .gw-mobile,#p-guardias #m1-pubs-guardias,#p-guardias .gwtbl,#p-guardias .ptitle{display:none!important}\n";
-  css+="body:not(.m4tab-tablero) #p-tablero{display:none!important}\n";
-  css+="#m4g{width:100%;padding:16px;box-sizing:border-box}\n";
-  css+="#m4g .m4gh{display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,#6c3fc5,#4f46e5);color:#fff;border-radius:12px;padding:14px 20px;margin-bottom:14px}\n";
-  css+="#m4g .m4gh h2{margin:0;font-size:1rem;font-weight:700}\n#m4g .m4gh p{margin:3px 0 0;font-size:.8rem;opacity:.85}\n";
-  css+="#m4g .m4gnav{display:flex;align-items:center;gap:10px;margin-bottom:14px}\n";
-  css+="#m4g .m4gnav button{background:var(--color-canvas-subtle,#f6f8fa);border:1px solid var(--color-border-default,#d0d7de);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:.82rem;font-weight:600}\n";
-  css+="#m4g .m4gwrange{flex:1;text-align:center;font-size:.88rem;font-weight:600}\n";
-  css+="#m4g .m4ghoy{background:#6c3fc5!important;color:#fff!important;border-color:#6c3fc5!important}\n";
-  css+="#m4g .m4gdays{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:14px}\n";
-  css+="@media(max-width:700px){#m4g .m4gdays{grid-template-columns:repeat(3,1fr)}}\n";
-  css+="#m4g .m4gday{background:var(--color-canvas-subtle,#f6f8fa);border:2px solid var(--color-border-default,#d0d7de);border-radius:10px;padding:8px 6px;cursor:pointer;min-height:100px;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .2s}\n";
-  css+="#m4g .m4gday:hover,#m4g .m4gday.m4active{border-color:#6c3fc5!important;background:rgba(108,63,197,.07)!important}\n";
-  css+="#m4g .m4gday.m4today{border-color:#f59e0b!important}\n";
-  css+="#m4g .m4gdname{font-size:.65rem;font-weight:700;text-transform:uppercase;color:#888}\n";
-  css+="#m4g .m4gdnum{font-size:1.05rem;font-weight:800}\n";
-  css+="#m4g .m4today .m4gdnum{color:#f59e0b}\n#m4g .m4active .m4gdnum{color:#6c3fc5}\n";
-  css+="#m4g .m4gav{width:28px;height:28px;border-radius:50%;background:#6c3fc5;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700}\n";
-  css+="#m4g .m4ganame{font-size:.62rem;font-weight:600;text-align:center;line-height:1.2}\n";
-  css+="#m4g .m4garole{font-size:.56rem;color:#888}\n";
-  css+="#m4g .m4gcnt{background:#6c3fc5;color:#fff;border-radius:20px;padding:1px 5px;font-size:.58rem;font-weight:700}\n";
-  css+="#m4g .m4gwa{background:#25d366;color:#fff;border:none;border-radius:6px;padding:2px 5px;font-size:.58rem;font-weight:700;cursor:pointer;width:100%}\n";
-  css+="#m4g .m4gdetail{display:grid;grid-template-columns:1fr 210px;gap:14px}\n";
-  css+="@media(max-width:700px){#m4g .m4gdetail{grid-template-columns:1fr}}\n";
-  css+="#m4g .m4dbox{background:var(--color-canvas-subtle,#f6f8fa);border:1px solid var(--color-border-default,#d0d7de);border-radius:10px;padding:14px}\n";
-  css+="#m4g .m4dhdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px}\n";
-  css+="#m4g .m4dtitle{font-size:.9rem;font-weight:700}\n";
-  css+="#m4g .m4dbtns{display:flex;gap:5px;flex-wrap:wrap}\n";
-  css+="#m4g .m4dedit{background:var(--color-canvas-subtle,#f6f8fa);border:1px solid var(--color-border-default,#d0d7de);border-radius:7px;padding:5px 10px;font-size:.78rem;cursor:pointer}\n";
-  css+="#m4g .m4dwa{background:#25d366;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:.78rem;font-weight:700;cursor:pointer}\n";
-  css+="#m4g .m4alist{display:flex;flex-direction:column;gap:6px}\n";
-  css+="#m4g .m4aitem{background:var(--color-canvas-default,#fff);border:1px solid var(--color-border-default,#d0d7de);border-radius:8px;padding:8px 10px;display:flex;align-items:flex-start;gap:8px}\n";
-  css+="#m4g .m4atime{font-size:.82rem;font-weight:800;min-width:44px;color:#6c3fc5}\n";
-  css+="#m4g .m4abadge{display:inline-flex;align-items:center;gap:2px;padding:1px 6px;border-radius:5px;font-size:.62rem;font-weight:700;white-space:nowrap;margin-bottom:2px}\n";
-  css+="#m4g .m4bev{background:#dbeafe;color:#1d4ed8}\n#m4g .m4bpub{background:#fce7f3;color:#be185d}\n#m4g .m4bcob{background:#dcfce7;color:#15803d}\n#m4g .m4brad{background:#fef3c7;color:#b45309}\n";
-  css+="#m4g .m4atitle{font-size:.82rem;font-weight:600;line-height:1.3}\n";
-  css+="#m4g .m4empty{text-align:center;color:#aaa;padding:20px;font-size:.82rem}\n";
-  css+="#m4g .m4sidebar{display:flex;flex-direction:column;gap:10px}\n";
-  css+="#m4g .m4sum{background:var(--color-canvas-subtle,#f6f8fa);border:1px solid var(--color-border-default,#d0d7de);border-radius:10px;padding:12px}\n";
-  css+="#m4g .m4sum h3{font-size:.82rem;font-weight:700;margin:0 0 8px}\n";
-  css+="#m4g .m4srow{display:flex;justify-content:space-between;padding:3px 0;font-size:.78rem;border-bottom:1px solid var(--color-border-muted,#eaeef2)}\n";
-  css+="#m4g .m4srow:last-child{border-bottom:none}\n";
-  css+="#m4g .m4sval{font-weight:700;background:#6c3fc5;color:#fff;padding:1px 7px;border-radius:9px;font-size:.72rem}\n";
-  css+="#m4g .m4agcard{background:var(--color-canvas-subtle,#f6f8fa);border:1px solid var(--color-border-default,#d0d7de);border-radius:10px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:6px}\n";
-  css+="#m4g .m4agav{width:40px;height:40px;border-radius:50%;background:#6c3fc5;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700}\n";
-  css+="#m4g .m4agname{font-size:.85rem;font-weight:700}\n#m4g .m4agrole{font-size:.72rem;color:#888}\n";
-  css+="#m4g .m4agwa{background:#25d366;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:.78rem;font-weight:700;cursor:pointer;width:100%}\n";
-  s.textContent=css;
-  document.head.appendChild(s);
-}
+function inyectarCSS(){if(document.getElementById("m4css"))return;var s=document.createElement("style");s.id="m4css";var css="";css+="#p-guardias .ptop,#p-guardias .gw-navrow,#p-guardias .acts.gw-mobile,#p-guardias .gw-mobile,#p-guardias #m1-pubs-guardias,#p-guardias .gwtbl,#p-guardias .ptitle{display:none!important}\n";css+="body:not(.m4tab-tablero) #p-tablero{display:none!important}\n";css+="body.m4tab-calendario #m1-pubs-guardias,body.m4tab-calendario .sidebar-pubs{display:none!important}\n";css+="#m4g{width:100%;padding:16px;box-sizing:border-box}\n";css+="#m4g .m4gh{display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,#6c3fc5,#4f46e5);color:#fff;border-radius:12px;padding:14px 20px;margin-bottom:14px}\n";css+="#m4g .m4gh h2{margin:0;font-size:1rem;font-weight:700}\n";css+="#m4g .m4gnav{display:flex;align-items:center;gap:10px;margin-bottom:14px}\n";css+="#m4g .m4gnav button{background:var(--color-canvas-subtle,#f6f8fa);border:1px solid var(--color-border-default,#d0d7de);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:.82rem;font-weight:600}\n";css+="#m4g .m4gwrange{flex:1;text-align:center;font-size:.88rem;font-weight:600}\n";css+="#m4g .m4ghoy{background:#6c3fc5!important;color:#fff!important;border-color:#6c3fc5!important}\n";css+="#m4g .m4gdays{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:14px}\n";css+="@media(max-width:700px){#m4g .m4gdays{grid-template-columns:repeat(3,1fr)}}\n";css+="#m4g .m4gday{background:var(--color-canvas-subtle,#f6f8fa);border:2px solid var(--color-border-default,#d0d7de);border-radius:10px;padding:8px 6px;cursor:pointer;min-height:100px;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .2s}\n";css+="#m4g .m4gday:hover,#m4g .m4gday.m4active{border-color:#6c3fc5!important;background:rgba(108,63,197,.07)!important}\n";css+="#m4g .m4gday.m4today{border-color:#f59e0b!important}\n";css+="#m4g .m4gdname{font-size:.65rem;font-weight:700;text-transform:uppercase;color:#888}\n";css+="#m4g .m4gdnum{font-size:1.05rem;font-weight:800}\n";css+="#m4g .m4today .m4gdnum{color:#f59e0b}\n#m4g .m4active .m4gdnum{color:#6c3fc5}\n";css+="#m4g .m4gav{width:28px;height:28px;border-radius:50%;background:#6c3fc5;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700}\n";css+="#m4g .m4ganame{font-size:.62rem;font-weight:600;text-align:center;line-height:1.2}\n";css+="#m4g .m4garole{font-size:.56rem;color:#888}\n";css+="#m4g .m4gcnt{background:#6c3fc5;color:#fff;border-radius:20px;padding:1px 5px;font-size:.58rem;font-weight:700}\n";css+="#m4g .m4gwa{background:#25d366;color:#fff;border:none;border-radius:6px;padding:2px 5px;font-size:.58rem;font-weight:700;cursor:pointer;width:100%}\n";css+="#m4g .m4gdetail{display:grid;grid-template-columns:1fr 210px;gap:14px}\n";css+="@media(max-width:700px){#m4g .m4gdetail{grid-template-columns:1fr}}\n";css+="#m4g .m4dbox{background:var(--color-canvas-subtle,#f6f8fa);border:1px solid var(--color-border-default,#d0d7de);border-radius:10px;padding:14px}\n";css+="#m4g .m4dhdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px}\n";css+="#m4g .m4dtitle{font-size:.9rem;font-weight:700}\n";css+="#m4g .m4dbtns{display:flex;gap:5px;flex-wrap:wrap}\n";css+="#m4g .m4dedit{background:var(--color-canvas-subtle,#f6f8fa);border:1px solid var(--color-border-default,#d0d7de);border-radius:7px;padding:5px 10px;font-size:.78rem;cursor:pointer}\n";css+="#m4g .m4dwa{background:#25d366;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:.78rem;font-weight:700;cursor:pointer}\n";css+="#m4g .m4alist{display:flex;flex-direction:column;gap:6px}\n";css+="#m4g .m4aitem{background:var(--color-canvas-default,#fff);border:1px solid var(--color-border-default,#d0d7de);border-radius:8px;padding:8px 10px;display:flex;align-items:flex-start;gap:8px}\n";css+="#m4g .m4atime{font-size:.82rem;font-weight:800;min-width:44px;color:#6c3fc5}\n";css+="#m4g .m4abadge{display:inline-flex;align-items:center;gap:2px;padding:1px 6px;border-radius:5px;font-size:.62rem;font-weight:700;white-space:nowrap;margin-bottom:2px}\n";css+="#m4g .m4bev{background:#dbeafe;color:#1d4ed8}\n#m4g .m4bpub{background:#fce7f3;color:#be185d}\n#m4g .m4bcob{background:#dcfce7;color:#15803d}\n";css+="#m4g .m4atitle{font-size:.82rem;font-weight:600;line-height:1.3}\n";css+="#m4g .m4aplace{font-size:.72rem;color:#888}\n";css+="#m4g .m4empty{text-align:center;color:#aaa;padding:20px;font-size:.82rem}\n";css+="#m4g .m4sidebar{display:flex;flex-direction:column;gap:10px}\n";css+="#m4g .m4sum{background:var(--color-canvas-subtle,#f6f8fa);border:1px solid var(--color-border-default,#d0d7de);border-radius:10px;padding:12px}\n";css+="#m4g .m4sum h3{font-size:.82rem;font-weight:700;margin:0 0 8px}\n";css+="#m4g .m4srow{display:flex;justify-content:space-between;padding:3px 0;font-size:.78rem;border-bottom:1px solid var(--color-border-muted,#eaeef2)}\n";css+="#m4g .m4srow:last-child{border-bottom:none}\n";css+="#m4g .m4sval{font-weight:700;background:#6c3fc5;color:#fff;padding:1px 7px;border-radius:9px;font-size:.72rem}\n";css+="#m4g .m4agcard{background:var(--color-canvas-subtle,#f6f8fa);border:1px solid var(--color-border-default,#d0d7de);border-radius:10px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:6px}\n";css+="#m4g .m4agav{width:40px;height:40px;border-radius:50%;background:#6c3fc5;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700}\n";css+="#m4g .m4agname{font-size:.85rem;font-weight:700}\n#m4g .m4agrole{font-size:.72rem;color:#888}\n";css+="#m4g .m4agwa{background:#25d366;color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:.78rem;font-weight:700;cursor:pointer;width:100%}\n";css+="#m4-hoy-cal{margin-top:12px;background:var(--color-canvas-subtle,#f6f8fa);border:1px solid var(--color-border-default,#d0d7de);border-radius:10px;padding:12px}\n";css+="#m4-hoy-cal h3{margin:0 0 8px;font-size:.85rem;font-weight:700;color:#6c3fc5}\n";css+="#m4-hoy-cal .m4hi{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid var(--color-border-muted,#eaeef2)}\n";css+="#m4-hoy-cal .m4hi:last-child{border-bottom:none}\n";css+="#m4-hoy-cal .m4ht{font-size:.82rem;font-weight:800;color:#6c3fc5;min-width:44px}\n";css+="#m4-hoy-cal .m4htt{font-size:.82rem;font-weight:600}\n";css+=".m4-pub-del-btn{background:#ef4444;color:#fff;border:none;border-radius:5px;padding:3px 8px;font-size:.72rem;cursor:pointer;margin-left:6px;font-weight:600}\n";s.textContent=css;document.head.appendChild(s);}
 
-function setTabClass(id){
-  document.body.classList.toggle("m4tab-tablero",id==="tablero");
-  document.body.classList.toggle("m4tab-calendario",id==="calendario"||id==="publicaciones");
-  var t=document.querySelector("#p-tablero");
-  if(t){if(id==="tablero") t.style.removeProperty("display"); else t.style.setProperty("display","none","important");}
-}
-
-function parchearNav(){
-  var orig=window.nav;
-  if(typeof orig!=="function"||window._m4navOK) return;
-  window._m4navOK=true;
-  window.nav=function(id){
-    setTabClass(id);
-    var r=orig.apply(this,arguments);
-    if(id==="guardias") setTimeout(buildGuardia,200);
-    return r;
-  };
-  document.querySelectorAll(".ntab,.sbi").forEach(function(b){
-    b.addEventListener("click",function(){
-      var tid=this.dataset.tab||(this.getAttribute("onclick")||"");
-      var id=tid.indexOf("tablero")>-1?"tablero":tid.indexOf("calendario")>-1?"calendario":tid.indexOf("publicaciones")>-1?"publicaciones":"";
-      if(id) setTabClass(id);
-    },{capture:true});
-  });
-}
-
-function ocultarRealizada(){
-  document.querySelectorAll(".kanban .kcol").forEach(function(col){
-    var hdr=col.querySelector(".khdr .kt");
-    if(!hdr) return;
-    var lbl=(hdr.textContent||"").replace(/[\d\s]+$/g,"").trim();
-    if(lbl==="Realizada") col.style.setProperty("display","none","important");
-  });
-}
-
-function fixScrollTablero(){
-  var origRK=window.renderKanban;
-  if(typeof origRK!=="function"||window._m4rkOK) return;
-  window._m4rkOK=true;
-  window.renderKanban=function(){
-    var scrollPos={};
-    document.querySelectorAll(".kanban .kcol .kcards").forEach(function(kc,i){scrollPos[i]=kc.scrollTop;});
-    var kanban=document.querySelector(".kanban");
-    var kanbanH=kanban?kanban.scrollLeft:0;
-    var r=origRK.apply(this,arguments);
-    requestAnimationFrame(function(){
-      document.querySelectorAll(".kanban .kcol .kcards").forEach(function(kc,i){if(scrollPos[i]) kc.scrollTop=scrollPos[i];});
-      if(kanban&&kanbanH) kanban.scrollLeft=kanbanH;
-      ocultarRealizada();
-    });
-    return r;
-  };
-}
+function setTabClass(id){document.body.classList.toggle("m4tab-tablero",id==="tablero");document.body.classList.toggle("m4tab-calendario",id==="calendario"||id==="agenda-publicaciones"||id==="publicaciones");var t=document.querySelector("#p-tablero");if(t){if(id==="tablero")t.style.removeProperty("display");else t.style.setProperty("display","none","important");}}
+function parchearNav(){var orig=window.nav;if(typeof orig!=="function"||window._m4navOK)return;window._m4navOK=true;window.nav=function(id){setTabClass(id);var r=orig.apply(this,arguments);if(id==="guardias")setTimeout(buildGuardia,300);if(id==="hoy")setTimeout(inyectarHoyCalendario,500);return r;};document.querySelectorAll(".ntab,.sbi").forEach(function(b){b.addEventListener("click",function(){var oc=this.getAttribute("onclick")||"";var dt=this.dataset.tab||"";var combined=oc+" "+dt;var id="other";if(combined.indexOf("tablero")>-1)id="tablero";else if(combined.indexOf("calendario")>-1)id="calendario";else if(combined.indexOf("publicaciones")>-1||combined.indexOf("agenda")>-1)id="agenda-publicaciones";else if(combined.indexOf("hoy")>-1)id="hoy";else if(combined.indexOf("guardias")>-1)id="guardias";setTabClass(id);},{capture:true});});}
+function ocultarRealizada(){document.querySelectorAll(".kanban .kcol").forEach(function(col){var hdr=col.querySelector(".khdr .kt");if(!hdr)return;var lbl=(hdr.textContent||"").trim().replace(/[0-9]/g,"").trim();if(lbl==="Realizada"||lbl.indexOf("Realizada")===0)col.style.setProperty("display","none","important");});}
+function fixScrollTablero(){var origRK=window.renderKanban;if(typeof origRK!=="function"||window._m4rkOK)return;window._m4rkOK=true;window.renderKanban=function(){var scrollPos={};document.querySelectorAll(".kanban .kcol .kcards").forEach(function(kc,i){scrollPos[i]=kc.scrollTop;});var kanban=document.querySelector(".kanban");var kanbanH=kanban?kanban.scrollLeft:0;var r=origRK.apply(this,arguments);requestAnimationFrame(function(){document.querySelectorAll(".kanban .kcol .kcards").forEach(function(kc,i){if(scrollPos[i])kc.scrollTop=scrollPos[i];});if(kanban&&kanbanH)kanban.scrollLeft=kanbanH;ocultarRealizada();});return r;};}
 
 function pad2(n){return n<10?"0"+n:""+n;}
-function isWeekend(iso){if(!iso) return false; var d=new Date(iso+"T12:00:00"); var dw=d.getDay(); return dw===0||dw===6;}
-function ini(name){if(!name) return "?"; return name.split(" ").filter(function(w){return w.length>0;}).map(function(w){return w[0];}).join("").substring(0,2).toUpperCase();}
-function parseDayText(txt,ref){
-  var M={ene:1,feb:2,mar:3,abr:4,may:5,jun:6,jul:7,ago:8,sep:9,oct:10,nov:11,dic:12};
-  var m=txt.match(/(\d+)\s*(\w+)/);
-  if(!m) return "";
-  var day=parseInt(m[1]),monStr=(m[2]||"").toLowerCase().substring(0,3),mon=M[monStr];
-  if(!mon) return "";
-  var yr=ref.getFullYear();
-  if(mon<ref.getMonth()-2) yr+=1;
-  return yr+"-"+pad2(mon)+"-"+pad2(day);
-}
-function getWeekRangeText(){
-  var navEl=document.querySelector("#p-guardias .gw-navrow");
-  if(!navEl) return "";
-  var textEls=Array.from(navEl.children).filter(function(c){return c.tagName!=="BUTTON"&&c.tagName!=="A"&&c.textContent.trim().length>3;});
-  return textEls.length?textEls[0].textContent.trim():"";
-}
-var m4gSelDay=null;
-function getWeekDaysFromDOM(){
-  var gwb=document.querySelector("#p-guardias .gwb");
-  if(!gwb) return [];
-  var today=new Date();
-  var todayStr=today.getFullYear()+"-"+pad2(today.getMonth()+1)+"-"+pad2(today.getDate());
-  var dnames=["LUN","MAR","MIE","JUE","VIE","SAB","DOM"];
-  var days=[];
-  Array.from(gwb.children).forEach(function(col,i){
-    var dateEl=col.querySelector(".gwdate");
-    var dateText=dateEl?dateEl.textContent.trim():"";
-    var dateISO=parseDayText(dateText,today);
-    var weekend=isWeekend(dateISO);
-    var agents=Array.from(col.querySelectorAll(".gwag")).map(function(ag){
-      var ns=ag.querySelector(":scope > span");
-      var rs=ag.querySelector(":scope > span > span");
-      var id=ag.querySelector(":scope > div");
-      var name="";
-      if(ns) Array.from(ns.childNodes).forEach(function(node){if(node.nodeType===3) name+=node.textContent.trim();});
-      return {name:name,role:rs?rs.textContent.trim():"titular",ini:id?id.textContent.trim():ini(name)};
-    });
-    var actItems=[];
-    var minHour=weekend?0:15;
-    Array.from(col.children).forEach(function(child){
-      var cls=child.className||"";
-      if(/gwdate|gwags|gwnb/.test(cls)||child.tagName==="BUTTON"||child.tagName==="A") return;
-      Array.from(child.children).forEach(function(item){
-        var txt=item.textContent.trim();
-        if(txt.length<3||txt.indexOf("WhatsApp")>-1||txt.indexOf("Mail")>-1||txt.indexOf("Editar")>-1) return;
-        var tm=txt.match(/(\d{1,2})[:\.](\d{2})|^(\d{1,2})\s*hs/i);
-        var hr=0,ts="";
-        if(tm){hr=parseInt(tm[1]||tm[3]||0);ts=pad2(hr)+":"+(tm[2]||"00");}
-        if(hr>0&&hr<minHour) return;
-        var iconEl=item.querySelector(":scope > span");
-        var iconTxt=iconEl?iconEl.textContent.trim():"";
-        var title=txt.replace(tm?tm[0]:"","").replace(iconTxt,"").trim().replace(/^[\s\-:]+/,"").substring(0,100);
-        if(title.length<2) return;
-        var type="cobertura";
-        if(iconTxt==="\uD83D\uDDD3"||iconTxt==="\uD83D\uDCC5"||txt.indexOf("\uD83D\uDDD3")>-1) type="evento";
-        else if(iconTxt==="\uD83D\uDCE2"||iconTxt==="\uD83D\uDCF1"||txt.indexOf("pub")>-1) type="publicacion";
-        else if(iconTxt==="\uD83D\uDCFB") type="radio";
-        actItems.push({time:ts,type:type,title:title});
-      });
-    });
-    var seen={},dedup=[];
-    actItems.forEach(function(a){var k=a.time+a.title.substring(0,15); if(!seen[k]){seen[k]=1;dedup.push(a);}});
-    dedup.sort(function(a,b){return (a.time||"99:99").localeCompare(b.time||"99:99");});
-    var eb=col.querySelector(".gwnb");
-    var eo=eb?(eb.getAttribute("onclick")||""):"";
-    days.push({dateText:dateText,dateISO:dateISO,isToday:dateISO===todayStr,isWeekend:weekend,agents:agents,activities:dedup,editOnclick:eo,dayName:dnames[i]||""});
-  });
-  return days;
-}
-function waMsg(agents,dateText,acts){
-  var agName=agents.length?agents[0].name:"Sin asignar";
-  var msg="Hola "+agName+", estas son tus actividades del dia "+dateText+":\n\n";
-  if(!acts.length) msg+="Sin actividades.\n";
-  else acts.forEach(function(a){var tp=a.type==="publicacion"?"Pub":a.type==="radio"?"Radio":"Cobertura"; msg+=(a.time?a.time+" hs - ":"")+tp+": "+a.title+"\n";});
-  return msg+"\nGracias!";
-}
-function bdg(t){if(t==="evento") return "<span class=\"m4abadge m4bev\">&#128197; EVENTO</span>"; if(t==="publicacion") return "<span class=\"m4abadge m4bpub\">&#128226; PUB</span>"; if(t==="radio") return "<span class=\"m4abadge m4brad\">&#128251; RADIO</span>"; return "<span class=\"m4abadge m4bcob\">&#127919; COB</span>";}
-function dayCard(d,active){
-  var cls="m4gday"+(d.isToday?" m4today":"")+(active?" m4active":"");
-  var ma=d.agents&&d.agents[0];
-  var wu=ma?encodeURIComponent(waMsg(d.agents,d.dateText,d.activities)):"";
-  var ah="";
-  if(ma){ah="<div class=\"m4gav\">"+ma.ini+"</div><div class=\"m4ganame\">"+ma.name+"</div><div class=\"m4garole\">"+ma.role+"</div>"+(d.activities.length?"<div class=\"m4gcnt\">"+d.activities.length+" act.</div>":"")+(wu?"<button class=\"m4gwa\" onclick=\"event.stopPropagation();window.open('https://wa.me/?text="+wu+"','_blank')\">&#128172; WA</button>":"");}
-  else ah="<div style=\"font-size:.6rem;color:#aaa;text-align:center\">Sin asignar</div>";
-  var wb=d.isWeekend?"<div style=\"font-size:.52rem;background:#f3e8ff;color:#6c3fc5;border-radius:3px;padding:1px 3px\">GUARDIA</div>":"";
-  return "<div class=\""+cls+"\" data-date=\""+d.dateISO+"\" onclick=\"window.m4gSel('"+d.dateISO+"')\"><div class=\"m4gdname\">"+d.dayName+"</div><div class=\"m4gdnum\">"+d.dateText+"</div>"+wb+ah+"</div>";
-}
-function dayDetail(dateISO,allDays){
-  var d=null; for(var i=0;i<allDays.length;i++){if(allDays[i].dateISO===dateISO){d=allDays[i];break;}}
-  if(!d) return "<div class=\"m4empty\">Selecciona un dia.</div>";
-  var agents=d.agents||[],acts=d.activities||[];
-  var agName=agents.length?agents[0].name:"Sin asignar";
-  var wu=encodeURIComponent(waMsg(agents,d.dateText,acts));
-  var timeLabel=d.isWeekend?"Todas las actividades del dia":"Actividades desde las 15:00 hs";
-  var ah="";
-  if(!acts.length) ah="<div class=\"m4empty\">Sin actividades para este dia.</div>";
-  else acts.forEach(function(a){ah+="<div class=\"m4aitem\">"+(a.time?"<div class=\"m4atime\">"+a.time+"</div>":"")+"<div style=\"flex:1\">"+bdg(a.type)+"<div class=\"m4atitle\">"+(a.title||"")+"</div></div></div>";});
-  var ce=acts.filter(function(a){return a.type==="evento";}).length;
-  var cp=acts.filter(function(a){return a.type==="publicacion";}).length;
-  var cc=acts.filter(function(a){return a.type==="cobertura";}).length;
-  var editH=d.editOnclick?"<button class=\"m4dedit\" onclick=\""+d.editOnclick+"\">&#9998; Editar guardia</button>":"";
-  var ac="";
-  agents.forEach(function(ag){var aw=encodeURIComponent(waMsg([ag],d.dateText,acts)); ac+="<div class=\"m4agcard\"><div class=\"m4agav\">"+ag.ini+"</div><div class=\"m4agname\">"+ag.name+"</div><div class=\"m4agrole\">"+ag.role+"</div><button class=\"m4agwa\" onclick=\"window.open('https://wa.me/?text="+aw+"','_blank')\">&#128172; WA</button></div>";});
-  if(!ac) ac="<div class=\"m4agcard\"><div class=\"m4empty\">Sin agente</div></div>";
-  var out="<div class=\"m4gdetail\"><div class=\"m4dbox\"><div class=\"m4dhdr\"><div><div class=\"m4dtitle\">"+d.dateText.toUpperCase()+" - "+agName.toUpperCase();
-  if(d.isWeekend) out+=" <span style=\"background:#f3e8ff;color:#6c3fc5;border-radius:5px;padding:1px 5px;font-size:.68rem\">FIN DE SEMANA</span>";
-  out+="</div><div style=\"font-size:.73rem;color:#888;margin-top:2px\">"+timeLabel+"</div></div>";
-  out+="<div class=\"m4dbtns\">"+editH+"<button class=\"m4dwa\" onclick=\"window.open('https://wa.me/?text="+wu+"','_blank')\">&#128172; Enviar WA</button></div></div>";
-  out+="<div class=\"m4alist\">"+ah+"</div></div>";
-  out+="<div class=\"m4sidebar\"><div class=\"m4sum\"><h3>Resumen</h3><div class=\"m4srow\"><span>Total</span><span class=\"m4sval\">"+acts.length+"</span></div><div class=\"m4srow\"><span>Eventos</span><span class=\"m4sval\">"+ce+"</span></div><div class=\"m4srow\"><span>Pubs</span><span class=\"m4sval\">"+cp+"</span></div><div class=\"m4srow\"><span>Coberturas</span><span class=\"m4sval\">"+cc+"</span></div></div>"+ac+"</div></div>";
-  return out;
-}
-function buildGuardia(){
-  var gp=document.querySelector("#p-guardias");
-  if(!gp||getComputedStyle(gp).display==="none") return;
-  var prev=document.querySelector("#m4g"); if(prev) prev.remove();
-  var old=document.querySelector("#m4gwrap"); if(old) old.remove();
-  var allDays=getWeekDaysFromDOM();
-  var weekRange=getWeekRangeText();
-  if(!weekRange&&allDays.length) weekRange=allDays[0].dateText+" - "+allDays[6].dateText;
-  var today=new Date();
-  var todayISO=today.getFullYear()+"-"+pad2(today.getMonth()+1)+"-"+pad2(today.getDate());
-  if(!m4gSelDay||!allDays.find(function(d){return d.dateISO===m4gSelDay;})){
-    var ti=allDays.find(function(d){return d.isToday;});
-    m4gSelDay=ti?ti.dateISO:(allDays.length?allDays[0].dateISO:"");
-  }
-  var dayCl=allDays.map(function(d){return dayCard(d,d.dateISO===m4gSelDay);}).join("");
-  var detailH=dayDetail(m4gSelDay,allDays);
-  var p=document.createElement("div"); p.id="m4g";
-  p.innerHTML="<div class=\"m4gh\"><div><h2>&#128737; Guardias Semanales</h2><p>Actividades desde las 15hs. Sab/Dom: todo el dia</p></div><button onclick=\"m4gSelDay=null;buildGuardia()\" style=\"background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:8px;padding:5px 10px;cursor:pointer;font-size:.85rem\" title=\"Actualizar\">&#128472;</button></div>"
-    +"<div class=\"m4gnav\"><button onclick=\"goGuardWeek(-1);setTimeout(function(){m4gSelDay=null;buildGuardia();},600)\">&larr; Ant</button>"
-    +"<div class=\"m4gwrange\">"+weekRange+"</div>"
-    +"<button onclick=\"goGuardWeek(1);setTimeout(function(){m4gSelDay=null;buildGuardia();},600)\">Sig &rarr;</button>"
-    +"<button class=\"m4ghoy\" onclick=\"goGuardWeek(0);setTimeout(function(){m4gSelDay=null;buildGuardia();},600)\">Hoy</button></div>"
-    +"<div class=\"m4gdays\">"+dayCl+"</div>"
-    +"<div id=\"m4gdwrap\">"+detailH+"</div>";
-  gp.insertBefore(p,gp.firstChild);
-  window.m4gSel=function(dateISO){
-    m4gSelDay=dateISO;
-    document.querySelectorAll(".m4gday").forEach(function(x){x.classList.toggle("m4active",x.dataset.date===dateISO);});
-    var w=document.querySelector("#m4gdwrap"); if(w) w.innerHTML=dayDetail(dateISO,allDays);
-  };
+function isWeekend(iso){if(!iso)return false;var d=new Date(iso+"T12:00:00");var dw=d.getDay();var h=["2026-01-01","2026-02-16","2026-02-17","2026-03-24","2026-04-02","2026-04-03","2026-05-01","2026-05-25","2026-06-15","2026-06-20","2026-07-09","2026-08-17","2026-10-12","2026-11-20","2026-12-08","2026-12-25"];return dw===0||dw===6||h.indexOf(iso)>-1;}
+function ini(name){if(!name)return "?";return name.split(" ").filter(function(w){return w.length>0;}).map(function(w){return w[0];}).join("").substring(0,2).toUpperCase();}
+function parseDayText(txt,refYear){var M={ene:1,feb:2,mar:3,abr:4,may:5,jun:6,jul:7,ago:8,sep:9,oct:10,nov:11,dic:12};var m=txt.match(/(\d+)\s*(\w+)/);if(!m)return "";var day=parseInt(m[1]),monStr=(m[2]||"").toLowerCase().substring(0,3),mon=M[monStr];if(!mon)return "";var yr=refYear||new Date().getFullYear();return yr+"-"+pad2(mon)+"-"+pad2(day);}
+function getWeekDaysFromDOM(){var days=[];var gwds=document.querySelectorAll(".gwb .gwd");if(!gwds.length)return days;var yr=new Date().getFullYear();gwds.forEach(function(gwd){var dateEl=gwd.querySelector(".gwdate");var dateText=dateEl?(dateEl.textContent||"").trim():"";var iso=parseDayText(dateText,yr);var weekend=isWeekend(iso);var minHour=weekend?0:15;var agents=[];gwd.querySelectorAll(".gwags .gwag").forEach(function(ag){var sp=ag.querySelector("span");if(!sp)return;var name="";sp.childNodes.forEach(function(cn){if(cn.nodeType===3&&cn.textContent.trim())name=cn.textContent.trim();});var roleEl=sp.querySelector("span");var role=roleEl?(roleEl.textContent||"").trim():"";if(name)agents.push({name:name,role:role});});var acts=[];gwd.querySelectorAll(".gwact,.gw-act,[class*=gwact]").forEach(function(act){var timeEl=act.querySelector(".gwatime,[class*=time]");var timeStr=timeEl?(timeEl.textContent||"").trim():"";var titleEl=act.querySelector(".gwatitle,[class*=title]");var title=titleEl?(titleEl.textContent||"").trim():(act.textContent||"").trim().substring(0,60);var h=parseInt((timeStr.match(/(\d+)/)||["","0"])[1])||0;if(h>=minHour)acts.push({time:timeStr,title:title,type:"cobertura"});});days.push({iso:iso,dateText:dateText,agents:agents,acts:acts,weekend:weekend,minHour:minHour});});return days;}
+
+var DAYS_ES=["Dom","Lun","Mar","Mie","Jue","Vie","Sab"];var DAYS_FULL=["Domingo","Lunes","Martes","Miercoles","Jueves","Viernes","Sabado"];var MONTHS_ES=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+function buildGuardia(){var gp=document.querySelector("#p-guardias");if(!gp)return;var old=document.getElementById("m4g");if(old)old.parentNode.removeChild(old);var days=getWeekDaysFromDOM();if(!days.length){setTimeout(buildGuardia,500);return;}var navRow=gp.querySelector(".gw-navrow,.gwnavrow,[class*=navrow]");var weekRange="Semana actual";if(navRow){var rangeEl=navRow.querySelector("span,b,[class*=range]");if(rangeEl)weekRange=(rangeEl.textContent||"").trim();}var div=document.createElement("div");div.id="m4g";var todayIso=new Date().toISOString().substring(0,10);var selIso=window._m4SelDay||todayIso;var html="";html+='<div class="m4gh"><div><h2>Guardias Semanales</h2><p>Actividades semanales</p></div></div>';html+='<div class="m4gnav">';html+='<button onclick="goGuardWeek(-1);setTimeout(buildGuardia,300)">\u2039 Ant</button>';html+='<button onclick="goGuardWeek(0);setTimeout(buildGuardia,300);" class="m4ghoy">Hoy</button>';html+='<span class="m4gwrange">'+weekRange+'</span>';html+='<button onclick="goGuardWeek(1);setTimeout(buildGuardia,300)">Sig \u203a</button>';html+='</div>';html+='<div class="m4gdays">';days.forEach(function(d){var isTod=d.iso===todayIso;var isSel=d.iso===selIso;var cls="m4gday"+(isTod?" m4today":"")+(isSel?" m4active":"");var dObj=d.iso?new Date(d.iso+"T12:00:00"):null;var dname=dObj?DAYS_ES[dObj.getDay()]:d.dateText.substring(0,3);var dnum=dObj?dObj.getDate():(d.dateText.match(/\d+/)||["?"])[0];var ag0=d.agents[0]||{name:"Sin asignar",role:""};var initials=ini(ag0.name);var actCount=d.acts.length;var waMsg="Hola "+ag0.name+", estas son tus coberturas del "+dname+" "+dnum+":\n";d.acts.forEach(function(a){waMsg+=a.time+" - "+a.title+"\n";});waMsg+="\nGracias!";var waUrl="https://wa.me/?text="+encodeURIComponent(waMsg);var dayClick="window._m4SelDay='"+d.iso+"';m4gSel('"+d.iso+"')";html+='<div class="'+cls+'" onclick="'+dayClick+'">';html+='<div class="m4gdname">'+dname+'</div>';html+='<div class="m4gdnum">'+dnum+'</div>';html+='<div class="m4gav">'+initials+'</div>';html+='<div class="m4ganame">'+ag0.name+'</div>';html+='<div class="m4garole">'+ag0.role+'</div>';html+='<div class="m4gcnt">'+actCount+' act.</div>';var waOnc="window.open('"+waUrl+"','_blank')";html+='<button class="m4gwa" onclick="event.stopPropagation();'+waOnc+'">\u{1F4AC} WhatsApp</button>';html+='</div>';});html+='</div><div id="m4gdetail-wrap"></div>';div.innerHTML=html;gp.appendChild(div);if(days.length)m4gSel(selIso||days[0].iso);}
+
+function m4gSel(iso){
+var wrap=document.getElementById("m4gdetail-wrap");
+if(!wrap)return;
+document.querySelectorAll("#m4g .m4gday").forEach(function(dc){
+var oc=dc.getAttribute("onclick")||"";
+dc.classList.toggle("m4active",oc.indexOf("'"+iso+"'")>-1);
+});
+var days=getWeekDaysFromDOM();
+var day=null;
+days.forEach(function(d){if(d.iso===iso)day=d;});
+if(!day){wrap.innerHTML='<p class="m4empty">Sin datos para este dia</p>';return;}
+var dObj=new Date(iso+"T12:00:00");
+var dtStr=DAYS_FULL[dObj.getDay()]+" "+dObj.getDate()+" de "+MONTHS_ES[dObj.getMonth()];
+var ag=day.agents[0]||{name:"Sin asignar",role:""};
+var initials=ini(ag.name);
+var waLines="";
+day.acts.forEach(function(a){waLines+=a.time+" hs - "+a.title+"\n";});
+var waFull="Hola "+ag.name+", estas son tus coberturas del "+dtStr+":\n\n"+waLines+"\nGracias! - Comunicacion Municipal";
+window._m4waUrl=encodeURIComponent(waFull);
+var cEv=0,cPub=0,cCob=0;
+day.acts.forEach(function(a){if(a.type==="evento")cEv++;else if(a.type==="publicacion")cPub++;else cCob++;});
+var h="";
+h+='<div class="m4gdetail"><div class="m4dbox"><div class="m4dhdr">';
+h+='<div class="m4dtitle">'+dtStr.toUpperCase()+' - '+ag.name.toUpperCase()+(ag.role?" ("+ag.role+")":"")+"</div>";
+h+='<div class="m4dbtns"><button class="m4dwa" onclick="window.open('+"'https://wa.me/?text='+window._m4waUrl,'_blank')"+'">\u{1F4AC} Enviar WhatsApp</button></div></div>';
+h+='<div class="m4alist">';
+if(!day.acts.length)h+='<div class="m4empty">Sin actividades'+(day.weekend?"":" desde las 15:00 hs")+"</div>";
+day.acts.forEach(function(a){
+var bCls=a.type==="evento"?"m4bev":a.type==="publicacion"?"m4bpub":"m4bcob";
+var bLbl=a.type==="evento"?"Evento":a.type==="publicacion"?"Publicacion":"Cobertura";
+h+='<div class="m4aitem"><div class="m4atime">'+a.time+'</div><div style="flex:1">';
+h+='<div class="m4abadge '+bCls+'">'+bLbl+'</div>';
+h+='<div class="m4atitle">'+a.title+'</div></div></div>';
+});
+h+='</div></div>';
+h+='<div class="m4sidebar"><div class="m4sum"><h3>Resumen del dia</h3>';
+h+='<div class="m4srow"><span>Total</span><span class="m4sval">'+day.acts.length+'</span></div>';
+h+='<div class="m4srow"><span>Eventos</span><span class="m4sval">'+cEv+'</span></div>';
+h+='<div class="m4srow"><span>Publicaciones</span><span class="m4sval">'+cPub+'</span></div>';
+h+='<div class="m4srow"><span>Coberturas</span><span class="m4sval">'+cCob+'</span></div>';
+h+='</div><div class="m4agcard">';
+h+='<div class="m4agav">'+initials+'</div>';
+h+='<div class="m4agname">'+ag.name+'</div>';
+h+='<div class="m4agrole">'+ag.role+'</div>';
+h+='<button class="m4agwa" onclick="window.open('+"'https://wa.me/?text='+window._m4waUrl,'_blank')"+'">\u{1F4AC} WhatsApp</button>';
+h+='</div></div></div>';
+wrap.innerHTML=h;
 }
 
-function init(){
-  inyectarCSS();
-  parchearNav();
-  fixScrollTablero();
-  // Detect current tab
-  var body=document.body;
-  var tb=document.querySelector("#p-tablero");
-  if(tb&&getComputedStyle(tb).display!=="none") body.classList.add("m4tab-tablero");
-  else if(tb) tb.style.setProperty("display","none","important");
-  ocultarRealizada();
-  var gp=document.querySelector("#p-guardias");
-  if(gp&&getComputedStyle(gp).display!=="none") buildGuardia();
-  var obs=new MutationObserver(function(){
-    ocultarRealizada();
-    var g=document.querySelector("#p-guardias");
-    if(g&&getComputedStyle(g).display!=="none"&&!document.querySelector("#m4g")) buildGuardia();
-  });
-  document.querySelectorAll("[id^=p-]").forEach(function(el){obs.observe(el,{attributes:true,attributeFilter:["style","class"]});});
-  var main=document.querySelector("#main,main,.main-content"); if(main) obs.observe(main,{childList:true,subtree:false,attributes:true,attributeFilter:["style","class"]});
-  var n=0,iv=setInterval(function(){
-    ocultarRealizada();
-    var g=document.querySelector("#p-guardias");
-    if(g&&getComputedStyle(g).display!=="none"&&!document.querySelector("#m4g")) buildGuardia();
-    if(++n>=20) clearInterval(iv);
-  },400);
-}
+function inyectarHoyCalendario(){var old=document.getElementById("m4-hoy-cal");if(old)old.parentNode.removeChild(old);var hoyPanel=document.querySelector("#m1-panel-hoy,#p-hoy,[id*=panel-hoy]");if(!hoyPanel)return;var eventos=[];var todayStr=new Date().toISOString().substring(0,10);var srcs=[window.gcal,window.gcalEvents,window.eventos,window.calEvents];if(window.db&&window.db.eventos)srcs.push(window.db.eventos);srcs.forEach(function(src){if(!src||!src.length)return;src.forEach(function(ev){var evDate=(ev.start&&(ev.start.date||ev.start.dateTime||ev.start))||ev.fecha||ev.date||"";var evDateStr=typeof evDate==="string"?evDate.substring(0,10):"";if(evDateStr===todayStr){var t="";if(ev.start&&ev.start.dateTime)t=ev.start.dateTime.substring(11,16);var title=ev.summary||ev.titulo||ev.title||ev.nombre||"";if(title)eventos.push({time:t,title:title});}});});if(!eventos.length)return;var seen={};eventos=eventos.filter(function(e){var key=e.time+"|"+e.title;if(seen[key])return false;seen[key]=true;return true;});eventos.sort(function(a,b){return a.time.localeCompare(b.time);});var div=document.createElement("div");div.id="m4-hoy-cal";var h='<h3>\u{1F4C5} Eventos del dia (Calendario)</h3>';eventos.forEach(function(ev){h+='<div class="m4hi"><span class="m4ht">'+ev.time+'</span><span class="m4htt">'+ev.title+'</span></div>';});div.innerHTML=h;hoyPanel.appendChild(div);}
 
-if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init);
-else init();
+function agregarBotonesEliminarPubs(){var pubCards=document.querySelectorAll(".pub-card,.pubcard,[class*=pub-card]");pubCards.forEach(function(card){if(card.querySelector(".m4-pub-del-btn"))return;var pubId=card.getAttribute("data-id")||card.id||"";var btn=document.createElement("button");btn.className="m4-pub-del-btn";btn.textContent="Eliminar";btn.onclick=function(e){e.stopPropagation();if(!confirm("Eliminar esta publicacion?"))return;if(typeof window.deletePub==="function")window.deletePub(pubId);else if(typeof window.borrarPub==="function")window.borrarPub(pubId);else if(typeof window._apBorrar==="function")window._apBorrar(pubId);else card.style.display="none";};var actions=card.querySelector(".pub-actions,.card-actions,[class*=actions],[class*=btns]");if(actions)actions.appendChild(btn);else card.appendChild(btn);});}
+function init(){inyectarCSS();parchearNav();ocultarRealizada();fixScrollTablero();var activeTab="";document.querySelectorAll(".ntab.active,.sbi.active,[class*=ntab][class*=active]").forEach(function(el){var oc=el.getAttribute("onclick")||el.dataset.tab||"";if(oc.indexOf("tablero")>-1)activeTab="tablero";else if(oc.indexOf("guardias")>-1)activeTab="guardias";else if(oc.indexOf("calendario")>-1)activeTab="calendario";else if(oc.indexOf("publicaciones")>-1||oc.indexOf("agenda")>-1)activeTab="agenda-publicaciones";else if(oc.indexOf("hoy")>-1)activeTab="hoy";});setTabClass(activeTab);if(document.querySelector("#p-guardias")&&activeTab==="guardias")setTimeout(buildGuardia,400);if(activeTab==="hoy")setTimeout(inyectarHoyCalendario,600);var debTimer=null;var obs=new MutationObserver(function(){clearTimeout(debTimer);debTimer=setTimeout(function(){ocultarRealizada();parchearNav();fixScrollTablero();agregarBotonesEliminarPubs();},400);});obs.observe(document.body,{childList:true,subtree:true,attributes:false});setInterval(function(){ocultarRealizada();parchearNav();fixScrollTablero();var gp=document.querySelector("#p-guardias");if(gp&&!document.getElementById("m4g")&&document.querySelector(".gwb")){if(gp.offsetParent!==null)buildGuardia();}},3000);}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else setTimeout(init,800);
 
 })();
