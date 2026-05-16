@@ -69,235 +69,679 @@ st.textContent = css;
 document.head.appendChild(st);
 }
 
-/* === FIX NAVEGACION: Ocultar tablero cuando no esta activo === */
-function checkTablero(){
-var tb = document.getElementById("p-tablero");
-if(!tb) return;
-// Contar paneles visibles que NO son el tablero
-var visible = 0;
-document.querySelectorAll("#main > div[id^='p-']").forEach(function(p){
-  if(p.id !== "p-tablero"){
-    var d = p.style.display;
-    if(d !== "none") visible++;
-  }
-});
-if(visible > 0){
-  // Otro panel activo: ocultar tablero
-  tb.style.setProperty("display","none","important");
-  document.body.classList.remove("m4tab-tablero");
-} else {
-  // Solo tablero: mostrar
-  tb.style.removeProperty("display");
-  document.body.classList.add("m4tab-tablero");
+   MEJORAS3.JS v3 - Panel Comunicación Tres Arroyos
+   FIXES: Separación módulos + Guardia semanal rediseñada
+   ============================================================
+   CORRECCIONES:
+   1. p-tablero OCULTO cuando no es la pestaña activa
+   2. Material y Reclamos sin tablero superpuesto
+   3. Columna Realizada eliminada del kanban
+   4. Panel guardia REDISEÑADO completo (vista semanal, agentes, WhatsApp)
+   5. Botones WhatsApp por agente con mensaje automático
+   NO modifica datos ni lógica funcional.
+   ============================================================ */
+
+(function(){
+"use strict";
+
+/* ============ CSS ============ */
+function inyectarCSS(){
+  if(document.getElementById('m4css')) return;
+  const s=document.createElement('style');
+  s.id='m4css';
+  s.textContent=`
+    /* TABLERO: oculto por default, solo visible cuando activo */
+    #p-tablero{display:none!important}
+    body.m4tab-tablero #p-tablero{display:flex!important}
+
+    /* Ocultar columna Realizada del kanban */
+    .m4col-hide{display:none!important}
+
+    /* ===== GUARDIA REDISEÑADA ===== */
+    /* Ocultar elementos originales del panel guardia */
+    #p-guardias .ptop,
+    #p-guardias .gw-navrow,
+    #p-guardias .gw-desktop,
+    #p-guardias .gw-mobile,
+    #p-guardias .acts,
+    #p-guardias #m1-pubs-guardias {
+      display:none!important;
+    }
+
+    /* Contenedor principal */
+    #m4g-panel {
+      width:100%; padding:16px; box-sizing:border-box;
+      font-family:inherit;
+    }
+
+    /* Header */
+    #m4g-panel .m4g-header {
+      display:flex; align-items:center; justify-content:space-between;
+      background:linear-gradient(135deg,#6c3fc5,#4f46e5);
+      color:#fff; border-radius:12px; padding:16px 20px;
+      margin-bottom:16px;
+    }
+    #m4g-panel .m4g-header h2 { margin:0; font-size:1.1rem; font-weight:700; }
+    #m4g-panel .m4g-header p { margin:4px 0 0; font-size:.85rem; opacity:.85; }
+    #m4g-panel .m4g-header-btns { display:flex; gap:8px; align-items:center; }
+    #m4g-panel .m4g-view-btn {
+      padding:6px 12px; border-radius:8px; border:none; cursor:pointer;
+      font-size:.8rem; font-weight:600; transition:all .2s;
+    }
+    #m4g-panel .m4g-view-btn.active { background:#fff; color:#6c3fc5; }
+    #m4g-panel .m4g-view-btn:not(.active) { background:rgba(255,255,255,.2); color:#fff; }
+
+    /* Navegación de semana */
+    #m4g-panel .m4g-weeknav {
+      display:flex; align-items:center; gap:12px; margin-bottom:16px;
+    }
+    #m4g-panel .m4g-weeknav button {
+      background:var(--color-canvas-subtle,#f6f8fa); border:1px solid var(--color-border-default,#d0d7de);
+      border-radius:8px; padding:6px 12px; cursor:pointer; font-size:.85rem; font-weight:600;
+      transition:background .2s;
+    }
+    #m4g-panel .m4g-weeknav button:hover { background:var(--color-canvas-default,#fff); }
+    #m4g-panel .m4g-weeknav .m4g-weekrange {
+      flex:1; text-align:center; font-size:.9rem; font-weight:600;
+      color:var(--color-fg-default,#1f2328);
+    }
+    #m4g-panel .m4g-weeknav .m4g-today-btn {
+      background:#6c3fc5!important; color:#fff!important; border-color:#6c3fc5!important;
+    }
+
+    /* Grid de días */
+    #m4g-panel .m4g-days {
+      display:grid; grid-template-columns:repeat(7,1fr); gap:8px;
+      margin-bottom:16px;
+    }
+    @media(max-width:700px){
+      #m4g-panel .m4g-days { grid-template-columns:repeat(3,1fr); }
+    }
+
+    /* Tarjeta de día */
+    #m4g-panel .m4g-day {
+      background:var(--color-canvas-subtle,#f6f8fa);
+      border:2px solid var(--color-border-default,#d0d7de);
+      border-radius:12px; padding:10px 8px; cursor:pointer;
+      transition:all .2s; min-height:110px;
+      display:flex; flex-direction:column; align-items:center; gap:4px;
+    }
+    #m4g-panel .m4g-day:hover { border-color:#6c3fc5; background:rgba(108,63,197,.05); }
+    #m4g-panel .m4g-day.m4g-day-active {
+      border-color:#6c3fc5!important; background:rgba(108,63,197,.08)!important;
+    }
+    #m4g-panel .m4g-day.m4g-day-today { border-color:#f59e0b!important; }
+    #m4g-panel .m4g-day-name { font-size:.7rem; font-weight:700; text-transform:uppercase; color:#888; }
+    #m4g-panel .m4g-day-num { font-size:1.2rem; font-weight:800; color:var(--color-fg-default,#1f2328); }
+    #m4g-panel .m4g-day-today .m4g-day-num { color:#f59e0b; }
+    #m4g-panel .m4g-day-active .m4g-day-num { color:#6c3fc5; }
+
+    /* Avatar en tarjeta de día */
+    #m4g-panel .m4g-day-avatar {
+      width:32px; height:32px; border-radius:50%;
+      background:#6c3fc5; color:#fff; display:flex; align-items:center; justify-content:center;
+      font-size:.75rem; font-weight:700; flex-shrink:0;
+    }
+    #m4g-panel .m4g-day-agent { font-size:.7rem; font-weight:600; text-align:center; line-height:1.2; }
+    #m4g-panel .m4g-day-role { font-size:.6rem; color:#888; }
+    #m4g-panel .m4g-day-count {
+      background:#6c3fc5; color:#fff; border-radius:20px;
+      padding:2px 8px; font-size:.65rem; font-weight:700;
+      margin-top:2px;
+    }
+    #m4g-panel .m4g-day-noassign { font-size:.65rem; color:#aaa; text-align:center; }
+
+    /* Botón WA en tarjeta de día */
+    #m4g-panel .m4g-day-wa {
+      background:#25d366; color:#fff; border:none; border-radius:8px;
+      padding:3px 8px; font-size:.65rem; font-weight:700; cursor:pointer;
+      margin-top:2px; width:100%; display:flex; align-items:center; justify-content:center; gap:3px;
+    }
+    #m4g-panel .m4g-day-wa:hover { background:#1ebe5a; }
+
+    /* Panel de detalle del día */
+    #m4g-panel .m4g-detail {
+      display:grid; grid-template-columns:1fr 200px; gap:16px;
+    }
+    @media(max-width:700px){
+      #m4g-panel .m4g-detail { grid-template-columns:1fr; }
+    }
+
+    #m4g-panel .m4g-detail-box {
+      background:var(--color-canvas-subtle,#f6f8fa);
+      border:1px solid var(--color-border-default,#d0d7de);
+      border-radius:12px; padding:16px;
+    }
+
+    #m4g-panel .m4g-detail-header {
+      display:flex; align-items:center; justify-content:space-between;
+      margin-bottom:12px; flex-wrap:wrap; gap:8px;
+    }
+    #m4g-panel .m4g-detail-title { font-size:.95rem; font-weight:700; }
+    #m4g-panel .m4g-detail-wa {
+      background:#25d366; color:#fff; border:none; border-radius:8px;
+      padding:6px 14px; font-size:.8rem; font-weight:700; cursor:pointer;
+      display:flex; align-items:center; gap:5px;
+    }
+    #m4g-panel .m4g-detail-wa:hover { background:#1ebe5a; }
+
+    /* Lista de actividades */
+    #m4g-panel .m4g-act-list { display:flex; flex-direction:column; gap:8px; }
+    #m4g-panel .m4g-act-item {
+      background:var(--color-canvas-default,#fff);
+      border:1px solid var(--color-border-default,#d0d7de);
+      border-radius:10px; padding:10px 12px;
+      display:flex; align-items:flex-start; gap:10px;
+    }
+    #m4g-panel .m4g-act-time {
+      font-size:.85rem; font-weight:800; min-width:42px;
+      color:#6c3fc5;
+    }
+    #m4g-panel .m4g-act-badge {
+      display:inline-flex; align-items:center; gap:3px;
+      padding:2px 8px; border-radius:6px;
+      font-size:.65rem; font-weight:700; white-space:nowrap;
+    }
+    #m4g-panel .m4g-badge-evento { background:#dbeafe; color:#1d4ed8; }
+    #m4g-panel .m4g-badge-pub { background:#fce7f3; color:#be185d; }
+    #m4g-panel .m4g-badge-cob { background:#dcfce7; color:#15803d; }
+    #m4g-panel .m4g-badge-radio { background:#fef3c7; color:#b45309; }
+
+    #m4g-panel .m4g-act-info { flex:1; }
+    #m4g-panel .m4g-act-title { font-size:.85rem; font-weight:600; line-height:1.3; }
+    #m4g-panel .m4g-act-place { font-size:.75rem; color:#888; margin-top:2px; }
+
+    #m4g-panel .m4g-act-empty {
+      text-align:center; color:#aaa; padding:24px;
+      font-size:.85rem;
+    }
+
+    /* Sidebar resumen */
+    #m4g-panel .m4g-sidebar { display:flex; flex-direction:column; gap:12px; }
+    #m4g-panel .m4g-summary {
+      background:var(--color-canvas-subtle,#f6f8fa);
+      border:1px solid var(--color-border-default,#d0d7de);
+      border-radius:12px; padding:14px;
+    }
+    #m4g-panel .m4g-summary h3 { font-size:.85rem; font-weight:700; margin:0 0 10px; }
+    #m4g-panel .m4g-summary-row {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:4px 0; font-size:.8rem; border-bottom:1px solid var(--color-border-muted,#eaeef2);
+    }
+    #m4g-panel .m4g-summary-row:last-child { border-bottom:none; }
+    #m4g-panel .m4g-summary-val {
+      font-weight:700; background:#6c3fc5; color:#fff;
+      padding:1px 8px; border-radius:10px; font-size:.75rem;
+    }
+    #m4g-panel .m4g-agent-card {
+      background:var(--color-canvas-subtle,#f6f8fa);
+      border:1px solid var(--color-border-default,#d0d7de);
+      border-radius:12px; padding:14px; display:flex; flex-direction:column; align-items:center; gap:8px;
+    }
+    #m4g-panel .m4g-agent-avatar {
+      width:48px; height:48px; border-radius:50%;
+      background:#6c3fc5; color:#fff; display:flex; align-items:center; justify-content:center;
+      font-size:1rem; font-weight:700;
+    }
+    #m4g-panel .m4g-agent-name { font-size:.9rem; font-weight:700; }
+    #m4g-panel .m4g-agent-role { font-size:.75rem; color:#888; }
+    #m4g-panel .m4g-agent-wa {
+      background:#25d366; color:#fff; border:none; border-radius:8px;
+      padding:6px 14px; font-size:.8rem; font-weight:700; cursor:pointer; width:100%;
+    }
+  `;
+  document.head.appendChild(s);
 }
+
+/* ============ TABLERO FIX ============ */
+function checkTablero(){
+  const t=document.querySelector('#p-tablero');
+  if(!t) return;
+  if(document.body.classList.contains('m4tab-tablero')){
+    t.style.removeProperty('display');
+  } else {
+    t.style.setProperty('display','none','important');
+  }
 }
 
 function parchearNav(){
-if(window._m4navOK) return;
-// Parchear función nav() global
-if(window.nav){
-  var orig = window.nav;
-  window.nav = function(sec, extra, btn){
-    orig.apply(this, arguments);
-    var esTablero = (sec && (sec.indexOf("tablero") !== -1 || sec.indexOf("p-tablero") !== -1));
-    if(esTablero){
-      document.body.classList.add("m4tab-tablero");
-      var tb = document.getElementById("p-tablero");
-      if(tb) tb.style.removeProperty("display");
-    } else {
-      setTimeout(checkTablero, 50);
-    }
+  const orig=window.nav;
+  if(typeof orig!=='function'||window._m4navOK) return;
+  window._m4navOK=true;
+  window.nav=function(id,...args){
+    document.body.classList.toggle('m4tab-tablero', id==='tablero');
+    checkTablero();
+    return orig.call(this,id,...args);
   };
-  window._m4navOK = true;
-}
-// Parchear botones .sbi del sidebar
-document.querySelectorAll(".sbi").forEach(function(btn){
-  if(btn.dataset.m4p) return;
-  btn.dataset.m4p = "1";
-  btn.addEventListener("click", function(){
-    setTimeout(checkTablero, 80);
+  document.querySelectorAll('.ntab,.sbi').forEach(btn=>{
+    btn.addEventListener('click',function(){
+      const tid=this.dataset.tab||this.getAttribute('onclick')||'';
+      const isT=tid.includes('tablero');
+      document.body.classList.toggle('m4tab-tablero',isT);
+      checkTablero();
+    },{capture:true});
   });
-});
-// Parchear botones .ntab del topnav
-document.querySelectorAll(".ntab").forEach(function(btn){
-  if(btn.dataset.m4p) return;
-  btn.dataset.m4p = "1";
-  btn.addEventListener("click", function(){
-    var txt = btn.textContent.trim().toLowerCase();
-    if(txt.indexOf("tablero") !== -1){
-      document.body.classList.add("m4tab-tablero");
-      var tb = document.getElementById("p-tablero");
-      if(tb) tb.style.removeProperty("display");
-    } else {
-      setTimeout(checkTablero, 80);
-    }
-  });
-});
 }
 
-/* === FIX KANBAN: Ocultar columna Realizada === */
+/* ============ KANBAN FIX ============ */
 function ocultarRealizada(){
-document.querySelectorAll(".kcol").forEach(function(col){
-  if(col.classList.contains("m4col-hide")) return;
-  var h = col.querySelector(".khdr");
-  if(h && h.textContent.trim().toLowerCase().indexOf("realiz") !== -1){
-    col.classList.add("m4col-hide");
-  }
-});
+  document.querySelectorAll('.kanban-col,.k-col,[class*="kanban"],[class*="column"]').forEach(col=>{
+    const h=col.querySelector('h3,h4,.col-title,.k-title');
+    if(h&&/realizada/i.test(h.textContent)){
+      col.style.setProperty('display','none','important');
+    }
+  });
 }
 
-/* === GUARDIA REDISEÑO === */
+/* ============ GUARDIA PANEL BUILDER ============ */
+// Week offset (0 = current week)
+let m4gWeekOffset = 0;
+let m4gSelectedDay = null; // Date string YYYY-MM-DD
+
+function getWeekDays(offset){
+  const today = new Date();
+  const dow = today.getDay(); // 0=Sun
+  const mon = new Date(today);
+  mon.setDate(today.getDate() - (dow===0?6:dow-1) + offset*7);
+  const days = [];
+  for(let i=0;i<7;i++){
+    const d = new Date(mon);
+    d.setDate(mon.getDate()+i);
+    days.push(d);
+  }
+  return days;
+}
+
+function fmtDate(d){
+  return d.toISOString().split('T')[0];
+}
+
+function dayNames(){ return ['LUN','MAR','MIÉ','JUE','VIE','SÁB','DOM']; }
+
+function getInitials(name){
+  if(!name) return '?';
+  return name.split(' ').map(w=>w[0]||'').join('').substring(0,2).toUpperCase();
+}
+
+function fmtWeekRange(days){
+  const opts={day:'numeric',month:'short'};
+  const s=days[0].toLocaleDateString('es-AR',opts);
+  const e=days[6].toLocaleDateString('es-AR',opts);
+  const y=days[0].getFullYear();
+  return s+' — '+e+' '+y;
+}
+
+function getGuardData(dateStr){
+  // Read from existing DOM guard data
+  // Look for agent assigned to this day in the existing weekly calendar
+  const gp=document.querySelector('#p-guardias');
+  if(!gp) return {agent:null,role:'',activities:[]};
+  
+  // Try to find day cell in the original gw-desktop table
+  const table=gp.querySelector('.gw-desktop table,.gw-desktop [class*="week"]');
+  // Also check window guardData if available
+  const wd = window.guardData || window.weekData || null;
+  return {agent:null, role:'', activities:[]};
+}
+
+function getActivitiesForDay(dateStr){
+  // Collect activities from existing DOM for a given date
+  const acts = [];
+  
+  // 1. Check guard overrides
+  try {
+    const ov = JSON.parse(localStorage.getItem('guardOverrides')||'{}');
+    const dayOv = ov[dateStr];
+    if(dayOv && Array.isArray(dayOv)){
+      dayOv.forEach(a=>{
+        if(a.hora && parseInt(a.hora)>=15){
+          acts.push({time:a.hora,type:a.tipo||'cobertura',title:a.titulo||a.title||'',place:a.lugar||a.place||''});
+        }
+      });
+    }
+  } catch(e){}
+  
+  // 2. Check calendar events from DOM
+  const calEls = document.querySelectorAll('[data-date="'+dateStr+'"] .cal-event, [data-fecha="'+dateStr+'"] .event-item');
+  calEls.forEach(el=>{
+    const timeEl=el.querySelector('.time,.hora');
+    const titleEl=el.querySelector('.title,.titulo');
+    const hr = timeEl ? parseInt(timeEl.textContent) : 0;
+    if(hr>=15){
+      acts.push({time:timeEl?timeEl.textContent:'15:00',type:'evento',title:titleEl?titleEl.textContent:(el.textContent.substring(0,50)),place:''});
+    }
+  });
+  
+  // 3. Check publications from DOM
+  const pubEls = document.querySelectorAll('[data-date="'+dateStr+'"] .pub-item, .pub-card[data-fecha="'+dateStr+'"]');
+  pubEls.forEach(el=>{
+    const timeEl=el.querySelector('.time,.hora');
+    const titleEl=el.querySelector('.title,.titulo');
+    const hr = timeEl ? parseInt(timeEl.textContent) : 20;
+    if(hr>=15){
+      acts.push({time:timeEl?timeEl.textContent:'20:00',type:'publicacion',title:titleEl?titleEl.textContent:(el.textContent.substring(0,50)),place:''});
+    }
+  });
+  
+  // 4. Try window global data
+  try {
+    const gd = window.actividades || window.guardActivities || [];
+    if(Array.isArray(gd)){
+      gd.forEach(a=>{
+        if((a.fecha||'').startsWith(dateStr) || a.date===dateStr){
+          const hr = a.hora ? parseInt(a.hora) : 0;
+          if(hr>=15){
+            acts.push({time:a.hora||'15:00',type:a.tipo||a.type||'cobertura',title:a.titulo||a.title||'',place:a.lugar||a.place||''});
+          }
+        }
+      });
+    }
+  } catch(e){}
+  
+  acts.sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+  return acts;
+}
+
+function getAgentForDay(days, dayDate){
+  // Try to read agent data from existing guard DOM
+  const gp = document.querySelector('#p-guardias');
+  if(!gp) return null;
+  
+  // The original panel shows agents in a weekly table
+  // Each day column has agent info
+  const dateStr = fmtDate(dayDate);
+  
+  // Try window data
+  try {
+    const wd = window.semanaGuardia || window.guardWeek || window.weekGuard;
+    if(wd && wd[dateStr]) return wd[dateStr];
+  } catch(e){}
+  
+  // Try reading from existing DOM cells
+  // The .gw-desktop table has day columns
+  const desktopDiv = gp.querySelector('.gw-desktop');
+  if(desktopDiv){
+    // Find all day columns - they're table cells or divs with date data
+    const dayCells = desktopDiv.querySelectorAll('td,th,.day-cell,.gw-day');
+    // Day index: 0=Mon based on days array
+    const dayIndex = days.findIndex(d=>fmtDate(d)===dateStr);
+    if(dayIndex>=0 && dayCells[dayIndex]){
+      const cell = dayCells[dayIndex];
+      const nameEl = cell.querySelector('.agent-name,.nombre,strong,b');
+      if(nameEl) return {name: nameEl.textContent.trim(), role:'titular'};
+    }
+  }
+  return null;
+}
+
+function badgeHTML(type){
+  const map={
+    evento:['📅','m4g-badge-evento','EVENTO'],
+    publicacion:['📢','m4g-badge-pub','PUBLICACIÓN'],
+    pub:['📢','m4g-badge-pub','PUBLICACIÓN'],
+    cobertura:['🎯','m4g-badge-cob','COBERTURA'],
+    cob:['🎯','m4g-badge-cob','COBERTURA'],
+    radio:['📻','m4g-badge-radio','RADIO'],
+  };
+  const t=(type||'').toLowerCase();
+  const m=map[t]||['🗓','m4g-badge-evento',type||'ACTIVIDAD'];
+  return '<span class="m4g-act-badge '+m[1]+'">'+m[0]+' '+m[2]+'</span>';
+}
+
+function buildDetailPanel(dateStr, days){
+  const d = days.find(x=>fmtDate(x)===dateStr);
+  if(!d) return '<div class="m4g-act-empty">Seleccioná un día para ver el detalle.</div>';
+  
+  const acts = getActivitiesForDay(dateStr);
+  const agent = getAgentForDay(days, d);
+  
+  const dateLabel = d.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'}).toUpperCase();
+  const agentName = agent ? agent.name : 'Sin asignar';
+  const agentInitials = getInitials(agentName);
+  const agentRole = agent ? (agent.role||'titular') : '';
+  
+  // WA message
+  const waMsg = buildWAMsg(agentName, d, acts);
+  const waEncoded = encodeURIComponent(waMsg);
+  
+  let actsHTML = '';
+  if(acts.length===0){
+    actsHTML='<div class="m4g-act-empty">Sin actividades desde las 15:00 hs para este día.</div>';
+  } else {
+    actsHTML = acts.map(a=>`
+      <div class="m4g-act-item">
+        <div class="m4g-act-time">${a.time||''}</div>
+        <div style="display:flex;flex-direction:column;gap:4px;flex:1">
+          ${badgeHTML(a.type)}
+          <div class="m4g-act-info">
+            <div class="m4g-act-title">${a.title||''}</div>
+            ${a.place?'<div class="m4g-act-place">'+a.place+'</div>':''}
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+  
+  // Summary counts
+  const cEv = acts.filter(a=>a.type==='evento').length;
+  const cPub = acts.filter(a=>['publicacion','pub'].includes(a.type)).length;
+  const cCob = acts.filter(a=>['cobertura','cob'].includes(a.type)).length;
+  
+  return `
+    <div class="m4g-detail">
+      <div class="m4g-detail-box">
+        <div class="m4g-detail-header">
+          <div>
+            <div class="m4g-detail-title">${dateLabel} — ${agentName.toUpperCase()}</div>
+            <div style="font-size:.75rem;color:#888;margin-top:2px">Actividades desde las 15:00 hs</div>
+          </div>
+          <button class="m4g-detail-wa" onclick="window.open('https://wa.me/?text=${waEncoded}','_blank')">
+            💬 Enviar cobertura por WhatsApp
+          </button>
+        </div>
+        <div class="m4g-act-list">
+          ${actsHTML}
+        </div>
+      </div>
+      <div class="m4g-sidebar">
+        <div class="m4g-summary">
+          <h3>📊 Resumen del día</h3>
+          <div class="m4g-summary-row"><span>Total actividades</span><span class="m4g-summary-val">${acts.length}</span></div>
+          <div class="m4g-summary-row"><span>Eventos</span><span class="m4g-summary-val">${cEv}</span></div>
+          <div class="m4g-summary-row"><span>Publicaciones</span><span class="m4g-summary-val">${cPub}</span></div>
+          <div class="m4g-summary-row"><span>Coberturas</span><span class="m4g-summary-val">${cCob}</span></div>
+        </div>
+        <div class="m4g-agent-card">
+          <div class="m4g-agent-avatar">${agentInitials}</div>
+          <div class="m4g-agent-name">${agentName}</div>
+          <div class="m4g-agent-role">${agentRole}</div>
+          <button class="m4g-agent-wa" onclick="window.open('https://wa.me/?text=${waEncoded}','_blank')">💬 WhatsApp</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function buildWAMsg(agentName, dateObj, acts){
+  const dateLabel = dateObj.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  let msg = 'Hola '+agentName+', estas son tus coberturas del día\n';
+  msg += dateLabel+':\n\n';
+  if(acts.length===0){
+    msg += 'Sin actividades asignadas desde las 15:00 hs.\n';
+  } else {
+    acts.forEach(a=>{
+      const tipo = a.type==='publicacion'||a.type==='pub'?'Publicación':
+                   a.type==='cobertura'||a.type==='cob'?'Cobertura':
+                   a.type==='radio'?'Radio':'Evento';
+      msg += a.time+' hs — '+tipo+': '+a.title;
+      if(a.place) msg += ' — '+a.place;
+      msg += '\n';
+    });
+  }
+  msg += '\n¡Gracias!';
+  return msg;
+}
+
+function buildDayCard(dayDate, days, isToday, isActive){
+  const dateStr = fmtDate(dayDate);
+  const agent = getAgentForDay(days, dayDate);
+  const acts = getActivitiesForDay(dateStr);
+  const agentName = agent ? agent.name : null;
+  const agentRole = agent ? (agent.role||'titular') : '';
+  const initials = agentName ? getInitials(agentName) : '?';
+  const waMsg = buildWAMsg(agentName||'Sin asignar', dayDate, acts);
+  const waEncoded = encodeURIComponent(waMsg);
+  
+  const dayN = dayNames()[days.indexOf(dayDate)];
+  const dayNum = dayDate.getDate();
+  const month = dayDate.toLocaleDateString('es-AR',{month:'short'});
+  
+  let classes = 'm4g-day';
+  if(isToday) classes += ' m4g-day-today';
+  if(isActive) classes += ' m4g-day-active';
+  
+  const agentHTML = agentName ? `
+    <div class="m4g-day-avatar">${initials}</div>
+    <div class="m4g-day-agent">${agentName}</div>
+    <div class="m4g-day-role">${agentRole}</div>
+    ${acts.length>0?'<div class="m4g-day-count">'+acts.length+' act.</div>':''}
+    <button class="m4g-day-wa" onclick="event.stopPropagation();window.open('https://wa.me/?text=${waEncoded}','_blank')">💬 WhatsApp</button>
+  ` : '<div class="m4g-day-noassign">Sin asignar</div>';
+  
+  return `<div class="${classes}" data-date="${dateStr}" onclick="window.m4gSelectDay('${dateStr}')">
+    <div class="m4g-day-name">${dayN}</div>
+    <div class="m4g-day-num">${dayNum} <span style="font-size:.65rem;font-weight:500">${month}</span></div>
+    ${agentHTML}
+  </div>`;
+}
+
 function buildGuardia(){
-var gp = document.getElementById("p-guardias");
-if(!gp || document.getElementById("m4gwrap")) return;
-var hoy = new Date();
-var DIAS=["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
-var MESES=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
-var ft=DIAS[hoy.getDay()]+" "+hoy.getDate()+" de "+MESES[hoy.getMonth()];
-var yyyy=hoy.getFullYear(),mm=String(hoy.getMonth()+1).padStart(2,"0"),dd=String(hoy.getDate()).padStart(2,"0");
-var fk=yyyy+"-"+mm+"-"+dd;
-var agentes=[],acts=[];
-// Leer datos desde localStorage
-try{
-  var gd=JSON.parse(localStorage.getItem("guardOverrides")||"{}");
-  var day=gd[fk]||{};
-  if(day.titular) agentes.push({rol:"Titular",nom:day.titular,rc:"m4rol-tit"});
-  if(day.soporte) agentes.push({rol:"Soporte",nom:day.soporte,rc:"m4rol-sop"});
-  if(day.coberturas) day.coberturas.forEach(function(c){
-    var h=parseInt((c.hora||"0000").replace(":",""));
-    if(h>=1500) acts.push({hora:c.hora||"",tipo:c.tipo||"cob",tit:c.titulo||c.text||"Cobertura"});
+  const gp = document.querySelector('#p-guardias');
+  if(!gp) return;
+  
+  // Remove previous injection
+  const prev = document.querySelector('#m4g-panel');
+  if(prev) prev.remove();
+  // Also remove old m4gwrap if exists
+  const oldWrap = document.querySelector('#m4gwrap');
+  if(oldWrap) oldWrap.remove();
+  
+  // Hide original elements (CSS handles it, but also JS for safety)
+  gp.querySelectorAll('.ptop,.gw-navrow,.gw-desktop,.gw-mobile,.acts,#m1-pubs-guardias').forEach(el=>{
+    el.style.setProperty('display','none','important');
   });
-}catch(e){}
-// Leer del DOM de guardias existente
-var gdc=document.getElementById("guard-day-content");
-if(gdc){
-  gdc.querySelectorAll("[class*=titular],[class*=agent-tit]").forEach(function(el){
-    var n=el.textContent.trim();
-    if(n && n.length>1 && !agentes.find(function(a){return a.nom===n;})){
-      agentes.push({rol:"Titular",nom:n,rc:"m4rol-tit"});
-    }
-  });
-  gdc.querySelectorAll("[class*=soporte],[class*=agent-sop]").forEach(function(el){
-    var n=el.textContent.trim();
-    if(n && n.length>1 && !agentes.find(function(a){return a.nom===n;})){
-      agentes.push({rol:"Soporte",nom:n,rc:"m4rol-sop"});
-    }
-  });
-  gdc.querySelectorAll("[class*=gcob],[class*=cob-item]").forEach(function(el){
-    var hEl=el.querySelector("[class*=hora]");
-    var hora=hEl?hEl.textContent.trim():"";
-    var hNum=parseInt(hora.replace(":","").replace(/[^0-9]/g,"") || "0");
-    if(hNum>=1500){
-      var tEl=el.querySelector("[class*=titulo],[class*=text]");
-      var txt=tEl?tEl.textContent.trim():el.textContent.trim().substring(0,60);
-      if(txt&&!acts.find(function(a){return a.tit===txt;})){
-        acts.push({hora:hora,tipo:"cob",tit:txt});
+  
+  const today = new Date();
+  const todayStr = fmtDate(today);
+  const days = getWeekDays(m4gWeekOffset);
+  
+  // Default selected day = today if in current week, else first day of week
+  if(!m4gSelectedDay || !days.find(d=>fmtDate(d)===m4gSelectedDay)){
+    const todayInWeek = days.find(d=>fmtDate(d)===todayStr);
+    m4gSelectedDay = todayInWeek ? todayStr : fmtDate(days[0]);
+  }
+  
+  const weekRange = fmtWeekRange(days);
+  
+  // Build day cards
+  const dayCards = days.map(d=>buildDayCard(d, days, fmtDate(d)===todayStr, fmtDate(d)===m4gSelectedDay)).join('');
+  
+  // Build detail
+  const detailHTML = buildDetailPanel(m4gSelectedDay, days);
+  
+  const panel = document.createElement('div');
+  panel.id = 'm4g-panel';
+  panel.innerHTML = `
+    <div class="m4g-header">
+      <div>
+        <h2>🛡️ Guardias Semanales</h2>
+        <p>Actividades desde las 15:00 hs</p>
+      </div>
+      <div class="m4g-header-btns">
+        <button class="m4g-view-btn active">Vista semana</button>
+        <button class="m4g-view-btn" onclick="buildGuardia()">🔄</button>
+      </div>
+    </div>
+    <div class="m4g-weeknav">
+      <button onclick="m4gWeekOffset--;buildGuardia()">← Ant</button>
+      <div class="m4g-weekrange">${weekRange}</div>
+      <button onclick="m4gWeekOffset++;buildGuardia()">Sig →</button>
+      <button class="m4g-today-btn" onclick="m4gWeekOffset=0;m4gSelectedDay=null;buildGuardia()">Hoy</button>
+    </div>
+    <div class="m4g-days" id="m4g-days-grid">
+      ${dayCards}
+    </div>
+    <div id="m4g-detail-wrap">
+      ${detailHTML}
+    </div>
+  `;
+  
+  // Insert at top of guard panel
+  gp.insertBefore(panel, gp.firstChild);
+  
+  // Global select day function
+  window.m4gSelectDay = function(dateStr){
+    m4gSelectedDay = dateStr;
+    // Update active state on cards
+    document.querySelectorAll('.m4g-day').forEach(c=>{
+      c.classList.toggle('m4g-day-active', c.dataset.date===dateStr);
+    });
+    // Re-render detail
+    const wrap = document.querySelector('#m4g-detail-wrap');
+    if(wrap) wrap.innerHTML = buildDetailPanel(dateStr, days);
+  };
+}
+
+/* ============ INIT ============ */
+function init(){
+  inyectarCSS();
+  parchearNav();
+  checkTablero();
+  ocultarRealizada();
+  
+  // Build guard panel if on guardias tab
+  if(document.querySelector('#p-guardias[style*="block"]') || 
+     getComputedStyle(document.querySelector('#p-guardias')||document.body).display==='block'){
+    buildGuardia();
+  }
+  
+  // Watch for tab changes to rebuild guard panel when switched to
+  const obs = new MutationObserver(()=>{
+    const gp = document.querySelector('#p-guardias');
+    if(gp && getComputedStyle(gp).display!=='none'){
+      if(!document.querySelector('#m4g-panel')){
+        buildGuardia();
       }
     }
+    checkTablero();
+    ocultarRealizada();
   });
-}
-acts.sort(function(a,b){
-  return parseInt((a.hora||"").replace(":",""))-parseInt((b.hora||"").replace(":",""));
-});
-// Build HTML
-var h="<div id='m4gwrap'>";
-h+="<div class='m4gh'><div class='m4gh-left'><h2>🛡️ Guardia del Día</h2><p>"+ft+" · Actividades desde las 15:00 hs</p></div></div>";
-if(agentes.length>0){
-  h+="<div class='m4ag-grid'>";
-  agentes.forEach(function(ag){
-    h+="<div class='m4ag-card'>";
-    h+="<div class='m4ag-rol "+ag.rc+"'>" +ag.rol+"</div>";
-    h+="<div class='m4ag-nom'>"+ag.nom+"</div>";
-    h+="<div class='m4ag-hor'>⏰ 15:00 — 23:59 hs</div>";
-    h+="<button class='m4wabtn' data-agente='"+ag.nom+"' onclick='m4WA(this)'>📱 Enviar WhatsApp</button>";
-    h+="</div>";
+  
+  const main = document.querySelector('#main,main,.main-content,[id*=main]');
+  if(main) obs.observe(main, {childList:true, subtree:false, attributes:true, attributeFilter:['style','class']});
+  
+  // Also watch all panel elements
+  document.querySelectorAll('[id^="p-"]').forEach(el=>{
+    obs.observe(el, {attributes:true, attributeFilter:['style','class']});
   });
-  h+="</div>";
-}
-h+="<div class='m4acts'>";
-h+="<div class='m4acts-hdr'><h3>📋 Actividades desde las 15:00 hs</h3>";
-if(acts.length>0) h+="<span class='m4cnt-badge'>"+acts.length+" actividades</span>";
-h+="</div>";
-if(acts.length===0){
-  h+="<div class='m4empty'>Sin actividades de guardia cargadas para hoy</div>";
-} else {
-  acts.forEach(function(act){
-    var ico=act.tipo==="pub"?"📢":(act.tipo==="radio"?"📻":(act.tipo==="evento"?"🗓️":"📷"));
-    var bc=act.tipo==="pub"?"m4bp":(act.tipo==="radio"?"m4br":(act.tipo==="evento"?"m4be":"m4bc"));
-    var bl=act.tipo==="pub"?"Publicación":(act.tipo==="radio"?"Radio":(act.tipo==="evento"?"Evento":"Cobertura"));
-    h+="<div class='m4act'>";
-    h+="<div class='m4act-hora'>"+(act.hora||"—")+"</div>";
-    h+="<div><div class='m4act-tit'>"+act.tit+"</div>";
-    h+="<span class='m4badge "+bc+"'>"+ ico+" "+bl+"</span></div>";
-    h+="</div>";
-  });
-}
-h+="</div></div>";
-var wr=document.createElement("div");
-wr.innerHTML=h;
-gp.insertBefore(wr.firstElementChild, gp.firstChild);
-}
-
-/* === WHATSAPP === */
-window.m4WA=function(btn){
-var nom=btn?btn.dataset.agente:"";
-if(!nom) return;
-var hoy=new Date();
-var DIAS=["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
-var MESES=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
-var ft=DIAS[hoy.getDay()]+", "+hoy.getDate()+" de "+MESES[hoy.getMonth()]+" de "+hoy.getFullYear();
-var yyyy=hoy.getFullYear(),mm=String(hoy.getMonth()+1).padStart(2,"0"),dd=String(hoy.getDate()).padStart(2,"0");
-var fk=yyyy+"-"+mm+"-"+dd;
-var cobs=[],pubs=[];
-try{
-  var gd=JSON.parse(localStorage.getItem("guardOverrides")||"{}");
-  var day=gd[fk]||{};
-  if(day.coberturas) day.coberturas.forEach(function(c){
-    var hh=parseInt((c.hora||"0").replace(":",""));
-    if(hh>=1500){
-      if(c.tipo==="pub") pubs.push((c.hora||"")+" - "+(c.titulo||c.text||"Pub."));
-      else cobs.push((c.hora||"")+" - "+(c.titulo||c.text||"Cobertura"));
+  
+  // Periodic check (15 times)
+  let n=0;
+  const iv=setInterval(()=>{
+    checkTablero();
+    ocultarRealizada();
+    const gp=document.querySelector('#p-guardias');
+    if(gp && getComputedStyle(gp).display!=='none' && !document.querySelector('#m4g-panel')){
+      buildGuardia();
     }
-  });
-}catch(e){}
-var msg="Hola "+nom+", estas son tus coberturas de hoy 👋\n\n";
-msg+="📅 *"+ft+"*\n";
-msg+="⏰ *Horario:* 15:00 — 23:59 hs\n\n";
-if(cobs.length>0){msg+="📷 *Coberturas:*\n";cobs.forEach(function(c){msg+="  • "+c+"\n";});msg+="\n";}
-if(pubs.length>0){msg+="📢 *Publicaciones:*\n";pubs.forEach(function(p){msg+="  • "+p+"\n";});msg+="\n";}
-if(!cobs.length&&!pubs.length) msg+="✅ Sin actividades por ahora.\n";
-msg+="\n_Panel Comunicación — Muni Tres Arroyos_";
-window.open("https://wa.me/?text="+encodeURIComponent(msg),"_blank");
-};
-
-/* === INIT === */
-function init(){
-inyectarCSS();
-setTimeout(function(){
-  parchearNav();
-  ocultarRealizada();
-  buildGuardia();
-  checkTablero();
-}, 700);
-// Recheck en intervalo
-var n=0;
-var iv=setInterval(function(){
-  parchearNav();
-  ocultarRealizada();
-  checkTablero();
-  if(++n>=15) clearInterval(iv);
-}, 400);
-// Observer en #main
-var main=document.getElementById("main");
-if(main){
-  new MutationObserver(function(){checkTablero();ocultarRealizada();}).observe(main,{attributes:true,subtree:true,attributeFilter:["style"]});
-}
+    if(++n>=15) clearInterval(iv);
+  },400);
 }
 
-if(document.readyState==="loading"){
-  document.addEventListener("DOMContentLoaded",init);
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',init);
 } else {
-  setTimeout(init,300);
+  init();
 }
 
 })();
