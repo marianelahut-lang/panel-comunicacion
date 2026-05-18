@@ -1,4 +1,4 @@
-/* MEJORAS3.JS v10c */
+/* MEJORAS3.JS v11 */
 (function(){"use strict";
 function inyectarCSS(){
 if(document.getElementById("m4css"))return;
@@ -20,7 +20,7 @@ css+="#m4g .m4g-card:hover{border-color:#6c3fc5}\n";
 css+="#m4g .m4g-card.m4g-active{border-color:#6c3fc5;background:#f5f0ff}\n";
 css+="#m4g .m4g-card.m4g-today{border-color:#f59e0b}\n";
 css+="#m4g .m4g-card.m4g-today .m4g-cday{color:#f59e0b}\n";
-css+="#m4g .m4g-card.m4g-prensa-on{border-color:#f97316!important;background:#fff7ed!important}\n";
+css+="#m4g .m4g-card.m4g-cob-on{border-color:#6c3fc5!important;background:#f5f0ff!important}\n";
 css+="#m4g .m4g-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#6c3fc5;color:#fff;font-weight:700;font-size:.9rem;margin:0 auto 4px}\n";
 css+="#m4g .m4g-cday{font-weight:700;font-size:.8rem;margin-bottom:2px;color:#444}\n";
 css+="#m4g .m4g-cname{font-size:.75rem;font-weight:600;color:#333;display:block}\n";
@@ -28,14 +28,16 @@ css+="#m4g .m4g-crole{font-size:.65rem;color:#888;margin-bottom:4px;display:bloc
 css+="#m4g .m4g-cbadge{display:inline-block;background:#6c3fc5;color:#fff;border-radius:20px;padding:1px 8px;font-size:.65rem;font-weight:700;margin-bottom:4px}\n";
 css+="#m4g .m4g-wa{display:block;background:#25d366;color:#fff;border-radius:8px;padding:4px;font-size:.68rem;font-weight:700;text-decoration:none;margin-top:4px}\n";
 css+="#m4g .m4g-wa:hover{background:#1da851}\n";
-css+="#m4g .m4g-prensa-btn{display:block;background:#f3f4f6;color:#6b7280;border:1px solid #d1d5db;border-radius:8px;padding:4px;font-size:.68rem;font-weight:700;text-align:center;cursor:pointer;width:100%;margin-top:3px;box-sizing:border-box}\n";
-css+="#m4g .m4g-prensa-btn.on{background:#f97316;color:#fff;border-color:#f97316}\n";
-css+="#m4g .m4g-act-prensa{background:none;border:1px solid #e5e7eb;border-radius:6px;padding:2px 6px;cursor:pointer;font-size:.7rem;color:#9ca3af;margin-left:4px}\n";
-css+="#m4g .m4g-act-prensa.on{background:#fff7ed;color:#f97316;border-color:#f97316;font-weight:700}\n";
+css+="#m4g .m4g-wa-dis{display:block;background:#e5e7eb;color:#9ca3af;border-radius:8px;padding:4px;font-size:.68rem;font-weight:700;text-align:center;margin-top:4px;cursor:not-allowed}\n";
+css+="#m4g .m4g-cob-btn{display:block;background:#f3f4f6;color:#6b7280;border:1px solid #d1d5db;border-radius:8px;padding:4px;font-size:.68rem;font-weight:700;text-align:center;cursor:pointer;width:100%;margin-top:3px;box-sizing:border-box}\n";
+css+="#m4g .m4g-cob-btn.on{background:#6c3fc5;color:#fff;border-color:#6c3fc5}\n";
+css+="#m4g .m4g-act-cob{background:none;border:1px solid #e5e7eb;border-radius:6px;padding:2px 6px;cursor:pointer;font-size:.7rem;color:#9ca3af;margin-left:4px;white-space:nowrap}\n";
+css+="#m4g .m4g-act-cob.on{background:#ede9fe;color:#6c3fc5;border-color:#6c3fc5;font-weight:700}\n";
 css+="#m4g .m4g-detail{background:#fff;border-radius:12px;border:1px solid #e2d8f7;padding:14px;margin-top:10px}\n";
 css+="#m4g .m4g-detail-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px}\n";
 css+="#m4g .m4g-detail-title{font-weight:700;font-size:.95rem;color:#333}\n";
 css+="#m4g .m4g-wa-big{background:#25d366;color:#fff;border:none;border-radius:8px;padding:7px 14px;cursor:pointer;font-size:.82rem;font-weight:700}\n";
+css+="#m4g .m4g-wa-big:disabled{background:#d1d5db;color:#9ca3af;cursor:not-allowed}\n";
 css+="#m4g .m4g-empty{text-align:center;color:#aaa;padding:24px;font-size:.9rem}\n";
 css+="#m4g .m4g-act{display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid #f3f0fb}\n";
 css+="#m4g .m4g-act:last-child{border-bottom:none}\n";
@@ -46,7 +48,7 @@ css+="#m4g .m4g-badge{display:inline-block;border-radius:4px;padding:1px 6px;fon
 css+="#m4g .m4g-badge-ev{background:#dbeafe;color:#2563eb}\n";
 css+="#m4g .m4g-badge-cob{background:#ede9fe;color:#6c3fc5}\n";
 css+="#m4g .m4g-badge-pub{background:#fef3c7;color:#d97706}\n";
-css+="#m4g .m4g-act-actions{display:flex;gap:4px;margin-left:auto;align-items:flex-start}\n";
+css+="#m4g .m4g-act-actions{display:flex;gap:4px;margin-left:auto;align-items:flex-start;flex-wrap:wrap;justify-content:flex-end}\n";
 css+="#m4g .m4g-act-btn{background:none;border:1px solid #ddd;border-radius:6px;padding:2px 6px;cursor:pointer;font-size:.75rem;color:#666}\n";
 css+="#m4g .m4g-act-btn.m4g-del{color:#dc2626;border-color:#fca5a5}\n";
 css+="#m4g .m4g-sidebar{min-width:180px;max-width:220px}\n";
@@ -61,6 +63,12 @@ css+="#m4g .m4g-agent-role{font-size:.75rem;color:#888;margin-bottom:8px}\n";
 css+="#m4g .m4g-layout{display:flex;gap:12px;align-items:flex-start}\n";
 css+="#m4g .m4g-main{flex:1;min-width:0}\n";
 css+="#hoy-cal-m4g{background:#fff;border-radius:12px;border:1px solid #e2d8f7;padding:12px;margin-bottom:12px}\n";
+css+="#hoy-cal-m4g .hcm-ev{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #f3f0fb}\n";
+css+="#hoy-cal-m4g .hcm-ev:last-child{border-bottom:none}\n";
+css+="#hoy-cal-m4g .hcm-time{color:#2563eb;font-weight:700;font-size:.8rem;min-width:42px}\n";
+css+="#hoy-cal-m4g .hcm-title{font-size:.83rem;color:#222;flex:1}\n";
+css+="#hoy-cal-m4g .hcm-cob-btn{background:none;border:1px solid #e5e7eb;border-radius:6px;padding:2px 7px;cursor:pointer;font-size:.7rem;color:#9ca3af;white-space:nowrap}\n";
+css+="#hoy-cal-m4g .hcm-cob-btn.on{background:#ede9fe;color:#6c3fc5;border-color:#6c3fc5;font-weight:700}\n";
 s["textContent"]=css;document.head.appendChild(s);
 }
 function getPrensa(k){try{return localStorage.getItem("m4p_"+k)==="1";}catch(e){return false;}}
@@ -101,24 +109,10 @@ gwd.querySelectorAll("a").forEach(function(a){if(a.href&&a.href.indexOf("whatsap
 var dateStr="";
 gwd.querySelectorAll("[onclick]").forEach(function(b){
 var oc=b.getAttribute("onclick");
-var mm=oc&&oc.match(/['"]([\d]{4}-[\d]{2}-[\d]{2})['"]/);if(mm&&!dateStr)dateStr=mm[1];});
-if(!dateStr){var hEl=gwd.querySelector(".gwdate,.gwhd");if(hEl)dateStr=hEl.getAttribute("data-date")||"";}
-var cobDiv=null;
-gwd.querySelectorAll("div").forEach(function(dv){if(dv.textContent.indexOf("Coberturas del")>-1)cobDiv=dv;});
+var mm=oc&&oc.match(/['"](\d{4}-\d{2}-\d{2})['"]/);
+if(mm&&!dateStr)dateStr=mm[1];});
+if(!dateStr){var hEl=gwd.querySelector(".gwdate,.gwhd");if(hEl)dateStr=hEl.getAttribute("data-date")||"";}  
 var cobs=[];
-if(cobDiv){
-var rows=cobDiv.querySelectorAll(".gwact,.gwrow,li");
-if(rows.length===0){Array.from(cobDiv.children).forEach(function(c2,i){
-if(i>0){
-var t2=c2.children&&c2.children[1]?c2.children[1].children[0].textContent.trim():c2.textContent.trim();
-var tm=c2.children&&c2.children[1]&&c2.children[1].children[1]?c2.children[1].children[1].textContent.replace(/[^\d:]/g,"").trim():"00:00";
-if(t2)cobs.push({title:t2,time:tm||"00:00"});
-}
-});
-}else{
-rows.forEach(function(r){var t=r.textContent.trim();if(t)cobs.push({title:t,time:"00:00"});});
-}
-}
 days.push({name:name,role:role,waLink:waLink,dateStr:dateStr,cobs:cobs});
 });
 return days;
@@ -204,23 +198,29 @@ var isWE=(dobj.getDay()===0||dobj.getDay()===6);
 var allActs=getCalEvts(day.dateStr).concat(getPubs(day.dateStr)).concat(day.cobs.map(function(cc){return {title:cc.title,time:cc.time,type:"cob"};}));
 if(!isWE)allActs=allActs.filter(function(a){return a.time>="15:00";});
 var cnt=allActs.length;
-var prensaOn=getPrensa(day.dateStr);
-var cls="m4g-card"+(day.dateStr===today?" m4g-today":"")+(day.dateStr===_m4selDay?" m4g-active":"")+(prensaOn?" m4g-prensa-on":"");
+var cobOn=getPrensa(day.dateStr);
+var cls="m4g-card"+(day.dateStr===today?" m4g-today":"")+(day.dateStr===_m4selDay?" m4g-active":"")+(cobOn?" m4g-cob-on":"");
 var av=initials(day.name).toUpperCase()||"?";
 var wp=day.waLink.replace(/[^\d]/g,"");
+var clbl=cobOn?"\u2705 Cubre \u2014 S\xED":"\uD83D\uDCCB Cubre \u2014 No";
+var ccls="m4g-cob-btn"+(cobOn?" on":"");
+var waHtml;
+if(wp){
 var wm=encodeURIComponent("Guardia del dia "+fmtDate(day.dateStr)+" - "+day.name);
-var wu=wp?"https://api.whatsapp.com/send"+String.fromCharCode(63)+"phone="+wp+"&text="+wm:"#";
-var plbl=prensaOn?"\uD83D\uDCF0 Cubre Prensa \u2713":"\uD83D\uDCF0 Cubrir con Prensa";
-var pcls="m4g-prensa-btn"+(prensaOn?" on":"");
-grid+="<div class=\""+cls+"\" onclick=\"m4gSelectDay('"+day.dateStr+"')\">";
-grid+="<div class=\"m4g-cday\">"+dw+"<br>"+dn+"</div>";
-grid+="<div class=\"m4g-avatar\">"+av+"</div>";
-grid+="<span class=\"m4g-cname\">"+day.name+"</span>";
-grid+="<span class=\"m4g-crole\">"+day.role+"</span>";
-grid+="<div class=\"m4g-cbadge\">"+cnt+" act.</div>";
-grid+="<a class=\"m4g-wa\" href=\""+wu+"\" target=\"_blank\" onclick=\"event.stopPropagation()\">\uD83D\uDCAC WhatsApp</a>";
-grid+="<button class=\""+pcls+"\" onclick=\"event.stopPropagation();m4gTogglePrensa('"+day.dateStr+"')\">" + plbl + "</button>";
-grid+="</div>";
+var wu="https://api.whatsapp.com/send"+String.fromCharCode(63)+"phone="+wp+"&text="+wm;
+waHtml="<a class=\"m4g-wa\" href=\""+wu+"\" target=\"_blank\" onclick=\"event.stopPropagation()\">\uD83D\uDCAC WhatsApp</a>";
+}else{
+waHtml="<span class=\"m4g-wa-dis\">Sin tel.</span>";
+}
+grid+="<div class=\""+cls+"\" onclick=\"m4gSelectDay('"+day.dateStr+"')\">"
++"<div class=\"m4g-cday\">"+dw+"<br>"+dn+"</div>"
++"<div class=\"m4g-avatar\">"+av+"</div>"
++"<span class=\"m4g-cname\">"+day.name+"</span>"
++"<span class=\"m4g-crole\">"+day.role+"</span>"
++"<div class=\"m4g-cbadge\">"+cnt+" act.</div>"
++waHtml
++"<button class=\""+ccls+"\" onclick=\"event.stopPropagation();m4gTogglePrensa('"+day.dateStr+"')\">" + clbl + "</button>"
++"</div>";
 });
 grid+="</div>";
 var sd=_m4days.find(function(d){return d.dateStr===_m4selDay;})||_m4days[0];
@@ -240,13 +240,19 @@ wlines.push("\uD83D\uDCC5 Actividades:");
 combined.forEach(function(a){wlines.push("\u2022 "+a.time+" "+a.title);});
 if(!combined.length)wlines.push("\u2022 Sin actividades programadas");
 var wbm=encodeURIComponent(wlines.join("\n"));
-var wbu=wp2?"https://api.whatsapp.com/send"+String.fromCharCode(63)+"phone="+wp2+"&text="+wbm:"#";
+var waBtn;
+if(wp2){
+var wbu="https://api.whatsapp.com/send"+String.fromCharCode(63)+"phone="+wp2+"&text="+wbm;
+waBtn="<button class=\"m4g-wa-big\" onclick=\"window.open('"+wbu+"','_blank')\">\uD83D\uDCAC Enviar WhatsApp</button>";
+}else{
+waBtn="<button class=\"m4g-wa-big\" disabled>\uD83D\uDCAC Sin tel.</button>";
+}
 var dtitle=fmtDate(sd.dateStr).toUpperCase()+" - "+sd.name.toUpperCase()+" ("+sd.role+")";
 detHtml="<div class=\"m4g-layout\">";
 detHtml+="<div class=\"m4g-main\"><div class=\"m4g-detail\">";
 detHtml+="<div class=\"m4g-detail-header\">";
 detHtml+="<div class=\"m4g-detail-title\">"+dtitle+"</div>";
-detHtml+="<button class=\"m4g-wa-big\" onclick=\"window.open('"+wbu+"','_blank')\">\uD83D\uDCAC Enviar WhatsApp</button>";
+detHtml+=waBtn;
 detHtml+="</div>";
 if(!combined.length){
 detHtml+="<div class=\"m4g-empty\">Sin actividades</div>";
@@ -256,16 +262,16 @@ var bc=a.type==="ev"?"m4g-badge-ev":a.type==="pub"?"m4g-badge-pub":"m4g-badge-co
 var bt=a.type==="ev"?"EVENTO":a.type==="pub"?"PUBLICACION":"COBERTURA";
 var pkey=sd.dateStr+"_"+safeKey(a.id||a.title);
 var pOn=getPrensa(pkey);
-var pLbl=pOn?"\uD83D\uDCF0 Prensa \u2713":"\uD83D\uDCF0 Prensa";
-var pCls="m4g-act-prensa"+(pOn?" on":"");
+var pLbl=pOn?"\u2705 Cobertura":"\uD83D\uDCCB Cobertura";
+var pCls="m4g-act-cob"+(pOn?" on":"");
 detHtml+="<div class=\"m4g-act\">";
 detHtml+="<div class=\"m4g-act-time\">"+a.time+"</div>";
 detHtml+="<div class=\"m4g-act-body\"><span class=\"m4g-badge "+bc+"\">"+bt+"</span> <span class=\"m4g-act-name\">"+a.title+"</span></div>";
 detHtml+="<div class=\"m4g-act-actions\">";
 detHtml+="<button class=\""+pCls+"\" onclick=\"m4gToggleActPrensa('"+pkey+"','"+sd.dateStr+"')\">" + pLbl + "</button>";
 if(a.type==="pub"){
-detHtml+="<button class=\"m4g-act-btn\" onclick=\"m4gEditPub('"+a.id+"')\"  >\u270F\uFE0F</button>";
-detHtml+="<button class=\"m4g-act-btn m4g-del\" onclick=\"m4gDelPub('"+a.id+"','"+sd.dateStr+"')\" >\uD83D\uDDD1\uFE0F</button>";
+detHtml+="<button class=\"m4g-act-btn\" onclick=\"m4gEditPub('"+a.id+"')\">\u270F\uFE0F</button>";
+detHtml+="<button class=\"m4g-act-btn m4g-del\" onclick=\"m4gDelPub('"+a.id+"','"+sd.dateStr+"')\">\uD83D\uDDD1\uFE0F</button>";
 }
 detHtml+="</div></div>";
 });
@@ -280,15 +286,19 @@ detHtml+="<div class=\"m4g-res-row\"><span>Total</span><span class=\"m4g-res-num
 detHtml+="<div class=\"m4g-res-row\"><span>Eventos</span><span class=\"m4g-res-num\">"+evc+"</span></div>";
 detHtml+="<div class=\"m4g-res-row\"><span>Publicaciones</span><span class=\"m4g-res-num\">"+pbc+"</span></div>";
 detHtml+="<div class=\"m4g-res-row\"><span>Coberturas</span><span class=\"m4g-res-num\">"+cbc+"</span></div>";
-if(prnCnt>0){detHtml+="<div class=\"m4g-res-row\"><span>\uD83D\uDCF0 Prensa</span><span class=\"m4g-res-num\" style=\"background:#f97316\">"+prnCnt+"</span></div>";}
+if(prnCnt>0){detHtml+="<div class=\"m4g-res-row\"><span>\uD83D\uDCCB Cob.</span><span class=\"m4g-res-num\" style=\"background:#6c3fc5\">"+prnCnt+"</span></div>";}
 detHtml+="</div>";
 detHtml+="<div class=\"m4g-agent-card\">";
 detHtml+="<div class=\"m4g-agent-av\">"+initials(sd.name).toUpperCase()+"</div>";
 detHtml+="<div class=\"m4g-agent-name\">"+sd.name+"</div>";
 detHtml+="<div class=\"m4g-agent-role\">"+sd.role+"</div>";
 var wp3=sd.waLink.replace(/[^\d]/g,"");
-var wu3=wp3?"https://api.whatsapp.com/send"+String.fromCharCode(63)+"phone="+wp3:"#";
+if(wp3){
+var wu3="https://api.whatsapp.com/send"+String.fromCharCode(63)+"phone="+wp3;
 detHtml+="<a class=\"m4g-wa\" href=\""+wu3+"\" target=\"_blank\">\uD83D\uDCAC WhatsApp</a>";
+}else{
+detHtml+="<span class=\"m4g-wa-dis\">Sin tel.</span>";
+}
 detHtml+="</div></div></div>";
 }
 wrap.innerHTML=hh+nv+grid+detHtml;
@@ -335,12 +345,19 @@ var cd=document.createElement("div");cd.id="hoy-cal-m4g";
 var h="<div style=\"font-size:.88rem;font-weight:700;color:#6c3fc5;margin-bottom:8px\">\uD83D\uDCC5 Eventos del calendario hoy ("+evs.length+")</div>";
 evs.sort(function(a,b){return a.time<b.time?-1:1;});
 evs.forEach(function(e){
-h+="<div style=\"display:flex;gap:8px;padding:5px 0;border-bottom:1px solid #f3f0fb\"><span style=\"color:#2563eb;font-weight:700;font-size:.8rem;min-width:42px\">"+e.time+"</span><span style=\"font-size:.83rem;color:#222\">"+e.title+"</span></div>";
+var ekey=todayISO()+"_"+safeKey(e.id||e.title);
+var eOn=getPrensa(ekey);
+var eLbl=eOn?"\u2705 Cobertura":"\uD83D\uDCCB Cobertura";
+var eCls="hcm-cob-btn"+(eOn?" on":"");
+h+="<div class=\"hcm-ev\"><span class=\"hcm-time\">"+e.time+"</span><span class=\"hcm-title\">"+e.title+"</span>";
+h+="<button class=\""+eCls+"\" onclick=\"m4gHoyToggleCob('"+ekey+"')\">" + eLbl + "</button>";
+h+="</div>";
 });
 cd.innerHTML=h;
 var ch0=hoy.children[0];
 if(ch0&&ch0.nextSibling){hoy.insertBefore(cd,ch0.nextSibling);}else{hoy.appendChild(cd);}
 }
+window.m4gHoyToggleCob=function(key){setPrensa(key,!getPrensa(key));inyectarHoyCalendario();};
 function fixKanbanScroll(){
 if(window._m4kanbanPatched)return;window._m4kanbanPatched=true;
 var ork=window.renderKanban;
