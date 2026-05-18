@@ -1048,6 +1048,27 @@ if(el&&el.style.display!=="none"&&el.offsetParent!==null){setTabClass(t);}
 });
 setTimeout(function(){renderM4G();inyectarHoyCalendario();inyectarHoyTareas();hideRealizada();patchEnviarGuardias();},600);
 }
+            function fixHoyPanel(){
+                // Fix v1.1: ocultar secciones duplicadas en panel Hoy
+                ['hoy-cal-m4g','hoy-tasks-m4g'].forEach(function(id){
+                      var el=document.getElementById(id);
+                      if(el)el.style.setProperty('display','none','important');
+                });
+                // Fix v1.1: hacer seccion urgentes scrolleable
+                var m1=document.getElementById('m1-panel-hoy');
+                if(m1&&m1.children[4]){
+                      var urg=m1.children[4];
+                      if(urg.scrollHeight>500){
+                              urg.style.maxHeight='500px';
+                              urg.style.overflowY='auto';
+                              urg.style.overflowX='hidden';
+                      }
+                }
+            }
+            fixHoyPanel();
+            if(!window._fixHoyPanelInterval){
+                window._fixHoyPanelInterval=setInterval(fixHoyPanel,2000);
+            }
 if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",init);}
 else{init();}
 })();
