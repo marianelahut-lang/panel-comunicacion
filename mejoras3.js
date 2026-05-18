@@ -1,4 +1,4 @@
-/* MEJORAS3.JS v11 */
+/* MEJORAS3.JS v12 */
 (function(){"use strict";
 function inyectarCSS(){
 if(document.getElementById("m4css"))return;
@@ -7,6 +7,7 @@ css+="#p-guardias .gwtbl{display:none!important}\n";
 css+="#p-guardias .ptop,#p-guardias .ptitle{display:none!important}\n";
 css+="#p-guardias #m1-pubs-guardias{display:none!important}\n";
 css+="body:not(.m4tab-tablero) #p-tablero{display:none!important}\n";
+css+=".kanban>.kcol{flex:none!important;width:265px!important;max-width:265px!important;min-width:265px!important}\n";
 css+="#m4g{padding:0;font-family:inherit}\n";
 css+="#m4g .m4g-header{background:linear-gradient(135deg,#6c3fc5,#8b5cf6);color:#fff;padding:14px 18px;border-radius:12px;margin-bottom:14px}\n";
 css+="#m4g .m4g-header h2{margin:0;font-size:1.1rem;font-weight:800}\n";
@@ -69,6 +70,17 @@ css+="#hoy-cal-m4g .hcm-time{color:#2563eb;font-weight:700;font-size:.8rem;min-w
 css+="#hoy-cal-m4g .hcm-title{font-size:.83rem;color:#222;flex:1}\n";
 css+="#hoy-cal-m4g .hcm-cob-btn{background:none;border:1px solid #e5e7eb;border-radius:6px;padding:2px 7px;cursor:pointer;font-size:.7rem;color:#9ca3af;white-space:nowrap}\n";
 css+="#hoy-cal-m4g .hcm-cob-btn.on{background:#ede9fe;color:#6c3fc5;border-color:#6c3fc5;font-weight:700}\n";
+css+="#hoy-tasks-m4g{background:#fff;border-radius:12px;border:1px solid #e2d8f7;padding:12px;margin-bottom:12px}\n";
+css+="#hoy-tasks-m4g .htm-header{font-size:.88rem;font-weight:700;color:#6c3fc5;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}\n";
+css+="#hoy-tasks-m4g .htm-task{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid #f3f0fb;cursor:pointer}\n";
+css+="#hoy-tasks-m4g .htm-task:last-child{border-bottom:none}\n";
+css+="#hoy-tasks-m4g .htm-prio{display:inline-block;border-radius:4px;padding:1px 6px;font-size:.6rem;font-weight:700;flex-shrink:0;margin-top:2px}\n";
+css+="#hoy-tasks-m4g .htm-prio-alta{background:#fee2e2;color:#dc2626}\n";
+css+="#hoy-tasks-m4g .htm-prio-media{background:#fef3c7;color:#d97706}\n";
+css+="#hoy-tasks-m4g .htm-prio-baja{background:#dcfce7;color:#16a34a}\n";
+css+="#hoy-tasks-m4g .htm-title{font-size:.82rem;color:#222;flex:1;line-height:1.3}\n";
+css+="#hoy-tasks-m4g .htm-status{font-size:.68rem;color:#888;flex-shrink:0}\n";
+css+="#hoy-tasks-m4g .htm-more{font-size:.75rem;color:#6c3fc5;text-align:center;padding:4px;cursor:pointer;font-weight:600}\n";
 s["textContent"]=css;document.head.appendChild(s);
 }
 function getPrensa(k){try{return localStorage.getItem("m4p_"+k)==="1";}catch(e){return false;}}
@@ -86,6 +98,27 @@ if(d&&d.items){d.items.forEach(function(ev){window._m4gcal.push(ev);});
 if(window._m4renderPending){window._m4renderPending=false;renderM4G();}
 }}).catch(function(){});}).catch(function(){});
 }return p2;};
+}
+function getKanbanTasks(){
+var tasks=[];
+var kanban=document.getElementById("kanban");if(!kanban)return tasks;
+Array.from(kanban.children).forEach(function(col){
+var hdr=col.querySelector(".khdr");
+var hdrText=hdr?hdr.textContent.trim().toLowerCase():"";
+if(hdrText.indexOf("realiz")>-1)return;
+var kbody=col.querySelector(".kbody");if(!kbody)return;
+var statusLabel=hdr?hdr.textContent.replace(/[0-9]/g,"").trim():"";
+Array.from(kbody.children).forEach(function(card){
+var oc=card.getAttribute("onclick");
+var idm=oc&&oc.match(/editTask\(['"]([-\w]+)['"]\)/);
+if(!idm)return;
+var titleEl=card.querySelector(".tc-t");var title=titleEl?titleEl.textContent.trim().split("\n")[0].trim():"";
+var prioEl=card.querySelector(".tg");var prio=prioEl?prioEl.textContent.trim().toLowerCase():"media";
+var statEl=card.querySelector(".estado-selector");var stat=statEl?statEl.value||statusLabel:statusLabel;
+if(title)tasks.push({id:idm[1],title:title,prio:prio,status:stat});
+});
+});
+return tasks;
 }
 function extractDays(){
 var gp=document.getElementById("p-guardias");
@@ -233,12 +266,15 @@ var combined=getCalEvts(sd.dateStr).concat(getPubs(sd.dateStr)).concat(sd.cobs.m
 if(!isWE2)combined=combined.filter(function(a){return a.time>="15:00";});
 combined.sort(function(a,b){return a.time<b.time?-1:a.time>b.time?1:0;});
 var wp2=sd.waLink.replace(/[^\d]/g,"");
-var wlines=["\uD83D\uDEE1\uFE0F *Guardia del dia* \u2014 "+fmtDate(sd.dateStr),""];
+var wlines=["\uD83D\uDEE1\uFE0F *Guardia del d\u00eda* \u2014 "+fmtDate(sd.dateStr),""];
 wlines.push("Hola "+sd.name+", sos la guardia *"+sd.role+"* hoy.");
 wlines.push("");
-wlines.push("\uD83D\uDCC5 Actividades:");
-combined.forEach(function(a){wlines.push("\u2022 "+a.time+" "+a.title);});
-if(!combined.length)wlines.push("\u2022 Sin actividades programadas");
+wlines.push("\uD83D\uDCC5 Actividades desde las 15:00:");
+combined.forEach(function(a){
+var tipo=a.type==="ev"?"\uD83D\uDCC6":a.type==="pub"?"\uD83D\uDCF1":"\uD83D\uDCCB";
+wlines.push(tipo+" "+a.time+" \u2014 "+a.title);
+});
+if(!combined.length)wlines.push("\u2022 Sin actividades programadas desde las 15:00");
 var wbm=encodeURIComponent(wlines.join("\n"));
 var waBtn;
 if(wp2){
@@ -358,10 +394,62 @@ var ch0=hoy.children[0];
 if(ch0&&ch0.nextSibling){hoy.insertBefore(cd,ch0.nextSibling);}else{hoy.appendChild(cd);}
 }
 window.m4gHoyToggleCob=function(key){setPrensa(key,!getPrensa(key));inyectarHoyCalendario();};
+function inyectarHoyTareas(){
+var hoy=document.getElementById("p-hoy");if(!hoy)return;
+var ex=document.getElementById("hoy-tasks-m4g");if(ex)ex.remove();
+var tasks=getKanbanTasks();
+if(!tasks.length)return;
+var maxShow=8;
+var td=document.createElement("div");td.id="hoy-tasks-m4g";
+var total=tasks.length;
+var h="<div class=\"htm-header\">\uD83D\uDCCB Tareas pendientes ("+total+")<a onclick=\"window.nav('tablero')\" style=\"font-size:.7rem;cursor:pointer;color:#6c3fc5;text-decoration:none\">Ver tablero \u2192</a></div>";
+var shown=tasks.slice(0,maxShow);
+shown.forEach(function(t){
+var pc=t.prio==="alta"?"htm-prio-alta":t.prio==="baja"?"htm-prio-baja":"htm-prio-media";
+var pl=t.prio==="alta"?"Alta":t.prio==="baja"?"Baja":"Media";
+var st=t.status||"Pendiente";
+h+="<div class=\"htm-task\" onclick=\"if(window.editTask)window.editTask('"+t.id+"')\">";
+h+="<span class=\"htm-prio "+pc+"\">"+pl+"</span>";
+h+="<span class=\"htm-title\">"+t.title.substring(0,80)+(t.title.length>80?"...":"")+"</span>";
+h+="<span class=\"htm-status\">"+st+"</span>";
+h+="</div>";
+});
+if(total>maxShow){h+="<div class=\"htm-more\" onclick=\"window.nav('tablero')\">+ "+(total-maxShow)+" m\u00e1s \u2192 Ver tablero</div>";}
+td.innerHTML=h;
+var calEl=document.getElementById("hoy-cal-m4g");
+if(calEl&&calEl.nextSibling){hoy.insertBefore(td,calEl.nextSibling);}
+else if(hoy.children[0]&&hoy.children[0].nextSibling){hoy.insertBefore(td,hoy.children[0].nextSibling);}
+else{hoy.appendChild(td);}
+}
+function patchEnviarGuardias(){
+if(window._m4wagPatched)return;window._m4wagPatched=true;
+if(!window.m2||!window.m2.actions)return;
+var orig=window.m2.actions.enviarGuardias;
+window.m2.actions.enviarGuardias=function(){
+orig.apply(this,arguments);
+setTimeout(function(){
+var iso=todayISO();
+var evts=getCalEvts(iso);
+var after15=evts.filter(function(e){return e.time>="15:00";});
+var showEvts=after15.length?after15:evts;
+if(!showEvts.length)return;
+var evtLines=showEvts.map(function(e){return "\uD83D\uDCC6 "+e.time+" \u2014 "+e.title;}).join("\n");
+var count=showEvts.length;
+document.querySelectorAll("textarea").forEach(function(ta){
+var v=ta.value;
+if(v&&v.indexOf("0 eventos en agenda")>-1){
+ta.value=v.replace("\u2022 0 eventos en agenda","\u2022 "+count+" eventos en agenda:\n"+evtLines);
+var ev=new Event("input",{bubbles:true});ta.dispatchEvent(ev);
+}
+});
+},700);
+};
+}
 function fixKanbanScroll(){
 if(window._m4kanbanPatched)return;window._m4kanbanPatched=true;
 var ork=window.renderKanban;
-if(typeof ork==="function"){window.renderKanban=function(){var sp=window.scrollY;ork.apply(this,arguments);setTimeout(function(){window.scrollTo(0,sp);},50);}}
+if(typeof ork==="function"){window.renderKanban=function(){var sp=window.scrollY;ork.apply(this,arguments);
+setTimeout(function(){window.scrollTo(0,sp);},50);};}
 }
 function patchGoGuardWeek(){
 if(window._m4gwPatched)return;window._m4gwPatched=true;
@@ -369,9 +457,9 @@ var og=window.goGuardWeek;
 if(typeof og==="function"){window.goGuardWeek=function(dir){_m4selDay="";og.apply(this,arguments);setTimeout(function(){renderM4G();},900);}}
 }
 function hideRealizada(){
-document.querySelectorAll(".kanban-col,.kboard-col,[data-status]").forEach(function(col){
-var hh=col.querySelector("h3,h4,.col-header,.kboard-title");
-if(hh&&hh.textContent.trim().toLowerCase().indexOf("realiz")>-1)col.style.display="none";
+document.querySelectorAll(".kanban>.kcol").forEach(function(col){
+var hdr=col.querySelector(".khdr");
+if(hdr&&hdr.textContent.toLowerCase().indexOf("realiz")>-1)col.style.display="none";
 });
 }
 function setTabClass(id){
@@ -386,7 +474,7 @@ window.nav=function(id){
 setTabClass(id);on.apply(this,arguments);
 if(id==="guardias"){setTimeout(function(){renderM4G();},400);}
 if(id==="tablero"){setTimeout(function(){hideRealizada();},300);}
-if(id==="hoy"){setTimeout(function(){inyectarHoyCalendario();},400);}
+if(id==="hoy"){setTimeout(function(){inyectarHoyCalendario();inyectarHoyTareas();},400);}
 };
 }
 }
@@ -399,8 +487,21 @@ window._m4gcal=[];
 os.apply(this,arguments);
 setTimeout(function(){
 if(document.body.classList.contains("m4tab-guardias"))renderM4G();
-if(document.body.classList.contains("m4tab-hoy"))inyectarHoyCalendario();
+if(document.body.classList.contains("m4tab-hoy")){inyectarHoyCalendario();inyectarHoyTareas();}
 },2000);
+};
+}
+}
+function patchRenderKanban(){
+if(window._m4rkPatched)return;window._m4rkPatched=true;
+var ork2=window.renderKanban;
+if(typeof ork2==="function"){
+window.renderKanban=function(){
+ork2.apply(this,arguments);
+setTimeout(function(){
+if(document.body.classList.contains("m4tab-hoy"))inyectarHoyTareas();
+hideRealizada();
+},200);
 };
 }
 }
@@ -411,12 +512,14 @@ fixKanbanScroll();
 patchNav();
 patchGoGuardWeek();
 patchSyncGCal();
+patchRenderKanban();
+patchEnviarGuardias();
 var tabs=["hoy","tablero","material","publicaciones","calendario","guardias","equipo","medios","reclamos","recursos"];
 tabs.forEach(function(t){
 var el=document.getElementById("p-"+t);
 if(el&&el.style.display!=="none"&&el.offsetParent!==null){setTabClass(t);}
 });
-setTimeout(function(){renderM4G();inyectarHoyCalendario();hideRealizada();},600);
+setTimeout(function(){renderM4G();inyectarHoyCalendario();inyectarHoyTareas();hideRealizada();patchEnviarGuardias();},600);
 }
 if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",init);}
 else{init();}
