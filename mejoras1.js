@@ -1,58 +1,58 @@
 /* ============================================================
-   MEJORAS1.JS - Panel ComunicaciÃ³n Tres Arroyos
-   v3.11 Â· OPTIMIZADO para no trabar la pÃ¡gina
+   MEJORAS1.JS - Panel Comunicación Tres Arroyos
+   v3.11 · OPTIMIZADO para no trabar la página
    ------------------------------------------------------------
-   FIXES en esta versiÃ³n (urgente):
-   Â· MutationObserver con DEBOUNCE de 300ms. Antes corrÃ­a
-     en cada cambio del DOM (cientos de veces por segundo) â
-     trababa el navegador. Ahora solo cada 300ms mÃ¡ximo.
-   Â· limpiarEncodingRoto() optimizada:
+   FIXES en esta versión (urgente):
+   · MutationObserver con DEBOUNCE de 300ms. Antes corría
+     en cada cambio del DOM (cientos de veces por segundo) →
+     trababa el navegador. Ahora solo cada 300ms máximo.
+   · limpiarEncodingRoto() optimizada:
        - Solo corre si detecta texto roto en el body
        - Solo busca en elementos relevantes (button/h/span/div/p)
-       - Procesa mÃ¡ximo 500 elementos por ejecuciÃ³n
-       - Limita a 50 ejecuciones totales por sesiÃ³n
-   Â· No bloquea el render con loops largos.
+       - Procesa máximo 500 elementos por ejecución
+       - Limita a 50 ejecuciones totales por sesión
+   · No bloquea el render con loops largos.
    ------------------------------------------------------------
    Incluye TODO lo de v3.10:
-   Â· Sidebar funcional con addEventListener + fallback
-   Â· Panel Hoy con datos reales (publicaciones del dÃ­a,
-     guardia del dÃ­a con titular/soporte, tareas urgentes)
-   Â· Modal "Tareas urgentes" cerrable con Ã
-   Â· MÃºltiples redes/responsables en mi modal
-   Â· Sync mi Agenda â Material (panel original)
-   Â· Shim getSelCuentaStr para que "Programar" funcione
-   Â· Sin tareas duplicadas en Tablero
+   · Sidebar funcional con addEventListener + fallback
+   · Panel Hoy con datos reales (publicaciones del día,
+     guardia del día con titular/soporte, tareas urgentes)
+   · Modal "Tareas urgentes" cerrable con ×
+   · Múltiples redes/responsables en mi modal
+   · Sync mi Agenda ↔ Material (panel original)
+   · Shim getSelCuentaStr para que "Programar" funcione
+   · Sin tareas duplicadas en Tablero
    ------------------------------------------------------------
-   TambiÃ©n incluye TODO lo de v3.7 y anteriores:
-   Â· BotÃ³n "â Volver al equipo" funcional (navegaciÃ³n OK).
-   Â· MÃºltiples redes/responsables en mi modal.
-   Â· Sync mi Agenda â Material (panel original).
-   Â· BotÃ³n Ã en modal "Tareas urgentes pendientes".
-   Â· Shim getSelCuentaStr para que "Programar" funcione.
+   También incluye TODO lo de v3.7 y anteriores:
+   · Botón "← Volver al equipo" funcional (navegación OK).
+   · Múltiples redes/responsables en mi modal.
+   · Sync mi Agenda ↔ Material (panel original).
+   · Botón × en modal "Tareas urgentes pendientes".
+   · Shim getSelCuentaStr para que "Programar" funcione.
    ------------------------------------------------------------
    1. Captura errores globales sin romper la UI.
    2. Garantiza placeholders sbt/sbm/sbag (fix textContent null).
    3. Limpia "Tareas del d..." y deduplica botones del sidebar.
-   4. MenÃº lateral con botones de la nav superior + Reclamos +
-      Contactos medios. Renombra Publicaciones â Agenda. Oculta
-      MÃ©tricas.
-   5. MÃDULO RECLAMOS con 4 pestaÃ±as:
-      ð Lista Â· â Nuevo Â· ð¥ Funcionarios Â· ð Historial
-   6. MÃDULO CONTACTOS DE MEDIOS (CRUD):
-      Â· Tarjetas con avatar, nombre, medio, telÃ©fono, email, sector
-      Â· Botones de WhatsApp y Mail directos
-      Â· Buscador + filtro por medio
-      Â· Agregar / Editar / Borrar
-      Â· Inicializado con los 8 contactos del mÃ³dulo v5.33
-      Â· Persistencia en localStorage
-   7. PANEL AGENTE rediseÃ±ado:
-      Â· Iconos visibles, animaciones, barra de progreso con
-        gradiente, botÃ³n "+ Agregar" prominente
-      Â· Filtros (Hoy/Pendientes/Esta semana/Todas) detectados
-        por TEXTO y estilizados desde JS (mÃ¡s robusto)
-      Â· Botones "WhatsApp" y "Tareas del dÃ­a" ocultos
-      Â· Selector de estado por tarea con guardado en Supabase
-   8. Selector rÃ¡pido de estado en el Kanban + oculta "Realizada".
+   4. Menú lateral con botones de la nav superior + Reclamos +
+      Contactos medios. Renombra Publicaciones → Agenda. Oculta
+      Métricas.
+   5. MÓDULO RECLAMOS con 4 pestañas:
+      📋 Lista · ➕ Nuevo · 👥 Funcionarios · 📊 Historial
+   6. MÓDULO CONTACTOS DE MEDIOS (CRUD):
+      · Tarjetas con avatar, nombre, medio, teléfono, email, sector
+      · Botones de WhatsApp y Mail directos
+      · Buscador + filtro por medio
+      · Agregar / Editar / Borrar
+      · Inicializado con los 8 contactos del módulo v5.33
+      · Persistencia en localStorage
+   7. PANEL AGENTE rediseñado:
+      · Iconos visibles, animaciones, barra de progreso con
+        gradiente, botón "+ Agregar" prominente
+      · Filtros (Hoy/Pendientes/Esta semana/Todas) detectados
+        por TEXTO y estilizados desde JS (más robusto)
+      · Botones "WhatsApp" y "Tareas del día" ocultos
+      · Selector de estado por tarea con guardado en Supabase
+   8. Selector rápido de estado en el Kanban + oculta "Realizada".
    9. Estilos + dark mode + responsive PC y celular.
    ============================================================ */
 (function(){
@@ -82,69 +82,69 @@
     toRemove.forEach(function(n){ try { n.parentNode.removeChild(n); } catch(_){} });
   }
 
-  /* -------- 3. CREA CONTENEDORES FALTANTES + MÃDULO RECLAMOS V2 -------- */
+  /* -------- 3. CREA CONTENEDORES FALTANTES + MÓDULO RECLAMOS V2 -------- */
 
-  // ============ DATOS DEL XLSX (guÃ­a de derivaciÃ³n) ============
+  // ============ DATOS DEL XLSX (guía de derivación) ============
   var RECLAMOS_DATA = [
-    { reclamo:"Agua",                         funcionario:"Carolina turismo",       telefono:"5492983449098", icono:"ð§" },
-    { reclamo:"Asfalto",                      funcionario:"Eliana Rossi",           telefono:"5492983505668", icono:"ð£ï¸" },
-    { reclamo:"CaÃ±o Roto",                    funcionario:"Emiliano Capandegui",    telefono:"5492983602937", icono:"ð§" },
-    { reclamo:"PÃ©rdida de Agua",              funcionario:"Bernardina Varese",      telefono:"5492983584387", icono:"ð¦" },
-    { reclamo:"Calles de tierra",             funcionario:"DamiÃ¡n Almeira",         telefono:"5492983650085", icono:"ð¤ï¸" },
-    { reclamo:"Basura en la calle",           funcionario:"Facundo Liebana",        telefono:"5492983382366", icono:"ðï¸" },
-    { reclamo:"Terreno en malas condiciones", funcionario:"Gabriel Francia",        telefono:"5492983385858", icono:"ð³" },
-    { reclamo:"Inundados",                    funcionario:"Juan Apolonio",          telefono:"5492983409217", icono:"ð" },
-    { reclamo:"Pastos crecidos",              funcionario:"Juan Serna corporativo", telefono:"5491154842469", icono:"ð¿" },
-    // ====== NUEVOS TIPOS v3.3 (sin telÃ©fono â la usuaria los completa despuÃ©s) ======
-    { reclamo:"Higiene urbana",               funcionario:"A definir",              telefono:"",             icono:"ð§¹" },
-    { reclamo:"Barrido y limpieza",           funcionario:"A definir",              telefono:"",             icono:"ð§½" },
-    { reclamo:"Desarrollo Social",            funcionario:"A definir",              telefono:"",             icono:"ð¤" },
-    { reclamo:"Salud",                        funcionario:"A definir",              telefono:"",             icono:"ð¥" },
-    { reclamo:"Localidades",                  funcionario:"A definir",              telefono:"",             icono:"ð" },
-    // ====== GenÃ©rico al final ======
-    { reclamo:"Otros",                        funcionario:"JuliÃ¡n Tornini",         telefono:"5492983305218", icono:"ð" }
+    { reclamo:"Agua",                         funcionario:"Carolina turismo",       telefono:"5492983449098", icono:"💧" },
+    { reclamo:"Asfalto",                      funcionario:"Eliana Rossi",           telefono:"5492983505668", icono:"🛣️" },
+    { reclamo:"Caño Roto",                    funcionario:"Emiliano Capandegui",    telefono:"5492983602937", icono:"🔧" },
+    { reclamo:"Pérdida de Agua",              funcionario:"Bernardina Varese",      telefono:"5492983584387", icono:"💦" },
+    { reclamo:"Calles de tierra",             funcionario:"Damián Almeira",         telefono:"5492983650085", icono:"🛤️" },
+    { reclamo:"Basura en la calle",           funcionario:"Facundo Liebana",        telefono:"5492983382366", icono:"🗑️" },
+    { reclamo:"Terreno en malas condiciones", funcionario:"Gabriel Francia",        telefono:"5492983385858", icono:"🌳" },
+    { reclamo:"Inundados",                    funcionario:"Juan Apolonio",          telefono:"5492983409217", icono:"🌊" },
+    { reclamo:"Pastos crecidos",              funcionario:"Juan Serna corporativo", telefono:"5491154842469", icono:"🌿" },
+    // ====== NUEVOS TIPOS v3.3 (sin teléfono — la usuaria los completa después) ======
+    { reclamo:"Higiene urbana",               funcionario:"A definir",              telefono:"",             icono:"🧹" },
+    { reclamo:"Barrido y limpieza",           funcionario:"A definir",              telefono:"",             icono:"🧽" },
+    { reclamo:"Desarrollo Social",            funcionario:"A definir",              telefono:"",             icono:"🤝" },
+    { reclamo:"Salud",                        funcionario:"A definir",              telefono:"",             icono:"🏥" },
+    { reclamo:"Localidades",                  funcionario:"A definir",              telefono:"",             icono:"📍" },
+    // ====== Genérico al final ======
+    { reclamo:"Otros",                        funcionario:"Julián Tornini",         telefono:"5492983305218", icono:"📋" }
   ];
 
   var FUNCIONARIOS_EXTRA = [
     { nombre:"Kevin Monrroy",       telefono:"5492983406170" },
-    { nombre:"MartÃ­n Garate",       telefono:"5492983413996" },
+    { nombre:"Martín Garate",       telefono:"5492983413996" },
     { nombre:"Mauro Daddario",      telefono:"5492983446264" },
     { nombre:"Mercedes Moreno",     telefono:"5492983447789" },
     { nombre:"Ignacio Quintas",     telefono:"5492983615881" },
-    { nombre:"NicolÃ¡s Franganillo", telefono:"5492983412126" },
+    { nombre:"Nicolás Franganillo", telefono:"5492983412126" },
     { nombre:"Pity Federico",       telefono:"5492983570209" },
-    { nombre:"TomÃ¡s Paniga",        telefono:"5492983447249" },
+    { nombre:"Tomás Paniga",        telefono:"5492983447249" },
     { nombre:"Valeria Guido",       telefono:"5491166920622" }
   ];
 
   var ICONO_RECLAMO = {
-    "agua":"ð§","asfalto":"ð£ï¸","caÃ±o roto":"ð§","cano roto":"ð§",
-    "pÃ©rdida de agua":"ð¦","perdida de agua":"ð¦",
-    "calles de tierra":"ð¤ï¸","basura en la calle":"ðï¸",
-    "terreno en malas condiciones":"ð³","inundados":"ð",
-    "pastos crecidos":"ð¿","otros":"ð",
+    "agua":"💧","asfalto":"🛣️","caño roto":"🔧","cano roto":"🔧",
+    "pérdida de agua":"💦","perdida de agua":"💦",
+    "calles de tierra":"🛤️","basura en la calle":"🗑️",
+    "terreno en malas condiciones":"🌳","inundados":"🌊",
+    "pastos crecidos":"🌿","otros":"📋",
     // ====== Nuevos v3.3 ======
-    "higiene urbana":"ð§¹","barrido y limpieza":"ð§½",
-    "desarrollo social":"ð¤","salud":"ð¥","localidades":"ð"
+    "higiene urbana":"🧹","barrido y limpieza":"🧽",
+    "desarrollo social":"🤝","salud":"🏥","localidades":"📍"
   };
 
   // Estados del seguimiento del reclamo
   var ESTADOS_RECLAMO = [
-    { id:"pendiente",  label:"Pendiente",  color:"#f59e0b", bg:"#fef3c7", emoji:"ð¡" },
-    { id:"en-proceso", label:"En proceso", color:"#3b82f6", bg:"#dbeafe", emoji:"ðµ" },
-    { id:"resuelto",   label:"Resuelto",   color:"#10b981", bg:"#d1fae5", emoji:"â" }
+    { id:"pendiente",  label:"Pendiente",  color:"#f59e0b", bg:"#fef3c7", emoji:"🟡" },
+    { id:"en-proceso", label:"En proceso", color:"#3b82f6", bg:"#dbeafe", emoji:"🔵" },
+    { id:"resuelto",   label:"Resuelto",   color:"#10b981", bg:"#d1fae5", emoji:"✅" }
   ];
 
   var RECLAMOS_STORAGE_KEY = "panel-comunicacion-reclamos-v1";
 
-  // ============ HELPERS SUPABASE (sincronizaciÃ³n entre agentes) ============
-  // Cache en memoria para no romper cÃ³digo sincrÃ³nico existente
+  // ============ HELPERS SUPABASE (sincronización entre agentes) ============
+  // Cache en memoria para no romper código sincrónico existente
   var _reclamosCache    = null;
   var _contactosCache   = null;
   var _funcionariosCache = null;
 
   // Wrapper para acceder al cliente Supabase. El panel original lo expone
-  // como `db` global. Si no estÃ¡, devolvemos null y caemos a localStorage.
+  // como `db` global. Si no está, devolvemos null y caemos a localStorage.
   function spb(){
     return (typeof window.db !== "undefined" && window.db && window.db.from) ? window.db : null;
   }
@@ -209,7 +209,7 @@
     return cache;
   }
 
-  // Re-render la pestaÃ±a activa de un mÃ³dulo si estÃ¡ visible
+  // Re-render la pestaña activa de un módulo si está visible
   function reRenderSiVisible(idContenedor, tabsSel, fnRecargar){
     var cont = document.getElementById(idContenedor);
     if(!cont || cont.style.display === "none") return;
@@ -263,7 +263,7 @@
   }
 
   // ============ PERSISTENCIA RECLAMOS (Supabase + cache + localStorage) ============
-  // Lectura sincrÃ³nica desde cache (no rompe el cÃ³digo existente)
+  // Lectura sincrónica desde cache (no rompe el código existente)
   function cargarReclamosVecinos(){
     if(_reclamosCache && Array.isArray(_reclamosCache)) return _reclamosCache;
     return cargarReclamosVecinosLocal();
@@ -281,7 +281,7 @@
     catch(_){ return false; }
   }
 
-  // Compatibilidad: sigue existiendo para el cÃ³digo que escribÃ­a la lista completa.
+  // Compatibilidad: sigue existiendo para el código que escribía la lista completa.
   // Solo guarda en localStorage como backup; Supabase se actualiza por inserciones
   // individuales (ver spbInsertReclamo/spbUpdateReclamo/spbDeleteReclamo).
   function guardarReclamosVecinos(lista){
@@ -309,7 +309,7 @@
     _reclamosCache.unshift(reclamo);
     guardarReclamosVecinosLocal(_reclamosCache);
     var ok = await spbInsert("reclamos_vecinos", reclamo);
-    if(!ok) toast("â  Guardado solo en este navegador (sin conexiÃ³n a la nube)", false);
+    if(!ok) toast("⚠ Guardado solo en este navegador (sin conexión a la nube)", false);
     return ok;
   }
   async function spbUpdateReclamo(reclamo){
@@ -329,7 +329,7 @@
     return await spbDelete("reclamos_vecinos", id);
   }
 
-  // ============ RENDER PRINCIPAL DEL MÃDULO ============
+  // ============ RENDER PRINCIPAL DEL MÓDULO ============
   function renderReclamosModulo(){
     var cont = document.getElementById("p-reclamos");
     if(!cont) return;
@@ -367,7 +367,7 @@
   // ============ FORMULARIO NUEVO RECLAMO ============
   function renderFormNuevo(reclamoEditar){
     var editing = !!reclamoEditar;
-    var tiposOpts = '<option value="">â Elegir tipo â</option>' +
+    var tiposOpts = '<option value="">— Elegir tipo —</option>' +
       RECLAMOS_DATA.map(function(r){
         var sel = editing && reclamoEditar.tipo === r.reclamo ? " selected" : "";
         return '<option value="' + escapeHTML(r.reclamo) + '"' + sel + '>' +
@@ -376,11 +376,11 @@
 
     // Lista de funcionarios desde la AGENDA (CRUD, editable por la usuaria)
     var funcsAgenda = cargarFuncionariosAgenda();
-    var funcOpts = '<option value="">â Elegir funcionario â</option>' +
+    var funcOpts = '<option value="">— Elegir funcionario —</option>' +
       funcsAgenda.map(function(f){
         var val = f.nombre + "|" + f.telefono;
         var sel = editing && reclamoEditar.funcionario === f.nombre ? " selected" : "";
-        var label = f.nombre + (f.area ? " â " + f.area : "");
+        var label = f.nombre + (f.area ? " — " + f.area : "");
         return '<option value="' + escapeHTML(val) + '"' + sel + '>' +
           escapeHTML(label) + '</option>';
       }).join("");
@@ -395,12 +395,12 @@
       '<div class="rec-form-row">' +
         '<label>Funcionario asignado *</label>' +
         '<select id="r-func" required>' + funcOpts + '</select>' +
-        '<div class="rec-hint">Se auto-completa al elegir el tipo. PodÃ©s cambiarlo.</div>' +
+        '<div class="rec-hint">Se auto-completa al elegir el tipo. Podés cambiarlo.</div>' +
       '</div>' +
       '<div class="rec-form-row2">' +
         '<div>' +
           '<label>Vecino (nombre) *</label>' +
-          '<input id="r-vecino" required value="' + escapeHTML(v.vecino || "") + '" placeholder="Ej: Juan PÃ©rez">' +
+          '<input id="r-vecino" required value="' + escapeHTML(v.vecino || "") + '" placeholder="Ej: Juan Pérez">' +
         '</div>' +
         '<div>' +
           '<label>Tel\u00e9fono del vecino</label>' +
@@ -418,11 +418,11 @@
       '<div class="rec-form-actions">' +
         '<button type="button" class="rec-btn rec-btn-sec" onclick="window._recTab(\'lista\')">Cancelar</button>' +
         '<button type="submit" class="rec-btn rec-btn-pri" data-action="guardar">' +
-          (editing ? 'ð¾ Guardar cambios' : 'ð¾ Guardar reclamo') +
+          (editing ? '💾 Guardar cambios' : '💾 Guardar reclamo') +
         '</button>' +
         (editing ? '' :
           '<button type="button" class="rec-btn rec-btn-wa" onclick="window._recGuardarYEnviar()">' +
-            'ð¾ + ð¬ Guardar y avisar por WhatsApp</button>') +
+            '💾 + 💬 Guardar y avisar por WhatsApp</button>') +
       '</div>' +
     '</form>';
   }
@@ -463,7 +463,7 @@
     var desc = ((document.getElementById("r-desc") || {}).value || "").trim();
 
     if(!tipo || !funcRaw || !vecino || !desc){
-      toast("CompletÃ¡ los campos obligatorios (*)", true);
+      toast("Completá los campos obligatorios (*)", true);
       return false;
     }
     var parts = funcRaw.split("|");
@@ -482,7 +482,7 @@
         r.descripcion = desc;
         r.fecha_modificacion = new Date().toISOString();
         await spbUpdateReclamo(r);
-        toast("â Reclamo actualizado");
+        toast("✓ Reclamo actualizado");
       }
     } else {
       // Crear nuevo
@@ -502,7 +502,7 @@
         creado_por: (window._currentUser || "")
       };
       await spbInsertReclamo(reclamo);
-      toast("â Reclamo guardado Â· sincronizado con todos los agentes");
+      toast("✓ Reclamo guardado · sincronizado con todos los agentes");
       if(enviarWA) setTimeout(function(){ enviarReclamoWA(reclamo); }, 200);
     }
     setTimeout(function(){ window._recTab("lista"); }, 400);
@@ -510,7 +510,7 @@
   }
 
   function enviarReclamoWA(reclamo){
-    var icon = ICONO_RECLAMO[(reclamo.tipo || "").toLowerCase().trim()] || "ð";
+    var icon = ICONO_RECLAMO[(reclamo.tipo || "").toLowerCase().trim()] || "📌";
     var msg = "*\uD83D\uDEA8 NUEVO RECLAMO VECINAL*\n\n" +
       icon + " *Tipo:* " + reclamo.tipo + "\n" +
       "\uD83D\uDC64 *Vecino:* " + reclamo.vecino + "\n" +
@@ -527,11 +527,11 @@
     var lista = cargarReclamosVecinos();
     if(!lista.length){
       return '<div class="rec-empty">' +
-        '<div style="font-size:48px;margin-bottom:12px">ð­</div>' +
+        '<div style="font-size:48px;margin-bottom:12px">📭</div>' +
         '<div class="rec-empty-title">No hay reclamos cargados</div>' +
-        '<div class="rec-empty-sub">EmpezÃ¡ cargando el primer reclamo de un vecino.</div>' +
+        '<div class="rec-empty-sub">Empezá cargando el primer reclamo de un vecino.</div>' +
         '<button class="rec-btn rec-btn-pri" onclick="window._recTab(\'nuevo\')" style="margin-top:14px">' +
-          'â Cargar primer reclamo</button>' +
+          '➕ Cargar primer reclamo</button>' +
       '</div>';
     }
 
@@ -542,7 +542,7 @@
 
     var filtros =
       '<div class="rec-filtros">' +
-        '<input id="rec-search" class="rec-search" placeholder="ð Buscar por vecino, tipo, funcionario..." oninput="window._recFiltrar()">' +
+        '<input id="rec-search" class="rec-search" placeholder="🔍 Buscar por vecino, tipo, funcionario..." oninput="window._recFiltrar()">' +
         '<select id="rec-filtro-estado" onchange="window._recFiltrar()">' + estadosOpts + '</select>' +
       '</div>';
 
@@ -552,7 +552,7 @@
 
   function renderReclamoCard(r){
     var estadoInfo = ESTADOS_RECLAMO.find(function(e){ return e.id === r.estado; }) || ESTADOS_RECLAMO[0];
-    var icon = ICONO_RECLAMO[(r.tipo || "").toLowerCase().trim()] || "ð";
+    var icon = ICONO_RECLAMO[(r.tipo || "").toLowerCase().trim()] || "📌";
     var fechaC = formatearFecha(r.fecha_creacion);
     var estadoOpts = ESTADOS_RECLAMO.map(function(e){
       return '<option value="' + e.id + '"' + (e.id === r.estado ? " selected" : "") + '>' +
@@ -581,7 +581,7 @@
       '<div class="rec-item-actions">' +
         '<button class="rec-btn-mini rec-btn-wa-mini" onclick="window._recEnviarWA(\'' + r.id + '\')" title="Enviar al funcionario por WhatsApp">\uD83D\uDCAC WhatsApp</button>' +
         '<button class="rec-btn-mini" onclick="window._recEditar(\'' + r.id + '\')" title="Editar">\u270F\uFE0F Editar</button>' +
-        '<button class="rec-btn-mini rec-btn-del" onclick="window._recBorrar(\'' + r.id + '\')" title="Borrar">ðï¸</button>' +
+        '<button class="rec-btn-mini rec-btn-del" onclick="window._recBorrar(\'' + r.id + '\')" title="Borrar">🗑️</button>' +
       '</div>' +
     '</div>';
   }
@@ -604,7 +604,7 @@
     r.historial = r.historial || [];
     r.historial.push({ estado: nuevoEstado, fecha: new Date().toISOString() });
     await spbUpdateReclamo(r);
-    toast("â Estado actualizado a: " + nuevoEstado);
+    toast("✓ Estado actualizado a: " + nuevoEstado);
     window._recTab("lista");
   };
 
@@ -626,7 +626,7 @@
   };
 
   window._recBorrar = async function(id){
-    if(!confirm("Â¿Borrar este reclamo? Esta acciÃ³n no se puede deshacer.")) return;
+    if(!confirm("¿Borrar este reclamo? Esta acción no se puede deshacer.")) return;
     await spbDeleteReclamo(id);
     toast("Reclamo borrado");
     window._recTab("lista");
@@ -690,7 +690,7 @@
     _funcionariosCache.push(f);
     guardarFuncionariosLocal(_funcionariosCache);
     var ok = await spbInsert("funcionarios_agenda", f);
-    if(!ok) toast("â  Guardado solo localmente", false);
+    if(!ok) toast("⚠ Guardado solo localmente", false);
     return ok;
   }
   async function spbUpdateFuncionario(f){
@@ -720,18 +720,18 @@
           '<div class="rec-func-card-name">' + escapeHTML(f.nombre) + '</div>' +
           (f.area ? '<div class="rec-func-card-area">' + escapeHTML(f.area) + '</div>' : '') +
         '</div>' +
-        '<div class="rec-func-card-tel">ð ' + escapeHTML(formatearTel(f.telefono)) + '</div>' +
+        '<div class="rec-func-card-tel">📞 ' + escapeHTML(formatearTel(f.telefono)) + '</div>' +
         '<div class="rec-func-card-actions">' +
-          '<a class="rec-btn-mini rec-btn-wa-mini" href="' + waUrl + '" target="_blank" rel="noopener">ð¬ WhatsApp</a>' +
-          '<button class="rec-btn-mini" onclick="window._funcEditar(\'' + f.id + '\')">âï¸ Editar</button>' +
-          '<button class="rec-btn-mini rec-btn-del" onclick="window._funcBorrar(\'' + f.id + '\')">ðï¸</button>' +
+          '<a class="rec-btn-mini rec-btn-wa-mini" href="' + waUrl + '" target="_blank" rel="noopener">💬 WhatsApp</a>' +
+          '<button class="rec-btn-mini" onclick="window._funcEditar(\'' + f.id + '\')">✏️ Editar</button>' +
+          '<button class="rec-btn-mini rec-btn-del" onclick="window._funcBorrar(\'' + f.id + '\')">🗑️</button>' +
         '</div>' +
       '</div>';
     }).join("");
 
     return '<div class="rec-func-toolbar">' +
       '<button class="rec-btn rec-btn-pri" onclick="window._funcNuevo()">+ Agregar funcionario</button>' +
-      '<input class="rec-search" id="func-search" placeholder="ð Buscar funcionario o Ã¡rea..." oninput="window._funcFiltrar()">' +
+      '<input class="rec-search" id="func-search" placeholder="🔍 Buscar funcionario o área..." oninput="window._funcFiltrar()">' +
       '</div>' +
       '<div id="func-form-container"></div>' +
       '<div class="rec-func-grid" id="rec-func-grid">' + cards + '</div>';
@@ -745,21 +745,21 @@
       '<div class="rec-form-row2">' +
         '<div>' +
           '<label>Nombre *</label>' +
-          '<input id="func-nombre" required value="' + escapeHTML(f.nombre || "") + '" placeholder="Ej: Juan PÃ©rez">' +
+          '<input id="func-nombre" required value="' + escapeHTML(f.nombre || "") + '" placeholder="Ej: Juan Pérez">' +
         '</div>' +
         '<div>' +
-          '<label>Ãrea / Cargo</label>' +
-          '<input id="func-area" value="' + escapeHTML(f.area || "") + '" placeholder="Ej: Obras PÃºblicas">' +
+          '<label>Área / Cargo</label>' +
+          '<input id="func-area" value="' + escapeHTML(f.area || "") + '" placeholder="Ej: Obras Públicas">' +
         '</div>' +
       '</div>' +
       '<div class="rec-form-row">' +
-        '<label>TelÃ©fono (con cÃ³digo de paÃ­s) *</label>' +
+        '<label>Teléfono (con código de país) *</label>' +
         '<input id="func-tel" required value="' + escapeHTML(f.telefono || "") + '" placeholder="5492983449098">' +
-        '<div class="rec-hint">Formato sin espacios ni sÃ­mbolos. Ej: 5492983449098</div>' +
+        '<div class="rec-hint">Formato sin espacios ni símbolos. Ej: 5492983449098</div>' +
       '</div>' +
       '<div class="rec-form-actions">' +
         '<button type="button" class="rec-btn rec-btn-sec" onclick="document.getElementById(\'func-form-container\').innerHTML=\'\'">Cancelar</button>' +
-        '<button type="submit" class="rec-btn rec-btn-pri">ð¾ ' + (editing ? "Guardar cambios" : "Agregar") + '</button>' +
+        '<button type="submit" class="rec-btn rec-btn-pri">💾 ' + (editing ? "Guardar cambios" : "Agregar") + '</button>' +
       '</div>' +
     '</form>';
   }
@@ -783,7 +783,7 @@
     var area = ((document.getElementById("func-area") || {}).value || "").trim();
     var tel = normalizarTelefono((document.getElementById("func-tel") || {}).value || "");
     if(!nombre || !tel){
-      toast("Nombre y telÃ©fono son obligatorios", true);
+      toast("Nombre y teléfono son obligatorios", true);
       return false;
     }
     if(id){
@@ -800,14 +800,14 @@
         nombre: nombre, area: area, telefono: tel
       };
       await spbInsertFuncionario(nuevo);
-      toast("â Funcionario agregado \u00B7 visible para todos");
+      toast("✓ Funcionario agregado \u00B7 visible para todos");
     }
     window._recTab("funcionarios");
     return false;
   };
 
   window._funcBorrar = async function(id){
-    if(!confirm("Â¿Borrar este funcionario? Lo van a perder todos los agentes.")) return;
+    if(!confirm("¿Borrar este funcionario? Lo van a perder todos los agentes.")) return;
     await spbDeleteFuncionario(id);
     toast("Funcionario eliminado");
     window._recTab("funcionarios");
@@ -826,17 +826,17 @@
     var lista = cargarReclamosVecinos();
     if(!lista.length){
       return '<div class="rec-empty">' +
-        '<div style="font-size:48px;margin-bottom:12px">ð­</div>' +
+        '<div style="font-size:48px;margin-bottom:12px">📭</div>' +
         '<div class="rec-empty-title">No hay reclamos para mostrar</div>' +
-        '<div class="rec-empty-sub">Los reclamos cargados van a aparecer agrupados acÃ¡.</div>' +
+        '<div class="rec-empty-sub">Los reclamos cargados van a aparecer agrupados acá.</div>' +
         '<button class="rec-btn rec-btn-pri" onclick="window._recTab(\'nuevo\')" style="margin-top:14px">' +
-          'â Cargar primer reclamo</button>' +
+          '➕ Cargar primer reclamo</button>' +
         '</div>';
     }
 
     var modo = window._recHistMode || "tipo";
 
-    // EstadÃ­sticas globales
+    // Estadísticas globales
     var estadoCount = { pendiente: 0, "en-proceso": 0, resuelto: 0 };
     lista.forEach(function(r){
       if(estadoCount[r.estado] !== undefined) estadoCount[r.estado]++;
@@ -846,14 +846,14 @@
     var toolbar = '<div class="rec-hist-toolbar">' +
       '<div class="rec-hist-modes">' +
         '<button class="rec-hist-mode' + (modo==="tipo" ? " on" : "") + '" ' +
-          'onclick="window._recHistSetMode(\'tipo\')">ð Por tipo</button>' +
+          'onclick="window._recHistSetMode(\'tipo\')">📂 Por tipo</button>' +
         '<button class="rec-hist-mode' + (modo==="funcionario" ? " on" : "") + '" ' +
-          'onclick="window._recHistSetMode(\'funcionario\')">ð¤ Por funcionario</button>' +
+          'onclick="window._recHistSetMode(\'funcionario\')">👤 Por funcionario</button>' +
       '</div>' +
       '<div class="rec-hist-stats">' +
-        '<span class="rec-hist-stat" style="background:#fef3c7;color:#92400e">ð¡ ' + estadoCount.pendiente + ' pend.</span>' +
-        '<span class="rec-hist-stat" style="background:#dbeafe;color:#1e40af">ðµ ' + estadoCount["en-proceso"] + ' en proc.</span>' +
-        '<span class="rec-hist-stat" style="background:#d1fae5;color:#065f46">â ' + estadoCount.resuelto + ' resueltos</span>' +
+        '<span class="rec-hist-stat" style="background:#fef3c7;color:#92400e">🟡 ' + estadoCount.pendiente + ' pend.</span>' +
+        '<span class="rec-hist-stat" style="background:#dbeafe;color:#1e40af">🔵 ' + estadoCount["en-proceso"] + ' en proc.</span>' +
+        '<span class="rec-hist-stat" style="background:#d1fae5;color:#065f46">✅ ' + estadoCount.resuelto + ' resueltos</span>' +
         '<span class="rec-hist-stat" style="background:#ede9fe;color:#5b21b6;font-weight:800">Total: ' + lista.length + '</span>' +
       '</div>' +
       '</div>';
@@ -872,8 +872,8 @@
     var html = keys.map(function(key){
       var arr = grupos[key];
       var icono = modo === "tipo" ?
-        (ICONO_RECLAMO[(key || "").toLowerCase().trim()] || "ð") :
-        "ð¤";
+        (ICONO_RECLAMO[(key || "").toLowerCase().trim()] || "📌") :
+        "👤";
 
       var itemsHTML = arr.map(function(r){
         var estadoInfo = ESTADOS_RECLAMO.find(function(e){ return e.id === r.estado; }) || ESTADOS_RECLAMO[0];
@@ -888,11 +888,11 @@
             estadoInfo.emoji + '</span>' +
           '<div class="rec-hist-info">' +
             '<div class="rec-hist-vecino">' + escapeHTML(r.vecino) + '</div>' +
-            '<div class="rec-hist-meta">' + meta + ' Â· ' + fechaCorta + '</div>' +
+            '<div class="rec-hist-meta">' + meta + ' · ' + fechaCorta + '</div>' +
           '</div>' +
           '<div class="rec-hist-actions">' +
-            '<button class="rec-btn-mini" onclick="event.stopPropagation();window._recEditar(\'' + r.id + '\')" title="Editar">âï¸</button>' +
-            '<button class="rec-btn-mini rec-btn-wa-mini" onclick="event.stopPropagation();window._recEnviarWA(\'' + r.id + '\')" title="WhatsApp">ð¬</button>' +
+            '<button class="rec-btn-mini" onclick="event.stopPropagation();window._recEditar(\'' + r.id + '\')" title="Editar">✏️</button>' +
+            '<button class="rec-btn-mini rec-btn-wa-mini" onclick="event.stopPropagation();window._recEnviarWA(\'' + r.id + '\')" title="WhatsApp">💬</button>' +
           '</div>' +
         '</div>';
       }).join("");
@@ -929,27 +929,27 @@
     }, 250);
   };
 
-  // ============ MÃDULO AGENDA DE PUBLICACIONES (CRUD) ============
+  // ============ MÓDULO AGENDA DE PUBLICACIONES (CRUD) ============
   var PUBLICACIONES_KEY = "panel-comunicacion-publicaciones-v1";
 
   var REDES = [
-    { id:"facebook",  nombre:"Facebook",   icono:"ð", color:"#1877f2" },
-    { id:"instagram", nombre:"Instagram",  icono:"ð·", color:"#e4405f" },
-    { id:"tiktok",    nombre:"TikTok",     icono:"ðµ", color:"#000000" },
-    { id:"youtube",   nombre:"YouTube",    icono:"â¶ï¸", color:"#ff0000" },
-    { id:"whatsapp",  nombre:"WhatsApp",   icono:"ð¬", color:"#25d366" },
-    { id:"twitter",   nombre:"X/Twitter",  icono:"ð¦", color:"#1da1f2" }
+    { id:"facebook",  nombre:"Facebook",   icono:"📘", color:"#1877f2" },
+    { id:"instagram", nombre:"Instagram",  icono:"📷", color:"#e4405f" },
+    { id:"tiktok",    nombre:"TikTok",     icono:"🎵", color:"#000000" },
+    { id:"youtube",   nombre:"YouTube",    icono:"▶️", color:"#ff0000" },
+    { id:"whatsapp",  nombre:"WhatsApp",   icono:"💬", color:"#25d366" },
+    { id:"twitter",   nombre:"X/Twitter",  icono:"🐦", color:"#1da1f2" }
   ];
 
   var TIPOS_PUB = ["Foto","Video","Reel","Historia/Story","Carrusel","Texto","Live"];
 
   var ESTADOS_PUB = [
-    { id:"pendiente", label:"Pendiente",          color:"#f59e0b", bg:"#fef3c7", emoji:"â³" },
-    { id:"listo",     label:"Listo para publicar", color:"#3b82f6", bg:"#dbeafe", emoji:"ð" },
-    { id:"publicado", label:"Publicado",          color:"#10b981", bg:"#d1fae5", emoji:"â" }
+    { id:"pendiente", label:"Pendiente",          color:"#f59e0b", bg:"#fef3c7", emoji:"⏳" },
+    { id:"listo",     label:"Listo para publicar", color:"#3b82f6", bg:"#dbeafe", emoji:"📋" },
+    { id:"publicado", label:"Publicado",          color:"#10b981", bg:"#d1fae5", emoji:"✅" }
   ];
 
-  // v3.7: Lista de agentes del equipo (base hardcoded + dinÃ¡mica)
+  // v3.7: Lista de agentes del equipo (base hardcoded + dinámica)
   var AGENTES_BASE = ["Marianela","Yesi","Debora","Maiten","Lina","Guada","Sofia","Pablo","Nadia"];
   var _agentesCache = null;
 
@@ -969,7 +969,7 @@
         }
       } catch(_){}
     }
-    // Agregar responsables Ãºnicos de tareas existentes (por si hay nombres extra)
+    // Agregar responsables únicos de tareas existentes (por si hay nombres extra)
     if(_tareasGlobalCache && _tareasGlobalCache.length){
       _tareasGlobalCache.forEach(function(t){
         if(!t.responsable) return;
@@ -984,7 +984,7 @@
     return resultado;
   }
 
-  // v3.7: Cache para publicaciones de Supabase (sincronizaciÃ³n con modal "Programar" original)
+  // v3.7: Cache para publicaciones de Supabase (sincronización con modal "Programar" original)
   var _publicacionesCache = null;
 
   async function cargarPublicacionesDesdeSpb(){
@@ -1028,7 +1028,7 @@
   function cargarPublicaciones(){
     // v3.8: Combinar localStorage + Supabase con DOBLE dedupe
     //  (por id Y por contenido descripcion+fecha+hora) para evitar duplicados
-    //  cuando una publicaciÃ³n se subiÃ³ con id distinto local vs cloud.
+    //  cuando una publicación se subió con id distinto local vs cloud.
     var local = [];
     try { var r = localStorage.getItem(PUBLICACIONES_KEY); local = r ? JSON.parse(r) : []; }
     catch(_){}
@@ -1049,7 +1049,7 @@
       keysLocal[contentKey(p)] = true;
     });
 
-    // Agregar de Supabase solo lo que NO estÃ© ya local
+    // Agregar de Supabase solo lo que NO esté ya local
     var combinada = local.slice();
     spbList.forEach(function(p){
       if(idsLocal[p.id]) return;
@@ -1057,7 +1057,7 @@
       combinada.push(p);
     });
 
-    // Ãltima pasada: deduplicar dentro de la lista combinada (por contenido)
+    // Última pasada: deduplicar dentro de la lista combinada (por contenido)
     var seen = {};
     var unica = [];
     combinada.forEach(function(p){
@@ -1078,7 +1078,7 @@
   function esHorarioGuardia(hora){
     if(!hora) return false;
     var h = parseInt(String(hora).split(":")[0], 10);
-    return h >= 15;  // â¥ 15:00 â fuera de horario laboral â guardia
+    return h >= 15;  // ≥ 15:00 → fuera de horario laboral → guardia
   }
 
   function renderAgendaPublicacionesModulo(){
@@ -1092,22 +1092,22 @@
       '<div class="ptop">' +
         '<div>' +
           '<div class="ptitle">Agenda de publicaciones</div>' +
-          '<div class="psub">' + lista.length + ' publicaciÃ³n' + (lista.length===1?'':'es') +
-            ' programada' + (lista.length===1?'':'s') + ' Â· Las que son a partir de las 15:00 se marcan automÃ¡ticamente para guardia ð</div>' +
+          '<div class="psub">' + lista.length + ' publicación' + (lista.length===1?'':'es') +
+            ' programada' + (lista.length===1?'':'s') + ' · Las que son a partir de las 15:00 se marcan automáticamente para guardia 🔔</div>' +
         '</div>' +
       '</div>' +
       '<div class="ap-toolbar">' +
         '<div class="ap-vista-toggle">' +
-          '<button class="ap-vista' + (vista==="dia"?" on":"") + '" onclick="window._apSetVista(\'dia\')">ð DÃ­a</button>' +
-          '<button class="ap-vista' + (vista==="semana"?" on":"") + '" onclick="window._apSetVista(\'semana\')">ðï¸ Semana</button>' +
+          '<button class="ap-vista' + (vista==="dia"?" on":"") + '" onclick="window._apSetVista(\'dia\')">📅 Día</button>' +
+          '<button class="ap-vista' + (vista==="semana"?" on":"") + '" onclick="window._apSetVista(\'semana\')">🗓️ Semana</button>' +
         '</div>' +
         '<div class="ap-nav">' +
-          '<button class="ap-nav-btn" onclick="window._apNavFecha(-1)">â</button>' +
+          '<button class="ap-nav-btn" onclick="window._apNavFecha(-1)">←</button>' +
           '<input type="date" id="ap-fecha-input" class="ap-fecha-input" value="' + fecha + '" onchange="window._apSetFecha(this.value)">' +
-          '<button class="ap-nav-btn" onclick="window._apNavFecha(1)">â</button>' +
+          '<button class="ap-nav-btn" onclick="window._apNavFecha(1)">→</button>' +
           '<button class="ap-nav-btn" onclick="window._apSetFecha(\'\')">Hoy</button>' +
         '</div>' +
-        '<button class="rec-btn rec-btn-pri" onclick="window._apNuevo()">+ Nueva publicaciÃ³n</button>' +
+        '<button class="rec-btn rec-btn-pri" onclick="window._apNuevo()">+ Nueva publicación</button>' +
       '</div>' +
       '<div id="ap-form-container"></div>' +
       '<div id="ap-content">' +
@@ -1120,16 +1120,16 @@
                    .sort(function(a,b){ return (a.hora||"").localeCompare(b.hora||""); });
     if(!hoy.length){
       return '<div class="rec-empty">' +
-        '<div style="font-size:48px;margin-bottom:12px">ð­</div>' +
-        '<div class="rec-empty-title">Sin publicaciones para este dÃ­a</div>' +
-        '<div class="rec-empty-sub">ApretÃ¡ "+ Nueva publicaciÃ³n" para agregar una.</div>' +
+        '<div style="font-size:48px;margin-bottom:12px">📭</div>' +
+        '<div class="rec-empty-title">Sin publicaciones para este día</div>' +
+        '<div class="rec-empty-sub">Apretá "+ Nueva publicación" para agregar una.</div>' +
         '</div>';
     }
     var fechaTxt = "";
     try { fechaTxt = new Date(fecha+"T00:00:00").toLocaleDateString("es-AR",
       { weekday:"long", day:"2-digit", month:"long", year:"numeric" }); } catch(_){}
-    return '<div class="ap-dia-header">' + escapeHTML(fechaTxt) + ' Â· ' + hoy.length +
-      ' publicaciÃ³n' + (hoy.length===1?'':'es') + '</div>' +
+    return '<div class="ap-dia-header">' + escapeHTML(fechaTxt) + ' · ' + hoy.length +
+      ' publicación' + (hoy.length===1?'':'es') + '</div>' +
       '<div class="ap-dia-list">' + hoy.map(renderPubCard).join("") + '</div>';
   }
 
@@ -1143,7 +1143,7 @@
       dd.setDate(d.getDate() + i);
       dias.push(dd.toISOString().slice(0,10));
     }
-    var diasNom = ["Lun","Mar","MiÃ©","Jue","Vie","SÃ¡b","Dom"];
+    var diasNom = ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
     var hoy = new Date().toISOString().slice(0,10);
     var html = '<div class="ap-semana-grid">';
     dias.forEach(function(fecha, idx){
@@ -1159,7 +1159,7 @@
         '</div>' +
         '<div class="ap-dia-col-items">' +
           (deldia.length ? deldia.map(renderPubCardCompacta).join("") :
-            '<div class="ap-empty-col">Â·</div>') +
+            '<div class="ap-empty-col">·</div>') +
         '</div>' +
       '</div>';
     });
@@ -1173,23 +1173,23 @@
     var guardia = esHorarioGuardia(p.hora);
     return '<div class="ap-card" data-id="' + p.id + '">' +
       '<div class="ap-card-head">' +
-        '<span class="ap-card-hora">ð ' + escapeHTML(p.hora || "Sin hora") + '</span>' +
+        '<span class="ap-card-hora">🕐 ' + escapeHTML(p.hora || "Sin hora") + '</span>' +
         '<span class="ap-card-red" style="background:' + red.color + '">' + red.icono + ' ' + escapeHTML(red.nombre) + '</span>' +
         (p.cuenta ? '<span class="ap-card-cuenta">' + escapeHTML(p.cuenta) + '</span>' : '') +
-        (guardia ? '<span class="ap-card-guardia">ð GUARDIA</span>' : '') +
+        (guardia ? '<span class="ap-card-guardia">🔔 GUARDIA</span>' : '') +
         '<span class="ap-card-estado" style="background:' + estado.bg + ';color:' + estado.color + '">' + estado.emoji + ' ' + estado.label + '</span>' +
       '</div>' +
       '<div class="ap-card-body">' +
-        (p.tipo ? '<div class="ap-card-tipo">ð ' + escapeHTML(p.tipo) + '</div>' : '') +
-        '<div class="ap-card-desc">' + escapeHTML(p.descripcion || "Sin descripciÃ³n") + '</div>' +
+        (p.tipo ? '<div class="ap-card-tipo">📌 ' + escapeHTML(p.tipo) + '</div>' : '') +
+        '<div class="ap-card-desc">' + escapeHTML(p.descripcion || "Sin descripción") + '</div>' +
         (p.responsable ? '<div class="ap-card-meta"><strong>Responsable:</strong> ' + escapeHTML(p.responsable) + '</div>' : '') +
         (p.colaboradores ? '<div class="ap-card-meta"><strong>Colaboradores:</strong> ' + escapeHTML(p.colaboradores) + '</div>' : '') +
       '</div>' +
       '<div class="ap-card-actions">' +
-        '<button class="rec-btn-mini" onclick="window._apEditar(\'' + p.id + '\')">âï¸ Editar</button>' +
+        '<button class="rec-btn-mini" onclick="window._apEditar(\'' + p.id + '\')">✏️ Editar</button>' +
         (p.estado !== "publicado" ?
-          '<button class="rec-btn-mini" onclick="window._apMarcarPublicado(\'' + p.id + '\')">â Marcar publicado</button>' : "") +
-        '<button class="rec-btn-mini rec-btn-del" onclick="window._apBorrar(\'' + p.id + '\')">ðï¸</button>' +
+          '<button class="rec-btn-mini" onclick="window._apMarcarPublicado(\'' + p.id + '\')">✅ Marcar publicado</button>' : "") +
+        '<button class="rec-btn-mini rec-btn-del" onclick="window._apBorrar(\'' + p.id + '\')">🗑️</button>' +
       '</div>' +
     '</div>';
   }
@@ -1201,8 +1201,8 @@
     return '<div class="ap-card-mini" data-id="' + p.id + '" onclick="window._apEditar(\'' + p.id + '\')" ' +
       'style="border-left-color:' + red.color + '" title="' + escapeHTML(p.descripcion||"") + '">' +
       '<div class="ap-mini-top">' +
-        '<span class="ap-mini-hora">' + escapeHTML(p.hora || "â") + '</span>' +
-        (guardia ? '<span class="ap-mini-guardia">ð</span>' : '') +
+        '<span class="ap-mini-hora">' + escapeHTML(p.hora || "—") + '</span>' +
+        (guardia ? '<span class="ap-mini-guardia">🔔</span>' : '') +
         '<span class="ap-mini-estado" style="background:' + estado.bg + ';color:' + estado.color + '">' + estado.emoji + '</span>' +
       '</div>' +
       '<div class="ap-mini-red">' + red.icono + ' ' + escapeHTML(red.nombre) + '</div>' +
@@ -1225,7 +1225,7 @@ window._guardiaDelPub = function(id){
 };
     var hoy = new Date().toISOString().slice(0,10);
 
-    // v3.7: redes mÃºltiples (checkboxes)
+    // v3.7: redes múltiples (checkboxes)
     var redesActuales = Array.isArray(p.redes) ? p.redes : (p.red ? [p.red] : []);
     var redesHTML = REDES.map(function(r){
       var chk = redesActuales.indexOf(r.id) >= 0 ? " checked" : "";
@@ -1235,7 +1235,7 @@ window._guardiaDelPub = function(id){
       '</label>';
     }).join("");
 
-    // v3.7: responsables mÃºltiples (checkboxes)
+    // v3.7: responsables múltiples (checkboxes)
     var respActuales = Array.isArray(p.responsables)
       ? p.responsables
       : (p.responsable ? p.responsable.split(/[,;]+/).map(function(x){ return x.trim(); }).filter(Boolean) : []);
@@ -1248,7 +1248,7 @@ window._guardiaDelPub = function(id){
       '</label>';
     }).join("");
 
-    var tiposOpts = '<option value="">â Tipo â</option>' +
+    var tiposOpts = '<option value="">— Tipo —</option>' +
       TIPOS_PUB.map(function(t){
         var sel = p.tipo === t ? " selected" : "";
         return '<option value="' + escapeHTML(t) + '"' + sel + '>' + escapeHTML(t) + '</option>';
@@ -1264,9 +1264,9 @@ window._guardiaDelPub = function(id){
         '<div><label>Fecha *</label><input id="ap-fi" type="date" required value="' + escapeHTML(p.fecha || hoy) + '"></div>' +
         '<div><label>Hora *</label><input id="ap-hi" type="time" required value="' + escapeHTML(p.hora || "10:00") + '" oninput="window._apCheckGuardia()"></div>' +
       '</div>' +
-      // Redes (mÃºltiple)
+      // Redes (múltiple)
       '<div class="rec-form-row">' +
-        '<label>Redes sociales * <span style="font-weight:400;color:#6b7280;font-size:11px">(podÃ©s elegir varias)</span></label>' +
+        '<label>Redes sociales * <span style="font-weight:400;color:#6b7280;font-size:11px">(podés elegir varias)</span></label>' +
         '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">' + redesHTML + '</div>' +
       '</div>' +
       '<div class="rec-form-row2">' +
@@ -1277,21 +1277,21 @@ window._guardiaDelPub = function(id){
         '<div><label>Estado</label><select id="ap-ei">' + estadosOpts + '</select></div>' +
         '<div></div>' +
       '</div>' +
-      '<div class="rec-form-row"><label>DescripciÃ³n / Copy *</label>' +
-        '<textarea id="ap-di" rows="3" required placeholder="Â¿QuÃ© se va a publicar?">' + escapeHTML(p.descripcion || "") + '</textarea></div>' +
-      // Responsables (mÃºltiple)
+      '<div class="rec-form-row"><label>Descripción / Copy *</label>' +
+        '<textarea id="ap-di" rows="3" required placeholder="¿Qué se va a publicar?">' + escapeHTML(p.descripcion || "") + '</textarea></div>' +
+      // Responsables (múltiple)
       '<div class="rec-form-row">' +
-        '<label>Responsables * <span style="font-weight:400;color:#6b7280;font-size:11px">(podÃ©s elegir varios)</span></label>' +
+        '<label>Responsables * <span style="font-weight:400;color:#6b7280;font-size:11px">(podés elegir varios)</span></label>' +
         '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;max-height:120px;overflow-y:auto">' + respHTML + '</div>' +
       '</div>' +
       '<div class="rec-form-row"><label>Colaboradores</label>' +
-        '<input id="ap-coi" value="' + escapeHTML(p.colaboradores || "") + '" placeholder="QuiÃ©nes ayudan (texto libre)"></div>' +
+        '<input id="ap-coi" value="' + escapeHTML(p.colaboradores || "") + '" placeholder="Quiénes ayudan (texto libre)"></div>' +
       '<div id="ap-guardia-warning" class="ap-guardia-warning" style="display:none">' +
-        'ð Esta publicaciÃ³n cae <strong>fuera del horario laboral</strong> (â¥15:00). Va a marcarse para guardia automÃ¡ticamente.' +
+        '🔔 Esta publicación cae <strong>fuera del horario laboral</strong> (≥15:00). Va a marcarse para guardia automáticamente.' +
       '</div>' +
       '<div class="rec-form-actions">' +
         '<button type="button" class="rec-btn rec-btn-sec" onclick="document.getElementById(\'ap-form-container\').innerHTML=\'\'">Cancelar</button>' +
-        '<button type="submit" class="rec-btn rec-btn-pri">ð¾ ' + (editing ? "Guardar cambios" : "Crear publicaciÃ³n") + '</button>' +
+        '<button type="submit" class="rec-btn rec-btn-pri">💾 ' + (editing ? "Guardar cambios" : "Crear publicación") + '</button>' +
       '</div>' +
     '</form>';
   }
@@ -1322,10 +1322,10 @@ window._guardiaDelPub = function(id){
     }
   };
   window._apBorrar = function(id){
-    if(!confirm("Â¿Borrar esta publicaciÃ³n programada?")) return;
+    if(!confirm("¿Borrar esta publicación programada?")) return;
     var lista = cargarPublicaciones();
     guardarPublicaciones(lista.filter(function(x){ return x.id!==id; }));
-    toast("PublicaciÃ³n borrada");
+    toast("Publicación borrada");
     renderAgendaPublicacionesModulo();
   };
   window._apMarcarPublicado = function(id){
@@ -1334,7 +1334,7 @@ window._guardiaDelPub = function(id){
     if(!p) return;
     p.estado = "publicado";
     guardarPublicaciones(lista);
-    toast("â Marcada como publicada");
+    toast("✓ Marcada como publicada");
     renderAgendaPublicacionesModulo();
   };
   window._apCheckGuardia = function(){
@@ -1342,10 +1342,10 @@ window._guardiaDelPub = function(id){
     var w = document.getElementById("ap-guardia-warning");
     if(hi && w) w.style.display = esHorarioGuardia(hi.value) ? "block" : "none";
   };
-  // v3.4: DESHABILITADO. La usuaria pidiÃ³ que las publicaciones â¥15hs no
-  // generen tarea en el Tablero (se superponÃ­a con "Lista para publicar" y
-  // "Tablero material"). Ahora se muestran en una secciÃ³n custom dentro
-  // del panel de Guardias (renderGuardiasPublicaciones mÃ¡s abajo).
+  // v3.4: DESHABILITADO. La usuaria pidió que las publicaciones ≥15hs no
+  // generen tarea en el Tablero (se superponía con "Lista para publicar" y
+  // "Tablero material"). Ahora se muestran en una sección custom dentro
+  // del panel de Guardias (renderGuardiasPublicaciones más abajo).
   async function crearTareaGuardiaSpb(pub){
     return false;
   }
@@ -1365,7 +1365,7 @@ window._guardiaDelPub = function(id){
     var colab = ((document.getElementById("ap-coi")||{}).value||"").trim();
 
     if(!fecha || !hora || redes.length === 0 || !desc){
-      toast("Faltan campos obligatorios (Fecha, Hora, al menos una Red, DescripciÃ³n)", true);
+      toast("Faltan campos obligatorios (Fecha, Hora, al menos una Red, Descripción)", true);
       return false;
     }
 
@@ -1385,7 +1385,7 @@ window._guardiaDelPub = function(id){
       }
     } else {
       // v3.8: Usar UUID consistente para que sea el mismo en local y Supabase
-      // (evita el problema de duplicaciÃ³n que tuvo v3.7)
+      // (evita el problema de duplicación que tuvo v3.7)
       var nuevoId = (window.crypto && window.crypto.randomUUID)
         ? window.crypto.randomUUID()
         : "p" + Date.now() + "-" + Math.floor(Math.random()*1e9).toString(16);
@@ -1408,8 +1408,8 @@ window._guardiaDelPub = function(id){
       sincronizarPubASupabase(pubFinal).then(function(ok){
         if(ok){
           toast(esHorarioGuardia(hora)
-            ? "â PublicaciÃ³n creada Â· ð Aparece en Guardias"
-            : "â PublicaciÃ³n creada en Material/Agenda");
+            ? "✓ Publicación creada · 🔔 Aparece en Guardias"
+            : "✓ Publicación creada en Material/Agenda");
           // Refrescar publicaciones de Supabase
           setTimeout(function(){
             cargarPublicacionesDesdeSpb().then(function(){
@@ -1418,13 +1418,13 @@ window._guardiaDelPub = function(id){
             });
           }, 600);
         } else {
-          toast("â PublicaciÃ³n guardada localmente (sin sync nube)");
+          toast("✓ Publicación guardada localmente (sin sync nube)");
         }
       });
     } else {
       toast(esHorarioGuardia(hora)
-        ? "â PublicaciÃ³n actualizada Â· ð (horario de guardia)"
-        : "â PublicaciÃ³n actualizada");
+        ? "✓ Publicación actualizada · 🔔 (horario de guardia)"
+        : "✓ Publicación actualizada");
     }
     renderAgendaPublicacionesModulo();
     return false;
@@ -1449,7 +1449,7 @@ window._guardiaDelPub = function(id){
       colaboracion: pub.colaboradores || "",
       estado: pub.estado || "pendiente"
     };
-    // v3.8: Si el id ya es un UUID vÃ¡lido, lo reutilizamos. Si no, omitimos.
+    // v3.8: Si el id ya es un UUID válido, lo reutilizamos. Si no, omitimos.
     if(pub.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(pub.id)){
       fila.id = pub.id;
     }
@@ -1467,7 +1467,7 @@ window._guardiaDelPub = function(id){
     } catch(e){ console.warn(e); return false; }
   }
 
-  // ============ MÃDULO CONTACTOS DE MEDIOS (CRUD) ============
+  // ============ MÓDULO CONTACTOS DE MEDIOS (CRUD) ============
   var CONTACTOS_MEDIOS_KEY = "panel-comunicacion-contactos-medios-v1";
   var COLORES_AVATAR = ["#7c3aed","#3b82f6","#10b981","#f59e0b","#ef4444",
                         "#ec4899","#8b5cf6","#06b6d4","#14b8a6","#f97316"];
@@ -1500,13 +1500,13 @@ window._guardiaDelPub = function(id){
   async function inicializarContactosDesdeSpb(){
     var data = await spbSelectAll("contactos_medios", "creado_en");
     if(data !== null){
-      // Si Supabase estÃ¡ vacÃ­a, primera vez: subir los 8 contactos default
+      // Si Supabase está vacía, primera vez: subir los 8 contactos default
       if(data.length === 0){
         var base = [
           { id:"cm1", nombre:"Jose Luis Basualdo",   medio:"Lu24",                telefono:"", email:"", sector:"" },
           { id:"cm2", nombre:"Julio Scarabotti",     medio:"Comunidad Argentina", telefono:"", email:"", sector:"Municipio" },
-          { id:"cm3", nombre:"Adriana GaitÃ¡n",       medio:"FM Hit",              telefono:"", email:"", sector:"" },
-          { id:"cm4", nombre:"Milena Marcovecchio",  medio:"Via PaÃ­s",            telefono:"", email:"", sector:"" },
+          { id:"cm3", nombre:"Adriana Gaitán",       medio:"FM Hit",              telefono:"", email:"", sector:"" },
+          { id:"cm4", nombre:"Milena Marcovecchio",  medio:"Via País",            telefono:"", email:"", sector:"" },
           { id:"cm5", nombre:"Alejandro Vis",        medio:"La Voz del Pueblo",   telefono:"", email:"", sector:"" },
           { id:"cm6", nombre:"Fernando Catalano",    medio:"Onda Uno",            telefono:"", email:"", sector:"" },
           { id:"cm7", nombre:"Luis Ferrin",          medio:"Grupo 105",           telefono:"", email:"", sector:"" },
@@ -1530,7 +1530,7 @@ window._guardiaDelPub = function(id){
     _contactosCache.push(c);
     guardarContactosMediosLocal(_contactosCache);
     var ok = await spbInsert("contactos_medios", c);
-    if(!ok) toast("â  Guardado solo localmente", false);
+    if(!ok) toast("⚠ Guardado solo localmente", false);
     return ok;
   }
   async function spbUpdateContacto(c){
@@ -1566,7 +1566,7 @@ window._guardiaDelPub = function(id){
     if(!cont) return;
     var lista = cargarContactosMedios() || [];
 
-    // Lista Ãºnica de medios para el filtro
+    // Lista única de medios para el filtro
     var medios = {};
     lista.forEach(function(c){ if(c && c.medio) medios[c.medio] = true; });
     var mediosArr = Object.keys(medios).sort();
@@ -1579,27 +1579,27 @@ window._guardiaDelPub = function(id){
       '<div class="ptop">' +
         '<div>' +
           '<div class="ptitle">Contactos de medios</div>' +
-          '<div class="psub">Periodistas y medios de Tres Arroyos Â· ' +
+          '<div class="psub">Periodistas y medios de Tres Arroyos · ' +
             lista.length + ' contacto' + (lista.length===1?'':'s') + '</div>' +
         '</div>' +
       '</div>' +
       '<div class="cm-toolbar">' +
-        '<input id="cm-search" class="cm-search" placeholder="ð Buscar nombre, medio..." oninput="window._cmFiltrar()">' +
+        '<input id="cm-search" class="cm-search" placeholder="🔍 Buscar nombre, medio..." oninput="window._cmFiltrar()">' +
         '<select id="cm-filtro-medio" class="cm-select" onchange="window._cmFiltrar()">' + mediosOpts + '</select>' +
-        '<button class="rec-btn rec-btn-sec" onclick="window._cmSeleccionarTodos()">â Todos</button>' +
+        '<button class="rec-btn rec-btn-sec" onclick="window._cmSeleccionarTodos()">☑ Todos</button>' +
         '<button class="rec-btn rec-btn-pri" onclick="window._cmNuevo()">+ Agregar contacto</button>' +
       '</div>' +
       '<div id="cm-mass-bar" class="cm-mass-bar" style="display:none">' +
-        '<span class="cm-mass-text">ð¨ <strong><span class="cm-mass-count">0</span></strong> contacto(s) seleccionado(s)</span>' +
-        '<button class="rec-btn rec-btn-wa" onclick="window._cmGacetillaWa()">ð¬ Gacetilla por WhatsApp</button>' +
-        '<button class="rec-btn rec-btn-pri" onclick="window._cmGacetillaMail()">âï¸ Gacetilla por Mail</button>' +
-        '<button class="rec-btn rec-btn-sec" onclick="window._cmDeseleccionar()">â Limpiar selecciÃ³n</button>' +
+        '<span class="cm-mass-text">📨 <strong><span class="cm-mass-count">0</span></strong> contacto(s) seleccionado(s)</span>' +
+        '<button class="rec-btn rec-btn-wa" onclick="window._cmGacetillaWa()">💬 Gacetilla por WhatsApp</button>' +
+        '<button class="rec-btn rec-btn-pri" onclick="window._cmGacetillaMail()">✉️ Gacetilla por Mail</button>' +
+        '<button class="rec-btn rec-btn-sec" onclick="window._cmDeseleccionar()">✕ Limpiar selección</button>' +
       '</div>' +
       '<div id="cm-gacetilla-cont"></div>' +
       '<div id="cm-form-container"></div>' +
       '<div id="cm-grid" class="cm-grid">' + renderContactosMediosCards(lista) + '</div>';
 
-    // Actualizar barra masiva si habÃ­a selecciÃ³n previa
+    // Actualizar barra masiva si había selección previa
     actualizarBarraMasiva();
   }
 
@@ -1613,11 +1613,11 @@ window._guardiaDelPub = function(id){
       var checked = window._cmSeleccionados[c.id] ? " checked" : "";
       var waBtn = c.telefono ?
         '<a class="cm-btn cm-btn-wa" href="https://wa.me/' + normalizarTelefono(c.telefono) +
-          '" target="_blank" rel="noopener">ð¬ WA</a>' :
-        '<button class="cm-btn cm-btn-disabled" disabled title="Sin telÃ©fono">ð¬ WA</button>';
+          '" target="_blank" rel="noopener">💬 WA</a>' :
+        '<button class="cm-btn cm-btn-disabled" disabled title="Sin teléfono">💬 WA</button>';
       var mailBtn = c.email ?
-        '<a class="cm-btn cm-btn-mail" href="mailto:' + escapeHTML(c.email) + '">âï¸ Mail</a>' :
-        '<button class="cm-btn cm-btn-disabled" disabled title="Sin email">âï¸ Mail</button>';
+        '<a class="cm-btn cm-btn-mail" href="mailto:' + escapeHTML(c.email) + '">✉️ Mail</a>' :
+        '<button class="cm-btn cm-btn-disabled" disabled title="Sin email">✉️ Mail</button>';
       var searchKey = ((c.nombre||"") + " " + (c.medio||"") + " " + (c.sector||"")).toLowerCase();
       return '<div class="cm-card" data-id="' + c.id + '" ' +
         'data-medio="' + escapeHTML(c.medio||"") + '" ' +
@@ -1628,23 +1628,23 @@ window._guardiaDelPub = function(id){
           '<div class="cm-avatar" style="background:' + color + '">' + escapeHTML(ini) + '</div>' +
           '<div class="cm-card-info">' +
             '<div class="cm-card-nombre">' + escapeHTML(c.nombre) + '</div>' +
-            '<div class="cm-card-medio">ð» ' + escapeHTML(c.medio || "â") +
-              (c.sector ? ' Â· <span class="cm-card-sector">' + escapeHTML(c.sector) + '</span>' : "") +
+            '<div class="cm-card-medio">📻 ' + escapeHTML(c.medio || "—") +
+              (c.sector ? ' · <span class="cm-card-sector">' + escapeHTML(c.sector) + '</span>' : "") +
             '</div>' +
-            (c.telefono ? '<div class="cm-card-tel">ð ' + escapeHTML(formatearTel(c.telefono)) + '</div>' : "") +
-            (c.email ? '<div class="cm-card-email">âï¸ ' + escapeHTML(c.email) + '</div>' : "") +
+            (c.telefono ? '<div class="cm-card-tel">📞 ' + escapeHTML(formatearTel(c.telefono)) + '</div>' : "") +
+            (c.email ? '<div class="cm-card-email">✉️ ' + escapeHTML(c.email) + '</div>' : "") +
           '</div>' +
         '</div>' +
         '<div class="cm-card-actions">' +
           waBtn + mailBtn +
-          '<button class="rec-btn-mini" onclick="window._cmEditar(\'' + c.id + '\')" title="Editar">âï¸</button>' +
-          '<button class="rec-btn-mini rec-btn-del" onclick="window._cmBorrar(\'' + c.id + '\')" title="Borrar">ðï¸</button>' +
+          '<button class="rec-btn-mini" onclick="window._cmEditar(\'' + c.id + '\')" title="Editar">✏️</button>' +
+          '<button class="rec-btn-mini rec-btn-del" onclick="window._cmBorrar(\'' + c.id + '\')" title="Borrar">🗑️</button>' +
         '</div>' +
       '</div>';
     }).join("");
   }
 
-  // ============ SELECCIÃN MASIVA + GACETILLA ============
+  // ============ SELECCIÓN MASIVA + GACETILLA ============
   function actualizarBarraMasiva(){
     if(!window._cmSeleccionados) window._cmSeleccionados = {};
     var ids = Object.keys(window._cmSeleccionados);
@@ -1671,8 +1671,8 @@ window._guardiaDelPub = function(id){
     var lista = cargarContactosMedios();
     var visibles = Array.prototype.slice.call(document.querySelectorAll(".cm-card"))
       .filter(function(c){ return c.style.display !== "none"; });
-    // Si todos los visibles ya estÃ¡n seleccionados â deseleccionar todos.
-    // Si no â seleccionar todos los visibles.
+    // Si todos los visibles ya están seleccionados → deseleccionar todos.
+    // Si no → seleccionar todos los visibles.
     var todosSel = visibles.every(function(c){
       return window._cmSeleccionados[c.getAttribute("data-id")];
     });
@@ -1695,7 +1695,7 @@ window._guardiaDelPub = function(id){
 
   function abrirFormGacetilla(tipo){
     var ids = Object.keys(window._cmSeleccionados || {});
-    if(!ids.length){ toast("SeleccionÃ¡ al menos un contacto", true); return; }
+    if(!ids.length){ toast("Seleccioná al menos un contacto", true); return; }
     var lista = cargarContactosMedios();
     var seleccionados = lista.filter(function(c){ return window._cmSeleccionados[c.id]; });
     var conContacto = seleccionados.filter(function(c){
@@ -1703,32 +1703,32 @@ window._guardiaDelPub = function(id){
     });
     var sinContacto = seleccionados.length - conContacto.length;
     var nombresPreview = conContacto.slice(0, 5).map(function(c){
-      return c.nombre + " (" + (c.medio || "â") + ")";
+      return c.nombre + " (" + (c.medio || "—") + ")";
     }).join(", ");
-    if(conContacto.length > 5) nombresPreview += " y " + (conContacto.length - 5) + " mÃ¡s";
+    if(conContacto.length > 5) nombresPreview += " y " + (conContacto.length - 5) + " más";
 
     var cont = document.getElementById("cm-gacetilla-cont");
     if(!cont) return;
     cont.innerHTML = '<div class="cm-gacetilla-box">' +
-      '<div class="cm-gacetilla-title">ð¨ Gacetilla por ' +
+      '<div class="cm-gacetilla-title">📨 Gacetilla por ' +
         (tipo==="wa" ? "WhatsApp" : "Mail") + '</div>' +
       '<div class="cm-gacetilla-info">' +
         '<strong>' + conContacto.length + '</strong> destinatario' + (conContacto.length===1?'':'s') +
-        (sinContacto ? ' Â· <span style="color:#dc2626"><strong>' + sinContacto +
-          '</strong> sin ' + (tipo==="wa" ? "telÃ©fono" : "email") + ' (se saltean)</span>' : '') +
+        (sinContacto ? ' · <span style="color:#dc2626"><strong>' + sinContacto +
+          '</strong> sin ' + (tipo==="wa" ? "teléfono" : "email") + ' (se saltean)</span>' : '') +
         '<div class="cm-gacetilla-preview">' + escapeHTML(nombresPreview) + '</div>' +
       '</div>' +
       (tipo === "mail" ?
         '<div class="rec-form-row"><label>Asunto *</label>' +
           '<input id="ga-asunto" placeholder="Ej: Gacetilla de prensa - Municipalidad de Tres Arroyos"></div>' : '') +
       '<div class="rec-form-row"><label>Mensaje *</label>' +
-        '<textarea id="ga-mensaje" rows="8" placeholder="EscribÃ­ el texto de la gacetilla..."></textarea></div>' +
-      '<div class="cm-gacetilla-tip">ð¡ Al apretar enviar, se abren ' + conContacto.length +
-        ' pestaÃ±as (una por destinatario). Tu navegador puede pedir permiso para abrir popups la primera vez.</div>' +
+        '<textarea id="ga-mensaje" rows="8" placeholder="Escribí el texto de la gacetilla..."></textarea></div>' +
+      '<div class="cm-gacetilla-tip">💡 Al apretar enviar, se abren ' + conContacto.length +
+        ' pestañas (una por destinatario). Tu navegador puede pedir permiso para abrir popups la primera vez.</div>' +
       '<div class="rec-form-actions">' +
         '<button class="rec-btn rec-btn-sec" onclick="document.getElementById(\'cm-gacetilla-cont\').innerHTML=\'\'">Cancelar</button>' +
         '<button class="rec-btn rec-btn-pri" onclick="window._cmEnviarGacetilla(\'' + tipo + '\')">' +
-          'ð¤ Enviar a ' + conContacto.length + ' contacto' + (conContacto.length===1?'':'s') + '</button>' +
+          '📤 Enviar a ' + conContacto.length + ' contacto' + (conContacto.length===1?'':'s') + '</button>' +
       '</div>' +
     '</div>';
     try { cont.scrollIntoView({ behavior:"smooth", block:"start" }); } catch(_){}
@@ -1737,7 +1737,7 @@ window._guardiaDelPub = function(id){
   window._cmEnviarGacetilla = function(tipo){
     var mensaje = ((document.getElementById("ga-mensaje") || {}).value || "").trim();
     var asunto = ((document.getElementById("ga-asunto") || {}).value || "").trim();
-    if(!mensaje){ toast("EscribÃ­ un mensaje", true); return; }
+    if(!mensaje){ toast("Escribí un mensaje", true); return; }
     if(tipo === "mail" && !asunto){
       asunto = "Gacetilla - Municipalidad de Tres Arroyos";
     }
@@ -1759,8 +1759,8 @@ window._guardiaDelPub = function(id){
       }
       enviados++;
     });
-    toast("â Abierto " + (tipo==="wa"?"WhatsApp":"Mail") + " para " + enviados + " contacto" + (enviados===1?'':'s'));
-    // No limpiamos la selecciÃ³n para que la usuaria pueda reusar
+    toast("✓ Abierto " + (tipo==="wa"?"WhatsApp":"Mail") + " para " + enviados + " contacto" + (enviados===1?'':'s'));
+    // No limpiamos la selección para que la usuaria pueda reusar
   };
 
   function renderContactoMedioForm(c){
@@ -1770,12 +1770,12 @@ window._guardiaDelPub = function(id){
       'onsubmit="return window._cmGuardar(event, \'' + (editing ? c.id : '') + '\')">' +
       '<div class="rec-form-row2">' +
         '<div><label>Nombre *</label>' +
-          '<input id="cm-nombre" required value="' + escapeHTML(c.nombre || "") + '" placeholder="Ej: Juan PÃ©rez"></div>' +
+          '<input id="cm-nombre" required value="' + escapeHTML(c.nombre || "") + '" placeholder="Ej: Juan Pérez"></div>' +
         '<div><label>Medio *</label>' +
           '<input id="cm-medio" required value="' + escapeHTML(c.medio || "") + '" placeholder="Ej: Lu24, FM Hit..."></div>' +
       '</div>' +
       '<div class="rec-form-row2">' +
-        '<div><label>TelÃ©fono</label>' +
+        '<div><label>Teléfono</label>' +
           '<input id="cm-tel" value="' + escapeHTML(c.telefono || "") + '" placeholder="5492983449098"></div>' +
         '<div><label>Email</label>' +
           '<input id="cm-email" type="email" value="' + escapeHTML(c.email || "") + '" placeholder="contacto@medio.com"></div>' +
@@ -1787,7 +1787,7 @@ window._guardiaDelPub = function(id){
       '<div class="rec-form-actions">' +
         '<button type="button" class="rec-btn rec-btn-sec" ' +
           'onclick="document.getElementById(\'cm-form-container\').innerHTML=\'\'">Cancelar</button>' +
-        '<button type="submit" class="rec-btn rec-btn-pri">ð¾ ' +
+        '<button type="submit" class="rec-btn rec-btn-pri">💾 ' +
           (editing ? "Guardar cambios" : "Agregar contacto") + '</button>' +
       '</div>' +
     '</form>';
@@ -1823,7 +1823,7 @@ window._guardiaDelPub = function(id){
       if(c){
         c.nombre=nombre; c.medio=medio; c.telefono=tel; c.email=email; c.sector=sector;
         await spbUpdateContacto(c);
-        toast("â Contacto actualizado");
+        toast("✓ Contacto actualizado");
       }
     } else {
       var nuevo = {
@@ -1831,14 +1831,14 @@ window._guardiaDelPub = function(id){
         nombre:nombre, medio:medio, telefono:tel, email:email, sector:sector
       };
       await spbInsertContacto(nuevo);
-      toast("â Contacto agregado Â· visible para todos los agentes");
+      toast("✓ Contacto agregado · visible para todos los agentes");
     }
     renderContactosMediosModulo();
     return false;
   };
 
   window._cmBorrar = async function(id){
-    if(!confirm("Â¿Borrar este contacto? Lo van a perder todos los agentes.")) return;
+    if(!confirm("¿Borrar este contacto? Lo van a perder todos los agentes.")) return;
     await spbDeleteContacto(id);
     toast("Contacto eliminado");
     renderContactosMediosModulo();
@@ -1854,11 +1854,11 @@ window._guardiaDelPub = function(id){
     });
   };
 
-  // ============ GUÃA DE DERIVACIÃN (tipo â funcionario) ============
+  // ============ GUÍA DE DERIVACIÓN (tipo → funcionario) ============
   function renderGuiaDerivacion(){
     var cards = RECLAMOS_DATA.map(function(r){
       var msg = encodeURIComponent("Hola " + r.funcionario.split(" ")[0] +
-        ", te contacto desde ComunicaciÃ³n de la Muni por un reclamo de \"" + r.reclamo + "\".");
+        ", te contacto desde Comunicación de la Muni por un reclamo de \"" + r.reclamo + "\".");
       var waLink = "https://wa.me/" + r.telefono + "?text=" + msg;
       return '<div class="rec-card">' +
         '<div class="rec-ico">' + r.icono + '</div>' +
@@ -1868,14 +1868,14 @@ window._guardiaDelPub = function(id){
           '<div class="rec-func">' + escapeHTML(r.funcionario) + '</div>' +
           '<div class="rec-tel">' + escapeHTML(formatearTel(r.telefono)) + '</div>' +
         '</div>' +
-        '<a class="rec-wa" href="' + waLink + '" target="_blank" rel="noopener">ð¬ WA</a>' +
+        '<a class="rec-wa" href="' + waLink + '" target="_blank" rel="noopener">💬 WA</a>' +
       '</div>';
     }).join("");
     var extras = FUNCIONARIOS_EXTRA.map(function(f){
       return '<div class="rec-extra">' +
         '<div class="rec-extra-name">' + escapeHTML(f.nombre) + '</div>' +
         '<a class="rec-extra-wa" href="https://wa.me/' + f.telefono + '" target="_blank" rel="noopener">' +
-          'ð± ' + escapeHTML(formatearTel(f.telefono)) + '</a>' +
+          '📱 ' + escapeHTML(formatearTel(f.telefono)) + '</a>' +
       '</div>';
     }).join("");
     return '<div class="rec-grid">' + cards + '</div>' +
@@ -1884,10 +1884,10 @@ window._guardiaDelPub = function(id){
   }
 
   // ============ CREAR CONTENEDORES FALTANTES ============
-  // Cierra el modal "Nueva publicaciÃ³n" del cÃ³digo original cuando aparece
-  // (lo abrÃ­a desde el panel viejo de Publicaciones; ahora usamos mi mÃ³dulo)
+  // Cierra el modal "Nueva publicación" del código original cuando aparece
+  // (lo abría desde el panel viejo de Publicaciones; ahora usamos mi módulo)
   function cerrarModalPublicacionOriginal(){
-    // v3.3: DESACTIVADO. El modal del panel original ("Programar publicaciÃ³n")
+    // v3.3: DESACTIVADO. El modal del panel original ("Programar publicación")
     // tiene que funcionar para que la usuaria pueda usarlo. No lo cerramos.
     return;
   }
@@ -1901,16 +1901,16 @@ window._guardiaDelPub = function(id){
       div.id = "p-reclamos";
       div.style.cssText = "display:none;overflow-y:auto;height:100%";
       div.innerHTML = '<div class="ptop"><div><div class="ptitle">Reclamos</div>' +
-        '<div class="psub">Cargandoâ¦</div></div></div>';
+        '<div class="psub">Cargando…</div></div></div>';
       main.appendChild(div);
       renderReclamosModulo();
     }
 
-    // NOTA v3.1: el mÃ³dulo "Contactos de medios" lo maneja el panel original
+    // NOTA v3.1: el módulo "Contactos de medios" lo maneja el panel original
     // (ya tiene su propia UI con Gacetilla masiva, Julio, Adriana, etc.).
-    // Por eso NO creamos p-contactos ni renderizamos nuestro mÃ³dulo acÃ¡.
+    // Por eso NO creamos p-contactos ni renderizamos nuestro módulo acá.
 
-    // MÃ³dulo Agenda de publicaciones (CRUD propio, reemplaza al original)
+    // Módulo Agenda de publicaciones (CRUD propio, reemplaza al original)
     var pubDiv = document.getElementById("p-publicaciones");
     if(!pubDiv){
       pubDiv = document.createElement("div");
@@ -1932,19 +1932,19 @@ window._guardiaDelPub = function(id){
         '<div class="ptop"><div><div class="ptitle">' + f.titulo + '</div>' +
         '<div class="psub">' + f.subtitulo + '</div></div></div>' +
         '<div style="padding:40px 20px;text-align:center;color:#6b7280">' +
-          '<div style="font-size:48px;margin-bottom:12px">ð§</div>' +
+          '<div style="font-size:48px;margin-bottom:12px">🚧</div>' +
           '<div style="font-size:14px;font-weight:600;margin-bottom:6px;color:inherit">' +
-            'MÃ³dulo en preparaciÃ³n</div>' +
+            'Módulo en preparación</div>' +
           '<div style="font-size:12px;color:inherit">' +
-            'Este mÃ³dulo se estÃ¡ configurando. Pronto va a estar disponible.</div>' +
+            'Este módulo se está configurando. Pronto va a estar disponible.</div>' +
         '</div>';
       main.appendChild(d);
     });
   }
 
-  /* -------- 4. SINCRONIZA MENÃ LATERAL CON LA NAV SUPERIOR --------
+  /* -------- 4. SINCRONIZA MENÚ LATERAL CON LA NAV SUPERIOR --------
      Reemplaza el contenido del sidebar por los mismos botones que
-     estÃ¡n en la barra superior (Hoy, Tablero, Material, Agenda,
+     están en la barra superior (Hoy, Tablero, Material, Agenda,
      Calendario, Guardias, Equipo, Medios, Recursos). Elimina el
      selector "Filtrar persona" / "Todas las personas".               */
   var ICON_MAP = {
@@ -1979,7 +1979,7 @@ window._guardiaDelPub = function(id){
     var fPanel    = document.getElementById("fPanel");
     var sbpersons = document.getElementById("sbpersons");
 
-    // v3.10: Helper para navegaciÃ³n robusta con fallback manual
+    // v3.10: Helper para navegación robusta con fallback manual
     function navegarA(pageId, btnRef){
       console.log("[mejoras1] Navegando a:", pageId);
       try {
@@ -1987,7 +1987,7 @@ window._guardiaDelPub = function(id){
           window.nav(pageId, null, btnRef);
           return;
         }
-      } catch(e){ console.warn("[mejoras1] nav() fallÃ³:", e); }
+      } catch(e){ console.warn("[mejoras1] nav() falló:", e); }
       // Fallback: mostrar p-XXX manualmente
       try {
         var paginas = document.querySelectorAll("[id^='p-']");
@@ -2095,7 +2095,7 @@ window._guardiaDelPub = function(id){
 
     asegurarBadgePlaceholders(sb);
 
-    // Visualizar el badge de Calendario (sbag) dentro del botÃ³n nuevo
+    // Visualizar el badge de Calendario (sbag) dentro del botón nuevo
     var btnCal = sb.querySelector('.sbi[data-mid="calendario"]');
     var sbag = document.getElementById("sbag");
     if(btnCal && sbag){
@@ -2108,12 +2108,12 @@ window._guardiaDelPub = function(id){
     if(fPanel){    fPanel.style.display    = "none"; sb.appendChild(fPanel); }
     if(sbpersons){ sbpersons.style.display = "none"; sb.appendChild(sbpersons); }
 
-    // Ocultar tambiÃ©n el botÃ³n MÃ©tricas de la NAV SUPERIOR
+    // Ocultar también el botón Métricas de la NAV SUPERIOR
     document.querySelectorAll(".ntabs .ntab").forEach(function(t){
       var oc = t.getAttribute("onclick") || "";
       var mm = oc.match(/nav\(['"]([^'"]+)['"]/);
       if(mm && OCULTOS[mm[1]]) t.style.display = "none";
-      // Renombrar tambiÃ©n en la nav superior
+      // Renombrar también en la nav superior
       if(mm && RENOMBRAR[mm[1]]){
         var lblRaw = (t.textContent || "").trim();
         var lbl = lblRaw.replace(/^[\u2600-\u27BF\uD83C-\uDBFF\uDC00-\uDFFF\uFE0F\u200D]+\s*/, "");
@@ -2129,7 +2129,7 @@ window._guardiaDelPub = function(id){
   }
 
   function asegurarBadgePlaceholders(sb){
-    // Estos IDs son referenciados por el cÃ³digo original con
+    // Estos IDs son referenciados por el código original con
     // document.getElementById(id).textContent = ...
     // Si no existen, falla. Garantizamos que siempre existan.
     var ids = ["sbt", "sbm", "sbag"];
@@ -2162,7 +2162,7 @@ window._guardiaDelPub = function(id){
     });
   }
 
-  // Hook a `nav` para mantener sincronizado el botÃ³n activo
+  // Hook a `nav` para mantener sincronizado el botón activo
   function patchearNav(){
     if(typeof window.nav !== "function") return false;
     if(window.nav.__patcheadoActivo) return true;
@@ -2170,14 +2170,14 @@ window._guardiaDelPub = function(id){
     window.nav = function(){
       var pageId = arguments[0];
 
-      // v3.7: Al cambiar de pÃ¡gina, remover mi panel agente custom
-      // (para que no se quede pegado y bloquee la navegaciÃ³n)
+      // v3.7: Al cambiar de página, remover mi panel agente custom
+      // (para que no se quede pegado y bloquee la navegación)
       var miPanel = document.getElementById("m1-panel-agente");
       if(miPanel) miPanel.remove();
-      // v3.10: TambiÃ©n quitar mi panel "Hoy" para que se re-renderice
+      // v3.10: También quitar mi panel "Hoy" para que se re-renderice
       var miHoy = document.getElementById("m1-panel-hoy");
       if(miHoy) miHoy.remove();
-      // Restaurar hermanos que ocultÃ©
+      // Restaurar hermanos que oculté
       try {
         document.querySelectorAll("*").forEach(function(el){
           if(el.__m1AgentHidden){
@@ -2193,7 +2193,7 @@ window._guardiaDelPub = function(id){
           });
         }
       } catch(_){}
-      // TambiÃ©n limpio el badge de "publicaciones de guardia"
+      // También limpio el badge de "publicaciones de guardia"
       var pg = document.getElementById("m1-pubs-guardias");
       if(pg) pg.remove();
 
@@ -2215,8 +2215,8 @@ window._guardiaDelPub = function(id){
     return true;
   }
 
-  /* -------- 5. SELECTOR RÃPIDO DE ESTADO -------- */
-  // "Realizada" se quitÃ³ porque era redundante con "Lista".
+  /* -------- 5. SELECTOR RÁPIDO DE ESTADO -------- */
+  // "Realizada" se quitó porque era redundante con "Lista".
   var ESTADOS = ["Pendiente","En proceso","Lista","Lista para publicar"];
   var COLOR_ESTADO = {
     "Pendiente":           "#ef4444",
@@ -2229,7 +2229,7 @@ window._guardiaDelPub = function(id){
     if(ev) ev.stopPropagation();
     try {
       if(typeof db === "undefined" || !db || !db.from){
-        toast("Sin conexiÃ³n a la base", true);
+        toast("Sin conexión a la base", true);
         return;
       }
       var res = await db.from("tareas").update({
@@ -2244,10 +2244,10 @@ window._guardiaDelPub = function(id){
       }
       // Re-render
       if(typeof renderKanban === "function") renderKanban();
-      toast("â Estado: " + nuevoEstado);
+      toast("✓ Estado: " + nuevoEstado);
     } catch(err){
       console.error("[mejoras1] Error cambiando estado:", err);
-      toast("â No se pudo guardar", true);
+      toast("✗ No se pudo guardar", true);
     }
   };
 
@@ -2278,7 +2278,7 @@ window._guardiaDelPub = function(id){
     tarjetas.forEach(function(tc){
       if(tc.querySelector(".estado-selector-m1")) return;
       // Si tc es un elemento interno con onclick, subir al contenedor padre razonable
-      // (a veces el onclick estÃ¡ en el div externo y la "tarjeta visible" es ese)
+      // (a veces el onclick está en el div externo y la "tarjeta visible" es ese)
       var onclick = tc.getAttribute("onclick") || "";
       var m = onclick.match(/editTask\(['"]([^'"]+)['"]\)/);
       if(!m) return;
@@ -2286,7 +2286,7 @@ window._guardiaDelPub = function(id){
 
       // Determinar estado actual
       var estadoActual = "Pendiente";
-      // 1) Si estÃ¡ dentro del Kanban, leer la columna
+      // 1) Si está dentro del Kanban, leer la columna
       var col = tc.closest(".kcol");
       if(col){
         var hdr = col.querySelector(".khdr .kt");
@@ -2336,10 +2336,10 @@ window._guardiaDelPub = function(id){
       // Scrolls individuales de cada columna
       var cols = document.querySelectorAll(".kanban .kcol, .kanban .kcards, .kanban [class*='col']");
       cols.forEach(function(c){ out.cols.push({ el:c, top:c.scrollTop, left:c.scrollLeft }); });
-      // Scroll del contenedor principal del panel (la pÃ¡gina entera)
+      // Scroll del contenedor principal del panel (la página entera)
       var main = document.getElementById("main");
       if(main) out.main = { el:main, top:main.scrollTop, left:main.scrollLeft };
-      // window scroll tambiÃ©n (por si el cuerpo es el que scrollea)
+      // window scroll también (por si el cuerpo es el que scrollea)
       out.windowY = window.scrollY || 0;
     } catch(_){}
     return out;
@@ -2374,10 +2374,10 @@ window._guardiaDelPub = function(id){
       setTimeout(function(){
         agregarSelectoresEnTarjetas();
         ocultarColumnaRealizada();
-        // Re-aplicar scroll despuÃ©s de los selectores
+        // Re-aplicar scroll después de los selectores
         _setKanbanScrolls(scrollsBefore);
       }, 40);
-      // Y una vez mÃ¡s para estar seguros (mutaciones tardÃ­as)
+      // Y una vez más para estar seguros (mutaciones tardías)
       setTimeout(function(){ _setKanbanScrolls(scrollsBefore); }, 150);
       return r;
     };
@@ -2432,7 +2432,7 @@ window._guardiaDelPub = function(id){
       ".estado-selector-m1:hover{box-shadow:0 0 0 2px rgba(102,126,234,.15)}",
       ".estado-selector-m1:focus{box-shadow:0 0 0 2px rgba(102,126,234,.35)}",
       "body.dark .estado-selector-m1{background:#252830!important}",
-      /* === MÃ³dulo Reclamos v2 === */
+      /* === Módulo Reclamos v2 === */
       "#p-reclamos{padding:0 16px 24px}",
       "#p-reclamos .ptop{padding:14px 0 12px;margin-bottom:0}",
       /* Tabs */
@@ -2466,7 +2466,7 @@ window._guardiaDelPub = function(id){
       ".rec-btn-sec:hover{background:#e5e7eb}",
       ".rec-btn-wa{background:#25d366;color:#fff}",
       ".rec-btn-wa:hover{background:#1ebe5b;transform:translateY(-1px);box-shadow:0 4px 10px rgba(37,211,102,.35)}",
-      /* Estado vacÃ­o */
+      /* Estado vacío */
       ".rec-empty{padding:50px 20px;text-align:center;color:#9ca3af}",
       ".rec-empty-title{font-size:15px;font-weight:700;color:#374151;margin-bottom:6px}",
       ".rec-empty-sub{font-size:12px;color:#6b7280}",
@@ -2535,7 +2535,7 @@ window._guardiaDelPub = function(id){
       "body.dark .rec-func-card-name{color:#f1f5f9!important}",
       "body.dark .rec-func-card-tel{color:#cbd5e1!important}",
       "body.dark .rec-func-form{background:#252830!important;border-color:#7c3aed!important}",
-      /* === MÃ³dulo Contactos de medios === */
+      /* === Módulo Contactos de medios === */
       "#p-contactos{padding:0 16px 24px}",
       "#p-contactos .ptop{padding:14px 0 12px;margin-bottom:0}",
       ".cm-toolbar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}",
@@ -2610,7 +2610,7 @@ window._guardiaDelPub = function(id){
       "body.dark .rec-hist-grupo-name{color:#f1f5f9!important}",
       "body.dark .rec-hist-item:hover{background:#2a2d38!important}",
       "body.dark .rec-hist-vecino{color:#f1f5f9!important}",
-      /* === MÃ³dulo Agenda de publicaciones === */
+      /* === Módulo Agenda de publicaciones === */
       "#p-publicaciones{padding:0 16px 24px}",
       "#p-publicaciones .ptop{padding:14px 0 12px;margin-bottom:0}",
       ".ap-toolbar{display:flex;gap:10px;align-items:center;margin:14px 0;flex-wrap:wrap;" +
@@ -2652,7 +2652,7 @@ window._guardiaDelPub = function(id){
       ".ap-mini-red{font-size:9px;color:#6b7280;font-weight:600;margin:2px 0}",
       ".ap-mini-desc{font-size:9px;color:#374151;line-height:1.3;" +
         "display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}",
-      /* Vista dÃ­a: tarjeta grande */
+      /* Vista día: tarjeta grande */
       ".ap-dia-header{font-size:15px;font-weight:700;margin:14px 0 12px;color:#111827;text-transform:capitalize}",
       ".ap-dia-list{display:flex;flex-direction:column;gap:10px}",
       ".ap-card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:12px}",
@@ -2708,7 +2708,7 @@ window._guardiaDelPub = function(id){
       "body.dark .cm-gacetilla-title{color:#f1f5f9!important}",
       "body.dark .cm-gacetilla-info{background:#1e2128!important;color:#cbd5e1!important}",
       "body.dark .cm-gacetilla-box input,body.dark .cm-gacetilla-box textarea{background:#1e2128!important;color:#e2e8f0!important;border-color:#373b47!important}",
-      /* === Bloquear modal viejo de publicaciÃ³n === */
+      /* === Bloquear modal viejo de publicación === */
       ".pubModal,[id*='pubModal'],[id='editPubModal']{display:none!important}",
       /* === FIX EXTREMO PANEL AGENTE === */
       /* Resetear cualquier estilo heredado en los hijos de los botones del panel agente */
@@ -2716,7 +2716,7 @@ window._guardiaDelPub = function(id){
         "#p-equipo button > * > *,#p-guardias button > * > *{" +
         "opacity:1!important;visibility:visible!important;color:inherit!important;" +
         "filter:none!important;transform:none!important;text-shadow:none!important}",
-      /* Eventos: texto mÃ¡s legible, padding, hover expandido */
+      /* Eventos: texto más legible, padding, hover expandido */
       "#p-calendario [class*='ev'],#p-calendario [class*='evento'],#p-calendario [class*='event']," +
         "#p-agenda [class*='ev'],#p-agenda [class*='evento']," +
         "#p-publicaciones [class*='ev']{" +
@@ -2728,13 +2728,13 @@ window._guardiaDelPub = function(id){
         "z-index:50!important;transform:scale(1.04)!important;" +
         "box-shadow:0 4px 14px rgba(0,0,0,.18)!important;" +
         "overflow:visible!important;white-space:normal!important}",
-      /* Forzar visibilidad de Ã­conos y texto dentro de eventos */
+      /* Forzar visibilidad de íconos y texto dentro de eventos */
       "#p-calendario [class*='ev'] *,#p-agenda [class*='ev'] *," +
         "#p-publicaciones [class*='ev'] *{opacity:1!important;filter:none!important}",
-      /* Headers de dÃ­as (LUN/MAR/MIÃ) mÃ¡s prominentes */
+      /* Headers de días (LUN/MAR/MIÉ) más prominentes */
       "#p-calendario [class*='dia-head'],#p-calendario [class*='day-head']," +
         "#p-calendario th{font-weight:800!important;font-size:11px!important;letter-spacing:.05em!important}",
-      /* Hora del evento mÃ¡s visible */
+      /* Hora del evento más visible */
       "#p-calendario [class*='hora'],#p-agenda [class*='hora']{" +
         "font-size:10px!important;font-weight:700!important;opacity:.85!important}",
       /* Texto truncado: tooltip al hover (usando el atributo title nativo si existe) */
@@ -2746,7 +2746,7 @@ window._guardiaDelPub = function(id){
       /* 1) Forzar visibilidad de iconos/emojis */
       "#p-equipo *,#p-guardias *{opacity:1!important}",
       "#p-equipo button,#p-equipo a,#p-guardias button,#p-guardias a{opacity:1!important;filter:none!important}",
-      /* 2) Ocultar definitivamente WhatsApp / Tareas del dÃ­a */
+      /* 2) Ocultar definitivamente WhatsApp / Tareas del día */
       "button[onclick*='whatsappAgente'],button[onclick*='abrirWaAgente']," +
         "button[onclick*='tareasDelDia'],button[onclick*='TareasDelDia']," +
         "a[onclick*='tareasDelDia']{display:none!important}",
@@ -2777,16 +2777,16 @@ window._guardiaDelPub = function(id){
         "#p-guardias [class*='task']:hover,#p-guardias [class*='tarea']:hover," +
         "#p-equipo .tc:hover,#p-guardias .tc:hover{" +
         "transform:translateX(3px);box-shadow:0 4px 12px rgba(0,0,0,.07)!important}",
-      /* 6) Headers de secciÃ³n PENDIENTES/EN PROCESO/COMPLETADAS */
+      /* 6) Headers de sección PENDIENTES/EN PROCESO/COMPLETADAS */
       "#p-equipo h2,#p-equipo h3,#p-guardias h2,#p-guardias h3{" +
         "font-size:12px!important;letter-spacing:.05em!important;font-weight:800!important}",
-      /* 7) Tareas completadas: opacidad suave pero Ã­conos visibles */
+      /* 7) Tareas completadas: opacidad suave pero íconos visibles */
       "#p-equipo [class*='completada'],#p-guardias [class*='completada']{opacity:.75!important}",
       "#p-equipo [class*='completada'] *,#p-guardias [class*='completada'] *{opacity:1!important}",
-      /* 8) Checkboxes mÃ¡s grandes y con color de marca */
+      /* 8) Checkboxes más grandes y con color de marca */
       "#p-equipo input[type='checkbox'],#p-guardias input[type='checkbox']{" +
         "width:18px!important;height:18px!important;cursor:pointer!important;accent-color:#7c3aed!important}",
-      /* 9) BotÃ³n + Agregar mÃ¡s prominente */
+      /* 9) Botón + Agregar más prominente */
       "#p-equipo button[onclick*='agregar'],#p-equipo button[onclick*='Agregar']," +
         "#p-guardias button[onclick*='agregar'],#p-guardias button[onclick*='Agregar']{" +
         "background:linear-gradient(135deg,#7c3aed 0%,#6d28d9 100%)!important;color:#fff!important;" +
@@ -2795,7 +2795,7 @@ window._guardiaDelPub = function(id){
         "box-shadow:0 2px 8px rgba(124,58,237,.3)!important;transition:all .15s!important}",
       "#p-equipo button[onclick*='agregar']:hover,#p-guardias button[onclick*='agregar']:hover{" +
         "transform:translateY(-1px);box-shadow:0 4px 12px rgba(124,58,237,.4)!important}",
-      /* 10) AnimaciÃ³n de entrada para tareas */
+      /* 10) Animación de entrada para tareas */
       "@keyframes m1-fade-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}",
       "#p-equipo [class*='task'],#p-equipo [class*='tarea'],#p-equipo .tc," +
         "#p-guardias [class*='task'],#p-guardias [class*='tarea'],#p-guardias .tc{" +
@@ -2864,7 +2864,7 @@ window._guardiaDelPub = function(id){
           "padding:6px 10px!important}",
         ".ptop{flex-wrap:wrap!important;gap:8px!important}",
       "}",
-      /* ===== Calendario v3.3: CSS mÃ¡s agresivo y general ===== */
+      /* ===== Calendario v3.3: CSS más agresivo y general ===== */
       /* Cualquier "tarjetita" dentro de un calendario: hacer texto legible */
       "[id*='calendar'] [class*='event'], [id*='cal'] [class*='event']," +
       "[id*='calendar'] [class*='evt'],   [id*='cal'] [class*='evt']," +
@@ -2875,17 +2875,17 @@ window._guardiaDelPub = function(id){
         "white-space:normal!important;overflow:hidden!important;" +
         "text-overflow:clip!important;display:block!important;" +
         "word-break:break-word!important}",
-      /* Que el tÃ­tulo del evento muestre hasta 3 lÃ­neas en vez de cortar */
+      /* Que el título del evento muestre hasta 3 líneas en vez de cortar */
       "[id*='calendar'] [class*='event'] *, [id*='cal'] [class*='event'] *," +
       "[id*='calendar'] [class*='evt'] *,   [id*='cal'] [class*='evt'] *{" +
         "white-space:normal!important;text-overflow:clip!important;" +
         "overflow:visible!important}",
-      /* Celdas de hora mÃ¡s altas */
+      /* Celdas de hora más altas */
       "[id*='calendar'] [class*='hour'], [id*='cal'] [class*='hour']," +
       "[id*='calendar'] [class*='row'],  [id*='cal'] [class*='row']," +
       ".cal-hour, .cal-row, .hour-row{" +
         "min-height:50px!important}",
-      /* Celdas de dÃ­a mÃ¡s anchas y altas */
+      /* Celdas de día más anchas y altas */
       "[id*='calendar'] [class*='day'], [id*='cal'] [class*='day']," +
       ".cal-day, .cal-cell, .day-cell{" +
         "min-height:90px!important;padding:4px!important;vertical-align:top!important}",
@@ -2905,7 +2905,7 @@ window._guardiaDelPub = function(id){
   // Esta semana, Todas) del panel agente. Detecta por TEXTO y aplica estilos
   // INDIVIDUALES con setProperty para vencer cualquier CSS heredado.
   function arreglarFiltrosAgente(){
-    var REG_FILTRO = /^[\s\u200d\ufe0fðâ³ðððï¸â°]*(?:Hoy|Pendientes|Esta\s+semana|Todas|Esta\s+sem\.?|MaÃ±ana)[\s\u200d\ufe0f]*$/i;
+    var REG_FILTRO = /^[\s\u200d\ufe0f📅⏳📋📆🗓️⏰]*(?:Hoy|Pendientes|Esta\s+semana|Todas|Esta\s+sem\.?|Mañana)[\s\u200d\ufe0f]*$/i;
     document.querySelectorAll("button").forEach(function(btn){
       if(btn.__m1FiltroStyled) return;
       var cls = String(btn.className || "");
@@ -2913,7 +2913,7 @@ window._guardiaDelPub = function(id){
       var txt = (btn.textContent || "").trim();
       if(!REG_FILTRO.test(txt)) return;
 
-      // Aplicar estilos al botÃ³n
+      // Aplicar estilos al botón
       var s = btn.style;
       s.setProperty("padding",        "8px 14px",                "important");
       s.setProperty("border-radius",  "8px",                     "important");
@@ -2930,7 +2930,7 @@ window._guardiaDelPub = function(id){
       s.setProperty("display",        "inline-flex",             "important");
       s.setProperty("align-items",    "center",                  "important");
       s.setProperty("gap",            "6px",                     "important");
-      // Y a TODOS los descendientes (spans, iconos, emojisâ¦)
+      // Y a TODOS los descendientes (spans, iconos, emojis…)
       btn.querySelectorAll("*").forEach(function(child){
         var cs = child.style;
         cs.setProperty("opacity",    "1",        "important");
@@ -2942,7 +2942,7 @@ window._guardiaDelPub = function(id){
     });
   }
 
-  // Oculta los botones WhatsApp y "Tareas del dÃ­a" en cualquier parte del DOM
+  // Oculta los botones WhatsApp y "Tareas del día" en cualquier parte del DOM
   // (excepto dentro de mis propios componentes y de tarjetas de reclamos/contactos).
   function ocultarBotonesAgente(){
     // v3.5: ahora busca en TODOS los elementos chicos, no solo button/a.
@@ -2955,28 +2955,28 @@ window._guardiaDelPub = function(id){
 
       var txt = (el.textContent || "").trim();
       var txtL = txt.toLowerCase();
-      if(!txt || txt.length > 35) return;  // muy largo para ser un botÃ³n
+      if(!txt || txt.length > 35) return;  // muy largo para ser un botón
 
       // Excluir elementos con muchos hijos (no son botones)
       if(el.children.length > 2) return;
 
-      // DetecciÃ³n por TEXTO EXACTO
+      // Detección por TEXTO EXACTO
       var esWhatsApp =
         txtL === "whatsapp" ||
-        txtL === "ð± whatsapp" ||
-        txtL === "ð¬ whatsapp" ||
-        txtL === "ð whatsapp" ||
-        /^[\s\u200d\ufe0f]*(?:ð±|ð¬|ð|ð|ð)?[\s\u200d\ufe0f]*whatsapp[\s\u200d\ufe0f]*$/i.test(txt);
+        txtL === "📱 whatsapp" ||
+        txtL === "💬 whatsapp" ||
+        txtL === "📅 whatsapp" ||
+        /^[\s\u200d\ufe0f]*(?:📱|💬|📞|📅|📆)?[\s\u200d\ufe0f]*whatsapp[\s\u200d\ufe0f]*$/i.test(txt);
 
       var esTareasDelDia =
-        /^[\s\u200d\ufe0fððð]*tareas del d[Ã­i]a[\s\u200d\ufe0f]*$/i.test(txt);
+        /^[\s\u200d\ufe0f📋📆📅]*tareas del d[íi]a[\s\u200d\ufe0f]*$/i.test(txt);
 
       var esCerrar =
-        /^[\s\u200d\ufe0fÃââ]*\s*cerrar\s*$/i.test(txt);
+        /^[\s\u200d\ufe0f×✕✖]*\s*cerrar\s*$/i.test(txt);
 
       if(!esWhatsApp && !esTareasDelDia && !esCerrar) return;
 
-      // ExcepciÃ³n: NO ocultar si estÃ¡ dentro de tarjetas de reclamos/contactos/funcionarios
+      // Excepción: NO ocultar si está dentro de tarjetas de reclamos/contactos/funcionarios
       var parent = el.parentElement;
       var maxLevels = 8, lvl = 0;
       while(parent && lvl < maxLevels){
@@ -2988,8 +2988,8 @@ window._guardiaDelPub = function(id){
         lvl++;
       }
 
-      // ExcepciÃ³n: si el botÃ³n estÃ¡ dentro de "Guardias semanales" (panel original
-      // de guardias, captura 3) â esos botones WA Marianela/WA Yesi son Ãºtiles ahÃ­
+      // Excepción: si el botón está dentro de "Guardias semanales" (panel original
+      // de guardias, captura 3) — esos botones WA Marianela/WA Yesi son útiles ahí
       var inGuardiasSemanales = false;
       var cur = el.parentElement;
       for(var i = 0; i < 12 && cur; i++){
@@ -2998,7 +2998,7 @@ window._guardiaDelPub = function(id){
       }
       if(inGuardiasSemanales) return;
 
-      // Ocultar con varias tÃ©cnicas para vencer estilos heredados
+      // Ocultar con varias técnicas para vencer estilos heredados
       el.style.setProperty("display",    "none",   "important");
       el.style.setProperty("visibility", "hidden", "important");
       el.setAttribute("aria-hidden", "true");
@@ -3008,8 +3008,8 @@ window._guardiaDelPub = function(id){
 
   // ============ v3.6: SHIM PARA EL PANEL ORIGINAL ============
   // El panel original llama a getSelCuentaStr() desde saveProgram() pero esa
-  // funciÃ³n no estÃ¡ definida (bug del panel). Eso rompe el botÃ³n "Programar".
-  // AcÃ¡ la definimos. Lee la cuenta seleccionada del modal de publicaciones.
+  // función no está definida (bug del panel). Eso rompe el botón "Programar".
+  // Acá la definimos. Lee la cuenta seleccionada del modal de publicaciones.
   if(typeof window.getSelCuentaStr !== "function"){
     window.getSelCuentaStr = function(){
       var modal = document.querySelector("[role='dialog'], .modal, [class*='modal']");
@@ -3052,7 +3052,7 @@ window._guardiaDelPub = function(id){
 
   // v3.6: Limpiar el panel "Hoy" cuando hay info desactualizada.
   // Si aparece "Sin guardia registrada para hoy", ocultar el bloque
-  // "Listo para publicar" que viene justo despuÃ©s (suele tener tareas viejas).
+  // "Listo para publicar" que viene justo después (suele tener tareas viejas).
   function limpiarPanelHoyDesactualizado(){
     var todos = document.querySelectorAll("*");
     var sinGuardia = null;
@@ -3064,7 +3064,7 @@ window._guardiaDelPub = function(id){
       }
     }
     if(!sinGuardia) return;
-    // Buscar el contenedor (panel "Guardia del dÃ­a")
+    // Buscar el contenedor (panel "Guardia del día")
     var bloqueGuardia = sinGuardia;
     for(var lvl = 0; lvl < 8 && bloqueGuardia; lvl++){
       // Subir hasta encontrar un contenedor "card-like"
@@ -3091,7 +3091,7 @@ window._guardiaDelPub = function(id){
     }
   }
 
-  // v3.7: Agregar botÃ³n Ã al modal "Tareas urgentes pendientes" del panel original
+  // v3.7: Agregar botón × al modal "Tareas urgentes pendientes" del panel original
   function agregarBotonCerrarUrgentes(){
     var todos = document.querySelectorAll("*");
     for(var i = 0; i < todos.length; i++){
@@ -3117,10 +3117,10 @@ window._guardiaDelPub = function(id){
       }
       if(modal.querySelector(".m1-close-urg")) continue;
 
-      // Crear botÃ³n Ã
+      // Crear botón ×
       var btn = document.createElement("button");
       btn.className = "m1-close-urg";
-      btn.innerHTML = "Ã";
+      btn.innerHTML = "×";
       btn.title = "Cerrar";
       btn.style.cssText =
         "position:absolute;top:10px;right:14px;font-size:28px;line-height:1;" +
@@ -3147,7 +3147,7 @@ window._guardiaDelPub = function(id){
           lv++;
         }
       };
-      // Cerrar con ESC tambiÃ©n
+      // Cerrar con ESC también
       try {
         document.addEventListener("keydown", function escClose(ev){
           if(ev.key === "Escape" && modal.style.display !== "none"){
@@ -3157,7 +3157,7 @@ window._guardiaDelPub = function(id){
         });
       } catch(_){}
 
-      // Estilo del modal para que admita position:absolute del botÃ³n
+      // Estilo del modal para que admita position:absolute del botón
       var pos = window.getComputedStyle(modal).position;
       if(pos === "static") modal.style.position = "relative";
       modal.appendChild(btn);
@@ -3167,16 +3167,16 @@ window._guardiaDelPub = function(id){
 
 
   // Detecta si estamos viendo el panel detalle de un agente
-  // (cuando hay un "â Equipo" o "â Guardias" visible).
+  // (cuando hay un "← Equipo" o "← Guardias" visible).
   function detectarVistaAgente(){
     var candidatos = document.querySelectorAll("button, a, span, div");
     for(var i = 0; i < candidatos.length; i++){
       var el = candidatos[i];
       if(el.children.length > 1) continue;
       var t = (el.textContent || "").trim();
-      // "â Equipo" o "â Guardias" tÃ­picos del header
-      if(/^[\s]*â[\s]*(Equipo|Guardias)[\s]*$/.test(t)){
-        // Verificar que sea clickeable o tenga aspecto de botÃ³n
+      // "← Equipo" o "← Guardias" típicos del header
+      if(/^[\s]*←[\s]*(Equipo|Guardias)[\s]*$/.test(t)){
+        // Verificar que sea clickeable o tenga aspecto de botón
         try {
           var r = el.getBoundingClientRect();
           if(r.width === 0 || r.height === 0) continue;
@@ -3189,13 +3189,13 @@ window._guardiaDelPub = function(id){
 
   // Busca el nombre del agente en el panel actual
   function detectarNombreAgente(){
-    // Estrategia: buscar un elemento grande (heading-style) cerca del subtÃ­tulo
-    // "Responsable de equipo" o que estÃ© solo en una lÃ­nea grande
+    // Estrategia: buscar un elemento grande (heading-style) cerca del subtítulo
+    // "Responsable de equipo" o que esté solo en una línea grande
     var posibles = document.querySelectorAll("h1, h2, h3, .ptitle, [class*='title']");
     for(var i = 0; i < posibles.length; i++){
       var t = (posibles[i].textContent || "").trim();
       if(!t || t.length > 30) continue;
-      // Excluir tÃ­tulos genÃ©ricos
+      // Excluir títulos genéricos
       if(/equipo|tarea|guardia|tablero|material|agenda|calendario|reclamo|recurso|contacto|medio|comunicaci/i.test(t)) continue;
       // Verificar visibilidad
       try {
@@ -3259,7 +3259,7 @@ window._guardiaDelPub = function(id){
     var vencidas = tareasVencidas.length;
     var porcentaje = asignadas > 0 ? Math.round((realizadas / asignadas) * 100) : 0;
 
-    // FunciÃ³n para formatear "hace X dÃ­as"
+    // Función para formatear "hace X días"
     function diasDesde(iso){
       if(!iso) return "";
       var d = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
@@ -3282,7 +3282,7 @@ window._guardiaDelPub = function(id){
     }
     var activas = tareas.filter(function(t){ return /pendiente|proceso/i.test(t.estado||""); });
     var hechas = tareas.filter(function(t){ return !/pendiente|proceso/i.test(t.estado||""); });
-    activas.sort(function(a, b){ return diff(b) - diff(a); }); // las mÃ¡s viejas arriba
+    activas.sort(function(a, b){ return diff(b) - diff(a); }); // las más viejas arriba
     var ordenadas = activas.concat(hechas);
 
     var tareasHTML = ordenadas.map(function(t){
@@ -3308,7 +3308,7 @@ window._guardiaDelPub = function(id){
             '<div style="font-size:13px;color:#111827;'+textoTacho+'">'+escapeHTML2(t.descripcion||"")+'</div>'+
             '<div style="font-size:11px;color:#6b7280;margin-top:4px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">'+
               '<span>'+escapeHTML2(t.prioridad||"Media")+'</span>'+
-              '<span>Â·</span>'+
+              '<span>·</span>'+
               '<select onchange="window.cambiarEstadoTarea(\''+t.id+'\', this.value)" style="font-size:11px;padding:2px 6px;border-radius:4px;border:1px solid '+color+';color:'+color+';font-weight:600;cursor:pointer">'+opciones+'</select>'+
             '</div>'+
           '</div>'+
@@ -3323,18 +3323,18 @@ window._guardiaDelPub = function(id){
     // Construir HTML del panel custom
     var html = ''+
       '<div id="m1-panel-agente" style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;margin-bottom:16px;font-family:Inter,sans-serif">'+
-        // Header con botÃ³n VOLVER funcional
+        // Header con botón VOLVER funcional
         '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px">'+
           '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">'+
-            '<button onclick="window._m1VolverEquipo()" style="background:transparent;border:1px solid #d1d5db;padding:7px 12px;border-radius:8px;font-size:13px;cursor:pointer;color:#374151;font-weight:600">â Volver al equipo</button>'+
+            '<button onclick="window._m1VolverEquipo()" style="background:transparent;border:1px solid #d1d5db;padding:7px 12px;border-radius:8px;font-size:13px;cursor:pointer;color:#374151;font-weight:600">← Volver al equipo</button>'+
             '<div style="width:42px;height:42px;border-radius:50%;background:#ede9fe;color:#7c3aed;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px">'+
               escapeHTML2(nombre.substring(0,2).toUpperCase())+'</div>'+
             '<div>'+
               '<div style="font-size:18px;font-weight:700;color:#7c3aed">'+escapeHTML2(nombre)+'</div>'+
-              '<div style="font-size:12px;color:#6b7280">'+asignadas+' tareas asignadas Â· '+vencidas+' vencidas</div>'+
+              '<div style="font-size:12px;color:#6b7280">'+asignadas+' tareas asignadas · '+vencidas+' vencidas</div>'+
             '</div>'+
           '</div>'+
-          '<button onclick="window._waTareasAgente(\''+escapeHTML2(nombre)+'\')" style="background:#22c55e;color:white;border:none;padding:9px 14px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">ð± WhatsApp con tareas del dÃ­a</button>'+
+          '<button onclick="window._waTareasAgente(\''+escapeHTML2(nombre)+'\')" style="background:#22c55e;color:white;border:none;padding:9px 14px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">📱 WhatsApp con tareas del día</button>'+
         '</div>'+
         // Stats (5 tarjetas)
         '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px">'+
@@ -3357,20 +3357,20 @@ window._guardiaDelPub = function(id){
     // Insertar al INICIO del contenedor
     cont.insertAdjacentHTML("afterbegin", html);
 
-    // v3.7: Ocultar SOLO los stats viejos y el botÃ³n "+ Nueva actividad" del panel
-    // original, pero NO el botÃ³n "â Equipo" ni el sidebar/nav.
+    // v3.7: Ocultar SOLO los stats viejos y el botón "+ Nueva actividad" del panel
+    // original, pero NO el botón "← Equipo" ni el sidebar/nav.
     var miPanel = document.getElementById("m1-panel-agente");
     if(miPanel){
       var siguiente = miPanel.nextElementSibling;
       while(siguiente){
-        // No ocultar: botones de navegaciÃ³n, sidebar, nav superior
+        // No ocultar: botones de navegación, sidebar, nav superior
         var txtN = (siguiente.textContent || "").trim().toLowerCase().substring(0,200);
         var tagN = (siguiente.tagName || "").toLowerCase();
         var noOcultar = (
           tagN === "aside" || tagN === "nav" || tagN === "header" ||
           (siguiente.id && /sidebar|nav|head|main-nav/i.test(siguiente.id)) ||
-          /^\s*â\s*equipo/i.test(txtN) ||
-          /^\s*â\s*guardias/i.test(txtN)
+          /^\s*←\s*equipo/i.test(txtN) ||
+          /^\s*←\s*guardias/i.test(txtN)
         );
         if(!noOcultar){
           siguiente.style.setProperty("display", "none", "important");
@@ -3386,33 +3386,33 @@ window._guardiaDelPub = function(id){
   // v3.11: Optimizado - solo se ejecuta si detecta texto roto en el body.
   var _limpiezaEncContador = 0;
   function limpiarEncodingRoto(){
-    // Check rÃ¡pido: si el body NO tiene texto roto, no hacer nada
+    // Check rápido: si el body NO tiene texto roto, no hacer nada
     if(_limpiezaEncContador > 50) return;  // No correr indefinidamente
     var bodyTxt = document.body ? document.body.textContent : "";
-    if(bodyTxt.indexOf("ÃÃ") < 0 && !/Ã[Ã\u0080-\u00ff]/.test(bodyTxt.substring(0, 5000))){
+    if(bodyTxt.indexOf("ÃÂ") < 0 && !/Ã[Â\u0080-\u00ff]/.test(bodyTxt.substring(0, 5000))){
       return; // No hay texto roto, salir
     }
     _limpiezaEncContador++;
 
     var todos = document.querySelectorAll("button, h1, h2, h3, span, div, p");
-    var limites = 500; // mÃ¡ximo de elementos a procesar por ejecuciÃ³n
+    var limites = 500; // máximo de elementos a procesar por ejecución
     for(var i = 0; i < todos.length && limites > 0; i++){
       var el = todos[i];
       if(el.children.length > 0) continue;
       if(el.__m1Limpio) continue;
       var t = el.textContent || "";
-      if(!/Ã[Ã\u0080-\u00ff]/.test(t) && t.indexOf("ÃÃ") < 0){
+      if(!/Ã[Â\u0080-\u00ff]/.test(t) && t.indexOf("ÃÂ") < 0){
         el.__m1Limpio = true;
         continue;
       }
       limites--;
       var limpio = t
-        .replace(/ÃÂ¢ÃÂ¶ÃÂ±?\s*Cerrar/g, "Ã Cerrar")
-        .replace(/ÃÂ°Ã?Ã\u0091Ã\u008B|ÃÃÂ¡ÃÃÃÂ¥/g, "ð")
-        .replace(/ÃÂ°Ã?Ã?Ã?/g, "")
-        .replace(/ÃÂ¢\u0080[\u0080-\u00bf]+/g, "â")
-        .replace(/Ã[Ã\u0080-\u00ff][\u0080-\u00bf]?[\u0080-\u00bf]?/g, "")
-        .replace(/Ã/g, "")
+        .replace(/Ã¢Â¶Â±?\s*Cerrar/g, "× Cerrar")
+        .replace(/Ã°Â?Â\u0091Â\u008B|ÃÂ¡ÂÂÂ¥/g, "👋")
+        .replace(/Ã°Â?Â?Â?/g, "")
+        .replace(/Ã¢\u0080[\u0080-\u00bf]+/g, "—")
+        .replace(/Ã[Â\u0080-\u00ff][\u0080-\u00bf]?[\u0080-\u00bf]?/g, "")
+        .replace(/Â/g, "")
         .replace(/[\u0080-\u009f]/g, "")
         .replace(/\s{2,}/g, " ")
         .trim();
@@ -3422,16 +3422,16 @@ window._guardiaDelPub = function(id){
       el.__m1Limpio = true;
     }
 
-    // Caso especial: tÃ­tulos "Buenas noches" con basura
+    // Caso especial: títulos "Buenas noches" con basura
     var saludos = document.querySelectorAll("h1, h2, h3");
     for(var j = 0; j < saludos.length; j++){
       var st = saludos[j];
       if(st.__m1Saludo) continue;
       var raw = st.textContent || "";
-      if(/buenas?\s+(noches|d[iÃ­]as|tardes)/i.test(raw) && /Ã/.test(raw)){
-        var nombre = (raw.match(/,\s*([A-Z][a-zÃ¡Ã©Ã­Ã³ÃºÃ±]+)/) || [])[1] || "";
+      if(/buenas?\s+(noches|d[ií]as|tardes)/i.test(raw) && /Ã/.test(raw)){
+        var nombre = (raw.match(/,\s*([A-Z][a-záéíóúñ]+)/) || [])[1] || "";
         var hora = new Date().getHours();
-        var saludo = hora < 12 ? "Buenos dÃ­as" : hora < 19 ? "Buenas tardes" : "Buenas noches";
+        var saludo = hora < 12 ? "Buenos días" : hora < 19 ? "Buenas tardes" : "Buenas noches";
         st.textContent = saludo + (nombre ? ", " + nombre : "") + "!";
         st.__m1Saludo = true;
       }
@@ -3441,31 +3441,31 @@ window._guardiaDelPub = function(id){
     document.querySelectorAll("button, [role='button']").forEach(function(b){
       if(b.__m1BtnLimpio) return;
       var tb = b.textContent || "";
-      if(/Ã/.test(tb)){
-        if(/cerrar/i.test(tb)) b.textContent = "Ã Cerrar";
-        else if(/ver\s+calendario/i.test(tb)) b.textContent = "ð Ver calendario";
-        else if(/ver\s+guardias/i.test(tb)) b.textContent = "ð¡ï¸ Ver guardias";
+      if(/Ã/.test(tb)){
+        if(/cerrar/i.test(tb)) b.textContent = "× Cerrar";
+        else if(/ver\s+calendario/i.test(tb)) b.textContent = "📅 Ver calendario";
+        else if(/ver\s+guardias/i.test(tb)) b.textContent = "🛡️ Ver guardias";
         else if(/nueva\s+tarea/i.test(tb)) b.textContent = "+ Nueva tarea";
-        else if(/guardia\s+del\s+d/i.test(tb)) b.textContent = "ð¡ï¸ Guardia del dÃ­a";
-        else if(/publicaciones\s+programadas/i.test(tb)) b.textContent = "ð Publicaciones programadas";
-        else if(/tareas\s+urgentes/i.test(tb)) b.textContent = "ð´ Tareas urgentes pendientes";
+        else if(/guardia\s+del\s+d/i.test(tb)) b.textContent = "🛡️ Guardia del día";
+        else if(/publicaciones\s+programadas/i.test(tb)) b.textContent = "📅 Publicaciones programadas";
+        else if(/tareas\s+urgentes/i.test(tb)) b.textContent = "🔴 Tareas urgentes pendientes";
         b.__m1BtnLimpio = true;
       }
     });
   }
 
-  // (mi botÃ³n o el del panel original), limpiar mi panel custom para permitir
+  // (mi botón o el del panel original), limpiar mi panel custom para permitir
   // volver al listado y elegir otro agente.
   function instalarListenerVolver(){
     if(window.__m1ListenerVolverInstalado) return;
     window.__m1ListenerVolverInstalado = true;
     document.addEventListener("click", function(ev){
       var t = ev.target;
-      // Subir 5 niveles buscando un botÃ³n con "â Equipo"
+      // Subir 5 niveles buscando un botón con "← Equipo"
       for(var i = 0; i < 5 && t; i++){
         var txt = (t.textContent || "").trim();
-        if(/^[\s]*â[\s]*(Equipo|Guardias|Volver)[\s]*/i.test(txt) && txt.length < 60){
-          // Es un botÃ³n de volver
+        if(/^[\s]*←[\s]*(Equipo|Guardias|Volver)[\s]*/i.test(txt) && txt.length < 60){
+          // Es un botón de volver
           setTimeout(function(){
             // Limpiar mi panel y restaurar hermanos
             var p = document.getElementById("m1-panel-agente");
@@ -3484,17 +3484,17 @@ window._guardiaDelPub = function(id){
     }, true);
   }
 
-  // v3.7: FunciÃ³n para volver al listado de equipo desde mi botÃ³n
+  // v3.7: Función para volver al listado de equipo desde mi botón
   window._m1VolverEquipo = function(){
-    // Remover mi panel custom para que se vuelva a renderizar al entrar al prÃ³ximo
+    // Remover mi panel custom para que se vuelva a renderizar al entrar al próximo
     var p = document.getElementById("m1-panel-agente");
     if(p) p.remove();
-    // Restaurar hermanos que ocultÃ©
+    // Restaurar hermanos que oculté
     document.querySelectorAll("[__m1AgentHidden]").forEach(function(el){
       el.style.removeProperty("display");
       delete el.__m1AgentHidden;
     });
-    // TambiÃ©n por JS prop
+    // También por JS prop
     var cont = document.getElementById("p-equipo") || document.getElementById("p-guardias");
     if(cont){
       Array.prototype.forEach.call(cont.children, function(el){
@@ -3510,7 +3510,7 @@ window._guardiaDelPub = function(id){
     } catch(_){}
   };
 
-  // WhatsApp con tareas del dÃ­a para un agente
+  // WhatsApp con tareas del día para un agente
   window._waTareasAgente = function(nombre){
     if(!_funcionariosCache && !_reclamosCache) {
       // intentar igual con tareas
@@ -3518,10 +3518,10 @@ window._guardiaDelPub = function(id){
     var tareas = (_tareasGlobalCache || []).filter(function(t){
       return new RegExp(nombre, "i").test(t.responsable || "");
     });
-    // Si no tenemos cache, usar lo que estÃ© en el DOM
+    // Si no tenemos cache, usar lo que esté en el DOM
     if(tareas.length === 0){
       var sels = document.querySelectorAll(".tc, [class*='task']");
-      tareas = []; // no podemos extraer fÃ¡cilmente, fallback
+      tareas = []; // no podemos extraer fácilmente, fallback
     }
     var hoy = new Date().toLocaleDateString("es-AR", { day:"2-digit", month:"long" });
     var mensaje = "Hola " + nombre + "! Tareas para hoy " + hoy + ":\n\n";
@@ -3530,13 +3530,13 @@ window._guardiaDelPub = function(id){
       return /pendiente|proceso/i.test(t.estado||"");
     });
     if(activas.length === 0){
-      mensaje += "No hay tareas pendientes. Â¡A descansar! ð";
+      mensaje += "No hay tareas pendientes. ¡A descansar! 🎉";
     } else {
       mensaje += activas.map(function(t, i){
         return (i+1) + ". " + (t.descripcion || "") + (t.prioridad ? " [" + t.prioridad + "]" : "");
       }).join("\n");
     }
-    // Abrir WhatsApp web (sin telÃ©fono especÃ­fico, el usuario elige)
+    // Abrir WhatsApp web (sin teléfono específico, el usuario elige)
     var url = "https://wa.me/?text=" + encodeURIComponent(mensaje);
     window.open(url, "_blank");
   };
@@ -3552,12 +3552,12 @@ window._guardiaDelPub = function(id){
   }
 
   // ============ v3.10: PANEL "HOY" CUSTOM ============
-  // El panel original tiene un "Hoy" que muchas veces aparece vacÃ­o
-  // (no lee bien las publicaciones de mi mÃ³dulo). Lo reemplazamos.
+  // El panel original tiene un "Hoy" que muchas veces aparece vacío
+  // (no lee bien las publicaciones de mi módulo). Lo reemplazamos.
   async function renderPanelHoyCustom(){
     // Definicion local de safeKey (por si no existe globalmente)
     function safeKey(s){ return String(s||"").replace(/[^a-zA-Z0-9_-]/g,"_").substring(0,40); }
-    // Detectar si la pÃ¡gina activa es "Hoy"
+    // Detectar si la página activa es "Hoy"
     var pHoy = document.getElementById("p-hoy");
     if(!pHoy) return;
     var st = window.getComputedStyle(pHoy);
@@ -3593,11 +3593,11 @@ window._guardiaDelPub = function(id){
       return /pendiente|proceso/i.test(t.estado || "");
     }).length;
 
-    // FIX v5.69: Detectar guardia del dÃ­a usando las funciones globales
-    // (en vez del parser DOM con regex que producÃ­a "MAMaitentitularLILina")
+    // FIX v5.69: Detectar guardia del día usando las funciones globales
+    // (en vez del parser DOM con regex que producía "MAMaitentitularLILina")
     var guardiaTitular = "", guardiaSoporte = "";
     try {
-      // Prioridad 1: funciÃ³n getGuardia() del index.html (lee guardOverrides + WD + WE)
+      // Prioridad 1: función getGuardia() del index.html (lee guardOverrides + WD + WE)
       if(typeof getGuardia === "function"){
         var arr = getGuardia(hoyStr) || [];
         if(arr.length){
@@ -3628,7 +3628,7 @@ window._guardiaDelPub = function(id){
       });
     }
 
-    // FIX v5.69: Cargar TODAS las actividades del calendario del dÃ­a (agendas + Google Calendar)
+    // FIX v5.69: Cargar TODAS las actividades del calendario del día (agendas + Google Calendar)
     var eventosHoy = [];
     try {
       var srcEv = [];
@@ -3770,7 +3770,7 @@ window._guardiaDelPub = function(id){
 
       "</div>";
 
-    // Esconder el contenido original del p-hoy y poner el mÃ­o
+    // Esconder el contenido original del p-hoy y poner el mío
     Array.prototype.forEach.call(pHoy.children, function(el){
       if(el.id !== "m1-panel-hoy") el.style.display = "none";
     });
@@ -3781,7 +3781,7 @@ window._guardiaDelPub = function(id){
     // v3.9: Buscar el contenedor del panel Guardias de varias formas
     var pG = document.getElementById("p-guardias");
     if(!pG){
-      // Fallback 1: buscar por tÃ­tulo "Guardias semanales"
+      // Fallback 1: buscar por título "Guardias semanales"
       var titulos = document.querySelectorAll("h1, h2, h3, .ptitle, [class*='title']");
       for(var i = 0; i < titulos.length; i++){
         var t = (titulos[i].textContent || "").trim();
@@ -3798,13 +3798,13 @@ window._guardiaDelPub = function(id){
       }
     }
     if(!pG) return;
-    // Solo renderizar si el panel estÃ¡ visible
+    // Solo renderizar si el panel está visible
     try {
       var rect = pG.getBoundingClientRect();
       if(rect.width === 0 || rect.height === 0) return;
     } catch(_){ return; }
 
-    // Si ya estÃ¡ renderizado, refrescar
+    // Si ya está renderizado, refrescar
     var ya = pG.querySelector("#m1-pubs-guardias");
     if(ya) ya.remove();
 
@@ -3823,11 +3823,11 @@ window._guardiaDelPub = function(id){
     var lunesStr = fmtIso(lunes);
     var domStr = fmtIso(domingo);
 
-    // v3.9: Reunir publicaciones de MI mÃ³dulo (localStorage) Y de Supabase
+    // v3.9: Reunir publicaciones de MI módulo (localStorage) Y de Supabase
     var pubs = cargarPublicaciones();  // Esta ya combina ambos
     if(!Array.isArray(pubs)) pubs = [];
 
-    // Filtrar por semana y por â¥15hs
+    // Filtrar por semana y por ≥15hs
     var pubsG = pubs.filter(function(p){
       if(!p || !p.fecha) return false;
       if(p.fecha < lunesStr || p.fecha > domStr) return false;
@@ -3842,8 +3842,8 @@ window._guardiaDelPub = function(id){
     if(pubsG.length === 0){
       pG.insertAdjacentHTML("beforeend",
         '<div id="m1-pubs-guardias" style="background:#fff;border:1px solid #e5e7eb;border-left:4px solid #f59e0b;border-radius:12px;padding:14px 18px;margin:16px 0;font-family:Inter,sans-serif">' +
-          '<div style="font-size:14px;font-weight:700;color:#92400e;margin-bottom:4px">ð Publicaciones de guardia esta semana</div>' +
-          '<div style="font-size:12px;color:#6b7280">No hay publicaciones programadas a partir de las 15:00 esta semana. Las que cargues con horario â¥15:00 van a aparecer acÃ¡.</div>' +
+          '<div style="font-size:14px;font-weight:700;color:#92400e;margin-bottom:4px">🔔 Publicaciones de guardia esta semana</div>' +
+          '<div style="font-size:12px;color:#6b7280">No hay publicaciones programadas a partir de las 15:00 esta semana. Las que cargues con horario ≥15:00 van a aparecer acá.</div>' +
         '</div>');
       return;
     }
@@ -3852,7 +3852,7 @@ window._guardiaDelPub = function(id){
     pubsG.forEach(function(p){ porDia[p.fecha] = porDia[p.fecha] || []; porDia[p.fecha].push(p); });
     diasOrden = Object.keys(porDia).sort();
 
-    var diaNom = ["Domingo","Lunes","Martes","MiÃ©rcoles","Jueves","Viernes","SÃ¡bado"];
+    var diaNom = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
     function escH(s){
       return String(s||"").replace(/[&<>"']/g, function(c){
         return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
@@ -3860,12 +3860,12 @@ window._guardiaDelPub = function(id){
     }
     var html = ''+
       '<div id="m1-pubs-guardias" style="background:#fff;border:1px solid #e5e7eb;border-left:4px solid #f59e0b;border-radius:12px;padding:16px 20px;margin:16px 0;font-family:Inter,sans-serif">'+
-        '<div style="font-size:15px;font-weight:700;color:#92400e;margin-bottom:4px">ð Publicaciones de guardia esta semana</div>'+
-        '<div style="font-size:12px;color:#6b7280;margin-bottom:14px">Publicaciones programadas a partir de las 15:00 ('+pubsG.length+' '+(pubsG.length===1?"publicaciÃ³n":"publicaciones")+')</div>'+
+        '<div style="font-size:15px;font-weight:700;color:#92400e;margin-bottom:4px">🔔 Publicaciones de guardia esta semana</div>'+
+        '<div style="font-size:12px;color:#6b7280;margin-bottom:14px">Publicaciones programadas a partir de las 15:00 ('+pubsG.length+' '+(pubsG.length===1?"publicación":"publicaciones")+')</div>'+
         diasOrden.map(function(f){
           var fd = new Date(f + "T12:00:00");
           var ttl = diaNom[fd.getDay()] + " " + fd.getDate() + "/" + (fd.getMonth()+1);
-          // Ordenar publicaciones del dÃ­a por hora
+          // Ordenar publicaciones del día por hora
           porDia[f].sort(function(a, b){
             return (a.hora || "").localeCompare(b.hora || "");
           });
@@ -3876,7 +3876,7 @@ window._guardiaDelPub = function(id){
               : '';
             var redesTxt = "";
             if(p.redes && p.redes.length){
-              var mapaR = {facebook:"ð",instagram:"ð·",tiktok:"ðµ",youtube:"â¶ï¸",whatsapp:"ð¬",twitter:"ð¦"};
+              var mapaR = {facebook:"📘",instagram:"📷",tiktok:"🎵",youtube:"▶️",whatsapp:"💬",twitter:"🐦"};
               redesTxt = p.redes.map(function(r){ return mapaR[r] || r; }).join(" ");
             } else if(p.cuenta){
               redesTxt = '<span style="color:#6b7280">'+escH(p.cuenta)+'</span>';
@@ -3888,7 +3888,7 @@ window._guardiaDelPub = function(id){
                   '<div style="font-size:13px;color:#111827">'+escH(p.descripcion || "")+'</div>'+
                   '<div style="font-size:11px;color:#6b7280;margin-top:3px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">'+
                     (redesTxt ? '<span>'+redesTxt+'</span>' : '')+
-                    (p.tipo ? '<span>Â· '+escH(p.tipo)+'</span>' : '')+
+                    (p.tipo ? '<span>· '+escH(p.tipo)+'</span>' : '')+
                     resp+
                   '</div>'+
                   '<button onclick="window._guardiaDelPub(\'' + escH(p.id) + '\')" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:15px;padding:2px 8px;flex-shrink:0" title="Eliminar publicación">🗑️</button>'+
@@ -3906,7 +3906,7 @@ window._guardiaDelPub = function(id){
     pG.insertAdjacentHTML("beforeend", html);
   }
 
-  /* -------- INICIALIZACIÃN -------- */
+  /* -------- INICIALIZACIÓN -------- */
   function init(){
     inyectarEstilos();
     asegurarBadgePlaceholders();
@@ -3919,7 +3919,7 @@ window._guardiaDelPub = function(id){
 
     // Inicializar caches desde Supabase (async) y re-renderizar al terminar
     // v3.1: SOLO Reclamos y Funcionarios. Contactos lo maneja el panel original.
-    // v3.3: + Realtime sobre publicaciones para crear tareas de guardia automÃ¡ticas.
+    // v3.3: + Realtime sobre publicaciones para crear tareas de guardia automáticas.
     setTimeout(function(){
       inicializarReclamosDesdeSpb().then(function(){
         renderReclamosModulo();
@@ -3941,8 +3941,8 @@ window._guardiaDelPub = function(id){
           }
         });
       });
-      // v3.3: Escuchar nuevas publicaciones (del panel original o el mÃ­o).
-      // Si la hora es â¥15:00, generar tarea de guardia automÃ¡ticamente.
+      // v3.3: Escuchar nuevas publicaciones (del panel original o el mío).
+      // Si la hora es ≥15:00, generar tarea de guardia automáticamente.
       var _pubsProcesadas = {};
       configurarRealtime("publicaciones", function(p){
         if(p.eventType !== "INSERT" || !p.new) return;
@@ -3952,17 +3952,17 @@ window._guardiaDelPub = function(id){
         var hora = pub.hora ? String(pub.hora).substring(0,5) : "";
         if(!hora) return;
         if(esHorarioGuardia(hora)){
-          console.log("[mejoras1] PublicaciÃ³n â¥15hs detectada, creando tarea guardia:", pub);
+          console.log("[mejoras1] Publicación ≥15hs detectada, creando tarea guardia:", pub);
           crearTareaGuardiaSpb(pub).then(function(ok){
             if(ok){
-              try { toast("ð Tarea de guardia creada (" + (pub.responsable||"sin responsable") + ")"); } catch(_){}
+              try { toast("🔔 Tarea de guardia creada (" + (pub.responsable||"sin responsable") + ")"); } catch(_){}
             }
           });
         }
       });
     }, 1500);  // Damos tiempo a que el script inline cree window.db
 
-    // Re-aplicar correcciones por si el script inline cargÃ³ despuÃ©s
+    // Re-aplicar correcciones por si el script inline cargó después
     var n = 0;
     var iv = setInterval(function(){
       asegurarBadgePlaceholders();
@@ -3995,7 +3995,7 @@ window._guardiaDelPub = function(id){
     // v3.9: Forzar panel "Hoy" como pantalla inicial cuando se carga el panel
     setTimeout(function(){
       try {
-        // Verificar si ya hay una pÃ¡gina visible (que no sea la de carga inicial)
+        // Verificar si ya hay una página visible (que no sea la de carga inicial)
         var paginas = document.querySelectorAll("[id^='p-']");
         var algunaVisible = false;
         paginas.forEach(function(p){
@@ -4004,21 +4004,21 @@ window._guardiaDelPub = function(id){
             algunaVisible = true;
           }
         });
-        // Si ninguna pÃ¡gina activa, o si estÃ¡ visible "p-calendario" (default raro), ir a Hoy
+        // Si ninguna página activa, o si está visible "p-calendario" (default raro), ir a Hoy
         if(!algunaVisible || (document.getElementById("p-calendario") &&
            window.getComputedStyle(document.getElementById("p-calendario")).display !== "none")){
           if(typeof window.nav === "function"){
             window.nav("hoy");
-            console.log("[mejoras1] PÃ¡gina inicial â Hoy");
+            console.log("[mejoras1] Página inicial → Hoy");
           }
         }
       } catch(e){ console.warn("[mejoras1] no pude ir a Hoy:", e); }
     }, 1800);
 
-    // Cargar cache global de tareas (para "WhatsApp con tareas del dÃ­a")
+    // Cargar cache global de tareas (para "WhatsApp con tareas del día")
     setTimeout(function(){ actualizarTareasGlobalCache(); }, 2500);
 
-    // v3.7: Instalar listener para botÃ³n "â Volver"
+    // v3.7: Instalar listener para botón "← Volver"
     try { instalarListenerVolver(); } catch(_){}
 
     // v3.7: Cargar publicaciones desde Supabase + lista de agentes
@@ -4030,7 +4030,7 @@ window._guardiaDelPub = function(id){
       cargarAgentes();
     }, 2200);
 
-    // Observador global del main con DEBOUNCE (v3.11) â no traba la pÃ¡gina
+    // Observador global del main con DEBOUNCE (v3.11) — no traba la página
     try {
       var main = document.getElementById("main");
       if(main){
@@ -4039,7 +4039,7 @@ window._guardiaDelPub = function(id){
         var moMain = new MutationObserver(function(){
           // Si ya hay un timer pendiente, no agendar otro
           if(_moTimer) return;
-          // Si estÃ¡ ejecutando ahora mismo, esperar
+          // Si está ejecutando ahora mismo, esperar
           if(_moEjecutando) return;
           _moTimer = setTimeout(function(){
             _moTimer = null;
@@ -4064,7 +4064,7 @@ window._guardiaDelPub = function(id){
     } catch(_){}
 
     try {
-      console.log("%c[mejoras1.js v3.11] Optimizado - no traba la pÃ¡gina + debounce MO",
+      console.log("%c[mejoras1.js v3.11] Optimizado - no traba la página + debounce MO",
                   "color:#7c3aed;font-weight:bold;font-size:13px");
     } catch(_){}
   }
@@ -4097,7 +4097,7 @@ window._guardiaDelPub = function(id){
     });
   }
 
-  // Observa el sidebar: si el cÃ³digo original lo modifica, limpiamos
+  // Observa el sidebar: si el código original lo modifica, limpiamos
   function observarSidebar(){
     var sb = document.querySelector("aside.sb");
     if(!sb || sb.__observado) return;
