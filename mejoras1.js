@@ -2060,6 +2060,23 @@ window._guardiaDelPub = function(id){
     }
 
     // Agregar "Contactos medios" al final si no estaba
+    // Agregar "Entrevistas" al sidebar si no estaba
+    if(!sb.querySelector('.sbi[data-mid="entrevistas"]')){
+      var btnEnt = document.createElement("button");
+      btnEnt.className = "sbi";
+      btnEnt.type = "button";
+      btnEnt.setAttribute("data-mid", "entrevistas");
+      btnEnt.innerHTML =
+        '<span style="font-size:14px;width:20px;display:inline-block;' +
+        'text-align:center;flex-shrink:0">\uD83E\uDD1D</span>' +
+        '<span style="flex:1;text-align:left">Entrevistas</span>';
+      btnEnt.addEventListener("click", function(ev){
+        ev.preventDefault(); ev.stopPropagation();
+        navegarA("entrevistas", btnEnt);
+      });
+      sb.appendChild(btnEnt);
+    }
+
     if(!sb.querySelector('.sbi[data-mid="contactos"]')){
       var btnCM = document.createElement("button");
       btnCM.className = "sbi";
@@ -3538,6 +3555,8 @@ window._guardiaDelPub = function(id){
   // El panel original tiene un "Hoy" que muchas veces aparece vacÃ­o
   // (no lee bien las publicaciones de mi mÃ³dulo). Lo reemplazamos.
   async function renderPanelHoyCustom(){
+    // Definicion local de safeKey (por si no existe globalmente)
+    function safeKey(s){ return String(s||"").replace(/[^a-zA-Z0-9_-]/g,"_").substring(0,40); }
     // Detectar si la pÃ¡gina activa es "Hoy"
     var pHoy = document.getElementById("p-hoy");
     if(!pHoy) return;
