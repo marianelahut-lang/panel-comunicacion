@@ -1948,22 +1948,22 @@ window._guardiaDelPub = function(id){
      Calendario, Guardias, Equipo, Medios, Recursos). Elimina el
      selector "Filtrar persona" / "Todas las personas".               */
   var ICON_MAP = {
-    hoy:           "âï¸",
-    tablero:       "ð",
-    material:      "ð¦",
-    publicaciones: "ð",
-    agenda:        "ð",
-    calendario:    "ðï¸",
-    guardias:      "â°",
-    equipo:        "ð¥",
-    metricas:      "ð",
-    medios:        "ð°",
-    recursos:      "ð",
-    entrevistas:   "ð¤",
-    contactos:     "ð",
-    reclamos:      "ð¢",
-    dashboard:     "ð",
-    agente:        "ð§âð¼"
+    hoy:           "\u2600\uFE0F",
+    tablero:       "\uD83D\uDCCB",
+    material:      "\uD83D\uDCE6",
+    publicaciones: "\uD83D\uDCE2",
+    agenda:        "\uD83D\uDCC5",
+    calendario:    "\uD83D\uDDD3\uFE0F",
+    guardias:      "\u23F0",
+    equipo:        "\uD83D\uDC65",
+    metricas:      "\uD83D\uDCCA",
+    medios:        "\uD83D\uDCF0",
+    recursos:      "\uD83D\uDCC1",
+    entrevistas:   "\uD83E\uDD1D",
+    contactos:     "\uD83D\uDCDE",
+    reclamos:      "\uD83D\uDCE2",
+    dashboard:     "\uD83D\uDCCA",
+    agente:        "\uD83E\uDDD1\u200D\uD83D\uDCBC"
   };
 
   function sincronizarMenuLateral(){
@@ -2018,7 +2018,7 @@ window._guardiaDelPub = function(id){
         /^[\u2600-\u27BF\uD83C-\uDBFF\uDC00-\uDFFF\uFE0F\u200D]+\s*/, ""
       );
       if(RENOMBRAR[id]) label = RENOMBRAR[id];
-      var icon = ICON_MAP[id] || "â¢";
+      var icon = ICON_MAP[id] || "\u25AA";
 
       var btn = document.createElement("button");
       btn.className = "sbi";
@@ -2050,7 +2050,7 @@ window._guardiaDelPub = function(id){
       btnRec.setAttribute("data-mid", "reclamos");
       btnRec.innerHTML =
         '<span style="font-size:14px;width:20px;display:inline-block;' +
-        'text-align:center;flex-shrink:0">ð¢</span>' +
+        'text-align:center;flex-shrink:0">\uD83D\uDCE2<\/span>' +
         '<span style="flex:1;text-align:left">Reclamos</span>';
       btnRec.addEventListener("click", function(ev){
         ev.preventDefault(); ev.stopPropagation();
@@ -2067,7 +2067,7 @@ window._guardiaDelPub = function(id){
       btnCM.setAttribute("data-mid", "contactos");
       btnCM.innerHTML =
         '<span style="font-size:14px;width:20px;display:inline-block;' +
-        'text-align:center;flex-shrink:0">ð</span>' +
+        'text-align:center;flex-shrink:0">\uD83D\uDCDE<\/span>' +
         '<span style="flex:1;text-align:left">Contactos medios</span>';
       btnCM.addEventListener("click", function(ev){
         ev.preventDefault(); ev.stopPropagation();
