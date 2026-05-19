@@ -342,10 +342,10 @@
         '</div>' +
       '</div>' +
       '<div class="rec-tabs">' +
-        '<button class="rec-tab" data-tab="lista" onclick="window._recTab(\'lista\')">ð Lista</button>' +
-        '<button class="rec-tab" data-tab="nuevo" onclick="window._recTab(\'nuevo\')">â Nuevo reclamo</button>' +
-        '<button class="rec-tab" data-tab="funcionarios" onclick="window._recTab(\'funcionarios\')">ð¥ Funcionarios</button>' +
-        '<button class="rec-tab" data-tab="historial" onclick="window._recTab(\'historial\')">ð Historial</button>' +
+        '<button class="rec-tab" data-tab="lista" onclick="window._recTab(\'lista\')">\uD83D\uDCCB Lista</button>' +
+        '<button class="rec-tab" data-tab="nuevo" onclick="window._recTab(\'nuevo\')">\u2795 Nuevo reclamo</button>' +
+        '<button class="rec-tab" data-tab="funcionarios" onclick="window._recTab(\'funcionarios\')">\uD83D\uDC65 Funcionarios</button>' +
+        '<button class="rec-tab" data-tab="historial" onclick="window._recTab(\'historial\')">\uD83D\uDCCB Historial</button>' +
       '</div>' +
       '<div id="rec-content"></div>';
     // Tab por defecto: si hay reclamos, mostrar lista. Si no, formulario.
@@ -403,17 +403,17 @@
           '<input id="r-vecino" required value="' + escapeHTML(v.vecino || "") + '" placeholder="Ej: Juan PÃ©rez">' +
         '</div>' +
         '<div>' +
-          '<label>TelÃ©fono del vecino</label>' +
+          '<label>Tel\u00e9fono del vecino</label>' +
           '<input id="r-vtel" type="tel" value="' + escapeHTML(v.vecino_tel || "") + '" placeholder="Ej: 2983 449098">' +
         '</div>' +
       '</div>' +
       '<div class="rec-form-row">' +
-        '<label>DirecciÃ³n</label>' +
-        '<input id="r-dir" value="' + escapeHTML(v.direccion || "") + '" placeholder="Ej: Av. San MartÃ­n 1234">' +
+        '<label>Direcci\u00f3n</label>' +
+        '<input id="r-dir" value="' + escapeHTML(v.direccion || "") + '" placeholder="Ej: Av. San Mart\u00edn 1234">' +
       '</div>' +
       '<div class="rec-form-row">' +
-        '<label>DescripciÃ³n del reclamo *</label>' +
-        '<textarea id="r-desc" rows="4" required placeholder="Detalle lo que el vecino reportÃ³...">' + escapeHTML(v.descripcion || "") + '</textarea>' +
+        '<label>Descripci\u00f3n del reclamo *</label>' +
+        '<textarea id="r-desc" rows="4" required placeholder="Detalle lo que el vecino report\u00f3...">' + escapeHTML(v.descripcion || "") + '</textarea>' +
       '</div>' +
       '<div class="rec-form-actions">' +
         '<button type="button" class="rec-btn rec-btn-sec" onclick="window._recTab(\'lista\')">Cancelar</button>' +
@@ -511,13 +511,13 @@
 
   function enviarReclamoWA(reclamo){
     var icon = ICONO_RECLAMO[(reclamo.tipo || "").toLowerCase().trim()] || "ð";
-    var msg = "*ð¨ NUEVO RECLAMO VECINAL*\n\n" +
+    var msg = "*\uD83D\uDEA8 NUEVO RECLAMO VECINAL*\n\n" +
       icon + " *Tipo:* " + reclamo.tipo + "\n" +
-      "ð¤ *Vecino:* " + reclamo.vecino + "\n" +
-      (reclamo.vecino_tel ? "ð *Tel del vecino:* " + reclamo.vecino_tel + "\n" : "") +
-      (reclamo.direccion ? "ð *DirecciÃ³n:* " + reclamo.direccion + "\n" : "") +
-      "\nð *DescripciÃ³n:*\n" + reclamo.descripcion +
-      "\n\n_Enviado desde ComunicaciÃ³n Â· Muni Tres Arroyos_";
+      "\uD83D\uDC64 *Vecino:* " + reclamo.vecino + "\n" +
+      (reclamo.vecino_tel ? "\uD83D\uDCDE *Tel del vecino:* " + reclamo.vecino_tel + "\n" : "") +
+      (reclamo.direccion ? "\uD83D\uDCCD *Direcci\u00f3n:* " + reclamo.direccion + "\n" : "") +
+      "\n\uD83D\uDCDD *Descripci\u00f3n:*\n" + reclamo.descripcion +
+      "\n\n_Enviado desde Comunicaci\u00f3n \u00B7 Muni Tres Arroyos_";
     var url = "https://wa.me/" + reclamo.funcionario_tel + "?text=" + encodeURIComponent(msg);
     window.open(url, "_blank");
   }
@@ -569,18 +569,18 @@
           'onchange="window._recCambiarEstado(\'' + r.id + '\', this.value)">' + estadoOpts + '</select>' +
       '</div>' +
       '<div class="rec-item-body">' +
-        '<div class="rec-item-row"><strong>ð¤ Vecino:</strong> ' + escapeHTML(r.vecino) +
-          (r.vecino_tel ? ' Â· <a href="https://wa.me/' + normalizarTelefono(r.vecino_tel.length < 11 ? "549" + normalizarTelefono(r.vecino_tel) : r.vecino_tel) + '" target="_blank" rel="noopener" style="color:#16a34a">ð± ' + escapeHTML(r.vecino_tel) + '</a>' : "") +
+        '<div class="rec-item-row"><strong>\uD83D\uDC64 Vecino:</strong> ' + escapeHTML(r.vecino) +
+          (r.vecino_tel ? ' \u00B7 <a href="https://wa.me/' + normalizarTelefono(r.vecino_tel.length < 11 ? "549" + normalizarTelefono(r.vecino_tel) : r.vecino_tel) + '" target="_blank" rel="noopener" style="color:#16a34a">\uD83D\uDCF1 ' + escapeHTML(r.vecino_tel) + '</a>' : "") +
         '</div>' +
-        (r.direccion ? '<div class="rec-item-row"><strong>ð DirecciÃ³n:</strong> ' + escapeHTML(r.direccion) + '</div>' : "") +
-        '<div class="rec-item-row"><strong>ð¨âð¼ Funcionario:</strong> ' + escapeHTML(r.funcionario) + '</div>' +
+        (r.direccion ? '<div class="rec-item-row"><strong>\uD83D\uDCCD Direcci\u00f3n:</strong> ' + escapeHTML(r.direccion) + '</div>' : "") +
+        '<div class="rec-item-row"><strong>\uD83D\uDC68\u200D\uD83D\uDCBC Funcionario:</strong> ' + escapeHTML(r.funcionario) + '</div>' +
         '<div class="rec-item-desc">' + escapeHTML(r.descripcion) + '</div>' +
-        '<div class="rec-item-meta">ð Creado: ' + fechaC +
-          (r.fecha_modificacion ? ' Â· Modificado: ' + formatearFecha(r.fecha_modificacion) : "") + '</div>' +
+        '<div class="rec-item-meta">\uD83D\uDCC5 Creado: ' + fechaC +
+          (r.fecha_modificacion ? ' \u00B7 Modificado: ' + formatearFecha(r.fecha_modificacion) : "") + '</div>' +
       '</div>' +
       '<div class="rec-item-actions">' +
-        '<button class="rec-btn-mini rec-btn-wa-mini" onclick="window._recEnviarWA(\'' + r.id + '\')" title="Enviar al funcionario por WhatsApp">ð¬ WhatsApp</button>' +
-        '<button class="rec-btn-mini" onclick="window._recEditar(\'' + r.id + '\')" title="Editar">âï¸ Editar</button>' +
+        '<button class="rec-btn-mini rec-btn-wa-mini" onclick="window._recEnviarWA(\'' + r.id + '\')" title="Enviar al funcionario por WhatsApp">\uD83D\uDCAC WhatsApp</button>' +
+        '<button class="rec-btn-mini" onclick="window._recEditar(\'' + r.id + '\')" title="Editar">\u270F\uFE0F Editar</button>' +
         '<button class="rec-btn-mini rec-btn-del" onclick="window._recBorrar(\'' + r.id + '\')" title="Borrar">ðï¸</button>' +
       '</div>' +
     '</div>';
@@ -792,7 +792,7 @@
       if(f){
         f.nombre = nombre; f.area = area; f.telefono = tel;
         await spbUpdateFuncionario(f);
-        toast("â Funcionario actualizado");
+        toast("\u2713 Funcionario actualizado");
       }
     } else {
       var nuevo = {
@@ -800,7 +800,7 @@
         nombre: nombre, area: area, telefono: tel
       };
       await spbInsertFuncionario(nuevo);
-      toast("â Funcionario agregado Â· visible para todos");
+      toast("â Funcionario agregado \u00B7 visible para todos");
     }
     window._recTab("funcionarios");
     return false;
