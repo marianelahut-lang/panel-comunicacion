@@ -3634,108 +3634,108 @@ window._guardiaDelPub = function(id){
 
 
     var html =
-      '<div id="m1-panel-hoy" style="font-family:Inter,sans-serif">'+
+      "<div id=\"m1-panel-hoy\" style=\"font-family:Inter,sans-serif\">"+
+
         // Header oscuro
-        '<div style="background:linear-gradient(135deg,#1e1b4b,#312e81);color:#fff;border-radius:14px;padding:24px 28px;margin-bottom:18px">'+
-          '<div style="font-size:13px;opacity:.85">'+escH(saludo)+' '+saludoEmoji+', Marianela!</div>'+
-          '<div style="font-size:24px;font-weight:700;margin-top:2px">'+escH(fechaFmt)+'</div>'+
-          '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:18px">'+
-            '<div style="background:rgba(255,255,255,.07);border-radius:10px;padding:12px;cursor:pointer" onclick="(function(){var b=document.getElementById(\'mbn-tablero\');if(b)b.click();})()"><div style="font-size:26px;font-weight:700;color:#fde047">'+statPend+'</div><div style="font-size:11px;opacity:.85;margin-top:2px">📋 PENDIENTES</div></div>'+
-            '<div style="background:rgba(255,255,255,.07);border-radius:10px;padding:12px;cursor:pointer" onclick="(function(){var b=document.getElementById(\'mbn-tablero\');if(b)b.click();})()"><div style="font-size:26px;font-weight:700;color:#fca5a5">'+statUrg+'</div><div style="font-size:11px;opacity:.85;margin-top:2px">🔥 URGENTES</div></div>'+
-            '<div style="background:rgba(255,255,255,.07);border-radius:10px;padding:12px"><div style="font-size:26px;font-weight:700;color:#c4b5fd">'+eventosHoy.length+'</div><div style="font-size:11px;opacity:.85;margin-top:2px">📅 AGENDA</div></div>'+
-            '<div style="background:rgba(255,255,255,.07);border-radius:10px;padding:12px"><div style="font-size:26px;font-weight:700;color:#86efac">'+statPubs+'</div><div style="font-size:11px;opacity:.85;margin-top:2px">📱 PUBLICAR</div></div>'+
-          '</div>'+
-        '</div>'+
+        "<div style=\"background:linear-gradient(135deg,#1e1b4b,#312e81);color:#fff;border-radius:14px;padding:24px 28px;margin-bottom:18px\">"+
+          "<div style=\"font-size:13px;opacity:.85\">"+escH(saludo)+" "+saludoEmoji+", Marianela!</div>"+
+          "<div style=\"font-size:24px;font-weight:700;margin-top:2px\">"+escH(fechaFmt)+"</div>"+
+          "<div style=\"display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:18px\">"+
+            "<div style=\"background:rgba(255,255,255,.07);border-radius:10px;padding:12px;cursor:pointer\" onclick=\"(function(){var b=document.getElementById('mbn-tablero');if(b)b.click();})()\" ><div style=\"font-size:26px;font-weight:700;color:#fde047\">"+statPend+"</div><div style=\"font-size:11px;opacity:.85;margin-top:2px\">📋 PENDIENTES</div></div>"+
+            "<div style=\"background:rgba(255,255,255,.07);border-radius:10px;padding:12px;cursor:pointer\" onclick=\"(function(){var b=document.getElementById('mbn-tablero');if(b)b.click();})()\" ><div style=\"font-size:26px;font-weight:700;color:#fca5a5\">"+statUrg+"</div><div style=\"font-size:11px;opacity:.85;margin-top:2px\">🔥 URGENTES</div></div>"+
+            "<div style=\"background:rgba(255,255,255,.07);border-radius:10px;padding:12px\"><div style=\"font-size:26px;font-weight:700;color:#c4b5fd\">"+eventosHoy.length+"</div><div style=\"font-size:11px;opacity:.85;margin-top:2px\">📅 AGENDA</div></div>"+
+            "<div style=\"background:rgba(255,255,255,.07);border-radius:10px;padding:12px\"><div style=\"font-size:26px;font-weight:700;color:#86efac\">"+statPubs+"</div><div style=\"font-size:11px;opacity:.85;margin-top:2px\">📱 PUBLICAR</div></div>"+
+          "</div>"+
+        "</div>"+
 
         // Grid 2 columnas: Agenda de hoy + Tareas urgentes
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">'+
+        "<div style=\"display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px\">"+
 
           // Agenda de hoy (eventos del calendario)
-          '<div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px 18px">'+
-            '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">'+
-              '<div style="width:28px;height:28px;background:#ede9fe;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px">📅</div>'+
-              '<span style="font-size:14px;font-weight:700;color:#111827">Agenda de hoy</span>'+
-            '</div>'+
+          "<div style=\"background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px 18px\">"+
+            "<div style=\"display:flex;align-items:center;gap:8px;margin-bottom:12px\">"+
+              "<div style=\"width:28px;height:28px;background:#ede9fe;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px\">📅</div>"+
+              "<span style=\"font-size:14px;font-weight:700;color:#111827\">Agenda de hoy</span>"+
+            "</div>"+
             (eventosHoy.length === 0
-              ? '<div style="font-size:13px;color:#9ca3af;text-align:center;padding:14px 0">Sin actividades para hoy</div>'
+              ? "<div style=\"font-size:13px;color:#9ca3af;text-align:center;padding:14px 0\">Sin actividades para hoy</div>"
               : eventosHoy.map(function(ev){
-                  var hora2 = ev.hora ? String(ev.hora).substring(0,5) : "–";
+                  var hora2 = ev.hora ? String(ev.hora).substring(0,5) : "\u2013";
                   var tipoCol = ev.tipo==="prensa" ? "#ec4899" : ev.tipo==="municipal" ? "#22c55e" : ev.tipo==="publicacion" ? "#8b5cf6" : "#3b82f6";
                   var esDespues15 = ev.hora && String(ev.hora).substring(0,2) >= "15";
-                  var pkey2 = hoyStr+"_ev_"+safeKey(ev.id||ev.descripcion||"");
-                  var esCubierto = typeof getPrensa === "function" && getPrensa(pkey2);
-                  return '<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #f3f4f6;align-items:center">'+
-                    '<span style="font-size:13px;color:#6b7280;min-width:44px;flex-shrink:0">'+escH(hora2)+' hs</span>'+
-                    '<div style="width:3px;height:36px;background:'+tipoCol+';border-radius:2px;flex-shrink:0"></div>'+
-                    '<div style="flex:1;min-width:0">'+
-                      '<div style="font-size:13px;color:#111827;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">'+escH(ev.descripcion||"")+'</div>'+
-                      (ev.lugar ? '<div style="font-size:11px;color:#6b7280;margin-top:1px">📍 '+escH(ev.lugar)+'</div>' : '')+
-                    '</div>'+
-                    (esDespues15 ? '<button onclick="if(typeof toggleCobertura==='function')toggleCobertura(''+escH(hoyStr)+'','ev_'+escH(ev.id||safeKey(ev.descripcion||'ev'))+'');if(typeof renderHoy==='function')renderHoy();" style="background:'+(esCubierto?'#7c3aed':'#ede9fe')+';color:'+(esCubierto?'#fff':'#7c3aed')+';border:none;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0">'+(esCubierto?'✅ Cubierto':'☑️ Cubrir')+'</button>' : '')+
-                  '</div>';
+                  var esCubierto = typeof getPrensa === "function" && getPrensa(hoyStr+"_ev_"+safeKey(ev.id||ev.descripcion||""));
+                  var cubrirBtn = esDespues15 ? "<button onclick=\"if(typeof toggleCobertura==='function')toggleCobertura('"+escH(hoyStr)+"','ev_"+escH(safeKey(ev.id||ev.descripcion||"ev"))+"');if(typeof renderHoy==='function')renderHoy();\" style=\"background:"+(esCubierto?"#7c3aed":"#ede9fe")+";color:"+(esCubierto?"#fff":"#7c3aed")+";border:none;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0\">"+(esCubierto?"✅ Cubierto":"☑️ Cubrir")+"</button>" : "";
+                  return "<div style=\"display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #f3f4f6;align-items:center\">"+
+                    "<span style=\"font-size:13px;color:#6b7280;min-width:44px;flex-shrink:0\">"+escH(hora2)+" hs</span>"+
+                    "<div style=\"width:3px;height:36px;background:"+tipoCol+";border-radius:2px;flex-shrink:0\"></div>"+
+                    "<div style=\"flex:1;min-width:0\">"+
+                      "<div style=\"font-size:13px;color:#111827;overflow:hidden;white-space:nowrap;text-overflow:ellipsis\">"+escH(ev.descripcion||"")+"</div>"+
+                      (ev.lugar ? "<div style=\"font-size:11px;color:#6b7280;margin-top:1px\">📍 "+escH(ev.lugar)+"</div>" : "")+
+                    "</div>"+
+                    cubrirBtn+
+                  "</div>";
                 }).join(""))+
-            (eventosHoy.length > 5 ? '<div style="text-align:center;margin-top:8px"><button onclick="if(typeof nav==='function')nav('calendario')" style="font-size:11px;padding:4px 12px;background:#ede9fe;color:#6d28d9;border:none;border-radius:7px;cursor:pointer;font-weight:600">+'+(eventosHoy.length-5)+' más</button></div>' : '')+
-          '</div>'+
+            (eventosHoy.length > 5 ? "<div style=\"text-align:center;margin-top:8px\"><button onclick=\"if(typeof nav==='function')nav('calendario')\" style=\"font-size:11px;padding:4px 12px;background:#ede9fe;color:#6d28d9;border:none;border-radius:7px;cursor:pointer;font-weight:600\">+"+(eventosHoy.length-5)+" más</button></div>" : "")+
+          "</div>"+
 
           // Tareas urgentes
-          '<div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px 18px">'+
-            '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">'+
-              '<div style="width:28px;height:28px;background:#fee2e2;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px">🔥</div>'+
-              '<span style="font-size:14px;font-weight:700;color:#111827">Tareas urgentes</span>'+
-            '</div>'+
+          "<div style=\"background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px 18px\">"+
+            "<div style=\"display:flex;align-items:center;gap:8px;margin-bottom:12px\">"+
+              "<div style=\"width:28px;height:28px;background:#fee2e2;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px\">🔥</div>"+
+              "<span style=\"font-size:14px;font-weight:700;color:#111827\">Tareas urgentes</span>"+
+            "</div>"+
             (tareasUrgentes.length === 0
-              ? '<div style="font-size:13px;color:#9ca3af;text-align:center;padding:14px 0">Sin tareas urgentes pendientes</div>'
+              ? "<div style=\"font-size:13px;color:#9ca3af;text-align:center;padding:14px 0\">Sin tareas urgentes pendientes</div>"
               : tareasUrgentes.map(function(t){
-                  return '<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #f3f4f6;align-items:flex-start">'+
-                    '<input type="checkbox" style="margin-top:2px;accent-color:#7c3aed;flex-shrink:0">'+
-                    '<div style="flex:1;min-width:0">'+
-                      '<div style="font-size:13px;color:#111827;line-height:1.4">'+escH(t.descripcion||t.titulo||"")+'</div>'+
-                      (t.responsable ? '<div style="font-size:11px;color:#6b7280;margin-top:2px">'+escH(t.responsable)+'</div>' : '')+
-                    '</div>'+
-                  '</div>';
+                  return "<div style=\"display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #f3f4f6;align-items:flex-start\">"+
+                    "<input type=\"checkbox\" style=\"margin-top:2px;accent-color:#7c3aed;flex-shrink:0\">"+
+                    "<div style=\"flex:1;min-width:0\">"+
+                      "<div style=\"font-size:13px;color:#111827;line-height:1.4\">"+escH(t.descripcion||t.titulo||"")+"</div>"+
+                      (t.responsable ? "<div style=\"font-size:11px;color:#6b7280;margin-top:2px\">"+escH(t.responsable)+"</div>" : "")+
+                    "</div>"+
+                  "</div>";
                 }).join(""))+
-          '</div>'+
+          "</div>"+
 
-        '</div>'+
+        "</div>"+
 
         // Fila inferior: Publicaciones hoy + Guardia del día
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">'+
+        "<div style=\"display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px\">"+
 
           // Publicaciones de hoy
-          '<div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px 18px">'+
-            '<div style="font-size:14px;font-weight:700;color:#111827;margin-bottom:12px">📱 Publicaciones de hoy</div>'+
+          "<div style=\"background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px 18px\">"+
+            "<div style=\"font-size:14px;font-weight:700;color:#111827;margin-bottom:12px\">📱 Publicaciones de hoy</div>"+
             (pubs.length === 0
-              ? '<div style="font-size:13px;color:#9ca3af;text-align:center;padding:14px 0">Sin publicaciones para hoy</div>'
+              ? "<div style=\"font-size:13px;color:#9ca3af;text-align:center;padding:14px 0\">Sin publicaciones para hoy</div>"
               : pubs.map(function(p){
                   var hora = String(p.hora || "").substring(0,5);
                   var esG = esHorarioGuardia(hora);
                   var rNames = (p.redes||[p.red]).filter(Boolean).join(", ");
-                  return '<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #f3f4f6">'+
-                    '<span style="font-weight:700;color:'+(esG?"#dc2626":"#7c3aed")+';min-width:48px;font-size:13px">'+hora+(esG?' 🔴':'')+'</span>'+
-                    '<div style="flex:1;font-size:13px;color:#111827">'+escH(p.descripcion||"").substring(0,80)+
-                    (rNames?' <span style="font-size:11px;color:#6b7280">['+escH(rNames)+']</span>':'')+
-                    (p.responsable?'<div style="font-size:11px;color:#6b7280;margin-top:2px">'+escH(p.responsable)+'</div>':'')+
-                    '</div>'+
-                  '</div>';
+                  return "<div style=\"display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #f3f4f6\">"+
+                    "<span style=\"font-weight:700;color:"+(esG?"#dc2626":"#7c3aed")+";min-width:48px;font-size:13px\">"+hora+(esG?" 🔴":"")+"</span>"+
+                    "<div style=\"flex:1;font-size:13px;color:#111827\">"+escH(p.descripcion||"").substring(0,80)+
+                    (rNames?" <span style=\"font-size:11px;color:#6b7280\">["+escH(rNames)+"]</span>":"")+
+                    (p.responsable?"<div style=\"font-size:11px;color:#6b7280;margin-top:2px\">"+escH(p.responsable)+"</div>":"")+
+                    "</div>"+
+                  "</div>";
                 }).join(""))+
-          '</div>'+
+          "</div>"+
 
           // Guardia del día
-          '<div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px 18px">'+
-            '<div style="font-size:14px;font-weight:700;color:#111827;margin-bottom:12px">🛡️ Guardia del día</div>'+
+          "<div style=\"background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px 18px\">"+
+            "<div style=\"font-size:14px;font-weight:700;color:#111827;margin-bottom:12px\">🛡️ Guardia del día</div>"+
             (guardiaTitular
-              ? '<div style="display:flex;flex-direction:column;gap:10px">'+
-                  '<div style="display:flex;align-items:center;gap:10px"><div style="width:36px;height:36px;border-radius:50%;background:#ede9fe;color:#7c3aed;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px">'+escH(guardiaTitular.substring(0,2).toUpperCase())+'</div><div><div style="font-size:13px;font-weight:600">'+escH(guardiaTitular)+'</div><div style="font-size:11px;color:#6b7280">Titular</div></div></div>'+
-                  (guardiaSoporte ? '<div style="display:flex;align-items:center;gap:10px"><div style="width:36px;height:36px;border-radius:50%;background:#fef3c7;color:#854d0e;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px">'+escH(guardiaSoporte.substring(0,2).toUpperCase())+'</div><div><div style="font-size:13px;font-weight:600">'+escH(guardiaSoporte)+'</div><div style="font-size:11px;color:#6b7280">Soporte</div></div></div>' : '<div style="display:flex;align-items:center;gap:10px;opacity:.55"><div style="width:36px;height:36px;border-radius:50%;background:#f3f4f6;color:#9ca3af;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;border:1.5px dashed #d1d5db">–</div><div><div style="font-size:13px;font-weight:600;color:#6b7280">Sin soporte</div><div style="font-size:11px;color:#9ca3af">Asignar desde Guardias</div></div></div>')+
-                  (pubsGuardia.length>0 ? '<div style="margin-top:8px;padding-top:10px;border-top:1px solid #f3f4f6;font-size:11px;color:#92400e"><strong>'+pubsGuardia.length+' publicación'+(pubsGuardia.length===1?'':'es')+'</strong> a cargo de la guardia hoy</div>' : '')+
-                '</div>'
-              : '<div style="font-size:13px;color:#9ca3af;text-align:center;padding:14px 0">No se detectó guardia para hoy</div>')+
-          '</div>'+
+              ? "<div style=\"display:flex;flex-direction:column;gap:10px\">"+
+                  "<div style=\"display:flex;align-items:center;gap:10px\"><div style=\"width:36px;height:36px;border-radius:50%;background:#ede9fe;color:#7c3aed;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px\">"+escH(guardiaTitular.substring(0,2).toUpperCase())+"</div><div><div style=\"font-size:13px;font-weight:600\">"+escH(guardiaTitular)+"</div><div style=\"font-size:11px;color:#6b7280\">Titular</div></div></div>"+
+                  (guardiaSoporte ? "<div style=\"display:flex;align-items:center;gap:10px\"><div style=\"width:36px;height:36px;border-radius:50%;background:#fef3c7;color:#854d0e;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px\">"+escH(guardiaSoporte.substring(0,2).toUpperCase())+"</div><div><div style=\"font-size:13px;font-weight:600\">"+escH(guardiaSoporte)+"</div><div style=\"font-size:11px;color:#6b7280\">Soporte</div></div></div>" : "<div style=\"display:flex;align-items:center;gap:10px;opacity:.55\"><div style=\"width:36px;height:36px;border-radius:50%;background:#f3f4f6;color:#9ca3af;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;border:1.5px dashed #d1d5db\">–</div><div><div style=\"font-size:13px;font-weight:600;color:#6b7280\">Sin soporte</div><div style=\"font-size:11px;color:#9ca3af\">Asignar desde Guardias</div></div></div>")+
+                  (pubsGuardia.length>0 ? "<div style=\"margin-top:8px;padding-top:10px;border-top:1px solid #f3f4f6;font-size:11px;color:#92400e\"><strong>"+pubsGuardia.length+" publicación"+(pubsGuardia.length===1?"":"es")+"</strong> a cargo de la guardia hoy</div>" : "")+
+                "</div>"
+              : "<div style=\"font-size:13px;color:#9ca3af;text-align:center;padding:14px 0\">No se detectó guardia para hoy</div>")+
+          "</div>"+
 
-        '</div>'+
+        "</div>"+
 
-      '</div>';
-
+      "</div>";
 
     // Esconder el contenido original del p-hoy y poner el mÃ­o
     Array.prototype.forEach.call(pHoy.children, function(el){
