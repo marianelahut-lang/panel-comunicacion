@@ -3550,13 +3550,13 @@ window._guardiaDelPub = function(id){
 
     var hoyDate = new Date();
     var hoyStr = hoyDate.toISOString().substring(0,10);
-    var diaNombre = ["Domingo","Lunes","Martes","MiÃ©rcoles","Jueves","Viernes","SÃ¡bado"][hoyDate.getDay()];
+    var diaNombre = ["Domingo","Lunes","Martes","Mi\u00e9rcoles","Jueves","Viernes","S\u00e1bado"][hoyDate.getDay()];
     var meses = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
     var fechaFmt = diaNombre + " " + hoyDate.getDate() + " de " + meses[hoyDate.getMonth()] + " de " + hoyDate.getFullYear();
 
     var hh = hoyDate.getHours();
-    var saludo = hh < 12 ? "Buenos dÃ­as" : hh < 19 ? "Buenas tardes" : "Buenas noches";
-    var saludoEmoji = hh < 12 ? "âï¸" : hh < 19 ? "ð¤ï¸" : "ð";
+    var saludo = hh < 12 ? "Buenos d\u00edas" : hh < 19 ? "Buenas tardes" : "Buenas noches";
+    var saludoEmoji = hh < 12 ? "\u2600\uFE0F" : hh < 19 ? "\uD83C\uDF24\uFE0F" : "\uD83C\uDF19";
 
     // Cargar publicaciones de hoy
     var pubs = cargarPublicaciones().filter(function(p){ return p && p.fecha === hoyStr; });
@@ -3617,12 +3617,26 @@ window._guardiaDelPub = function(id){
       if(typeof gcalEvs !== "undefined" && Array.isArray(gcalEvs)) srcEv = srcEv.concat(gcalEvs);
       var seenEv = {};
       eventosHoy = srcEv.filter(function(ev){
-        if(!ev || String(ev.fecha||"").slice(0,10) !== hoyStr || ev.cancelado) return false;
-        if(ev.tipo === "entrevista") return false; // las entrevistas tienen su propio bloque
-        var k = (ev.descripcion||"").slice(0,30) + "|" + (ev.hora||"");
+        // Normalizar fecha: soporta ev.fecha, ev.start.date, ev.start.dateTime
+        var evFecha = "";
+        try {
+          evFecha = ev.fecha || (ev.start && (ev.start.date || ev.start.dateTime || "")) || ev.date || "";
+          evFecha = String(evFecha).slice(0,10);
+        } catch(_){}
+        if(!ev || evFecha !== hoyStr) return false;
+        if(ev.cancelado || ev.cancelled) return false;
+        var k = (ev.descripcion||ev.summary||ev.titulo||"").slice(0,30) + "|" + (ev.hora||ev.time||"");
         if(seenEv[k]) return false;
         seenEv[k] = 1;
         return true;
+      }).map(function(ev){
+        // Normalizar campos para renderizado uniforme
+        if(!ev.descripcion && ev.summary) ev = Object.assign({}, ev, {descripcion: ev.summary});
+        if(!ev.hora && ev.start) {
+          var t = ev.start.dateTime || ev.start.date || "";
+          if(t.indexOf("T") >= 0) ev = Object.assign({}, ev, {hora: t.substring(11,16)});
+        }
+        return ev;
       }).sort(function(a,b){ return (a.hora||"00:00").localeCompare(b.hora||"00:00"); });
     } catch(_){}
 
