@@ -5,7 +5,7 @@ if(document.getElementById("m4css"))return;
 var s=document.createElement("style");s.id="m4css";var css="";
 css+="#p-guardias .gwtbl{display:none!important}\n";
 css+="#p-guardias .ptop,#p-guardias .ptitle{display:none!important}\n";
-css+="#p-guardias #m1-pubs-guardias{display:nonhe!important}\n";
+css+="#p-guardias #m1-pubs-guardias{display:none!important}\n";
 css+="body:not(.m4tab-tablero) #p-tablero{display:none!important}\n";
 css+=".kanban>.kcol{flex:none!important;width:265px!important;max-width:265px!important;min-width:265px!important}\n";
 css+="#m4g{padding:0;font-family:inherit}\n";
