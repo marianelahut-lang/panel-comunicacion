@@ -1,10 +1,11 @@
 /* ============================================================
-   MEJORAS4.JS - Panel Comunicacion Tres Arroyos v2.1
+   MEJORAS4.JS - Panel Comunicacion Tres Arroyos v2.2
    Cambios seguros: no borra ni migra informacion existente.
    - Mantiene la marca Cubrir/Cubierto de eventos en Hoy.
    - Agrega backup preventivo antes de acciones destructivas.
    - Mejora navegacion mobile y claridad de datos.
    - Muestra/agrega telefonos de agentes en Guardias.
+   - Corrige edicion y borrado de publicaciones en Agenda/Guardias.
 ============================================================ */
 (function(){
 "use strict";
@@ -25,6 +26,7 @@ function todayISO(){var n=new Date();return n.getFullYear()+"-"+(n.getMonth()<9?
 function txt(s){return String(s||"").replace(/\s+/g," ").trim();}
 function keyName(s){return txt(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");}
 function digits(s){return String(s||"").replace(/[^0-9]/g,"");}
+function idEq(a,b){return String(a||"")===String(b||"");}
 
 function telefonoAgente(nombre){
   var n=txt(nombre), k=keyName(n), tel="";
@@ -34,20 +36,14 @@ function telefonoAgente(nombre){
   return digits(tel);
 }
 function guardarTelefonoAgente(nombre,tel){
-  try{
-    var saved=JSON.parse(localStorage.getItem("panelContactos")||"{}");
-    var actual=saved[nombre]||{};
-    actual.tel=digits(tel);
-    saved[nombre]=actual;
-    localStorage.setItem("panelContactos",JSON.stringify(saved));
-  }catch(e){}
+  try{var saved=JSON.parse(localStorage.getItem("panelContactos")||"{}");var actual=saved[nombre]||{};actual.tel=digits(tel);saved[nombre]=actual;localStorage.setItem("panelContactos",JSON.stringify(saved));}catch(e){}
 }
 function waUrl(tel,msg){return "https://api.whatsapp.com/send?phone="+digits(tel)+"&text="+encodeURIComponent(msg||"");}
 
 function recolectarLocalStorage(){var out={};try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);out[k]=localStorage.getItem(k);}}catch(e){}return out;}
 function guardarBackupAutomatico(motivo){
   var stamp=new Date().toISOString().replace(/[:.]/g,"-");
-  var payload={meta:{motivo:motivo||"cambio",timestamp:new Date().toISOString(),url:location.href,version:"mejoras4-v2.1"},localStorage:recolectarLocalStorage()};
+  var payload={meta:{motivo:motivo||"cambio",timestamp:new Date().toISOString(),url:location.href,version:"mejoras4-v2.2"},localStorage:recolectarLocalStorage()};
   try{localStorage.setItem(BACKUP_PREFIX+stamp,JSON.stringify(payload));}catch(e){}
   return payload;
 }
@@ -137,60 +133,94 @@ function reemplazarTelefono(el,nombre,fecha,rol){
   b.type="button";
   b.className="m4g-add-phone";
   b.textContent="Agregar tel.";
-  b.onclick=function(ev){
-    ev.stopPropagation();
-    var nuevo=prompt("Telefono de "+nombre+" con codigo pais","");
-    if(!nuevo)return;
-    guardarTelefonoAgente(nombre,nuevo);
-    mejorarTelefonosGuardia();
-  };
+  b.onclick=function(ev){ev.stopPropagation();var nuevo=prompt("Telefono de "+nombre+" con codigo pais","");if(!nuevo)return;guardarTelefonoAgente(nombre,nuevo);mejorarTelefonosGuardia();};
   el.replaceWith(b);
 }
 function mejorarTelefonosGuardia(){
   try{
-    document.querySelectorAll("#m4g .m4g-card").forEach(function(card){
-      var nameEl=card.querySelector(".m4g-cname");
-      if(!nameEl)return;
-      var old=card.querySelector(".m4g-wa-dis,.m4g-add-phone");
-      if(old)reemplazarTelefono(old,txt(nameEl.textContent),"",txt((card.querySelector(".m4g-crole")||{}).textContent));
-    });
-    document.querySelectorAll("#m4g .m4g-agent-card").forEach(function(card){
-      var nameEl=card.querySelector(".m4g-agent-name");
-      if(!nameEl)return;
-      var old=card.querySelector(".m4g-wa-dis,.m4g-add-phone");
-      if(old)reemplazarTelefono(old,txt(nameEl.textContent),"",txt((card.querySelector(".m4g-agent-role")||{}).textContent));
-    });
+    document.querySelectorAll("#m4g .m4g-card").forEach(function(card){var nameEl=card.querySelector(".m4g-cname");if(!nameEl)return;var old=card.querySelector(".m4g-wa-dis,.m4g-add-phone");if(old)reemplazarTelefono(old,txt(nameEl.textContent),"",txt((card.querySelector(".m4g-crole")||{}).textContent));});
+    document.querySelectorAll("#m4g .m4g-agent-card").forEach(function(card){var nameEl=card.querySelector(".m4g-agent-name");if(!nameEl)return;var old=card.querySelector(".m4g-wa-dis,.m4g-add-phone");if(old)reemplazarTelefono(old,txt(nameEl.textContent),"",txt((card.querySelector(".m4g-agent-role")||{}).textContent));});
     var big=document.querySelector("#m4g .m4g-detail-header .m4g-wa-big:disabled");
     var agent=document.querySelector("#m4g .m4g-agent-name");
-    if(big&&agent){
-      var nombre=txt(agent.textContent), tel=telefonoAgente(nombre);
-      if(tel){var nb=document.createElement("button");nb.className="m4g-wa-big";nb.textContent="Enviar WhatsApp";nb.onclick=function(){window.open(waUrl(tel,"Guardia del dia - "+nombre),"_blank");};big.replaceWith(nb);}
-    }
+    if(big&&agent){var nombre=txt(agent.textContent), tel=telefonoAgente(nombre);if(tel){var nb=document.createElement("button");nb.className="m4g-wa-big";nb.textContent="Enviar WhatsApp";nb.onclick=function(){window.open(waUrl(tel,"Guardia del dia - "+nombre),"_blank");};big.replaceWith(nb);}}
   }catch(e){}
+}
+
+function quitarDeStoragePorId(id){
+  var changed=0;
+  try{
+    Object.keys(localStorage).forEach(function(k){
+      var raw=localStorage.getItem(k);
+      if(!raw||raw.charAt(0)!=="[")return;
+      var arr;
+      try{arr=JSON.parse(raw);}catch(e){return;}
+      if(!Array.isArray(arr))return;
+      var next=arr.filter(function(item){return !(item&&idEq(item.id,id));});
+      if(next.length!==arr.length){localStorage.setItem(k,JSON.stringify(next));changed+=arr.length-next.length;}
+    });
+  }catch(e){}
+  return changed;
+}
+function limpiarPublicacionLocal(id){
+  if(!id)return;
+  try{if(Array.isArray(window.pubs))window.pubs=window.pubs.filter(function(p){return !idEq(p&&p.id,id);});}catch(e){}
+  try{if(Array.isArray(pubs))pubs=pubs.filter(function(p){return !idEq(p&&p.id,id);});}catch(e){}
+  try{if(Array.isArray(window._pubGuardia))window._pubGuardia=window._pubGuardia.filter(function(p){return !idEq(p&&p.id,id)&&!idEq(p&&p.id,"pub_"+id);});}catch(e){}
+  try{if(typeof cobSel!=="undefined"){delete cobSel[id];delete cobSel["pub_"+id];}}catch(e){}
+  quitarDeStoragePorId(id);
+  try{document.querySelectorAll('[data-pub-id="'+String(id).replace(/"/g,'\\"')+'"]').forEach(function(el){el.remove();});}catch(e){}
+}
+function rerenderPublicaciones(){
+  ["renderWeek","renderPubDay","renderGuardias","renderGuardDay","renderCal","renderCalDay","updateBadges","renderPublicacionesEnGuardias"].forEach(function(fn){try{if(typeof window[fn]==="function")window[fn]();}catch(e){}});
+  setTimeout(function(){normalizarTextos();mejorarTelefonosGuardia();},150);
+}
+async function borrarPublicacionRobusto(id,descripcion){
+  if(!id)return;
+  var nombre=txt(descripcion)||"esta publicación";
+  if(!confirmarConBackup("¿Eliminar \""+nombre+"\"?","eliminar publicación"))return;
+  limpiarPublicacionLocal(id);
+  try{if(typeof window.closeMod==="function")window.closeMod("modPub");}catch(e){}
+  try{if(typeof closeMod==="function")closeMod("modPub");}catch(e){}
+  rerenderPublicaciones();
+  try{
+    var dbx=window.db||(typeof db!=="undefined"?db:null);
+    if(dbx&&dbx.from){var res=await dbx.from("publicaciones").delete().eq("id",id);if(res&&res.error)throw res.error;}
+    if(typeof window.toast==="function")window.toast("✓ Publicación eliminada");
+  }catch(e){
+    if(typeof window.toast==="function")window.toast("Eliminada de esta pantalla. Revisá conexión para sincronizar.","warn");
+    try{console.warn("No se pudo sincronizar borrado de publicación",e);}catch(_e){}
+  }
+  rerenderPublicaciones();
+}
+function instalarFixPublicaciones(){
+  window.editPubMod=function(id){if(typeof window.editPubItem==="function")return window.editPubItem(id);try{if(typeof editPubItem==="function")return editPubItem(id);}catch(e){}};
+  window.eliminarPubDirecto=function(id,descripcion){return borrarPublicacionRobusto(id,descripcion);};
+  window.m4gDelPub=function(id){return borrarPublicacionRobusto(id,"esta publicación");};
+  window.deletePub=function(){var id="",desc="esta publicación";try{id=(document.getElementById("pubeid")||{}).value||"";}catch(e){}try{desc=(document.getElementById("pdesc")||{}).value||desc;}catch(e){}return borrarPublicacionRobusto(id,desc);};
 }
 
 function envolverAccionesDestructivas(){
   function wrap(name,label){var orig=window[name];if(typeof orig!=="function"||orig._m4safe)return;var wrapped=function(){if(!confirmarConBackup("¿Confirmás "+label+"?",label))return;return orig.apply(this,arguments);};wrapped._m4safe=true;window[name]=wrapped;}
-  wrap("eliminarPubDirecto","eliminar esta publicación");wrap("m4gDelPub","eliminar esta publicación");wrap("delTask","eliminar esta tarea");wrap("deleteTask","eliminar esta tarea");wrap("ctDelete","eliminar este contacto");
+  wrap("delTask","eliminar esta tarea");wrap("deleteTask","eliminar esta tarea");wrap("ctDelete","eliminar este contacto");
 }
 
 function patchNav(){
   if(window._m4uxNavPatched)return;
   var orig=window.nav;if(typeof orig!=="function")return;
   window._m4uxNavPatched=true;
-  window.nav=function(id){var r=orig.apply(this,arguments);marcarMobileActivo(id);setTimeout(function(){normalizarTextos();reforzarBackup();sumarEstadoDatos();envolverAccionesDestructivas();mejorarTelefonosGuardia();if(id==="hoy"){destacarHoy();window.mejorarAgendaHoy();}},300);return r;};
+  window.nav=function(id){var r=orig.apply(this,arguments);marcarMobileActivo(id);setTimeout(function(){normalizarTextos();reforzarBackup();sumarEstadoDatos();instalarFixPublicaciones();envolverAccionesDestructivas();mejorarTelefonosGuardia();if(id==="hoy"){destacarHoy();window.mejorarAgendaHoy();}},300);return r;};
 }
 function observarCambios(){
   if(window._m4uxObs)return;
-  try{var pending=false;window._m4uxObs=new MutationObserver(function(){if(pending)return;pending=true;setTimeout(function(){pending=false;normalizarTextos();reforzarBackup();envolverAccionesDestructivas();mejorarTelefonosGuardia();},350);});window._m4uxObs.observe(document.body,{childList:true,subtree:true});}catch(e){}
+  try{var pending=false;window._m4uxObs=new MutationObserver(function(){if(pending)return;pending=true;setTimeout(function(){pending=false;normalizarTextos();reforzarBackup();instalarFixPublicaciones();envolverAccionesDestructivas();mejorarTelefonosGuardia();},350);});window._m4uxObs.observe(document.body,{childList:true,subtree:true});}catch(e){}
 }
 
 function inicializar(){
-  fixCSSHidden();inyectarEstilosUX();normalizarTextos();reforzarBackup();sumarEstadoDatos();crearMobileBar();patchNav();observarCambios();envolverAccionesDestructivas();mejorarTelefonosGuardia();
+  fixCSSHidden();inyectarEstilosUX();normalizarTextos();reforzarBackup();sumarEstadoDatos();crearMobileBar();patchNav();observarCambios();instalarFixPublicaciones();envolverAccionesDestructivas();mejorarTelefonosGuardia();
   if((window._m4gcal||[]).length===0&&typeof window.syncGCal==="function"){window._m4gcal=[];window.syncGCal();}
   var targetNode=document.getElementById("m1-panel-hoy");
   if(targetNode&&!window._m4obsM4){window._m4obsM4=new MutationObserver(function(){clearTimeout(window._m4obsTimerM4);window._m4obsTimerM4=setTimeout(function(){var phoy=document.getElementById("p-hoy");if(phoy&&phoy.style.display!=="none"&&phoy.offsetParent!==null){destacarHoy();window.mejorarAgendaHoy();mejorarTelefonosGuardia();}},200);});window._m4obsM4.observe(targetNode,{childList:true,subtree:true});}
-  setTimeout(function(){destacarHoy();window.mejorarAgendaHoy();normalizarTextos();envolverAccionesDestructivas();mejorarTelefonosGuardia();},900);
+  setTimeout(function(){destacarHoy();window.mejorarAgendaHoy();normalizarTextos();instalarFixPublicaciones();envolverAccionesDestructivas();mejorarTelefonosGuardia();},900);
 }
 
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",function(){setTimeout(inicializar,800);});
