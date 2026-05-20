@@ -7,7 +7,7 @@
    Solo limpia cruces visuales del DOM, agrega acceso al generador,
    refuerza renders fragiles y mejora la vista Hoy.
    ============================================================ */
-(function(){
+(function(){h
   "use strict";
 
   var GENERADOR_URL = "generador-flyers.html";
@@ -31,7 +31,7 @@
   }
   function isActiveTask(t){
     var e = norm(t && t.estado);
-    return e !== "completo" && e !== "completa" && e !== "realizada" && e !== "realizado";
+    return e !== "completo" && e !== "completa" && e !== "realizada" && e !== "realizado" && e !== "lista para publicar";
   }
   function visible(el){
     return !!el && window.getComputedStyle(el).display !== "none" && window.getComputedStyle(el).visibility !== "hidden";
