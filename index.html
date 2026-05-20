@@ -1,15 +1,16 @@
-h<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📡</text></svg>">
 <meta name="theme-color" content="#1e2535">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-stylhe" content="black-transluchent">
 <meta name="apple-mobile-web-app-title" content="Comunicación TA">
 <link rel="manifest" id="pwa-manifest">
-<meta name="app-version" content="v5.68"
+<meta name="app-version" content="v5.68">
 <title>Panel · Comunicación Tres Arroyos</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -5790,7 +5791,7 @@ console.log("v5.68 OK - guardia guards + CSS moderno + dark mode");
 })();
 </script>
 
-<script src="mejoras1.js"></script>
+<!-- mejoras1.js se carga una sola vez al final del body (defer) -->
 
 <!-- ============================================================
      PARCHE v5.69 — Mejoras solicitadas (mayo 2026)
@@ -7593,6 +7594,7 @@ console.log("✅ Parche v5.74 OK — eliminar pubs hardened + estilo bloque guar
   <script src="mejoras3.js" defer></script>
   <script src="mejoras4.js" defer></script>
     <script src="mejoras5.js" defer></script>
-  <script src="mejoras6.js" defer></script>
+    <script src="mejoras6.js" defer></script>
+    <script src="mejoras7.js" defer></script>
 </body>
 </html>
