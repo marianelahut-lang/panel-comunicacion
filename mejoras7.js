@@ -11,6 +11,7 @@
   "use strict";
 
   var GENERADOR_URL = "generador-flyers.html";
+  var PAGINAS = ["hoy","tablero","material","publicaciones","calendario","guardias","equipo","medios","reclamos","entrevistas","contactos","recursos","metricas","dashboard","agente"];
 
   function ready(fn){
     if(document.readyState !== "loading") fn();
@@ -31,6 +32,9 @@
   function isActiveTask(t){
     var e = norm(t && t.estado);
     return e !== "completo" && e !== "completa" && e !== "realizada" && e !== "realizado";
+  }
+  function visible(el){
+    return !!el && window.getComputedStyle(el).display !== "none" && window.getComputedStyle(el).visibility !== "hidden";
   }
 
   /* Acceso al generador */
@@ -111,6 +115,24 @@
     });
   }
 
+  function normalizarPaginasVisibles(active){
+    if(!active) return;
+    var paginaActiva = document.getElementById("p-" + active);
+    if(!paginaActiva) return;
+    PAGINAS.forEach(function(id){
+      var el = document.getElementById("p-" + id);
+      if(!el) return;
+      if(id === active){
+        el.hidden = false;
+        el.style.display = "";
+        el.style.visibility = "visible";
+      }else{
+        el.hidden = true;
+        el.style.display = "none";
+      }
+    });
+  }
+
   /* Realtime y renders */
   function patchRealtimeDuplicados(){
     function aplicar(db){
@@ -168,7 +190,8 @@
       var t = gcBtn.textContent || "";
       if(!done && /GCal\s*[·.]\s*\d+\s*ev/i.test(t)){
         done = true;
-        if(document.getElementById("p-hoy") && typeof window._renderHoy === "function") setTimeout(window._renderHoy, 250);
+        var host = document.getElementById("p-hoy");
+        if(host && visible(host) && typeof window._renderHoy === "function") setTimeout(window._renderHoy, 250);
         setTimeout(function(){ done = false; }, 8000);
       }
     });
@@ -236,9 +259,21 @@
     return "if(typeof editTask==='function')editTask('" + String(id).replace(/'/g,"\\'") + "')";
   }
 
+  function limpiarVistaHoy(){
+    var host = document.getElementById("p-hoy");
+    if(!host) return;
+    var cards = qa("#m7-tareas-demora");
+    cards.forEach(function(card, idx){
+      if(idx > 0 || card.parentNode !== host) card.remove();
+    });
+  }
+
   function renderTareasMayorDemora(){
     var host = document.getElementById("p-hoy");
-    if(!host || typeof tasks === "undefined" || !Array.isArray(tasks)) return;
+    if(!host || !visible(host)) return;
+    if(typeof tasks === "undefined" || !Array.isArray(tasks)) return;
+
+    limpiarVistaHoy();
 
     var list = tasks.filter(isActiveTask).map(function(t){
       return { raw:t, age:ageDays(t.created_at || t.updated_at) };
@@ -254,7 +289,7 @@
       card.className = "m7-delay-card";
       var kids = Array.prototype.slice.call(host.children);
       var ref = kids.find(function(el){ return /Agenda de hoy|Tareas urgentes/i.test(el.textContent || ""); });
-      host.insertBefore(card, ref || kids[2] || null);
+      host.insertBefore(card, ref || kids[1] || null);
     }
 
     var rows = list.length ? list.map(function(item, idx){
@@ -282,14 +317,13 @@
       if(typeof orig !== "function" || orig._m7delay) return;
       window[name] = function(){
         var r = orig.apply(this, arguments);
-        setTimeout(renderTareasMayorDemora, 80);
-        setTimeout(renderTareasMayorDemora, 350);
+        setTimeout(function(){ limpiarVistaHoy(); renderTareasMayorDemora(); }, 90);
+        setTimeout(renderTareasMayorDemora, 360);
         return r;
       };
       window[name]._m7delay = true;
     };
     wrap("_renderHoy");
-    wrap("renderAll");
     wrap("saveTask");
     wrap("deleteTask");
     wrap("deleteTaskModal");
@@ -302,10 +336,12 @@
     window.nav = function(id){
       var r = orig.apply(this, arguments);
       setTimeout(function(){
+        normalizarPaginasVisibles(id);
         limpiarCruces();
         if(id === "hoy"){
-          if(typeof window._renderHoy === "function") window._renderHoy();
+          limpiarVistaHoy();
           renderTareasMayorDemora();
+          setTimeout(renderTareasMayorDemora, 280);
         }
         if(id === "guardias") ocultarDiasPasadosEnGuardias();
         if(id === "tablero") ocultarColumnaRealizada();
@@ -331,6 +367,9 @@
       ".m7-generator-sec{margin-top:10px!important}",
       "aside.sb{overflow-x:hidden}",
       ".ag-task-check{width:18px!important;height:18px!important;cursor:pointer!important;flex-shrink:0!important;margin-top:1px!important;accent-color:var(--acc,#667eea)!important}",
+      "#p-hoy{position:relative!important;clear:both!important;overflow:auto!important;padding-bottom:26px!important}",
+      "#p-hoy[hidden]{display:none!important}",
+      "#p-hoy>*{max-width:100%}",
       "#p-calendario{overflow:hidden!important}",
       "#calwscroll,#cal-day-content{background:#fff!important;position:relative!important;isolation:isolate!important}",
       "#calwscroll{overflow:auto!important;scrollbar-width:thin!important}",
@@ -341,7 +380,7 @@
       "#calwscroll .m7-cal-event *,#cal-day-content .m7-cal-event *{color:inherit!important;opacity:1!important;visibility:visible!important;line-height:1.25!important;white-space:normal!important}",
       "body.dark #calwscroll,body.dark #cal-day-content{background:#0f172a!important}",
       "body.dark #calwscroll .m7-cal-event,body.dark #cal-day-content .m7-cal-event{background:#1f2937!important;color:#f8fafc!important;border-color:#475569!important;border-left-color:#a78bfa!important;box-shadow:0 4px 14px rgba(0,0,0,.38)!important}",
-      ".m7-delay-card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:18px 20px;margin:14px 0 18px;box-shadow:0 8px 24px rgba(15,23,42,.06)}",
+      ".m7-delay-card{width:100%;clear:both;display:block;background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:18px 20px;margin:14px 0 18px;box-shadow:0 8px 24px rgba(15,23,42,.06)}",
       ".m7-delay-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px}",
       ".m7-delay-kicker{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#ef4444;margin-bottom:4px}",
       ".m7-delay-head h3{font-size:18px;line-height:1.2;margin:0;color:#111827}",
@@ -413,7 +452,7 @@
       obs.observe(document.body, {childList:true, subtree:true});
     }catch(_){}
 
-    console.log("[mejoras7] Panel estable + calendario visible + mayor demora en Hoy");
+    console.log("[mejoras7] Panel estable + Hoy sin mezcla visual + calendario visible");
   }
 
   ready(init);
