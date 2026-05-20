@@ -1,0 +1,3 @@
+Deploy refresh 2026-05-20c
+
+This commit forces GitHub Pages to republish the current clean mejoras7.js so browsers stop receiving the stale cached file with the stray `h` runtime error.
