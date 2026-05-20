@@ -226,20 +226,161 @@
     });
   }
 
-  function estabilizarVistaHoy(){
+  function hoyISO(){
+    try{ return (typeof iso === "function" && typeof TODAY !== "undefined") ? iso(TODAY) : new Date().toISOString().slice(0,10); }
+    catch(_e){ return new Date().toISOString().slice(0,10); }
+  }
+
+  function horaCorta(h){
+    if(!h) return "";
+    return String(h).slice(0,5);
+  }
+
+  function jsq(s){
+    return String(s == null ? "" : s).replace(/\\/g,"\\\\").replace(/'/g,"\\'").replace(/\n/g," ");
+  }
+
+  function fechaDeItem(x){
+    return String((x && (x.fecha || x.dia || x.date || x.created_at)) || "").slice(0,10);
+  }
+
+  function listaEventosHoy(){
+    var ds = hoyISO(), src = [], seen = {};
+    try{ if(typeof agendas !== "undefined" && Array.isArray(agendas)) src = src.concat(agendas); }catch(_e){}
+    try{ if(typeof gcalEvs !== "undefined" && Array.isArray(gcalEvs)) src = src.concat(gcalEvs); }catch(_e){}
+    return src.filter(function(e){
+      if(!e || e.cancelado || fechaDeItem(e) !== ds || e.tipo === "entrevista") return false;
+      var k = (e.id || "") + "|" + (e.descripcion || "") + "|" + (e.hora || "");
+      if(seen[k]) return false;
+      seen[k] = true;
+      return true;
+    }).sort(function(a,b){ return String(a.hora || "99:99").localeCompare(String(b.hora || "99:99")); });
+  }
+
+  function listaPublicacionesHoy(){
+    var ds = hoyISO(), src = [];
+    try{ if(typeof pubs !== "undefined" && Array.isArray(pubs)) src = src.concat(pubs); }catch(_e){}
+    try{ if(Array.isArray(window._pubGuardia)) src = src.concat(window._pubGuardia); }catch(_e){}
+    return src.filter(function(p){
+      if(!p || p.cancelado || fechaDeItem(p) !== ds) return false;
+      var estado = norm(p.estado || p.status);
+      return estado !== "publicado" && estado !== "publicada" && estado !== "realizada" && estado !== "realizado";
+    }).sort(function(a,b){ return String(a.hora || "99:99").localeCompare(String(b.hora || "99:99")); });
+  }
+
+  function listaGuardiasHoy(){
+    var ds = hoyISO();
+    try{
+      if(typeof getGuardia === "function"){
+        var g = getGuardia(ds);
+        return Array.isArray(g) ? g.filter(Boolean) : [];
+      }
+    }catch(_e){}
+    return [];
+  }
+
+  function coberturaActiva(id){
+    try{ return !!(typeof cobSel !== "undefined" && cobSel && cobSel[id]); }catch(_e){ return false; }
+  }
+
+  window.m7ToggleCobertura = function(id){
+    try{
+      if(typeof cobSel !== "undefined" && cobSel){
+        cobSel[id] = !cobSel[id];
+        if(typeof renderGuardDay === "function") renderGuardDay();
+        if(typeof renderGuardias === "function") renderGuardias();
+        if(typeof renderCal === "function") renderCal();
+      }
+    }catch(e){ console.warn("[mejoras7] cobertura", e); }
+    schedule(renderHoyRedisenado, 40);
+  };
+
+  function tareaClick(id){ return "if(typeof editTask==='function')editTask('" + jsq(id) + "')"; }
+
+  function eventoClick(id){
+    return "if(typeof openEvPanel==='function'){var ev=(typeof agendas!=='undefined'?agendas:[]).concat(typeof gcalEvs!=='undefined'?gcalEvs:[]).find(function(x){return String(x.id)==='" + jsq(id) + "'});if(ev)openEvPanel(ev)}";
+  }
+
+  function renderTareasAntiguasHTML(){
+    var list = [];
+    try{
+      if(typeof tasks !== "undefined" && Array.isArray(tasks)){
+        list = tasks.filter(isActiveTask).map(function(t){ return { raw:t, age:ageDays(t.created_at || t.updated_at || t.fecha) }; })
+          .sort(function(a,b){ return (b.age - a.age) || String(a.raw.created_at || "").localeCompare(String(b.raw.created_at || "")); })
+          .slice(0, 5);
+      }
+    }catch(_e){}
+    var rows = list.length ? list.map(function(item, idx){
+      var t = item.raw, age = item.age;
+      return '<button class="m7-delay-row" onclick="' + tareaClick(t.id) + '">' +
+        '<div class="m7-delay-rank">' + (idx + 1) + '</div>' +
+        '<div class="m7-delay-main"><div class="m7-delay-title">' + esc(t.descripcion || "Tarea sin descripcion") + '</div>' +
+        '<div class="m7-delay-meta">' + esc(t.responsable || "Sin asignar") + ' · ' + esc(t.estado || "Pendiente") + ' · Prioridad ' + esc(t.prioridad || "Media") + '</div></div>' +
+        '<div class="m7-delay-age"><strong>' + age + '</strong><span>DIAS</span></div>' +
+      '</button>';
+    }).join("") : '<div class="m7-empty">No hay tareas pendientes demoradas.</div>';
+    return '<section class="m7-card m7-delay-card"><div class="m7-card-head"><div><div class="m7-kicker">Seguimiento</div><h3>5 tareas pendientes con mayor demora</h3></div><span class="m7-count">' + list.length + '/5</span></div>' + rows + '</section>';
+  }
+
+  function renderAgendaHoyHTML(){
+    var evs = listaEventosHoy();
+    var rows = evs.length ? evs.map(function(e){
+      var id = String(e.id || "");
+      var activo = coberturaActiva(id);
+      return '<div class="m7-event-row">' +
+        '<button class="m7-event-main" onclick="' + eventoClick(id) + '">' +
+          '<div class="m7-time">' + esc(horaCorta(e.hora) || "Todo el dia") + '</div>' +
+          '<div class="m7-event-text"><strong>' + esc(e.descripcion || "Evento") + '</strong>' +
+          (e.lugar ? '<span>' + esc(e.lugar) + '</span>' : '') + '</div>' +
+        '</button>' +
+        '<button class="m7-cover-btn ' + (activo ? "on" : "") + '" onclick="m7ToggleCobertura(\'' + jsq(id) + '\')">' + (activo ? "Se cubre" : "No se cubre") + '</button>' +
+      '</div>';
+    }).join("") : '<div class="m7-empty">Sin eventos de calendario para hoy.</div>';
+    return '<section class="m7-card"><div class="m7-card-head"><div><div class="m7-kicker blue">Calendario</div><h3>Eventos del dia</h3></div><span class="m7-count blue">' + evs.length + '</span></div>' + rows + '</section>';
+  }
+
+  function renderGuardiasHoyHTML(){
+    var guardias = listaGuardiasHoy();
+    var body = guardias.length ? '<div class="m7-guards">' + guardias.map(function(n, idx){
+      var rol = idx === 0 ? "Titular" : "Soporte";
+      var color = "#667eea";
+      try{ var m = typeof gm === "function" ? gm(n) : null; if(m && m.color) color = m.color; }catch(_e){}
+      return '<div class="m7-guard"><div class="m7-avatar" style="background:' + esc(color) + '">' + esc(String(n).slice(0,2).toUpperCase()) + '</div><div><strong>' + esc(n) + '</strong><span>' + rol + '</span></div></div>';
+    }).join("") + '</div>' : '<div class="m7-empty">Sin guardia asignada para hoy.</div>';
+    return '<section class="m7-card"><div class="m7-card-head"><div><div class="m7-kicker green">Guardias</div><h3>Guardias asignadas</h3></div></div>' + body + '</section>';
+  }
+
+  function renderPublicacionesHoyHTML(){
+    var list = listaPublicacionesHoy();
+    var rows = list.length ? list.map(function(p){
+      var desc = p.descripcion || p.desc || p.titulo || "Publicacion";
+      return '<div class="m7-pub-row"><div class="m7-time">' + esc(horaCorta(p.hora) || "--:--") + '</div><div class="m7-event-text"><strong>' + esc(desc) + '</strong><span>' + esc((p.cuenta || p.canal || p.estado || "Pendiente")) + '</span></div></div>';
+    }).join("") : '<div class="m7-empty">Sin publicaciones pendientes para hoy.</div>';
+    return '<section class="m7-card"><div class="m7-card-head"><div><div class="m7-kicker violet">Publicaciones</div><h3>Publicaciones a realizar</h3></div><span class="m7-count violet">' + list.length + '</span></div>' + rows + '</section>';
+  }
+
+  function renderHoyRedisenado(){
     var host = q("#p-hoy");
     if(!host || !visible(host)) return;
     host.hidden = false;
     host.classList.add("m7-hoy-stable");
-    host.style.display = "block";
-    host.style.visibility = "visible";
-    qa("#m1-panel-hoy").forEach(function(el, idx){ if(idx > 0 || el.parentNode !== host) el.remove(); });
-    qa("#m7-tareas-demora").forEach(function(el, idx){ if(idx > 0 || el.parentNode !== host) el.remove(); });
+    var panel = q("#m7-hoy-panel", host);
+    if(!panel){
+      panel = document.createElement("div");
+      panel.id = "m7-hoy-panel";
+      host.insertBefore(panel, host.firstChild || null);
+    }
+    panel.innerHTML = renderTareasAntiguasHTML() +
+      '<div class="m7-grid">' +
+        renderAgendaHoyHTML() +
+        renderGuardiasHoyHTML() +
+        renderPublicacionesHoyHTML() +
+      '</div>';
     Array.prototype.slice.call(host.children).forEach(function(child){
-      if(child.id === "m1-panel-hoy" || child.id === "m7-tareas-demora"){
+      if(child.id === "m7-hoy-panel"){
         child.hidden = false;
+        child.style.display = "block";
         child.style.visibility = "visible";
-        if(child.id === "m1-panel-hoy") child.style.display = "block";
       }else{
         child.hidden = true;
         child.style.display = "none";
@@ -247,36 +388,18 @@
     });
   }
 
-  function tareaClick(id){ return "if(typeof editTask==='function')editTask('" + String(id).replace(/'/g,"\\'") + "')"; }
-
-  function renderTareasMayorDemora(){
+  function estabilizarVistaHoy(){
     var host = q("#p-hoy");
     if(!host || !visible(host)) return;
-    if(typeof tasks === "undefined" || !Array.isArray(tasks)) return;
-    qa("#m7-tareas-demora").forEach(function(el, idx){ if(idx > 0 || el.parentNode !== host) el.remove(); });
-    var list = tasks.filter(isActiveTask).map(function(t){ return { raw:t, age:ageDays(t.created_at || t.updated_at) }; })
-      .sort(function(a,b){ return (b.age - a.age) || String(a.raw.created_at || "").localeCompare(String(b.raw.created_at || "")); })
-      .slice(0, 5);
-    var card = q("#m7-tareas-demora");
-    if(!card){
-      card = document.createElement("section");
-      card.id = "m7-tareas-demora";
-      card.className = "m7-delay-card";
-      host.insertBefore(card, host.firstChild || null);
-    }
-    var rows = list.length ? list.map(function(item, idx){
-      var t = item.raw;
-      var age = item.age;
-      var hot = age >= 14 ? " m7-delay-hot" : age >= 7 ? " m7-delay-warn" : "";
-      return '<button class="m7-delay-row' + hot + '" onclick="' + tareaClick(t.id) + '">' +
-        '<div class="m7-delay-rank">' + (idx + 1) + '</div>' +
-        '<div class="m7-delay-main"><div class="m7-delay-title">' + esc(t.descripcion || "Tarea sin descripcion") + '</div>' +
-        '<div class="m7-delay-meta">' + esc(t.responsable || "Sin asignar") + ' · ' + esc(t.estado || "Pendiente") + ' · Prioridad ' + esc(t.prioridad || "Media") + '</div></div>' +
-        '<div class="m7-delay-age"><strong>' + age + '</strong><span>dias</span></div>' +
-      '</button>';
-    }).join("") : '<div class="m7-delay-empty">No hay tareas pendientes demoradas.</div>';
-    card.innerHTML = '<div class="m7-delay-head"><div><div class="m7-delay-kicker">Seguimiento</div><h3>5 tareas pendientes con mayor demora</h3></div><span>' + list.length + '/5</span></div>' + rows;
-    estabilizarVistaHoy();
+    host.hidden = false;
+    host.classList.add("m7-hoy-stable");
+    host.style.display = "block";
+    host.style.visibility = "visible";
+    renderHoyRedisenado();
+  }
+
+  function renderTareasMayorDemora(){
+    renderHoyRedisenado();
   }
 
   function patchHoyMayorDemora(){
@@ -340,27 +463,34 @@
       "#sbi-generador-flyers{border:1px solid rgba(102,126,234,.18)!important;background:rgba(102,126,234,.08)!important;color:#6d28d9!important;font-weight:800!important}",
       "#fPanel,#sbpersons{display:none!important}",
       "aside.sb{overflow-x:hidden}",
-      "#p-hoy.m7-hoy-stable{display:block!important;visibility:visible!important;overflow:auto!important;position:relative!important;min-height:100%!important;background:#f3f6fb!important;padding:16px 20px 26px!important}",
-      "#p-hoy.m7-hoy-stable> :not(#m1-panel-hoy):not(#m7-tareas-demora){display:none!important;visibility:hidden!important}",
-      "#p-hoy.m7-hoy-stable #m1-panel-hoy{display:block!important;width:100%!important;max-width:100%!important;overflow:visible!important;clear:both!important}",
+      "#p-hoy.m7-hoy-stable{display:block!important;visibility:visible!important;overflow:auto!important;position:relative!important;min-height:100%!important;background:#f3f6fb!important;padding:22px 28px 32px!important}",
+      "#p-hoy.m7-hoy-stable> :not(#m7-hoy-panel){display:none!important;visibility:hidden!important}",
+      "#m7-hoy-panel{display:block!important;width:100%!important;max-width:1545px!important;margin:0 auto!important;overflow:visible!important;clear:both!important}",
       "#calwscroll,#cal-day-content{background:#fff!important;position:relative!important;isolation:isolate!important}",
       "#calwscroll .m7-cal-event,#cal-day-content .m7-cal-event{display:block!important;visibility:visible!important;opacity:1!important;box-sizing:border-box!important;min-height:24px!important;padding:5px 8px!important;border:1px solid #cbd5e1!important;border-left:5px solid #2563eb!important;border-radius:8px!important;background:#fff!important;color:#111827!important;box-shadow:0 3px 10px rgba(15,23,42,.18)!important;line-height:1.22!important;white-space:normal!important;overflow:hidden!important;z-index:40!important;pointer-events:auto!important}",
-      ".m7-delay-card{width:100%;clear:both;display:block;background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:18px 20px;margin:0 0 18px;box-shadow:0 8px 24px rgba(15,23,42,.06);box-sizing:border-box}",
-      ".m7-delay-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px}",
-      ".m7-delay-kicker{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#ef4444;margin-bottom:4px}",
-      ".m7-delay-head h3{font-size:18px;line-height:1.2;margin:0;color:#111827}",
-      ".m7-delay-head span{background:#fee2e2;color:#b91c1c;border-radius:999px;padding:5px 10px;font-size:11px;font-weight:800;white-space:nowrap}",
-      ".m7-delay-row{width:100%;display:grid;grid-template-columns:34px 1fr 62px;align-items:center;gap:12px;text-align:left;background:#fff;border:1px solid #eef2f7;border-radius:10px;padding:10px 12px;margin-top:8px;cursor:pointer;font-family:Inter,sans-serif;color:#111827;transition:transform .12s,box-shadow .12s,border-color .12s;box-sizing:border-box}",
-      ".m7-delay-rank{width:28px;height:28px;border-radius:9px;background:#f3f4f6;color:#4b5563;display:grid;place-items:center;font-weight:900;font-size:12px}",
-      ".m7-delay-title{font-size:13px;font-weight:800;line-height:1.35;color:#111827}",
-      ".m7-delay-meta{font-size:11px;color:#6b7280;margin-top:3px;line-height:1.3}",
-      ".m7-delay-age{text-align:center;border-left:1px solid #eef2f7;padding-left:10px;color:#6b7280}",
-      ".m7-delay-age strong{display:block;font-size:22px;line-height:1;color:#111827}",
-      ".m7-delay-age span{display:block;font-size:9px;text-transform:uppercase;font-weight:800;letter-spacing:.06em;margin-top:2px}",
-      ".m7-delay-row.m7-delay-warn{background:#fffbeb;border-color:#fde68a}",
-      ".m7-delay-row.m7-delay-hot{background:#fef2f2;border-color:#fecaca}",
-      "@media(max-width:1100px){#p-hoy.m7-hoy-stable [style*='grid-template-columns:1fr 1fr']{grid-template-columns:1fr!important;display:block!important}}",
-      "@media(max-width:760px){.m7-delay-card{padding:14px;margin:0 0 12px}.m7-delay-row{grid-template-columns:28px 1fr 52px;gap:8px;padding:9px}.m7-delay-title{font-size:12px}.m7-delay-age strong{font-size:18px}}"
+      ".m7-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(280px,.75fr);gap:18px;margin-top:18px;align-items:start}",
+      ".m7-card{width:100%;clear:both;display:block;background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:24px 28px;margin:0 0 18px;box-shadow:0 10px 28px rgba(15,23,42,.06);box-sizing:border-box}",
+      ".m7-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}",
+      ".m7-kicker{font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:#ef4444;margin-bottom:4px}",
+      ".m7-kicker.blue{color:#2563eb}.m7-kicker.green{color:#16a34a}.m7-kicker.violet{color:#7c3aed}",
+      ".m7-card-head h3{font-size:24px;line-height:1.15;margin:0;color:#020617;font-weight:900}",
+      ".m7-count{background:#fee2e2;color:#b91c1c;border-radius:999px;padding:8px 13px;font-size:13px;font-weight:900;white-space:nowrap}.m7-count.blue{background:#dbeafe;color:#1d4ed8}.m7-count.violet{background:#ede9fe;color:#6d28d9}",
+      ".m7-delay-row{width:100%;display:grid;grid-template-columns:52px minmax(0,1fr) 88px;align-items:center;gap:12px;text-align:left;background:#fff1f2;border:1px solid #fecaca;border-radius:12px;padding:14px 20px;margin-top:10px;cursor:pointer;font-family:Inter,sans-serif;color:#020617;box-sizing:border-box}",
+      ".m7-delay-rank{width:38px;height:38px;border-radius:12px;background:#eef2f7;color:#334155;display:grid;place-items:center;font-weight:900;font-size:16px}",
+      ".m7-delay-title{font-size:18px;font-weight:900;line-height:1.28;color:#020617}",
+      ".m7-delay-meta{font-size:15px;color:#64748b;margin-top:5px;line-height:1.3}",
+      ".m7-delay-age{text-align:center;border-left:1px solid #f3d4d7;padding-left:14px;color:#7f1d1d}",
+      ".m7-delay-age strong{display:block;font-size:34px;line-height:.95;color:#020617;font-weight:950}",
+      ".m7-delay-age span{display:block;font-size:11px;text-transform:uppercase;font-weight:900;letter-spacing:.06em;margin-top:4px}",
+      ".m7-event-row,.m7-pub-row{display:flex;align-items:stretch;gap:10px;border-bottom:1px solid #eef2f7;padding:10px 0}.m7-event-row:last-child,.m7-pub-row:last-child{border-bottom:0}",
+      ".m7-event-main{display:grid;grid-template-columns:78px minmax(0,1fr);gap:12px;align-items:start;flex:1;border:0;background:transparent;text-align:left;font-family:Inter,sans-serif;cursor:pointer;color:#020617;padding:0}",
+      ".m7-time{font-size:15px;color:#64748b;font-weight:700;white-space:nowrap}",
+      ".m7-event-text strong{display:block;font-size:17px;line-height:1.25;color:#020617;font-weight:850}.m7-event-text span{display:block;font-size:13px;line-height:1.25;color:#64748b;margin-top:3px}",
+      ".m7-cover-btn{align-self:center;border:1px solid #cbd5e1;background:#f8fafc;color:#475569;border-radius:999px;padding:8px 12px;font:850 12px Inter,sans-serif;cursor:pointer;white-space:nowrap}.m7-cover-btn.on{background:#dcfce7;border-color:#86efac;color:#15803d}",
+      ".m7-guards{display:grid;gap:10px}.m7-guard{display:flex;align-items:center;gap:12px;border:1px solid #e5e7eb;border-radius:14px;padding:12px;background:#f8fafc}.m7-avatar{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:900}.m7-guard strong{display:block;font-size:16px;color:#020617}.m7-guard span{display:block;font-size:12px;color:#64748b;margin-top:2px}",
+      ".m7-empty{padding:18px;border-radius:12px;background:#f8fafc;color:#64748b;font-size:14px;text-align:center;border:1px dashed #dbe3ef}",
+      "@media(max-width:1100px){.m7-grid{grid-template-columns:1fr}.m7-card-head h3{font-size:21px}}",
+      "@media(max-width:760px){#p-hoy.m7-hoy-stable{padding:14px!important}.m7-card{padding:16px;margin-bottom:12px;border-radius:14px}.m7-delay-row{grid-template-columns:34px 1fr 58px;gap:8px;padding:10px}.m7-delay-rank{width:30px;height:30px;font-size:13px}.m7-delay-title,.m7-event-text strong{font-size:14px}.m7-delay-meta,.m7-event-text span{font-size:12px}.m7-delay-age strong{font-size:22px}.m7-event-main{grid-template-columns:64px 1fr}.m7-cover-btn{padding:7px 9px;font-size:11px}}"
     ].join("\n");
     document.head.appendChild(st);
   }
