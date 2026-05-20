@@ -36,6 +36,20 @@
   }
   function activeDisplay(id){ return (id === "calendario" || id === "publicaciones") ? "flex" : "block"; }
   function schedule(fn, ms){ setTimeout(function(){ try{ fn(); }catch(e){ console.warn("[mejoras7]", e); } }, ms || 80); }
+  function paginaActiva(){
+    for(var i = 0; i < PAGINAS.length; i++){
+      var el = q("#p-" + PAGINAS[i]);
+      if(el && !el.hidden && visible(el)) return PAGINAS[i];
+    }
+    return "";
+  }
+  function hoyActivo(){ return paginaActiva() === "hoy"; }
+  function refrescarHoySiActivo(){
+    if(hoyActivo()){
+      estabilizarVistaHoy();
+      renderTareasMayorDemora();
+    }
+  }
 
   function abrirGenerador(){ window.location.href = GENERADOR_URL; }
   window.abrirGeneradorFlyers = abrirGenerador;
@@ -408,14 +422,13 @@
       if(typeof orig !== "function" || orig._m7delay) return;
       window[name] = function(){
         var r = orig.apply(this, arguments);
-        schedule(function(){ estabilizarVistaHoy(); renderTareasMayorDemora(); }, 60);
-        schedule(function(){ estabilizarVistaHoy(); renderTareasMayorDemora(); }, 260);
+        schedule(refrescarHoySiActivo, 60);
+        schedule(refrescarHoySiActivo, 260);
         return r;
       };
       window[name]._m7delay = true;
     });
-    estabilizarVistaHoy();
-    renderTareasMayorDemora();
+    refrescarHoySiActivo();
   }
 
   function patchNavPostRender(){
@@ -505,8 +518,7 @@
     repararAgendaHoyPostGCal();
     patchCalendarioVisible();
     patchHoyMayorDemora();
-    estabilizarVistaHoy();
-    renderTareasMayorDemora();
+    refrescarHoySiActivo();
   }
 
   function init(){
