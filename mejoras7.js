@@ -36,6 +36,9 @@
   function visible(el){
     return !!el && window.getComputedStyle(el).display !== "none" && window.getComputedStyle(el).visibility !== "hidden";
   }
+  function activeDisplay(id){
+    return (id === "calendario" || id === "publicaciones") ? "flex" : "block";
+  }
 
   /* Acceso al generador */
   function abrirGenerador(){ window.location.href = GENERADOR_URL; }
@@ -124,13 +127,14 @@
       if(!el) return;
       if(id === active){
         el.hidden = false;
-        el.style.display = "";
+        el.style.display = activeDisplay(id);
         el.style.visibility = "visible";
       }else{
         el.hidden = true;
         el.style.display = "none";
       }
     });
+    if(active === "hoy") estabilizarVistaHoy();
   }
 
   /* Realtime y renders */
@@ -254,6 +258,34 @@
     mejorarVisibilidadCalendario();
   }
 
+  /* Vista Hoy estable */
+  function estabilizarVistaHoy(){
+    var host = document.getElementById("p-hoy");
+    if(!host || !visible(host)) return;
+    host.hidden = false;
+    host.classList.add("m7-hoy-stable");
+    host.style.display = "block";
+    host.style.visibility = "visible";
+
+    qa("#m1-panel-hoy").forEach(function(el, idx){
+      if(idx > 0 || el.parentNode !== host) el.remove();
+    });
+    qa("#m7-tareas-demora").forEach(function(el, idx){
+      if(idx > 0 || el.parentNode !== host) el.remove();
+    });
+
+    Array.prototype.slice.call(host.children).forEach(function(child){
+      if(child.id === "m1-panel-hoy" || child.id === "m7-tareas-demora"){
+        child.hidden = false;
+        child.style.visibility = "visible";
+        if(child.id === "m1-panel-hoy") child.style.display = "block";
+      }else{
+        child.hidden = true;
+        child.style.display = "none";
+      }
+    });
+  }
+
   /* Vista Hoy: 5 tareas activas con mayor demora */
   function tareaClick(id){
     return "if(typeof editTask==='function')editTask('" + String(id).replace(/'/g,"\\'") + "')";
@@ -287,9 +319,7 @@
       card = document.createElement("section");
       card.id = "m7-tareas-demora";
       card.className = "m7-delay-card";
-      var kids = Array.prototype.slice.call(host.children);
-      var ref = kids.find(function(el){ return /Agenda de hoy|Tareas urgentes/i.test(el.textContent || ""); });
-      host.insertBefore(card, ref || kids[1] || null);
+      host.insertBefore(card, host.firstChild || null);
     }
 
     var rows = list.length ? list.map(function(item, idx){
@@ -309,6 +339,7 @@
     }).join("") : '<div class="m7-delay-empty">No hay tareas pendientes demoradas.</div>';
 
     card.innerHTML = '<div class="m7-delay-head"><div><div class="m7-delay-kicker">Seguimiento</div><h3>5 tareas pendientes con mayor demora</h3></div><span>' + list.length + '/5</span></div>' + rows;
+    estabilizarVistaHoy();
   }
 
   function patchHoyMayorDemora(){
@@ -317,8 +348,8 @@
       if(typeof orig !== "function" || orig._m7delay) return;
       window[name] = function(){
         var r = orig.apply(this, arguments);
-        setTimeout(function(){ limpiarVistaHoy(); renderTareasMayorDemora(); }, 90);
-        setTimeout(renderTareasMayorDemora, 360);
+        setTimeout(function(){ estabilizarVistaHoy(); renderTareasMayorDemora(); }, 60);
+        setTimeout(function(){ estabilizarVistaHoy(); renderTareasMayorDemora(); }, 260);
         return r;
       };
       window[name]._m7delay = true;
@@ -327,6 +358,7 @@
     wrap("saveTask");
     wrap("deleteTask");
     wrap("deleteTaskModal");
+    estabilizarVistaHoy();
     renderTareasMayorDemora();
   }
 
@@ -339,9 +371,9 @@
         normalizarPaginasVisibles(id);
         limpiarCruces();
         if(id === "hoy"){
-          limpiarVistaHoy();
+          estabilizarVistaHoy();
           renderTareasMayorDemora();
-          setTimeout(renderTareasMayorDemora, 280);
+          setTimeout(function(){ estabilizarVistaHoy(); renderTareasMayorDemora(); }, 280);
         }
         if(id === "guardias") ocultarDiasPasadosEnGuardias();
         if(id === "tablero") ocultarColumnaRealizada();
@@ -370,6 +402,12 @@
       "#p-hoy{position:relative!important;clear:both!important;overflow:auto!important;padding-bottom:26px!important}",
       "#p-hoy[hidden]{display:none!important}",
       "#p-hoy>*{max-width:100%}",
+      "#p-hoy.m7-hoy-stable{display:block!important;visibility:visible!important;overflow:auto!important;position:relative!important;min-height:100%!important;background:#f3f6fb!important;padding:16px 20px 26px!important}",
+      "#p-hoy.m7-hoy-stable> :not(#m1-panel-hoy):not(#m7-tareas-demora){display:none!important;visibility:hidden!important}",
+      "#p-hoy.m7-hoy-stable #m1-panel-hoy{display:block!important;width:100%!important;max-width:100%!important;overflow:visible!important;clear:both!important}",
+      "#p-hoy.m7-hoy-stable #m1-panel-hoy>*{max-width:100%!important;box-sizing:border-box!important}",
+      "#p-hoy.m7-hoy-stable [style*='grid-template-columns:1fr 1fr']{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}",
+      "#p-hoy.m7-hoy-stable [style*='position:absolute']{max-width:100%!important}",
       "#p-calendario{overflow:hidden!important}",
       "#calwscroll,#cal-day-content{background:#fff!important;position:relative!important;isolation:isolate!important}",
       "#calwscroll{overflow:auto!important;scrollbar-width:thin!important}",
@@ -380,12 +418,12 @@
       "#calwscroll .m7-cal-event *,#cal-day-content .m7-cal-event *{color:inherit!important;opacity:1!important;visibility:visible!important;line-height:1.25!important;white-space:normal!important}",
       "body.dark #calwscroll,body.dark #cal-day-content{background:#0f172a!important}",
       "body.dark #calwscroll .m7-cal-event,body.dark #cal-day-content .m7-cal-event{background:#1f2937!important;color:#f8fafc!important;border-color:#475569!important;border-left-color:#a78bfa!important;box-shadow:0 4px 14px rgba(0,0,0,.38)!important}",
-      ".m7-delay-card{width:100%;clear:both;display:block;background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:18px 20px;margin:14px 0 18px;box-shadow:0 8px 24px rgba(15,23,42,.06)}",
+      ".m7-delay-card{width:100%;clear:both;display:block;background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:18px 20px;margin:0 0 18px;box-shadow:0 8px 24px rgba(15,23,42,.06);box-sizing:border-box}",
       ".m7-delay-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px}",
       ".m7-delay-kicker{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#ef4444;margin-bottom:4px}",
       ".m7-delay-head h3{font-size:18px;line-height:1.2;margin:0;color:#111827}",
       ".m7-delay-head span{background:#fee2e2;color:#b91c1c;border-radius:999px;padding:5px 10px;font-size:11px;font-weight:800;white-space:nowrap}",
-      ".m7-delay-row{width:100%;display:grid;grid-template-columns:34px 1fr 62px;align-items:center;gap:12px;text-align:left;background:#fff;border:1px solid #eef2f7;border-radius:10px;padding:10px 12px;margin-top:8px;cursor:pointer;font-family:Inter,sans-serif;color:#111827;transition:transform .12s,box-shadow .12s,border-color .12s}",
+      ".m7-delay-row{width:100%;display:grid;grid-template-columns:34px 1fr 62px;align-items:center;gap:12px;text-align:left;background:#fff;border:1px solid #eef2f7;border-radius:10px;padding:10px 12px;margin-top:8px;cursor:pointer;font-family:Inter,sans-serif;color:#111827;transition:transform .12s,box-shadow .12s,border-color .12s;box-sizing:border-box}",
       ".m7-delay-row:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(15,23,42,.09);border-color:#c7d2fe}",
       ".m7-delay-rank{width:28px;height:28px;border-radius:9px;background:#f3f4f6;color:#4b5563;display:grid;place-items:center;font-weight:900;font-size:12px}",
       ".m7-delay-title{font-size:13px;font-weight:800;line-height:1.35;color:#111827}",
@@ -404,7 +442,8 @@
       "body.dark .m7-delay-meta,body.dark .m7-delay-age{color:#cbd5e1}",
       "body.dark .m7-delay-row.m7-delay-warn{background:#3d2e10;border-color:#92400e}",
       "body.dark .m7-delay-row.m7-delay-hot{background:#3d1515;border-color:#991b1b}",
-      "@media(max-width:760px){.m7-delay-card{padding:14px;margin:10px 0}.m7-delay-row{grid-template-columns:28px 1fr 52px;gap:8px;padding:9px}.m7-delay-title{font-size:12px}.m7-delay-age strong{font-size:18px}}"
+      "@media(max-width:900px){#p-hoy.m7-hoy-stable{padding:12px!important}#p-hoy.m7-hoy-stable [style*='grid-template-columns:1fr 1fr']{grid-template-columns:1fr!important}}",
+      "@media(max-width:760px){.m7-delay-card{padding:14px;margin:0 0 12px}.m7-delay-row{grid-template-columns:28px 1fr 52px;gap:8px;padding:9px}.m7-delay-title{font-size:12px}.m7-delay-age strong{font-size:18px}}"
     ].join("\n");
     document.head.appendChild(st);
   }
@@ -420,6 +459,7 @@
     repararAgendaHoyPostGCal();
     patchCalendarioVisible();
     patchHoyMayorDemora();
+    estabilizarVistaHoy();
     renderTareasMayorDemora();
   }
 
@@ -452,7 +492,7 @@
       obs.observe(document.body, {childList:true, subtree:true});
     }catch(_){}
 
-    console.log("[mejoras7] Panel estable + Hoy sin mezcla visual + calendario visible");
+    console.log("[mejoras7] Hoy estable sin mezcla visual + calendario visible + tareas demoradas");
   }
 
   ready(init);
