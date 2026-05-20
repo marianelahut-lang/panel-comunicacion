@@ -66,7 +66,7 @@
       var sec = document.createElement("div"); sec.className = "sb-sec m7-generator-sec"; sec.textContent = "Herramientas";
       var b = document.createElement("button");
       b.id = "sbi-generador-flyers";
-      b.className = "sbi";
+      b.className = "sbi";h
       b.type = "button";
       b.innerHTML = iconoFlyer() + "Generador de flyers";
       b.onclick = abrirGenerador;
@@ -442,7 +442,7 @@
       "body.dark .m7-delay-meta,body.dark .m7-delay-age{color:#cbd5e1}",
       "body.dark .m7-delay-row.m7-delay-warn{background:#3d2e10;border-color:#92400e}",
       "body.dark .m7-delay-row.m7-delay-hot{background:#3d1515;border-color:#991b1b}",
-      "@media(max-width:900px){#p-hoy.m7-hoy-stable{padding:12px!important}#p-hoy.m7-hoy-stable [style*='grid-template-columns:1fr 1fr']{grid-template-columns:1fr!important}}",
+      "@media(max-width:1100px){#p-hoy.m7-hoy-stable [style*='grid-template-columns:1fr 1fr']{grid-template-columns:1fr!important;display:block!important}#p-hoy.m7-hoy-stable [style*='grid-template-columns:1fr 1fr']>*{width:100%!important;max-width:100%!important;box-sizing:border-box!important}}",
       "@media(max-width:760px){.m7-delay-card{padding:14px;margin:0 0 12px}.m7-delay-row{grid-template-columns:28px 1fr 52px;gap:8px;padding:9px}.m7-delay-title{font-size:12px}.m7-delay-age strong{font-size:18px}}"
     ].join("\n");
     document.head.appendChild(st);
