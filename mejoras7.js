@@ -50,6 +50,26 @@
       renderTareasMayorDemora();
     }
   }
+  function normalizarRotulos(){
+    var fixes = {
+      "publicaciónes": "publicaciones",
+      "Publicaciónes": "Publicaciones",
+      "Agenda de publicaciónes": "Agenda de publicaciones",
+      "Eventos del dia": "Eventos del día",
+      "Todo el dia": "Todo el día",
+      "Tarea sin descripcion": "Tarea sin descripción",
+      "Publicacion": "Publicación"
+    };
+    try{
+      var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+      var node;
+      while((node = walker.nextNode())){
+        var v = node.nodeValue;
+        Object.keys(fixes).forEach(function(k){ v = v.split(k).join(fixes[k]); });
+        node.nodeValue = v;
+      }
+    }catch(_e){}
+  }
 
   function abrirGenerador(){ window.location.href = GENERADOR_URL; }
   window.abrirGeneradorFlyers = abrirGenerador;
@@ -328,7 +348,7 @@
       var t = item.raw, age = item.age;
       return '<button class="m7-delay-row" onclick="' + tareaClick(t.id) + '">' +
         '<div class="m7-delay-rank">' + (idx + 1) + '</div>' +
-        '<div class="m7-delay-main"><div class="m7-delay-title">' + esc(t.descripcion || "Tarea sin descripcion") + '</div>' +
+        '<div class="m7-delay-main"><div class="m7-delay-title">' + esc(t.descripcion || "Tarea sin descripción") + '</div>' +
         '<div class="m7-delay-meta">' + esc(t.responsable || "Sin asignar") + ' · ' + esc(t.estado || "Pendiente") + ' · Prioridad ' + esc(t.prioridad || "Media") + '</div></div>' +
         '<div class="m7-delay-age"><strong>' + age + '</strong><span>DIAS</span></div>' +
       '</button>';
@@ -343,14 +363,14 @@
       var activo = coberturaActiva(id);
       return '<div class="m7-event-row">' +
         '<button class="m7-event-main" onclick="' + eventoClick(id) + '">' +
-          '<div class="m7-time">' + esc(horaCorta(e.hora) || "Todo el dia") + '</div>' +
+          '<div class="m7-time">' + esc(horaCorta(e.hora) || "Todo el día") + '</div>' +
           '<div class="m7-event-text"><strong>' + esc(e.descripcion || "Evento") + '</strong>' +
           (e.lugar ? '<span>' + esc(e.lugar) + '</span>' : '') + '</div>' +
         '</button>' +
         '<button class="m7-cover-btn ' + (activo ? "on" : "") + '" onclick="m7ToggleCobertura(\'' + jsq(id) + '\')">' + (activo ? "Se cubre" : "No se cubre") + '</button>' +
       '</div>';
     }).join("") : '<div class="m7-empty">Sin eventos de calendario para hoy.</div>';
-    return '<section class="m7-card"><div class="m7-card-head"><div><div class="m7-kicker blue">Calendario</div><h3>Eventos del dia</h3></div><span class="m7-count blue">' + evs.length + '</span></div>' + rows + '</section>';
+    return '<section class="m7-card"><div class="m7-card-head"><div><div class="m7-kicker blue">Calendario</div><h3>Eventos del día</h3></div><span class="m7-count blue">' + evs.length + '</span></div>' + rows + '</section>';
   }
 
   function renderGuardiasHoyHTML(){
@@ -367,7 +387,7 @@
   function renderPublicacionesHoyHTML(){
     var list = listaPublicacionesHoy();
     var rows = list.length ? list.map(function(p){
-      var desc = p.descripcion || p.desc || p.titulo || "Publicacion";
+      var desc = p.descripcion || p.desc || p.titulo || "Publicación";
       return '<div class="m7-pub-row"><div class="m7-time">' + esc(horaCorta(p.hora) || "--:--") + '</div><div class="m7-event-text"><strong>' + esc(desc) + '</strong><span>' + esc((p.cuenta || p.canal || p.estado || "Pendiente")) + '</span></div></div>';
     }).join("") : '<div class="m7-empty">Sin publicaciones pendientes para hoy.</div>';
     return '<section class="m7-card"><div class="m7-card-head"><div><div class="m7-kicker violet">Publicaciones</div><h3>Publicaciones a realizar</h3></div><span class="m7-count violet">' + list.length + '</span></div>' + rows + '</section>';
@@ -511,6 +531,7 @@
   function limpiarCruces(){
     limpiarSidebarFantasma();
     limpiarLoginDuplicado();
+    normalizarRotulos();
     sincronizarVersionVisible();
     agregarAccesoGenerador();
     ocultarColumnaRealizada();
