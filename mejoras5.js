@@ -35,105 +35,84 @@ FEAT: Panel Guardias - Botón WhatsApp con tareas del día
 
 var _m5SyncBorradoActivo = false;
 
-function sincronizarBorradoConSupabase(){
-  if(_m5SyncBorradoActivo) return;
-  _m5SyncBorradoActivo = true;
+  function sincronizarBorradoConSupabase(){
+    if(window._m5SyncBorradoActivo) return;
+    window._m5SyncBorradoActivo = true;
 
-  // Event delegation en capture phase — interceptamos ANTES del onclick
-  document.addEventListener("click", function(e){
-    var btn = e.target;
-    if(!btn) return;
-    
-    // Buscar botón con onclick que llame a _apBorrar
-    var oc = btn.getAttribute && btn.getAttribute("onclick");
-    if(!oc && btn.closest){
-      var parent = btn.closest("[onclick*='_apBorrar']");
-      if(parent) { btn = parent; oc = parent.getAttribute("onclick"); }
-    }
-    
-    if(!oc || !oc.includes("_apBorrar")) return;
-    
-    // Extraer el ID de la publicación del onclick
-    var match = oc.match(/_apBorrar\(\s*['"](.*?)['"]\s*\)/);
-    if(!match || !match[1]) return;
-    
-    var pubId = match[1];
-    
-    // Registrar que se está borrando este ID
-    // La confirmación la maneja _apBorrar internamente,
-    // así que escuchamos DESPUÉS con un pequeño delay
-    setTimeout(function(){
-      // Verificar si el elemento ya no está en el DOM 
-      // (señal de que el usuario confirmó el borrado)
-      var stillExists = document.querySelector('[onclick*="' + pubId + '"]');
-      if(stillExists) return; // el usuario canceló o no se borró
-      
-      // El elemento se fue del DOM → se borró. Sincronizar con Supabase
-      try {
-        if(!window.db || typeof window.db.from !== "function") return;
-        window.db.from("publicaciones")
-          .delete()
-          .eq("id", pubId)
-          .then(function(res){
-            if(res.error){
-              console.warn("[mejoras5] Error al borrar de Supabase:", res.error.message);
+    /* ────────────────────────────────────────────────────
+       FIX BORRADO v3: Reemplazar _apBorrar para que borre
+       de Supabase PRIMERO, antes de que recargue datos.
+       Problema anterior: cargarPublicaciones() recargaba
+       desde Supabase ANTES de que se borrara, haciendo
+       que la pub volviera a aparecer.
+    ──────────────────────────────────────────────────── */
+    function parchearApBorrar(){
+      if(typeof window._apBorrar !== "function") return;
+      if(window._apBorrar._m5patched) return;
+      var _orig = window._apBorrar;
+      window._apBorrar = async function(id){
+        if(!confirm("\u00BFBorrar esta publicaci\u00F3n programada?")) return;
+        // 1. Borrar de Supabase PRIMERO
+        try {
+          var dbx = window.db || (typeof getDb==="function" ? getDb() : null);
+          if(dbx && typeof dbx.from === "function"){
+            var res = await dbx.from("publicaciones").delete().eq("id", id);
+            if(res && res.error){
+              console.warn("[mejoras5] Error borrar Supabase:", res.error.message);
             } else {
-              console.log("[mejoras5] ✓ Publicación borrada de Supabase:", pubId);
+              console.log("[mejoras5] Publicaci\u00F3n borrada de Supabase:", id);
             }
-          })
-          .catch(function(err){
-            console.warn("[mejoras5] Error Supabase delete:", err);
-          });
-      } catch(e){
-        console.warn("[mejoras5] Error en sync borrado:", e);
-      }
-    }, 600); // delay para que _apBorrar termine su confirm + render
-    
-  }, true); // capture: true → ejecuta ANTES del onclick del botón
+          }
+        } catch(e){
+          console.warn("[mejoras5] Error sync borrado:", e);
+        }
+        // 2. Llamar original para limpiar UI (skip su confirm)
+        var origConfirm = window.confirm;
+        window.confirm = function(){ return true; };
+        try { _orig(id); } catch(e){ console.warn("[mejoras5] Error en _apBorrar:", e); } finally { window.confirm = origConfirm; }
+      };
+      window._apBorrar._m5patched = true;
+    }
 
-  // Interceptar también "marcar como publicado" (_apMarcarPublicado)
-  document.addEventListener("click", function(e){
-    var btn = e.target;
-    if(!btn) return;
-    
-    var oc = btn.getAttribute && btn.getAttribute("onclick");
-    if(!oc && btn.closest){
+    parchearApBorrar();
+    // Re-intentar si _apBorrar se recarga
+    var _iv = setInterval(function(){
+      if(window._apBorrar && !window._apBorrar._m5patched) parchearApBorrar();
+    }, 1500);
+    setTimeout(function(){ clearInterval(_iv); }, 60000);
+
+    /* ────────────────────────────────────────────────────
+       Interceptar "marcar como publicado" para sync Supabase
+    ──────────────────────────────────────────────────── */
+    document.addEventListener("click", function(e){
+      var btn = e.target;
+      if(!btn) return;
+      var oc = btn.getAttribute("onclick") || "";
       var parent = btn.closest("[onclick*='_apMarcarPublicado']");
-      if(parent) { btn = parent; oc = parent.getAttribute("onclick"); }
-    }
-    
-    if(!oc || !oc.includes("_apMarcarPublicado")) return;
-    
-    var match = oc.match(/_apMarcarPublicado\(\s*['"](.*?)['"]\s*\)/);
-    if(!match || !match[1]) return;
-    var pubId = match[1];
-    
-    // Sincronizar estado a Supabase después de un breve delay
-    setTimeout(function(){
-      try {
-        if(!window.db || typeof window.db.from !== "function") return;
-        window.db.from("publicaciones")
-          .update({ estado: "Publicado" })
-          .eq("id", pubId)
-          .then(function(res){
-            if(res.error){
-              console.warn("[mejoras5] Error al actualizar estado en Supabase:", res.error.message);
-            } else {
-              console.log("[mejoras5] ✓ Estado actualizado en Supabase:", pubId, "→ Publicado");
-            }
-          })
-          .catch(function(err){
-            console.warn("[mejoras5] Error Supabase update:", err);
-          });
-      } catch(e){
-        console.warn("[mejoras5] Error en sync estado publicado:", e);
-      }
-    }, 500);
-    
-  }, true);
+      if(parent){ btn = parent; oc = parent.getAttribute("onclick") || ""; }
+      if(!oc.includes("_apMarcarPublicado")) return;
+      var match = oc.match(/_apMarcarPublicado\('([^']+)'\)|_apMarcarPublicado\("([^"]+)"\)/);
+      if(!match) match = oc.match(/_apMarcarPublicado\(([^)]+)\)/);
+      if(!match) return;
+      var pubId = match[1]||match[2]||match[3];
+      if(!pubId) return;
+      setTimeout(function(){
+        try {
+          if(!window.db || typeof window.db.from !== "function") return;
+          window.db.from("publicaciones")
+            .update({estado:"Publicado"})
+            .eq("id", pubId)
+            .then(function(res){
+              if(res.error) console.warn("[mejoras5] Error estado Supabase:", res.error.message);
+              else console.log("[mejoras5] Estado actualizado:", pubId);
+            })
+            .catch(function(err){ console.warn("[mejoras5] Error update:", err); });
+        } catch(e){ console.warn("[mejoras5] Error sync publicado:", e); }
+      }, 500);
+    }, true);
 
-  console.log("[mejoras5] ✓ Interceptor de borrado/publicado activo");
-}
+    console.log("[mejoras5] Interceptor borrado + publicado activo (v3)");
+  }
 
 /* ══════════════════════════════════════════════════════════
    FIX 2 — GUARDIAS: MOSTRAR TELÉFONOS (reemplaza "Sin tel.")
