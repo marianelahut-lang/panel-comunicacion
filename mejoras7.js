@@ -21,7 +21,7 @@
   function qa(sel, root){ return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
 
   function escAttr(s){
-    return String(s || "").replace(/[&<>\"]/g, function(c){
+    return String(s || "").replace(/[&<>"]/g, function(c){
       return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];
     });
   }
@@ -221,6 +221,65 @@
     });
   }
 
+  function mejorarVisibilidadCalendario(){
+    var selectors = [
+      '#calwscroll [onclick*="openEvPanel"]',
+      '#calwscroll [onclick*="editPubItem"]',
+      '#cal-day-content [onclick*="openEvPanel"]',
+      '#cal-day-content [onclick*="editPubItem"]'
+    ].join(',');
+
+    qa(selectors).forEach(function(card){
+      card.classList.add("m7-cal-event");
+      card.style.opacity = "1";
+      card.style.visibility = "visible";
+      if(card.style.display === "none") card.style.display = "block";
+      card.style.pointerEvents = "auto";
+      card.style.zIndex = "40";
+      if(!card.title){
+        card.title = (card.textContent || "").trim().replace(/\s+/g, " ");
+      }
+    });
+
+    qa('#calwscroll [style*="background:#ef4444"]:not(button), #cal-day-content [style*="background:#ef4444"]:not(button)').forEach(function(line){
+      line.style.pointerEvents = "none";
+      line.style.zIndex = "6";
+    });
+  }
+
+  function patchCalendarioVisible(){
+    ["renderCal", "renderCalDay", "renderWeek", "buildWeek"].forEach(function(name){
+      var orig = window[name];
+      if(typeof orig !== "function" || orig._m7calVisible) return;
+      window[name] = function(){
+        var r = orig.apply(this, arguments);
+        setTimeout(mejorarVisibilidadCalendario, 60);
+        setTimeout(mejorarVisibilidadCalendario, 300);
+        return r;
+      };
+      window[name]._m7calVisible = true;
+    });
+
+    ["calwscroll", "cal-day-content"].forEach(function(id){
+      var el = document.getElementById(id);
+      if(!el || el._m7calObserved) return;
+      el._m7calObserved = true;
+      try{
+        var mo = new MutationObserver(function(){
+          if(el._m7calPending) return;
+          el._m7calPending = true;
+          setTimeout(function(){
+            el._m7calPending = false;
+            mejorarVisibilidadCalendario();
+          }, 80);
+        });
+        mo.observe(el, {childList:true, subtree:true, attributes:true, attributeFilter:["style", "class"]});
+      } catch(_){}
+    });
+
+    mejorarVisibilidadCalendario();
+  }
+
   function patchNavPostRender(){
     var orig = window.nav;
     if(typeof orig !== "function" || orig._m7post) return;
@@ -231,6 +290,7 @@
         if(id === "hoy" && typeof window._renderHoy === "function") window._renderHoy();
         if(id === "guardias") ocultarDiasPasadosEnGuardias();
         if(id === "tablero") ocultarColumnaRealizada();
+        if(id === "calendario") patchCalendarioVisible();
       }, 120);
       return r;
     };
@@ -256,7 +316,27 @@
       "aside.sb{overflow-x:hidden}",
       ".ag-task-check{width:18px!important;height:18px!important;cursor:pointer!important;flex-shrink:0!important;margin-top:1px!important;accent-color:var(--acc,#667eea)!important}",
       "body.dark #m1-pubs-guardias [data-pub-id] > div > div:first-child{color:#f1f5f9!important}",
-      "body.dark #m1-pubs-guardias [data-pub-id] > span:first-child{color:#c4b5fd!important}"
+      "body.dark #m1-pubs-guardias [data-pub-id] > span:first-child{color:#c4b5fd!important}",
+      "#p-calendario{overflow:hidden!important}",
+      "#calwscroll,#cal-day-content{background:#fff!important;position:relative!important;isolation:isolate!important}",
+      "#calwscroll{overflow:auto!important;scrollbar-width:thin!important}",
+      "#calwscroll>div,#cal-day-content>div{overflow:visible!important}",
+      "#calwscroll [style*='background:#ef4444']:not(button),#cal-day-content [style*='background:#ef4444']:not(button){pointer-events:none!important;z-index:6!important;opacity:.7!important}",
+      "#calwscroll .m7-cal-event,#cal-day-content .m7-cal-event{display:block!important;visibility:visible!important;opacity:1!important;box-sizing:border-box!important;min-height:24px!important;padding:5px 8px!important;border:1px solid #cbd5e1!important;border-left:5px solid #2563eb!important;border-radius:8px!important;background:#fff!important;color:#111827!important;box-shadow:0 3px 10px rgba(15,23,42,.18)!important;line-height:1.22!important;white-space:normal!important;overflow:hidden!important;text-overflow:clip!important;z-index:40!important;pointer-events:auto!important}",
+      "#cal-day-content .m7-cal-event{min-height:36px!important;padding:8px 10px!important;border-radius:10px!important}",
+      "#calwscroll .m7-cal-event * ,#cal-day-content .m7-cal-event *{color:inherit!important;opacity:1!important;visibility:visible!important;line-height:1.25!important;white-space:normal!important}",
+      "#calwscroll .m7-cal-event div:first-child,#cal-day-content .m7-cal-event div:first-child{font-weight:900!important;font-size:11px!important;color:#0f172a!important}",
+      "#calwscroll .m7-cal-event div:nth-child(n+2),#cal-day-content .m7-cal-event div:nth-child(n+2){font-size:10px!important;color:#475569!important;font-weight:700!important}",
+      "#calwscroll .m7-cal-event:hover,#cal-day-content .m7-cal-event:hover{transform:none!important;box-shadow:0 6px 18px rgba(15,23,42,.24)!important}",
+      "#calwscroll .m7-cal-event[style*='#ec4899'],#cal-day-content .m7-cal-event[style*='#ec4899']{border-left-color:#db2777!important;background:#fdf2f8!important}",
+      "#calwscroll .m7-cal-event[style*='#10b981'],#cal-day-content .m7-cal-event[style*='#10b981']{border-left-color:#059669!important;background:#ecfdf5!important}",
+      "#calwscroll .m7-cal-event[style*='#f59e0b'],#cal-day-content .m7-cal-event[style*='#f59e0b']{border-left-color:#d97706!important;background:#fffbeb!important}",
+      "#calwscroll .m7-cal-event[style*='#ef4444'],#cal-day-content .m7-cal-event[style*='#ef4444']{border-left-color:#dc2626!important;background:#fef2f2!important}",
+      "#calwscroll .m7-cal-event[style*='#3b82f6'],#cal-day-content .m7-cal-event[style*='#3b82f6']{border-left-color:#2563eb!important;background:#eff6ff!important}",
+      "body.dark #calwscroll,body.dark #cal-day-content{background:#0f172a!important}",
+      "body.dark #calwscroll .m7-cal-event,body.dark #cal-day-content .m7-cal-event{background:#1f2937!important;color:#f8fafc!important;border-color:#475569!important;border-left-color:#a78bfa!important;box-shadow:0 4px 14px rgba(0,0,0,.38)!important}",
+      "body.dark #calwscroll .m7-cal-event div:first-child,body.dark #cal-day-content .m7-cal-event div:first-child{color:#fff!important}",
+      "body.dark #calwscroll .m7-cal-event div:nth-child(n+2),body.dark #cal-day-content .m7-cal-event div:nth-child(n+2){color:#cbd5e1!important}"
     ].join("\n");
     document.head.appendChild(st);
   }
@@ -270,6 +350,7 @@
     ocultarColumnaRealizada();
     ocultarDiasPasadosEnGuardias();
     repararAgendaHoyPostGCal();
+    patchCalendarioVisible();
   }
 
   function init(){
@@ -277,6 +358,7 @@
     patchRealtimeDuplicados();
     patchRenderKanbanSeguro();
     patchNavPostRender();
+    patchCalendarioVisible();
     limpiarCruces();
 
     var n = 0;
@@ -284,6 +366,7 @@
       n++;
       patchRenderKanbanSeguro();
       patchNavPostRender();
+      patchCalendarioVisible();
       limpiarCruces();
       if(n >= 20) clearInterval(iv);
     }, 500);
@@ -297,7 +380,7 @@
       obs.observe(document.body, {childList:true, subtree:true});
     } catch(_){}
 
-    console.log("[mejoras7] Parche final cargado: panel estable + acceso generador");
+    console.log("[mejoras7] Parche final cargado: panel estable + acceso generador + calendario visible");
   }
 
   ready(init);
