@@ -3798,7 +3798,6 @@ async function analizarConIA(){
   const negativas=recientes.filter(n=>n.tono==="negativo").slice(0,3);
   // Noticias positivas destacadas  
   const positivas=recientes.filter(n=>n.tono==="positivo").slice(0,3);
-mejoras7.js?v=20260520c
   const analisis=`📊 RESUMEN EJECUTIVO
 Se analizaron ${total} noticias de los últimos 7 días.
 ${medOrdenados.length?`Mayor cobertura: ${medOrdenados[0][0]} con ${medOrdenados[0][1].total} notas.`:""}
