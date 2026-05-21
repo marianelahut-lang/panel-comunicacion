@@ -1,288 +1,230 @@
 /*
-  UI-FIXES.JS
-  Estabilizador final de navegacion y correcciones visuales.
-  Ultima capa: no agrega datos, solo ordena UI, navegacion y fallbacks.
+  UI-FIXES.JS - reglas finales del panel
+  - Navegacion estable
+  - Hoy: 10 pendientes con mayor demora
+  - Calendario: opcion Cubrir / No cubrir
+  - Tablero: eliminar columna Realizada
 */
 (function(){
   "use strict";
 
-  var PANEL_IDS = ["hoy","tablero","material","publicaciones","calendario","guardias","equipo","metricas","medios","reclamos","entrevistas","contactos","recursos","biblioteca","agente"];
+  var PAGES = ["hoy","tablero","material","publicaciones","calendario","guardias","equipo","metricas","medios","reclamos","entrevistas","contactos","recursos","biblioteca","agente","dashboard","cobertura"];
   var FLEX = { publicaciones:true, calendario:true };
-  var ALIAS = { agenda:"publicaciones", publicacion:"publicaciones", publicaciones:"publicaciones", guardia:"guardias", equipo:"equipo", team:"equipo", metrica:"metricas", metricas:"metricas", medio:"medios", medios:"medios", entrevista:"entrevistas", entrevistas:"entrevistas", contacto:"contactos", contactos:"contactos", recurso:"recursos", recursos:"recursos", biblioteca:"recursos" };
+  var ALIAS = { agenda:"publicaciones", publicacion:"publicaciones", publicaciones:"publicaciones", guardia:"guardias", guardias:"guardias", biblioteca:"recursos", recurso:"recursos", recursos:"recursos", contacto:"contactos", contactos:"contactos", medio:"medios", medios:"medios", metrica:"metricas", metricas:"metricas" };
 
-  function norm(id){ id = String(id || "hoy").trim().toLowerCase(); return ALIAS[id] || id; }
   function q(sel, root){ return (root || document).querySelector(sel); }
   function qa(sel, root){ return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
-  function mainEl(){ return document.getElementById("main") || document.querySelector(".content"); }
+  function norm(id){ id = String(id || "hoy").trim().toLowerCase(); return ALIAS[id] || id; }
+  function mainEl(){ return q("#main") || q(".content"); }
   function displayFor(id){ return FLEX[id] ? "flex" : "block"; }
+  function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+  function daysOld(value){ var d = value ? new Date(value) : null; if(!d || isNaN(d)) return 0; d.setHours(0,0,0,0); var n = new Date(); n.setHours(0,0,0,0); return Math.max(0, Math.floor((n-d)/86400000)); }
+  function activeTasks(){ try{ return Array.isArray(tasks) ? tasks : []; }catch(_e){ return []; } }
 
-  function movePanelIntoMain(id){ var main = mainEl(), panel = document.getElementById("p-" + id); if(main && panel && panel.parentElement !== main) main.appendChild(panel); return panel; }
-
-  function cleanSidebarText(){
-    var sidebar = document.querySelector("aside.sb");
-    if(!sidebar || typeof NodeFilter === "undefined") return;
+  function cleanBrokenText(){
+    var map = {"Â·":"·","Ã¡":"á","Ã©":"é","Ã­":"í","Ã³":"ó","Ãº":"ú","Ã±":"ñ","dÃ­a":"día","DÃ­a":"Día","publicaciÃ³n":"publicación","descripciÃ³n":"descripción"};
     try{
-      var walker = document.createTreeWalker(sidebar, NodeFilter.SHOW_TEXT, null, false), node, remove=[];
-      while((node = walker.nextNode())) if(/^\s*Tareas del d\s*$/i.test(node.nodeValue || "")) remove.push(node);
-      remove.forEach(function(n){ if(n.parentNode) n.parentNode.removeChild(n); });
+      var w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false), node, n=0;
+      while((node = w.nextNode()) && n < 900){ n++; var v=node.nodeValue||""; Object.keys(map).forEach(function(k){ v=v.split(k).join(map[k]); }); node.nodeValue=v; }
     }catch(_e){}
   }
 
-  function repairStructure(){
-    var main = mainEl(); if(!main) return;
-    ["recursos","agente"].forEach(movePanelIntoMain);
-    var medios = qa('[id="p-medios"]');
-    medios.forEach(function(el, idx){ if(idx > 0) el.id = "p-medios-cobertura"; });
-    if(!document.getElementById("p-hoy")){
-      var hoy = document.createElement("div"); hoy.id = "p-hoy"; hoy.style.setProperty("display","none","important");
-      var first = document.getElementById("p-tablero") || main.firstElementChild;
-      if(first && first.parentElement === main) main.insertBefore(hoy, first); else main.appendChild(hoy);
-    }
-    cleanSidebarText();
-  }
-
-  function panels(){ repairStructure(); var main = mainEl(); return main ? qa(":scope > [id^='p-']", main) : []; }
-
   function closeClosedModals(){
-    qa(".ov,.overlay").forEach(function(modal){
-      if(!modal.classList.contains("open")){
-        modal.classList.remove("show","active","on");
-        modal.style.setProperty("display","none","important");
-        modal.style.setProperty("pointer-events","none","important");
-        modal.setAttribute("aria-hidden","true");
+    qa(".ov,.overlay").forEach(function(m){
+      if(!m.classList.contains("open")){
+        m.classList.remove("show","active","on");
+        m.style.setProperty("display","none","important");
+        m.style.setProperty("pointer-events","none","important");
       }
     });
-    qa(".overlay-backdrop,.modal-backdrop,#overlay").forEach(function(o){ o.remove(); });
-  }
-
-  function setPanelState(panel, active, id){
-    if(!panel) return;
-    var pid = (panel.id || "").replace(/^p-/,"");
-    panel.classList.toggle("active", active);
-    panel.classList.toggle("show", active);
-    panel.classList.remove("open");
-    if(active){
-      panel.hidden = false; panel.removeAttribute("hidden"); panel.removeAttribute("aria-hidden");
-      panel.style.setProperty("display", displayFor(id), "important");
-      panel.style.setProperty("visibility", "visible", "important");
-      panel.style.removeProperty("opacity");
-    }else{
-      panel.hidden = true; panel.setAttribute("aria-hidden","true");
-      panel.classList.remove("m7-hoy-stable");
-      panel.style.setProperty("display", "none", "important");
-      panel.style.setProperty("visibility", "hidden", "important");
-    }
-    if(pid === "hoy" && !active) panel.classList.remove("m7-hoy-stable");
   }
 
   function buttonId(btn){
     if(!btn) return "";
-    var direct = btn.getAttribute("data-mid") || btn.getAttribute("data-nav") || btn.dataset.nav || "";
+    var direct = btn.getAttribute("data-mid") || btn.getAttribute("data-nav") || (btn.dataset && btn.dataset.nav) || "";
     if(direct) return norm(direct);
     var onclick = btn.getAttribute("onclick") || "";
     var m = onclick.match(/(?:nav|exitFullPanel)\(['\"]([^'\"]+)['\"]/);
     return m ? norm(m[1]) : "";
   }
 
-  function setActiveButtons(id, explicitButton){
+  function setActiveButtons(id, explicit){
     qa(".ntab,.sbi,.mbn-btn,[data-mid],[data-nav]").forEach(function(btn){
-      var active = buttonId(btn) === id || btn === explicitButton;
-      btn.classList.toggle("on", active); btn.classList.toggle("mbn-active", active);
-      if(active) btn.setAttribute("aria-current","page"); else btn.removeAttribute("aria-current");
+      var on = btn === explicit || buttonId(btn) === id;
+      btn.classList.toggle("on", on); btn.classList.toggle("mbn-active", on);
+      if(on) btn.setAttribute("aria-current","page"); else btn.removeAttribute("aria-current");
     });
   }
 
-  function hideRealizada(){
-    var kanban = q("#kanban");
-    if(kanban){
-      qa(".kcol", kanban).forEach(function(col){
-        var txt = (col.textContent || "").toLowerCase();
-        var hdr = q(".khdr,.kt", col);
-        var htxt = (hdr && hdr.textContent || txt).toLowerCase();
-        if(htxt.indexOf("realizada") !== -1 || htxt.indexOf("realizado") !== -1) col.style.setProperty("display","none","important");
-      });
+  function showOnly(id, explicit, skipRender){
+    id = norm(id);
+    var main = mainEl();
+    PAGES.forEach(function(p){
+      var el = q("#p-" + p);
+      if(!el) return;
+      if(main && el.parentElement !== main && p !== "cobertura") main.appendChild(el);
+      var on = p === id || (id === "recursos" && p === "biblioteca");
+      el.hidden = !on;
+      el.style.setProperty("display", on ? displayFor(id) : "none", "important");
+      el.style.setProperty("visibility", on ? "visible" : "hidden", "important");
+      el.classList.toggle("active", on);
+      el.classList.toggle("show", on);
+    });
+    document.body.setAttribute("data-active-panel", id);
+    setActiveButtons(id, explicit || null);
+    closeClosedModals();
+    if(!skipRender){
+      setTimeout(function(){ renderFor(id); showOnly(id, explicit, true); }, 40);
+      setTimeout(function(){ finalRules(); }, 220);
+    }else{
+      finalRules();
     }
+    return false;
+  }
+
+  function renderFor(id){
+    var map = { hoy:["_renderHoy","renderPanelHoyCustom"], tablero:["renderKanban"], material:["renderMaterial"], publicaciones:["renderPubDay","renderWeek"], calendario:["renderCal","renderCalDay"], guardias:["initGuardias","renderGuardias","renderGuardDay"], equipo:["renderTeam","renderPersons"], medios:["renderNoticias","renderMedioSum","renderMediosList"], reclamos:["renderReclamos"], entrevistas:["renderEntrevistas"], contactos:["renderContactos","renderContactosMediosModulo"], recursos:["loadRecursos","renderRecursos"], metricas:["renderMetricas"] };
+    (map[id] || []).forEach(function(fn){ try{ if(typeof window[fn] === "function") window[fn](); }catch(e){ console.warn("[ui-fixes] render", fn, e); } });
+  }
+
+  function installNav(){
+    window.nav = function(id, tab, sb){ return showOnly(id, sb || tab || null, false); };
+    window.nav._stableFinal = true; window.nav._v4patched = true; window.nav._v5patched = true;
+    window.exitFullPanel = function(id){ document.body.classList.remove("full-panel","show-calendario","show-publicaciones","show-guardias"); return showOnly(id || document.body.getAttribute("data-active-panel") || "hoy", null, false); };
+  }
+
+  function removeRealizadaColumn(){
+    var kanban = q("#kanban"); if(!kanban) return;
+    qa(".kcol", kanban).forEach(function(col){
+      var head = q(".khdr,.kt", col);
+      var text = (head ? head.textContent : col.textContent || "").toLowerCase();
+      if(/realizad/.test(text)) col.remove();
+    });
     var fest = q("#fest");
-    if(fest){
-      qa("option", fest).forEach(function(opt){ if(/realizad/i.test(opt.textContent || opt.value || "")) opt.remove(); });
-      if(/realizad/i.test(fest.value || "")) fest.value = "Pendiente";
+    if(fest){ qa("option", fest).forEach(function(o){ if(/realizad/i.test(o.textContent || o.value || "")) o.remove(); }); if(/realizad/i.test(fest.value||"")) fest.value="Pendiente"; }
+  }
+
+  function installKanbanPatch(){
+    if(typeof window.renderKanban === "function" && !window.renderKanban._uiNoRealizada){
+      var orig = window.renderKanban;
+      window.renderKanban = function(){ var r = orig.apply(this, arguments); setTimeout(removeRealizadaColumn, 20); setTimeout(removeRealizadaColumn, 180); return r; };
+      window.renderKanban._uiNoRealizada = true;
     }
   }
 
-  function compactHoy(){
-    var hoy = q("#p-hoy"); if(!hoy) return;
-    hoy.classList.add("ui-hoy-compacto");
-    var main = mainEl(); if(main && document.body.getAttribute("data-active-panel") === "hoy") main.style.setProperty("scroll-behavior","auto","important");
+  function renderTop10Pendientes(){
+    var host = q("#p-hoy"); if(!host) return;
+    var list = activeTasks().filter(function(t){ var e=String(t.estado||"").toLowerCase(); return e !== "completo" && e !== "completa" && e !== "realizada" && e !== "realizado" && e !== "lista para publicar" && e !== "listo s/publicar"; })
+      .map(function(t){ return {t:t, age:daysOld(t.created_at || t.updated_at || t.fecha)}; })
+      .sort(function(a,b){ return (b.age-a.age) || String(a.t.created_at||"").localeCompare(String(b.t.created_at||"")); })
+      .slice(0,10);
+    var card = q("#ui-top10-pendientes", host);
+    if(!card){ card = document.createElement("section"); card.id = "ui-top10-pendientes"; card.className = "ui-top10-card"; var insertAfter = qa("#p-hoy > *", host)[1] || host.firstChild; if(insertAfter && insertAfter.parentNode) insertAfter.parentNode.insertBefore(card, insertAfter.nextSibling); else host.insertBefore(card, host.firstChild); }
+    card.innerHTML = '<div class="ui-top10-head"><div><div class="ui-kicker">Seguimiento</div><h3>10 actividades pendientes con mayor demora</h3></div><span>'+list.length+'/10</span></div>' +
+      (list.length ? list.map(function(x, i){ var t=x.t; return '<button class="ui-top10-row" type="button" data-task-id="'+esc(t.id)+'">' +
+        '<b>'+(i+1)+'</b><div><strong>'+esc(t.descripcion || "Sin descripción")+'</strong><small>'+esc(t.responsable || "Sin asignar")+' · '+esc(t.estado || "Pendiente")+' · Prioridad '+esc(t.prioridad || "Media")+'</small></div><em>'+x.age+'<small>días</small></em></button>'; }).join("") : '<div class="ui-empty">No hay actividades pendientes.</div>');
+    qa("[data-task-id]", card).forEach(function(btn){ if(btn._bound) return; btn._bound=true; btn.addEventListener("click", function(){ var id=this.getAttribute("data-task-id"); if(typeof window.editTask === "function") window.editTask(id); else if(typeof window.openTaskMod === "function") window.openTaskMod(id); }); });
+  }
+
+  function coverageKey(el){
+    var onclick = el.getAttribute("onclick") || "";
+    var m = onclick.match(/String\(x\.id\)==='([^']+)'/) || onclick.match(/openEvPanel\(['\"]([^'\"]+)/) || onclick.match(/editPubItem\(['\"]([^'\"]+)/);
+    return m ? m[1] : (el.textContent || "").replace(/\s+/g," ").trim().slice(0,90);
+  }
+  function coverMap(){ try{ return JSON.parse(localStorage.getItem("ui_cover_map") || "{}"); }catch(_e){ return {}; } }
+  function saveCoverMap(m){ try{ localStorage.setItem("ui_cover_map", JSON.stringify(m)); }catch(_e){} }
+  function isCovered(key){ try{ if(typeof cobSel !== "undefined" && cobSel && key in cobSel) return !!cobSel[key]; }catch(_e){} var m=coverMap(); return !!m[key]; }
+  function setCovered(key, value){ try{ if(typeof cobSel !== "undefined" && cobSel) cobSel[key]=value; }catch(_e){} var m=coverMap(); m[key]=value; saveCoverMap(m); }
+
+  function addCoverButtons(){
+    var selectors = [
+      "#p-hoy .agenda-row", "#p-hoy [onclick*='openEvPanel']", "#p-hoy [onclick*='editPubItem']",
+      "#p-calendario [onclick*='openEvPanel']", "#p-calendario [onclick*='editPubItem']"
+    ].join(",");
+    qa(selectors).forEach(function(el){
+      if(el._coverReady || el.querySelector && el.querySelector(".ui-cover-toggle")) return;
+      var key = coverageKey(el); if(!key) return;
+      el._coverReady = true;
+      var btn = document.createElement("button"); btn.type="button"; btn.className="ui-cover-toggle"; btn.dataset.coverKey = key;
+      function paint(){ var on=isCovered(key); btn.textContent = on ? "✓ Se cubre" : "Cubrir"; btn.classList.toggle("on", on); }
+      btn.addEventListener("click", function(ev){ ev.preventDefault(); ev.stopPropagation(); if(typeof ev.stopImmediatePropagation === "function") ev.stopImmediatePropagation(); setCovered(key, !isCovered(key)); paint(); });
+      paint();
+      el.appendChild(btn);
+    });
   }
 
   function fixCalendarReadable(){
     var cal = q("#p-calendario"); if(!cal) return;
     cal.classList.add("ui-cal-readable");
-    ["#calwscroll","#cal-day-content"].forEach(function(sel){ var el=q(sel); if(el) el.classList.add("ui-cal-readable-host"); });
-    qa("#calwscroll [onclick*='openEvPanel'],#calwscroll [onclick*='editPubItem'],#cal-day-content [onclick*='openEvPanel'],#cal-day-content [onclick*='editPubItem']").forEach(function(el){
+    var sc = q("#calwscroll"); if(sc){ sc.style.setProperty("overflow","auto","important"); var inner=sc.firstElementChild; if(inner) inner.style.setProperty("min-width","1480px","important"); }
+    qa("#p-calendario [onclick*='openEvPanel'],#p-calendario [onclick*='editPubItem']").forEach(function(el){
       el.classList.add("ui-cal-event-readable");
-      el.style.setProperty("white-space","normal","important");
-      el.style.setProperty("word-break","normal","important");
-      el.style.setProperty("overflow-wrap","break-word","important");
-      el.style.setProperty("font-size","11px","important");
-      el.style.setProperty("line-height","1.2","important");
-      el.style.setProperty("min-width","94px","important");
-      el.style.setProperty("min-height","34px","important");
-      el.style.setProperty("padding","5px 7px","important");
-      el.style.setProperty("z-index","40","important");
-      qa("*", el).forEach(function(ch){
-        ch.style.setProperty("white-space","normal","important");
-        ch.style.setProperty("word-break","normal","important");
-        ch.style.setProperty("overflow-wrap","break-word","important");
-        ch.style.setProperty("font-size","11px","important");
-        ch.style.setProperty("line-height","1.18","important");
-      });
+      el.style.setProperty("white-space","normal","important"); el.style.setProperty("word-break","normal","important"); el.style.setProperty("overflow-wrap","break-word","important");
+      el.style.setProperty("font-size","10.5px","important"); el.style.setProperty("line-height","1.18","important"); el.style.setProperty("min-width","110px","important"); el.style.setProperty("min-height","38px","important");
+      if(!el.title) el.title=(el.textContent||"").replace(/\s+/g," ").trim();
     });
   }
 
-  function getTeamList(){ try{ return (typeof teams !== "undefined" && Array.isArray(teams)) ? teams : []; }catch(_e){ return []; } }
-  function findTeamByText(card){
-    var text = (card && card.textContent || "").replace(/\s+/g," ").trim();
-    var list = getTeamList();
-    for(var i=0;i<list.length;i++) if(list[i].nombre && text.toLowerCase().indexOf(String(list[i].nombre).toLowerCase()) !== -1) return list[i];
-    return null;
-  }
-
-  function ensureTeamModal(){
-    var m = q("#uiTeamModal"); if(m) return m;
-    m = document.createElement("div"); m.id = "uiTeamModal"; m.className = "overlay";
-    m.style.cssText = "display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:3000;align-items:center;justify-content:center;padding:16px";
-    m.innerHTML = '<div class="mod" style="width:min(520px,95vw);background:#fff;border-radius:16px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.25)">'+
-      '<div style="font-size:18px;font-weight:900;margin-bottom:12px">Editar integrante</div>'+ 
-      '<input type="hidden" id="uiTeamId">'+
-      '<div class="fg"><label>Nombre</label><input id="uiTeamNombre" type="text"></div>'+ 
-      '<div class="fg"><label>Email</label><input id="uiTeamEmail" type="email"></div>'+ 
-      '<div class="fg"><label>Teléfono / WhatsApp</label><input id="uiTeamTel" type="text"></div>'+ 
-      '<div class="fg"><label>Rol</label><input id="uiTeamRol" type="text"></div>'+ 
-      '<div class="fr" style="gap:8px;justify-content:flex-end;margin-top:12px">'+
-      '<button class="btn-sec" type="button" onclick="window.uiTeamClose()">Cancelar</button>'+ 
-      '<button class="btn-pri" type="button" onclick="window.uiTeamSave()">Guardar</button>'+ 
-      '</div></div>';
-    m.addEventListener("click", function(e){ if(e.target === m) window.uiTeamClose(); });
-    document.body.appendChild(m); return m;
-  }
-
-  window.uiTeamClose = function(){ var m=q("#uiTeamModal"); if(m){ m.classList.remove("open"); m.style.display="none"; } };
-  window.uiTeamOpen = function(member){
-    var m = ensureTeamModal(); member = member || {};
-    q("#uiTeamId").value = member.id || member.nombre || "";
-    q("#uiTeamNombre").value = member.nombre || "";
-    q("#uiTeamEmail").value = member.email || member.mail || "";
-    q("#uiTeamTel").value = member.telefono || member.tel || member.whatsapp || "";
-    q("#uiTeamRol").value = member.rol || member.cargo || "";
-    m.classList.add("open"); m.style.display="flex"; m.style.pointerEvents="auto";
-  };
-  window.uiTeamSave = async function(){
-    var id = q("#uiTeamId").value;
-    var row = { nombre:q("#uiTeamNombre").value.trim(), email:q("#uiTeamEmail").value.trim(), telefono:q("#uiTeamTel").value.trim().replace(/[^0-9]/g,""), rol:q("#uiTeamRol").value.trim() };
-    if(!row.nombre){ alert("El nombre es obligatorio"); return; }
-    var list = getTeamList(); var old = list.find(function(x){ return String(x.id||x.nombre) === String(id) || x.nombre === id; });
-    var data = Object.assign({}, old || {}, row);
-    try{
-      var dbx = window.db || (typeof db !== "undefined" ? db : null);
-      if(dbx && dbx.from){
-        if(old && old.id) await dbx.from("equipo").update(data).eq("id", old.id);
-        else if(old && old.nombre) await dbx.from("equipo").update(data).eq("nombre", old.nombre);
-        else await dbx.from("equipo").insert(data);
-      }
-    }catch(e){ console.warn("[ui-fixes] equipo save", e); }
-    if(old) Object.assign(old, data); else list.push(Object.assign({id:"loc_"+Date.now()}, data));
-    window.uiTeamClose();
-    if(typeof window.renderTeam === "function") window.renderTeam();
-    if(typeof window.renderPersons === "function") window.renderPersons();
-    if(typeof toast === "function") toast("✓ Integrante actualizado");
-  };
-
-  function patchTeamClicks(){
-    var panel = q("#p-equipo"); if(!panel) return;
-    qa("button", panel).forEach(function(btn){
-      var t=(btn.textContent||"").toLowerCase();
-      if(t.indexOf("agregar persona")!==-1 && !btn._uiAddTeam){
-        btn._uiAddTeam=true; btn.addEventListener("click", function(e){ e.preventDefault(); e.stopPropagation(); if(typeof window.openMemberMod==="function") window.openMemberMod(); else window.uiTeamOpen({}); }, true);
-      }
-    });
-    qa(".person,.member,.tmcard,.card,[onclick*='edit'],[onclick*='Person'],[onclick*='Team']", panel).forEach(function(card){
-      if(card._uiEditTeam || card.tagName === "BUTTON" || card.closest("button")) return;
-      var m=findTeamByText(card); if(!m) return;
-      card._uiEditTeam=true; card.style.cursor="pointer";
-      card.addEventListener("dblclick", function(e){ e.preventDefault(); e.stopPropagation(); window.uiTeamOpen(m); }, true);
-    });
-  }
-
-  function callRender(id){
-    var map = { hoy:["_renderHoy","renderPanelHoyCustom"], tablero:["renderKanban"], material:["renderMaterial"], publicaciones:["renderPubDay","renderWeek"], calendario:["renderCal","renderCalDay"], guardias:["initGuardias","renderGuardias","renderGuardDay"], equipo:["renderTeam","renderPersons"], metricas:["renderMetricas"], medios:["renderNoticias","renderMedioSum","renderMediosList"], reclamos:["renderReclamos"], entrevistas:["renderEntrevistas"], contactos:["renderContactos","renderContactosMediosModulo"], recursos:["loadRecursos","renderRecursos"], agente:["agRenderLista","agRenderStats","agRenderProgreso"] };
-    (map[id] || []).forEach(function(fn){ try{ if(typeof window[fn] === "function") window[fn](); }catch(e){ console.warn("[ui-fixes] render fallo", fn, e); } });
-    setTimeout(function(){ if(id==="hoy") compactHoy(); if(id==="tablero") hideRealizada(); if(id==="calendario") fixCalendarReadable(); if(id==="equipo") patchTeamClicks(); }, 80);
-    setTimeout(function(){ if(id==="tablero") hideRealizada(); if(id==="calendario") fixCalendarReadable(); if(id==="equipo") patchTeamClicks(); }, 350);
-  }
-
-  function showOnly(id, explicitButton, skipRender){
-    id = norm(id); repairStructure();
-    var previous = norm(document.body.getAttribute("data-active-panel") || "");
-    if(id !== "agente"){
-      window._agenteActual = null;
-      var agente = document.getElementById("p-agente"); if(agente) setPanelState(agente, false, id);
-    }
-    var target = document.getElementById("p-" + id); if(!target && id === "biblioteca") target = document.getElementById("p-recursos");
-    if(!target){ id="tablero"; target=document.getElementById("p-tablero") || panels()[0]; }
-    panels().forEach(function(panel){ setPanelState(panel, panel === target, id); }); setPanelState(target, true, id);
-    document.body.setAttribute("data-active-panel", id);
-    document.body.classList.remove("show-calendario","show-publicaciones","show-guardias");
-    if(window.innerWidth <= 700 && (id==="calendario"||id==="publicaciones"||id==="guardias")) document.body.classList.add("full-panel","show-"+id); else document.body.classList.remove("full-panel");
-    setActiveButtons(id, explicitButton); closeClosedModals();
-    if(id==="hoy") compactHoy(); if(id==="tablero") hideRealizada(); if(id==="calendario") fixCalendarReadable(); if(id==="equipo") patchTeamClicks();
-    var main=mainEl(); if(main && !skipRender && previous !== id) main.scrollTop=0;
-    if(!skipRender){ setTimeout(function(){ callRender(id); showOnly(id, explicitButton, true); }, 30); setTimeout(function(){ showOnly(id, explicitButton, true); }, 180); }
-  }
-
-  function finalNav(id, tab, sb){ id=norm(id); showOnly(id, sb || tab || null, false); return false; }
-  function installNav(){ window.nav=finalNav; window.nav._stableFinal=true; window.nav._v4patched=true; window.nav._v5patched=true; window.nav.__patcheadoActivo=true; window.exitFullPanel=function(id){ document.body.classList.remove("full-panel","show-calendario","show-publicaciones","show-guardias"); return finalNav(id || document.body.getAttribute("data-active-panel") || "hoy"); }; }
-  function installAgentPanel(){
-    if(typeof window.abrirPanelAgente !== "function" || window.abrirPanelAgente._uiFixed) return;
-    var original=window.abrirPanelAgente;
-    window.abrirPanelAgente=function(nombre){ window._agenteActual=nombre || window._agenteActual || ""; try{ original.apply(this, arguments); }catch(e){ console.warn("[ui-fixes] abrirPanelAgente fallo", e); } setTimeout(function(){ showOnly("agente", null, true); var panel=movePanelIntoMain("agente"); if(panel){ panel.hidden=false; panel.removeAttribute("hidden"); panel.removeAttribute("aria-hidden"); panel.style.setProperty("display","block","important"); panel.style.setProperty("visibility","visible","important"); } },0); };
-    window.abrirPanelAgente._uiFixed=true;
+  function clickRescue(){
+    document.addEventListener("click", function(ev){
+      var btn = ev.target && ev.target.closest && ev.target.closest("button,.btn,.btn-sm,.btn-pri,.btn-sec,.kadd"); if(!btn) return;
+      setTimeout(function(){
+        var label=(btn.textContent||"").toLowerCase();
+        if(label.indexOf("programar") !== -1 && typeof window.openProgram === "function"){
+          var card = btn.closest(".mcard,.card,div"); var title = card ? (card.textContent||"Publicación").replace(/Programar|Completo/g,"").trim() : "Publicación";
+          if(!q("#modProgram.open")) window.openProgram("", title);
+        }
+        if((label.indexOf("nueva tarea") !== -1 || label === "+ agregar") && typeof window.openTaskMod === "function" && !q("#modTask.open")) window.openTaskMod(null,"Pendiente");
+      }, 70);
+    }, false);
   }
 
   function css(){
-    if(document.getElementById("ui-fixes-root-css")) return;
-    var st=document.createElement("style"); st.id="ui-fixes-root-css";
-    st.textContent=[
-      "html,body{font-size:13px!important;line-height:1.34!important}","button,.btn,.ntab,.sbi{font-size:12px!important}","input,select,textarea{font-size:13px!important}",".ptitle,.pgtitle{font-size:16px!important}","h1{font-size:20px!important}h2{font-size:17px!important}h3{font-size:15px!important}",
-      "#p-tablero #kanban .kcol:has(.khdr),#p-tablero #kanban .kcol{min-width:280px!important}",
-      "#p-tablero #kanban .kcol:has(.khdr:contains('Realizada')){display:none!important}",
-      "#p-hoy.m7-hoy-stable,#p-hoy.ui-hoy-compacto{font-size:12px!important;padding:8px 12px 14px!important;overflow:auto!important;min-height:auto!important}","#p-hoy #m7-hoy-panel{max-width:none!important;margin:0!important;width:100%!important}","#p-hoy .m7-grid{gap:12px!important;margin-top:12px!important}","#p-hoy .m7-card{padding:10px 12px!important;margin-bottom:8px!important;border-radius:8px!important;box-shadow:0 4px 14px rgba(15,23,42,.05)!important}","#p-hoy .m7-card-head h3{font-size:14px!important;line-height:1.18!important;font-weight:800!important}","#p-hoy .m7-delay-title{font-size:12px!important;line-height:1.22!important;font-weight:700!important;display:-webkit-box!important;-webkit-line-clamp:2!important;-webkit-box-orient:vertical!important;overflow:hidden!important}","#p-hoy .m7-delay-age strong{font-size:18px!important;line-height:1!important}",
-      "#p-calendario.ui-cal-readable #calwscroll{overflow-x:auto!important;overflow-y:auto!important}","#p-calendario.ui-cal-readable #calwscroll>div{min-width:1180px!important}","#p-calendario.ui-cal-readable [onclick*='openEvPanel'],#p-calendario.ui-cal-readable [onclick*='editPubItem'],.ui-cal-event-readable{min-width:96px!important;max-width:180px!important;white-space:normal!important;word-break:normal!important;overflow-wrap:break-word!important;font-size:11px!important;line-height:1.18!important;padding:5px 7px!important;border-radius:8px!important;background:#fff!important;color:#111827!important;box-shadow:0 2px 8px rgba(15,23,42,.14)!important}","#p-calendario.ui-cal-readable [onclick*='openEvPanel'] *,#p-calendario.ui-cal-readable [onclick*='editPubItem'] *{white-space:normal!important;word-break:normal!important;overflow-wrap:break-word!important;font-size:11px!important;line-height:1.18!important}",
-      "#uiTeamModal .fg{margin-bottom:10px}#uiTeamModal label{display:block;font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px}#uiTeamModal input{width:100%;border:1px solid #d1d5db;border-radius:8px;padding:8px 10px;font-size:13px}#uiTeamModal .btn-pri{background:#667eea;color:#fff;border:none;border-radius:8px;padding:8px 13px;font-weight:800}#uiTeamModal .btn-sec{background:#f3f4f6;color:#374151;border:1px solid #d1d5db;border-radius:8px;padding:8px 13px;font-weight:700}",
-      ".ov:not(.open),.overlay:not(.open){display:none!important;pointer-events:none!important}",".ov.open,.overlay.open{display:flex!important;pointer-events:auto!important}","#login{z-index:9999}.ov.open,.overlay.open{z-index:1200}#uiTeamModal.open{z-index:3000!important}#toast{z-index:3500}.topbar{z-index:100}.sb{z-index:90}#evpanel{z-index:800}",".content{overflow-y:auto!important;overflow-x:hidden!important;scroll-behavior:auto!important}"
+    if(q("#ui-final-rules-css")) return;
+    var st=document.createElement("style"); st.id="ui-final-rules-css";
+    st.textContent = [
+      "html,body{font-size:13px!important;line-height:1.34!important}",
+      ".content{overflow-y:auto!important;overflow-x:hidden!important;scroll-behavior:auto!important}",
+      "#kanban{height:calc(100vh - 155px)!important;overflow-x:auto!important;overflow-y:hidden!important;align-items:stretch!important}",
+      "#kanban .kcol{height:100%!important;min-width:300px!important}",
+      "#kanban .kbody{max-height:calc(100vh - 245px)!important;overflow-y:auto!important;overflow-x:hidden!important}",
+      "#kanban .kcol[style*='display: none']{display:none!important}",
+      "#ui-top10-pendientes{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:14px 16px;margin:14px 0;box-shadow:0 8px 20px rgba(15,23,42,.05)}",
+      ".ui-top10-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.ui-top10-head h3{font-size:17px!important;margin:0}.ui-top10-head span{background:#fee2e2;color:#b91c1c;border-radius:999px;padding:6px 10px;font-weight:900}.ui-kicker{font-size:10px;text-transform:uppercase;color:#ef4444;font-weight:900;letter-spacing:.08em}",
+      ".ui-top10-row{width:100%;display:grid;grid-template-columns:34px minmax(0,1fr) 52px;gap:10px;align-items:center;border:1px solid #fecaca;background:#fff1f2;border-radius:10px;padding:8px 10px;margin:7px 0;text-align:left;cursor:pointer;font-family:Inter,sans-serif}.ui-top10-row>b{width:28px;height:28px;border-radius:9px;background:#eef2f7;display:grid;place-items:center}.ui-top10-row strong{display:block;font-size:13px;line-height:1.22}.ui-top10-row small{display:block;font-size:11px;color:#64748b;margin-top:2px}.ui-top10-row em{text-align:center;font-style:normal;font-weight:900;font-size:18px}.ui-top10-row em small{font-size:8px;text-transform:uppercase;color:#7f1d1d}",
+      "#p-calendario.ui-cal-readable #calwscroll{overflow:auto!important}#p-calendario.ui-cal-readable #calwscroll>div{min-width:1480px!important}",
+      ".ui-cal-event-readable{min-width:110px!important;max-width:220px!important;white-space:normal!important;word-break:normal!important;overflow-wrap:break-word!important;font-size:10.5px!important;line-height:1.18!important}",
+      ".ui-cover-toggle{display:inline-flex!important;margin-top:4px!important;padding:2px 6px!important;border:1px solid #93c5fd!important;border-radius:999px!important;background:#eff6ff!important;color:#1d4ed8!important;font:800 9px Inter,sans-serif!important;cursor:pointer!important;white-space:nowrap!important}.ui-cover-toggle.on{background:#dcfce7!important;border-color:#86efac!important;color:#15803d!important}",
+      ".ov:not(.open),.overlay:not(.open){display:none!important;pointer-events:none!important}.ov.open,.overlay.open{display:flex!important;pointer-events:auto!important}"
     ].join("\n");
     document.head.appendChild(st);
   }
 
-  function clickCapture(e){
-    var agentBtn=e.target.closest('[onclick*="abrirPanelAgente"]'); if(agentBtn) return;
-    var btn=e.target.closest(".ntab,.sbi,.mbn-btn,[data-mid],[data-nav]"); if(!btn) return;
-    var id=buttonId(btn); if(!id) return; e.preventDefault(); e.stopPropagation(); if(typeof e.stopImmediatePropagation==="function") e.stopImmediatePropagation(); finalNav(id,null,btn);
+  function finalRules(){
+    cleanBrokenText(); removeRealizadaColumn(); renderTop10Pendientes(); fixCalendarReadable(); addCoverButtons();
   }
 
   function run(){
-    css(); installNav(); installAgentPanel(); repairStructure(); closeClosedModals();
-    var active=norm(document.body.getAttribute("data-active-panel") || "hoy"); if(!document.getElementById("p-"+active)) active="hoy";
-    showOnly(active,null,false); hideRealizada(); fixCalendarReadable(); patchTeamClicks();
+    css(); installNav(); installKanbanPatch(); closeClosedModals();
+    var active = norm(document.body.getAttribute("data-active-panel") || "hoy");
+    if(!q("#p-"+active)) active="hoy";
+    showOnly(active, null, false);
+    finalRules();
   }
 
-  document.addEventListener("click", clickCapture, true);
-  document.addEventListener("dblclick", function(e){ var panel=q("#p-equipo"); if(!panel || document.body.getAttribute("data-active-panel")!=="equipo") return; var card=e.target.closest(".card,.tmcard,.person,.member,div"); var m=findTeamByText(card); if(m){ e.preventDefault(); e.stopPropagation(); window.uiTeamOpen(m); } }, true);
+  document.addEventListener("click", function(e){
+    var navBtn = e.target && e.target.closest && e.target.closest(".ntab,.sbi,.mbn-btn,[data-mid],[data-nav]");
+    if(!navBtn) return;
+    var id = buttonId(navBtn); if(!id) return;
+    e.preventDefault(); e.stopPropagation(); if(typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
+    showOnly(id, navBtn, false);
+  }, true);
+  clickRescue();
 
   if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", run, {once:true}); else run();
-  setTimeout(run,250); setTimeout(run,900); setTimeout(function(){ installAgentPanel(); showOnly(norm(document.body.getAttribute("data-active-panel") || "hoy"), null, true); hideRealizada(); fixCalendarReadable(); patchTeamClicks(); },1800);
-  setInterval(function(){ var active=document.body.getAttribute("data-active-panel"); if(active==="tablero") hideRealizada(); if(active==="calendario") fixCalendarReadable(); if(active==="equipo") patchTeamClicks(); },1200);
+  setTimeout(run, 300); setTimeout(finalRules, 900); setTimeout(finalRules, 1800);
+  setInterval(function(){ var active=document.body.getAttribute("data-active-panel"); if(active==="hoy"||active==="tablero"||active==="calendario") finalRules(); }, 1500);
 
-  window.uiFixesRun=run;
-  console.log("[ui-fixes] tablero calendario equipo corregidos 2026-05-21f");
+  window.uiFixesRun = run;
+  console.log("[ui-fixes] reglas finales: top10 cubrir no-realizada");
 })();
