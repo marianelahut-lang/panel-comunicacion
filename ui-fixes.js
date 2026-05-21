@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════
-   UI-FIXES.JS  v4.1  ·  Panel Comunicación — Municipalidad Tres Arroyos
-   CORRECCIÓN DEFINITIVA: sin parchear nav, usa delegación + MutationObserver
+   UI-FIXES.JS  v4.2  ·  Panel Comunicación — Municipalidad Tres Arroyos
+   CORRECCIÓN DEFINITIVA: delegación llama nav() + navUnificado() juntos
    ═══════════════════════════════════════════════════════════ */
 (function(){
   "use strict";
@@ -29,14 +29,14 @@
     var s=document.createElement("style");s.id="ui-fixes-css";s.textContent=css;document.head.appendChild(s);
   }
 
-  /* ─── SYNC DE ESTADO DE BOTONES (sidebar, ntab, mbn) ── */
+  /* ─── SYNC DE BOTONES ────────────────────────────────── */
   function sincronizarBotones(pid){
     document.querySelectorAll(".sbi[data-mid]").forEach(function(b){b.dataset.mid===pid?b.classList.add("on"):b.classList.remove("on");});
     document.querySelectorAll(".ntab[data-mid]").forEach(function(b){b.dataset.mid===pid?b.classList.add("on"):b.classList.remove("on");});
     document.querySelectorAll(".mbn-btn[data-mid]").forEach(function(b){b.dataset.mid===pid?b.classList.add("on"):b.classList.remove("on");});
   }
 
-  /* ─── SYNC DE PANELES (inline styles) ───────────────── */
+  /* ─── SYNC DE PANELES ────────────────────────────────── */
   function sincronizarPaneles(pid){
     PANEL_IDS.forEach(function(p){
       var el=document.getElementById("p-"+p);
@@ -46,60 +46,62 @@
     });
   }
 
-  /* ─── FUNCIÓN PRINCIPAL NAV-UNIFICADO ───────────────── */
+  /* ─── NAV UNIFICADO ──────────────────────────────────── */
   function navUnificado(id){
     if(!id)return;
     var pid=normalizarId(id);
+    // 1. Actualizar data-active-panel (para el CSS selector)
     document.body.setAttribute("data-active-panel",pid);
+    // 2. Actualizar body.className para CSS legacy
     var cls=document.body.className.split(" ").filter(function(c){return c.indexOf("m4tab-")!==0;});
     cls.push("m4tab-"+pid);
     document.body.className=cls.join(" ").trim();
+    // 3. Sincronizar paneles e inline styles
     sincronizarPaneles(pid);
+    // 4. Sincronizar botones de navegacion
     sincronizarBotones(pid);
   }
 
-  /* ─── DELEGACIÓN DE CLICKS CAPTURA LA NAVEGACIÓN ────── */
+  /* ─── DELEGACIÓN ROBUSTA ─────────────────────────────── */
   function setupDelegacion(){
-    // Capturar click en .sbi[data-mid] antes de nav()
+    // .sbi[data-mid] - sidebar buttons
     document.addEventListener("click",function(e){
       var btn=e.target.closest(".sbi[data-mid]");
       if(!btn)return;
       var mid=btn.dataset.mid;if(!mid)return;
-      // No interferir si tiene onclick con nav() (lo llamara nav() que triggerea el observer)
       var oc=btn.getAttribute("onclick")||"";
-      if(oc.indexOf("nav(")!==-1)return;
+      if(oc.indexOf("nav(")!==-1)return; // tiene onclick propio, nav() se llama solo
       e.stopPropagation();
-      if(typeof window.nav==="function")window.nav(mid);
-      else navUnificado(mid);
+      // Llamar nav() original (para lógica de datos/render)
+      if(typeof window.nav==="function") window.nav(mid);
+      // SIEMPRE llamar navUnificado para estado visual
+      navUnificado(mid);
     },true);
 
-    // ntab sin onclick
+    // .ntab[data-mid] - top tabs sin onclick
     document.addEventListener("click",function(e){
       var tab=e.target.closest(".ntab[data-mid]");
       if(!tab)return;
       var oc=tab.getAttribute("onclick")||"";
       if(oc.indexOf("nav(")!==-1)return;
       var mid=tab.dataset.mid;if(!mid)return;
-      if(typeof window.nav==="function")window.nav(mid);
-      else navUnificado(mid);
+      if(typeof window.nav==="function") window.nav(mid);
+      navUnificado(mid);
     },true);
   }
 
-  /* ─── OBSERVER: data-active-panel -> sync botones ────── */
-  function setupObserver(){
-    var body=document.body;
-    var obs=new MutationObserver(function(muts){
-      muts.forEach(function(m){
-        if(m.attributeName==="data-active-panel"){
-          var pid=body.getAttribute("data-active-panel");
-          if(pid){
-            sincronizarBotones(pid);
-            sincronizarPaneles(pid);
-          }
-        }
-      });
-    });
-    obs.observe(body,{attributes:true,attributeFilter:["data-active-panel"]});
+  /* ─── INTERCEPTAR nav() PARA SINCRONIZAR ESTADO ─────── */
+  function patchNav(){
+    var orig=window.nav;
+    if(typeof orig!=="function"||orig._v4patched)return;
+    window.nav=function(id){
+      var r=orig.apply(this,arguments);
+      // Sincronizar estado visual DESPUES de que nav() corra
+      if(id) navUnificado(id);
+      return r;
+    };
+    window.nav._v4patched=true;
+    window.nav._orig=orig;
   }
 
   /* ─── MODALES CERRADOS ───────────────────────────────── */
@@ -112,7 +114,15 @@
   /* ─── FIX BOTÓN HOY ─────────────────────────────────── */
   function fixHoyButton(){
     var b=document.getElementById("ntab-hoy");
-    if(b&&!b.dataset.mid){b.dataset.mid="hoy";if(!b.getAttribute("onclick"))b.addEventListener("click",function(){if(typeof window.nav==="function")window.nav("hoy");else navUnificado("hoy");});}
+    if(b&&!b.dataset.mid){
+      b.dataset.mid="hoy";
+      if(!b.getAttribute("onclick")){
+        b.addEventListener("click",function(){
+          if(typeof window.nav==="function")window.nav("hoy");
+          navUnificado("hoy");
+        });
+      }
+    }
   }
 
   /* ─── NORMALIZAR FUENTES GRANDES ────────────────────── */
@@ -127,13 +137,18 @@
     inyectarCSS();
     cerrarModales();
     setupDelegacion();
-    setupObserver();
     fixHoyButton();
     normalizarFuentes();
-    // Sincronizar estado inicial
-    var panel=document.body.getAttribute("data-active-panel")||"hoy";
-    sincronizarBotones(panel);
-    sincronizarPaneles(panel);
+    // Parchear nav() con delay para que mejoras7 lo haya definido
+    var intentos=0;
+    var iv=setInterval(function(){
+      intentos++;
+      patchNav();
+      // Sincronizar estado actual
+      var panel=document.body.getAttribute("data-active-panel");
+      if(panel){sincronizarBotones(panel);sincronizarPaneles(panel);}
+      if(intentos>=8||(window.nav&&window.nav._v4patched))clearInterval(iv);
+    },250);
   }
 
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);
