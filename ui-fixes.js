@@ -2,7 +2,7 @@
   UI-FIXES.JS  v5.0
   Panel Comunicacion - Municipalidad Tres Arroyos
   CORRECCION INTEGRAL DE RAIZ
-  - Navegacion limpia (una seccion visible a la vez)
+  function corregirTopbar()- Navegacion limpia (una seccion visible a la vez)
   - Modales cerrados por defecto
   - Tipografia compacta y profesional
   - Z-index y overlays corregidos
@@ -326,4 +326,40 @@
       setTimeout(init, 50);
  }
 
+/* FIX ENCODING v5.1 - usar char codes para evitar problema de encoding del archivo */
+(function fixEncodingV5(){
+    function fixNode(node){
+          if(!node.nodeValue) return;
+          var val = node.nodeValue;
+          var out = [];
+          for(var i=0;i<val.length;i++){
+                  var c = val.charCodeAt(i);
+                  var n = val.charCodeAt(i+1);
+                  if(c===194 && n===183){out.push(String.fromCharCode(183));i++;}
+                  else if(c===195 && n===169){out.push(String.fromCharCode(233));i++;}
+                  else if(c===195 && n===179){out.push(String.fromCharCode(243));i++;}
+                  else if(c===195 && n===177){out.push(String.fromCharCode(241));i++;}
+                  else if(c===195 && n===173){out.push(String.fromCharCode(237));i++;}
+                  else if(c===195 && n===161){out.push(String.fromCharCode(225));i++;}
+                  else if(c===195 && n===186){out.push(String.fromCharCode(250));i++;}
+                  else{out.push(val[i]);}
+          }
+          var fixed=out.join('');
+          if(fixed!==val) node.nodeValue=fixed;
+    }
+    function runFix(){
+          var walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,null,false);
+          var n;
+          while((n=walker.nextNode())) fixNode(n);
+    }
+    if(document.readyState==='loading'){
+          document.addEventListener('DOMContentLoaded',function(){setTimeout(runFix,200);});
+    } else {
+          setTimeout(runFix,200);
+    }
+    /* Re-run periodically for dynamic content */
+    setTimeout(runFix,1000);
+    setTimeout(runFix,3000);
+})();
+  
 })();
