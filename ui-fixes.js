@@ -360,6 +360,7 @@
     /* Re-run periodically for dynamic content */
     setTimeout(runFix,1000);
     setTimeout(runFix,3000);
+      if(typeof MutationObserver!=='undefined'){var obs=new MutationObserver(function(){setTimeout(runFix,100);});obs.observe(document.body,{childList:true,subtree:true});}
 })();
   
 })();
