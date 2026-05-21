@@ -6,8 +6,8 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📡</text></svg>">
 <meta name="theme-color" content="#1e2535">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" contenht="yes">
-<meta name="apple-mobile-web-app-status-bar-styhlhhe" content="black-transluchent">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Comunicación TA">
 <link rel="manifest" id="pwa-manifest">
 <meta name="app-version" content="v5.69">
@@ -1998,7 +1998,7 @@ function updateBadges(){
 }
 
 // ═══ NAVIGATION ═══
-const PAGES=["tablero","material","publicaciones","calendario","guardias","equipo","metricas","medios","entrevistas","contactos","recursos","reclamos","hoy","dashboard","agente"];
+const PAGES=["tablero","material","publicaciones","calendario","guardias","equipo","metricas","medios","entrevistas","contactos","recursos","reclamos","hoy","dashboard","agente","cobertura"];
 function nav(id,tab,sb){
   PAGES.forEach(p=>{const el=document.getElementById("p-"+p);if(el)el.style.display=p===id?(["publicaciones","calendario"].includes(p)?"flex":"block"):"none";});
   document.querySelectorAll(".ntab,.sbi").forEach(b=>b.classList.remove("on"));
@@ -4656,7 +4656,8 @@ function _applyDarkBriefing(){
     name:"Panel Comunicación - Municipalidad de Tres Arroyos",
     short_name:"Comunicación TA",
     description:"Panel de gestión de comunicaciones municipales",
-    start_url:"./",
+    start_url:window.location.origin+window.location.pathname,
+    scope:window.location.origin+window.location.pathname.replace(/[^\/]*$/,""),
     display:"standalone",
     background_color:"#1e2535",
     theme_color:"#1e2535",
@@ -4998,7 +4999,7 @@ window.addEventListener("focus", ()=>{ setTimeout(checkForUpdate, 1000); });
   <div class="ptop"><div><div class="ptitle">Dashboard del Equipo</div><div class="psub">Carga y rendimiento por agente</div></div><button class="btn-sm" onclick="renderDashboard()">Actualizar</button></div>
   <div id="dash-content" style="padding:12px 16px"></div>
 </div>
-<div id="p-medios" style="display:none">
+<div id="p-cobertura" style="display:none">
   <div class="ptop"><div><div class="ptitle">Cobertura de Medios</div><div class="psub">Seguimiento editorial por evento</div></div><button class="btn-sm" onclick="openModMedio()">+ Nueva cobertura</button></div>
   <div style="padding:12px 16px">
     <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
@@ -5275,7 +5276,7 @@ console.log('v5.53 patch OK - bugfixes: cal events + tareas diarias');
 .ag-task{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:10px;border:1px solid var(--bdr);background:var(--bg2);margin-bottom:8px;transition:all .15s}
 .ag-task:hover{border-color:var(--acc)}
 .ag-task.done{opacity:.55}
-id="ag-tab-hoy" onclick="agShowTab('hoy')" class="ntab on" style-fix="light".ag-task-check{width:18px;height:18px;cursor:pointer;flex-shrink:0;margin-top:1px;accent-color:var(--acc)}
+.ag-task-check{width:18px;height:18px;cursor:pointer;flex-shrink:0;margin-top:1px;accent-color:var(--acc)}
 .ag-task-body{flex:1;min-width:0}
 .ag-task-desc{font-size:13px;color:var(--txt);line-height:1.4;margin-bottom:4px}
 .ag-task-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
@@ -7588,14 +7589,230 @@ window.eliminarPubDirecto = async function(id, descripcion){
 console.log("✅ Parche v5.74 OK — eliminar pubs hardened + estilo bloque guardia");
 })();
 </script>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     STUBS — Funciones invocadas desde onclick que no estaban
+     implementadas en ningún script (causaban botones muertos).
+     Persistencia en localStorage para coberturas y noticias.
+     Si en el futuro existe una implementación oficial, basta con
+     borrar este bloque.
+     ═══════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+  "use strict";
+  // ---------- helpers ----------
+  function $(id){ return document.getElementById(id); }
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+  function lsGet(k, def){ try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : def; } catch(e){ return def; } }
+  function lsSet(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+  function toast(msg){
+    if (typeof window.showToast === "function") { window.showToast(msg); return; }
+    var t = document.createElement("div");
+    t.textContent = msg;
+    t.style.cssText = "position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1e2535;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;z-index:99999;box-shadow:0 4px 14px rgba(0,0,0,.3)";
+    document.body.appendChild(t);
+    setTimeout(function(){ t.style.opacity="0"; t.style.transition="opacity .3s"; }, 1800);
+    setTimeout(function(){ t.remove(); }, 2200);
+  }
+
+  // ---------- COBERTURA DE MEDIOS ----------
+  var KEY_COB = "panel-comunicacion-coberturas-v1";
+  function loadCoberturas(){ return lsGet(KEY_COB, []); }
+  function saveCoberturas(arr){ lsSet(KEY_COB, arr); }
+
+  window.openModMedio = function(id){
+    var lista = loadCoberturas();
+    var c = id ? lista.find(function(x){ return x.id === id; }) : null;
+    if ($("medioId"))    $("medioId").value    = c ? c.id : "";
+    if ($("medioFecha")) $("medioFecha").value = c ? (c.fecha || "") : new Date().toISOString().slice(0,10);
+    if ($("medioTipo"))  $("medioTipo").value  = c ? (c.tipo  || "radio") : "radio";
+    if ($("medioNombre"))$("medioNombre").value= c ? (c.nombre|| "") : "";
+    if ($("medioEvento"))$("medioEvento").value= c ? (c.evento|| "") : "";
+    if ($("medioLink"))  $("medioLink").value  = c ? (c.link  || "") : "";
+    if ($("medioObs"))   $("medioObs").value   = c ? (c.obs   || "") : "";
+    window.selSent(c ? (c.sentimiento || "neutral") : "neutral");
+    if (typeof window.openMod === "function") window.openMod("modMedio");
+    else { var el=$("modMedio"); if(el){ el.style.display="flex"; el.classList.add("open"); } }
+  };
+
+  window.selSent = function(v){
+    if ($("medioSentimiento")) $("medioSentimiento").value = v;
+    document.querySelectorAll(".sent-opt").forEach(function(opt){
+      opt.style.borderColor = (opt.getAttribute("data-v") === v) ? "var(--acc)" : "transparent";
+    });
+  };
+
+  window.saveMedio = function(){
+    var nombre = ($("medioNombre")?.value || "").trim();
+    if (!nombre){ toast("Falta el nombre del medio"); return; }
+    var lista = loadCoberturas();
+    var idActual = ($("medioId")?.value || "").trim();
+    var registro = {
+      id: idActual || uid(),
+      fecha: $("medioFecha")?.value || "",
+      tipo:  $("medioTipo")?.value  || "otro",
+      nombre: nombre,
+      evento: ($("medioEvento")?.value || "").trim(),
+      sentimiento: $("medioSentimiento")?.value || "neutral",
+      link: ($("medioLink")?.value || "").trim(),
+      obs:  ($("medioObs")?.value  || "").trim(),
+      actualizado: Date.now()
+    };
+    if (idActual){
+      lista = lista.map(function(x){ return x.id === idActual ? registro : x; });
+    } else {
+      lista.unshift(registro);
+    }
+    saveCoberturas(lista);
+    if (typeof window.closeMod === "function") window.closeMod("modMedio");
+    window.renderMediosList();
+    toast("Cobertura guardada");
+  };
+
+  window.renderMediosList = function(){
+    var resumen = $("medios-resumen");
+    var listEl = $("medios-list");
+    if (!listEl) return;
+    var lista = loadCoberturas();
+    var fMes  = ($("medios-filter-mes")?.value || "").trim();
+    var fSent = ($("medios-filter-sent")?.value || "").trim();
+    var filtrada = lista.filter(function(c){
+      if (fMes  && (c.fecha || "").slice(0,7) !== fMes)  return false;
+      if (fSent && c.sentimiento !== fSent) return false;
+      return true;
+    });
+    // resumen por sentimiento
+    if (resumen){
+      var pos = filtrada.filter(function(c){ return c.sentimiento === "positiva"; }).length;
+      var neu = filtrada.filter(function(c){ return c.sentimiento === "neutral";  }).length;
+      var neg = filtrada.filter(function(c){ return c.sentimiento === "negativa"; }).length;
+      resumen.innerHTML = [
+        '<div style="background:rgba(34,197,94,.1);border-radius:10px;padding:10px;text-align:center"><div style="font-size:22px;font-weight:700;color:#16a34a">'+pos+'</div><div style="font-size:11px;color:#16a34a">Positivas</div></div>',
+        '<div style="background:rgba(156,163,175,.1);border-radius:10px;padding:10px;text-align:center"><div style="font-size:22px;font-weight:700;color:#6b7280">'+neu+'</div><div style="font-size:11px;color:#6b7280">Neutrales</div></div>',
+        '<div style="background:rgba(239,68,68,.1);border-radius:10px;padding:10px;text-align:center"><div style="font-size:22px;font-weight:700;color:#dc2626">'+neg+'</div><div style="font-size:11px;color:#dc2626">Negativas</div></div>',
+        '<div style="background:rgba(102,126,234,.1);border-radius:10px;padding:10px;text-align:center"><div style="font-size:22px;font-weight:700;color:#667eea">'+filtrada.length+'</div><div style="font-size:11px;color:#667eea">Total</div></div>'
+      ].join("");
+    }
+    // poblar filtro mes
+    var selMes = $("medios-filter-mes");
+    if (selMes){
+      var meses = Array.from(new Set(lista.map(function(c){ return (c.fecha||"").slice(0,7); }).filter(Boolean))).sort().reverse();
+      var cur = selMes.value;
+      selMes.innerHTML = '<option value="">Todos los meses</option>' +
+        meses.map(function(m){ return '<option value="'+m+'"'+(m===cur?' selected':'')+'>'+m+'</option>'; }).join("");
+    }
+    // listado
+    if (!filtrada.length){
+      listEl.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#9ca3af"><div style="font-size:30px">📰</div><div style="font-size:13px;margin-top:6px">Sin coberturas registradas</div></div>';
+      return;
+    }
+    var clrSent = { positiva:"#16a34a", neutral:"#6b7280", negativa:"#dc2626" };
+    var icoTipo = { radio:"📻", tv:"📺", diario:"📰", redes:"💬", agencia:"🗞", otro:"📌" };
+    listEl.innerHTML = filtrada.map(function(c){
+      return '<div onclick="openModMedio(\''+c.id+'\')" style="background:var(--bg2);border:1px solid var(--bdr);border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer;display:flex;gap:12px;align-items:flex-start">' +
+        '<div style="font-size:22px">'+(icoTipo[c.tipo]||"📌")+'</div>' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="font-weight:600;font-size:13px;color:var(--txt);margin-bottom:2px">'+(c.nombre||"—")+'</div>' +
+          '<div style="font-size:12px;color:var(--txt-sec);margin-bottom:4px">'+(c.evento||"")+'</div>' +
+          '<div style="display:flex;gap:8px;font-size:11px;color:var(--txt-sec);align-items:center;flex-wrap:wrap">' +
+            '<span>'+(c.fecha||"")+'</span>' +
+            '<span style="color:'+(clrSent[c.sentimiento]||"#6b7280")+';font-weight:600">●&nbsp;'+(c.sentimiento||"neutral")+'</span>' +
+            (c.link ? '<a href="'+c.link+'" target="_blank" onclick="event.stopPropagation()" style="color:#667eea">↗ ver nota</a>' : '') +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    }).join("");
+  };
+
+  // ---------- NOTICIAS ----------
+  var KEY_NOT = "panel-comunicacion-noticias-v1";
+  function loadNoticias(){ return lsGet(KEY_NOT, []); }
+  function saveNoticiasArr(arr){ lsSet(KEY_NOT, arr); }
+
+  window.openNoticiaMod = function(id){
+    var lista = loadNoticias();
+    var n = id ? lista.find(function(x){ return x.id === id; }) : null;
+    if ($("ntit"))    $("ntit").value    = n ? (n.titulo  || "") : "";
+    if ($("nmedio"))  $("nmedio").value  = n ? (n.medio   || "La Voz del Pueblo") : "La Voz del Pueblo";
+    if ($("nfecha"))  $("nfecha").value  = n ? (n.fecha   || "") : new Date().toISOString().slice(0,10);
+    if ($("nurl"))    $("nurl").value    = n ? (n.url     || "") : "";
+    if ($("nresumen"))$("nresumen").value= n ? (n.resumen || "") : "";
+    if ($("ntono"))   $("ntono").value   = n ? (n.tono    || "neutral") : "neutral";
+    if ($("nmenc"))   $("nmenc").value   = n ? (n.menc    || "ambos") : "ambos";
+    // guardar id editado en data attribute del modal
+    var modal = $("modNoticia"); if (modal) modal.setAttribute("data-edit-id", id || "");
+    if (typeof window.openMod === "function") window.openMod("modNoticia");
+  };
+
+  window.saveNoticia = function(){
+    var titulo = ($("ntit")?.value || "").trim();
+    if (!titulo){ toast("Falta el título"); return; }
+    var lista = loadNoticias();
+    var modal = $("modNoticia");
+    var editId = modal ? (modal.getAttribute("data-edit-id") || "") : "";
+    var registro = {
+      id: editId || uid(),
+      titulo: titulo,
+      medio: $("nmedio")?.value || "",
+      fecha: $("nfecha")?.value || "",
+      url:   ($("nurl")?.value || "").trim(),
+      resumen: ($("nresumen")?.value || "").trim(),
+      tono:  $("ntono")?.value || "neutral",
+      menc:  $("nmenc")?.value || "ambos",
+      actualizado: Date.now()
+    };
+    if (editId){
+      lista = lista.map(function(x){ return x.id === editId ? registro : x; });
+    } else {
+      lista.unshift(registro);
+    }
+    saveNoticiasArr(lista);
+    if (modal) modal.removeAttribute("data-edit-id");
+    if (typeof window.closeMod === "function") window.closeMod("modNoticia");
+    if (typeof window.renderNoticias === "function") window.renderNoticias();
+    toast("Noticia guardada");
+  };
+
+  // ---------- DASHBOARD ----------
+  window.renderDashboard = function(){
+    var cont = $("dash-content");
+    if (!cont) return;
+    var tareas = (typeof window.tasks !== "undefined" && Array.isArray(window.tasks)) ? window.tasks : [];
+    var teamArr = (typeof window.teams !== "undefined" && Array.isArray(window.teams)) ? window.teams : [];
+    if (!teamArr.length){
+      cont.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#9ca3af">Sin datos de equipo cargados.</div>';
+      return;
+    }
+    var rows = teamArr.map(function(m){
+      var mias = tareas.filter(function(t){ return t.responsable === m.nombre; });
+      var pend = mias.filter(function(t){ return t.estado !== "Completo" && t.estado !== "Realizada"; }).length;
+      var done = mias.filter(function(t){ return t.estado === "Completo" || t.estado === "Realizada"; }).length;
+      var pct  = mias.length ? Math.round(done * 100 / mias.length) : 0;
+      return '<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-bottom:1px solid var(--bdr)">' +
+        '<div style="flex:1"><div style="font-weight:600;font-size:13px">'+(m.nombre||"—")+'</div>' +
+        '<div style="font-size:11px;color:var(--txt-sec)">'+pend+' pendiente'+(pend===1?'':'s')+' · '+done+' resuelta'+(done===1?'':'s')+'</div></div>' +
+        '<div style="font-size:18px;font-weight:700;color:'+(pct>=70?"#16a34a":pct>=40?"#f59e0b":"#dc2626")+'">'+pct+'%</div>' +
+      '</div>';
+    }).join("");
+    cont.innerHTML =
+      '<div style="background:var(--bg2);border:1px solid var(--bdr);border-radius:12px;overflow:hidden">' +
+        '<div style="padding:10px 12px;font-weight:600;font-size:12px;color:var(--txt-sec);background:var(--bg);border-bottom:1px solid var(--bdr)">% de tareas resueltas por agente</div>' +
+        rows +
+      '</div>';
+  };
+
+  console.log("[stubs] cobertura/noticias/dashboard listos");
+})();
+</script>
+
 <script src="mejoras1.js" defer></script>
 <script src="mejoras2.js" defer></script>
 <script src="mejoras2-tablero.js" defer></script>
-  <script src="mejoras3.js" defer></script>
-  <script src="mejoras4.js" defer></script>
-    <script src="mejoras5.js" defer></script>
-    <script src="mejoras6.js" defer></script>
-    <script src="mejoras7.js?v=20260520d" defer></script>
-    <script src="ui-fixes.js?v=20260521b" defer></script>
+<script src="mejoras3.js" defer></script>
+<script src="mejoras4.js" defer></script>
+<script src="mejoras5.js" defer></script>
+<script src="mejoras6.js" defer></script>
+<script src="mejoras7.js?v=20260520d" defer></script>
+<script src="ui-fixes.js?v=20260521b" defer></script>
 </body>
 </html>
