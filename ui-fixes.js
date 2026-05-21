@@ -2,14 +2,15 @@
   UI-FIXES.JS
   Capa de compatibilidad no invasiva.
 
-  Este archivo queda cargado por versiones anteriores de index.html, pero ya no
-  reemplaza nav(), no intercepta clicks y no fuerza display con !important.
-  La navegacion y la visibilidad pertenecen al codigo principal del panel.
+  No reemplaza nav(), no intercepta clicks y no fuerza display con !important.
+  Solo limpia overlays cerrados, texto suelto del sidebar y atributos hidden
+  residuales que impedian abrir los modulos del panel.
 */
 (function(){
   "use strict";
 
   var MODAL_SELECTOR = ".ov, .overlay";
+  var PANEL_SELECTOR = "#main > [id^='p-']";
 
   function closeDefaultModals(){
     document.querySelectorAll(MODAL_SELECTOR).forEach(function(modal){
@@ -39,29 +40,52 @@
     } catch (_e) {}
   }
 
-  function normalizeInitialPanels(){
-    var main = document.getElementById("main");
-    if (!main) return;
-    var active = document.body.getAttribute("data-active-panel") || "tablero";
-    var panels = Array.prototype.slice.call(main.querySelectorAll(":scope > [id^='p-']"));
-    var hasActive = panels.some(function(panel){ return panel.id === "p-" + active; });
-    if (!hasActive) active = "tablero";
-    panels.forEach(function(panel){
-      var isActive = panel.id === "p-" + active;
-      panel.hidden = !isActive;
-      panel.classList.toggle("active", isActive);
-      panel.classList.toggle("show", isActive);
+  function unlockPanels(){
+    document.querySelectorAll(PANEL_SELECTOR).forEach(function(panel){
+      panel.hidden = false;
+      panel.removeAttribute("hidden");
       panel.classList.remove("open");
-      panel.style.display = isActive ? ((active === "calendario" || active === "publicaciones") ? "flex" : "block") : "none";
-      panel.style.visibility = isActive ? "visible" : "";
     });
-    document.body.setAttribute("data-active-panel", active);
+  }
+
+  function visiblePanelCount(){
+    var count = 0;
+    document.querySelectorAll(PANEL_SELECTOR).forEach(function(panel){
+      if (panel.style.display && panel.style.display !== "none") count++;
+    });
+    return count;
+  }
+
+  function ensureOneVisible(){
+    unlockPanels();
+    if (visiblePanelCount() > 0) return;
+    var fallback = document.getElementById("p-tablero");
+    if (fallback) fallback.style.display = "block";
+  }
+
+  function patchNavAfterRender(){
+    if (typeof window.nav !== "function" || window.nav._uiUnlockPatched) return;
+    var original = window.nav;
+    window.nav = function(){
+      var result = original.apply(this, arguments);
+      setTimeout(function(){
+        unlockPanels();
+        closeDefaultModals();
+      }, 0);
+      setTimeout(function(){
+        unlockPanels();
+        closeDefaultModals();
+      }, 80);
+      return result;
+    };
+    window.nav._uiUnlockPatched = true;
   }
 
   function run(){
     cleanSidebarText();
     closeDefaultModals();
-    normalizeInitialPanels();
+    ensureOneVisible();
+    patchNavAfterRender();
   }
 
   if (document.readyState === "loading") {
@@ -70,6 +94,8 @@
     run();
   }
 
+  setTimeout(run, 300);
+  setTimeout(run, 1200);
   window.uiFixesRun = run;
-  console.log("[ui-fixes] compatibilidad no invasiva activa");
+  console.log("[ui-fixes] panel unlock activo");
 })();
