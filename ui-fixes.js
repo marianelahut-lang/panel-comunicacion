@@ -2,9 +2,8 @@
   UI-FIXES.JS
   Estabilizador final de navegacion.
 
-  Este archivo carga ultimo y neutraliza la falla visible actual:
-  los clicks llegan a nav(), pero otras capas vuelven a ocultar el panel
-  activo o dejan Hoy por encima con display forzado.
+  Carga ultimo y ordena la visibilidad real del panel despues de las capas
+  historicas de mejoras*.js. No agrega modulos nuevos.
 */
 (function(){
   "use strict";
@@ -15,7 +14,7 @@
     "recursos","biblioteca","agente"
   ];
 
-  var FLEX = { publicaciones:true, calendario:true, guardias:true };
+  var FLEX = { publicaciones:true, calendario:true };
   var ALIAS = {
     agenda:"publicaciones",
     publicacion:"publicaciones",
@@ -56,6 +55,19 @@
     return panel;
   }
 
+  function cleanSidebarText(){
+    var sidebar = document.querySelector("aside.sb");
+    if (!sidebar || typeof NodeFilter === "undefined") return;
+    try {
+      var walker = document.createTreeWalker(sidebar, NodeFilter.SHOW_TEXT, null, false);
+      var node, remove = [];
+      while ((node = walker.nextNode())) {
+        if (/^\s*Tareas del d\s*$/i.test(node.nodeValue || "")) remove.push(node);
+      }
+      remove.forEach(function(n){ if (n.parentNode) n.parentNode.removeChild(n); });
+    } catch (_e) {}
+  }
+
   function repairStructure(){
     var main = mainEl();
     if (!main) return;
@@ -63,9 +75,7 @@
     ["recursos","agente"].forEach(movePanelIntoMain);
 
     var medios = Array.prototype.slice.call(document.querySelectorAll('[id="p-medios"]'));
-    medios.forEach(function(el, idx){
-      if (idx > 0) el.id = "p-medios-cobertura";
-    });
+    medios.forEach(function(el, idx){ if (idx > 0) el.id = "p-medios-cobertura"; });
 
     if (!document.getElementById("p-hoy")) {
       var hoy = document.createElement("div");
@@ -86,19 +96,6 @@
     return Array.prototype.slice.call(main.querySelectorAll(":scope > [id^='p-']"));
   }
 
-  function cleanSidebarText(){
-    var sidebar = document.querySelector("aside.sb");
-    if (!sidebar || typeof NodeFilter === "undefined") return;
-    try {
-      var walker = document.createTreeWalker(sidebar, NodeFilter.SHOW_TEXT, null, false);
-      var node, remove = [];
-      while ((node = walker.nextNode())) {
-        if (/^\s*Tareas del d\s*$/i.test(node.nodeValue || "")) remove.push(node);
-      }
-      remove.forEach(function(n){ if (n.parentNode) n.parentNode.removeChild(n); });
-    } catch (_e) {}
-  }
-
   function closeClosedModals(){
     document.querySelectorAll(".ov,.overlay").forEach(function(modal){
       if (!modal.classList.contains("open")) {
@@ -107,9 +104,7 @@
         modal.setAttribute("aria-hidden", "true");
       }
     });
-    document.querySelectorAll(".overlay-backdrop,.modal-backdrop,#overlay").forEach(function(overlay){
-      overlay.remove();
-    });
+    document.querySelectorAll(".overlay-backdrop,.modal-backdrop,#overlay").forEach(function(overlay){ overlay.remove(); });
   }
 
   function setPanelState(panel, active, id){
@@ -171,7 +166,8 @@
       reclamos:["renderReclamos"],
       entrevistas:["renderEntrevistas"],
       contactos:["renderContactos","renderContactosMediosModulo"],
-      recursos:["loadRecursos","renderRecursos"]
+      recursos:["loadRecursos","renderRecursos"],
+      agente:["agRenderLista","agRenderStats","agRenderProgreso"]
     };
     (map[id] || []).forEach(function(fn){
       try { if (typeof window[fn] === "function") window[fn](); } catch (e) { console.warn("[ui-fixes] render fallo", fn, e); }
@@ -195,9 +191,7 @@
       target = document.getElementById("p-tablero") || panels()[0];
     }
 
-    panels().forEach(function(panel){
-      setPanelState(panel, panel === target, id);
-    });
+    panels().forEach(function(panel){ setPanelState(panel, panel === target, id); });
     setPanelState(target, true, id);
 
     document.body.setAttribute("data-active-panel", id);
@@ -241,29 +235,64 @@
     };
   }
 
+  function installAgentPanel(){
+    if (typeof window.abrirPanelAgente !== "function" || window.abrirPanelAgente._uiFixed) return;
+    var original = window.abrirPanelAgente;
+    window.abrirPanelAgente = function(nombre){
+      window._agenteActual = nombre || window._agenteActual || "";
+      try { original.apply(this, arguments); } catch (e) { console.warn("[ui-fixes] abrirPanelAgente fallo", e); }
+      setTimeout(function(){
+        showOnly("agente", null, true);
+        var panel = movePanelIntoMain("agente");
+        if (panel) {
+          panel.hidden = false;
+          panel.removeAttribute("hidden");
+          panel.removeAttribute("aria-hidden");
+          panel.style.setProperty("display", "block", "important");
+          panel.style.setProperty("visibility", "visible", "important");
+        }
+      }, 0);
+    };
+    window.abrirPanelAgente._uiFixed = true;
+  }
+
   function css(){
     if (document.getElementById("ui-fixes-root-css")) return;
     var st = document.createElement("style");
     st.id = "ui-fixes-root-css";
     st.textContent = [
-      "html,body{font-size:13px;line-height:1.38}",
-      "button,.btn,.ntab,.sbi{font-size:12px}",
-      "input,select,textarea{font-size:13px}",
-      ".ptitle,.pgtitle{font-size:16px}",
-      "h1{font-size:21px}h2{font-size:18px}h3{font-size:16px}",
-      "#p-hoy.m7-hoy-stable .m7-card-head h3{font-size:18px!important}",
-      "#p-hoy.m7-hoy-stable .m7-delay-title{font-size:15px!important;line-height:1.25!important}",
-      "#p-hoy.m7-hoy-stable .m7-delay-meta{font-size:12px!important}",
-      "#p-hoy.m7-hoy-stable .m7-delay-age strong{font-size:26px!important}",
+      "html,body{font-size:13px!important;line-height:1.38!important}",
+      "button,.btn,.ntab,.sbi{font-size:12px!important}",
+      "input,select,textarea{font-size:13px!important}",
+      ".ptitle,.pgtitle{font-size:16px!important}",
+      "h1{font-size:21px!important}h2{font-size:18px!important}h3{font-size:16px!important}",
+      "#p-guardias{display:block!important;width:100%!important;max-width:none!important}",
+      "body:not(.full-panel) #p-guardias .gw-mobile{display:none!important}",
+      "body:not(.full-panel) #p-guardias .gw-desktop{display:flex!important}",
+      "#p-guardias .ptop{max-width:none!important}",
+      "#p-hoy.m7-hoy-stable{font-size:13px!important;padding:12px 14px 18px!important}",
+      "#p-hoy.m7-hoy-stable .m7-card{padding:12px 14px!important;margin-bottom:10px!important;border-radius:9px!important}",
+      "#p-hoy.m7-hoy-stable .m7-card-head h3{font-size:16px!important;line-height:1.18!important}",
+      "#p-hoy.m7-hoy-stable .m7-kicker{font-size:10px!important;letter-spacing:.08em!important}",
+      "#p-hoy.m7-hoy-stable .m7-delay-row{grid-template-columns:34px minmax(0,1fr) 54px!important;gap:9px!important;padding:8px 10px!important;margin-top:8px!important}",
+      "#p-hoy.m7-hoy-stable .m7-delay-rank{width:30px!important;height:30px!important;font-size:12px!important}",
+      "#p-hoy.m7-hoy-stable .m7-delay-title{font-size:13px!important;line-height:1.25!important;font-weight:700!important}",
+      "#p-hoy.m7-hoy-stable .m7-delay-meta{font-size:11px!important;line-height:1.2!important}",
+      "#p-hoy.m7-hoy-stable .m7-delay-age{padding-left:8px!important}",
+      "#p-hoy.m7-hoy-stable .m7-delay-age strong{font-size:22px!important;line-height:1!important}",
+      "#p-hoy.m7-hoy-stable .m7-delay-age span{font-size:8px!important}",
       ".ov:not(.open),.overlay:not(.open){display:none!important;pointer-events:none!important}",
       ".ov.open,.overlay.open{display:flex;pointer-events:auto}",
       "#login{z-index:9999}.ov.open,.overlay.open{z-index:1200}#toast{z-index:2200}.topbar{z-index:100}.sb{z-index:90}#evpanel{z-index:800}",
-      ".content{overflow-y:auto;overflow-x:hidden}"
+      ".content{overflow-y:auto!important;overflow-x:hidden!important}"
     ].join("\n");
     document.head.appendChild(st);
   }
 
   function clickCapture(e){
+    var agentBtn = e.target.closest('[onclick*="abrirPanelAgente"]');
+    if (agentBtn) return;
+
     var btn = e.target.closest(".ntab,.sbi,.mbn-btn,[data-mid],[data-nav]");
     if (!btn) return;
     var id = buttonId(btn);
@@ -277,6 +306,7 @@
   function run(){
     css();
     installNav();
+    installAgentPanel();
     repairStructure();
     closeClosedModals();
     var active = norm(document.body.getAttribute("data-active-panel") || "hoy");
@@ -291,8 +321,11 @@
 
   setTimeout(run, 250);
   setTimeout(run, 900);
-  setTimeout(function(){ showOnly(norm(document.body.getAttribute("data-active-panel") || "hoy"), null, true); }, 1800);
+  setTimeout(function(){
+    installAgentPanel();
+    showOnly(norm(document.body.getAttribute("data-active-panel") || "hoy"), null, true);
+  }, 1800);
 
   window.uiFixesRun = run;
-  console.log("[ui-fixes] navegacion raiz estable activa 2026-05-21c");
+  console.log("[ui-fixes] guardias agente hoy estable 2026-05-21d");
 })();
