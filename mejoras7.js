@@ -52,13 +52,13 @@
   }
   function normalizarRotulos(){
     var fixes = {
-      "publicaciónes": "publicaciones",
-      "Publicaciónes": "Publicaciones",
-      "Agenda de publicaciónes": "Agenda de publicaciones",
-      "Eventos del dia": "Eventos del día",
-      "Todo el dia": "Todo el día",
-      "Tarea sin descripcion": "Tarea sin descripción",
-      "Publicacion": "Publicación"
+      "publicaciÃ³nes": "publicaciones",
+      "PublicaciÃ³nes": "Publicaciones",
+      "Agenda de publicaciÃ³nes": "Agenda de publicaciones",
+      "Eventos del dia": "Eventos del dÃ­a",
+      "Todo el dia": "Todo el dÃ­a",
+      "Tarea sin descripcion": "Tarea sin descripciÃ³n",
+      "Publicacion": "PublicaciÃ³n"
     };
     try{
       var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
@@ -117,7 +117,7 @@
   function sincronizarVersionVisible(){
     var meta = q('meta[name="app-version"]');
     if(!meta || !meta.content) return;
-    qa(".logo-s").forEach(function(el){ el.textContent = "Muni · Tres Arroyos · " + meta.content; });
+    qa(".logo-s").forEach(function(el){ el.textContent = "Muni Â· Tres Arroyos Â· " + meta.content; });
   }
 
   function limpiarSidebarFantasma(){
@@ -348,8 +348,8 @@
       var t = item.raw, age = item.age;
       return '<button class="m7-delay-row" onclick="' + tareaClick(t.id) + '">' +
         '<div class="m7-delay-rank">' + (idx + 1) + '</div>' +
-        '<div class="m7-delay-main"><div class="m7-delay-title">' + esc(t.descripcion || "Tarea sin descripción") + '</div>' +
-        '<div class="m7-delay-meta">' + esc(t.responsable || "Sin asignar") + ' · ' + esc(t.estado || "Pendiente") + ' · Prioridad ' + esc(t.prioridad || "Media") + '</div></div>' +
+        '<div class="m7-delay-main"><div class="m7-delay-title">' + esc(t.descripcion || "Tarea sin descripciÃ³n") + '</div>' +
+        '<div class="m7-delay-meta">' + esc(t.responsable || "Sin asignar") + ' Â· ' + esc(t.estado || "Pendiente") + ' Â· Prioridad ' + esc(t.prioridad || "Media") + '</div></div>' +
         '<div class="m7-delay-age"><strong>' + age + '</strong><span>DIAS</span></div>' +
       '</button>';
     }).join("") : '<div class="m7-empty">No hay tareas pendientes demoradas.</div>';
@@ -363,14 +363,14 @@
       var activo = coberturaActiva(id);
       return '<div class="m7-event-row">' +
         '<button class="m7-event-main" onclick="' + eventoClick(id) + '">' +
-          '<div class="m7-time">' + esc(horaCorta(e.hora) || "Todo el día") + '</div>' +
+          '<div class="m7-time">' + esc(horaCorta(e.hora) || "Todo el dÃ­a") + '</div>' +
           '<div class="m7-event-text"><strong>' + esc(e.descripcion || "Evento") + '</strong>' +
           (e.lugar ? '<span>' + esc(e.lugar) + '</span>' : '') + '</div>' +
         '</button>' +
         '<button class="m7-cover-btn ' + (activo ? "on" : "") + '" onclick="m7ToggleCobertura(\'' + jsq(id) + '\')">' + (activo ? "Se cubre" : "No se cubre") + '</button>' +
       '</div>';
     }).join("") : '<div class="m7-empty">Sin eventos de calendario para hoy.</div>';
-    return '<section class="m7-card"><div class="m7-card-head"><div><div class="m7-kicker blue">Calendario</div><h3>Eventos del día</h3></div><span class="m7-count blue">' + evs.length + '</span></div>' + rows + '</section>';
+    return '<section class="m7-card"><div class="m7-card-head"><div><div class="m7-kicker blue">Calendario</div><h3>Eventos del dÃ­a</h3></div><span class="m7-count blue">' + evs.length + '</span></div>' + rows + '</section>';
   }
 
   function renderGuardiasHoyHTML(){
@@ -387,7 +387,7 @@
   function renderPublicacionesHoyHTML(){
     var list = listaPublicacionesHoy();
     var rows = list.length ? list.map(function(p){
-      var desc = p.descripcion || p.desc || p.titulo || "Publicación";
+      var desc = p.descripcion || p.desc || p.titulo || "PublicaciÃ³n";
       return '<div class="m7-pub-row"><div class="m7-time">' + esc(horaCorta(p.hora) || "--:--") + '</div><div class="m7-event-text"><strong>' + esc(desc) + '</strong><span>' + esc((p.cuenta || p.canal || p.estado || "Pendiente")) + '</span></div></div>';
     }).join("") : '<div class="m7-empty">Sin publicaciones pendientes para hoy.</div>';
     return '<section class="m7-card"><div class="m7-card-head"><div><div class="m7-kicker violet">Publicaciones</div><h3>Publicaciones a realizar</h3></div><span class="m7-count violet">' + list.length + '</span></div>' + rows + '</section>';
@@ -452,6 +452,8 @@
   }
 
   function patchNavPostRender(){
+    // Si ui-fixes.js v4 ya parcheo nav, no volver a parchear (evita race conditions)
+    if(window.nav && window.nav._v4patched) return;
     var orig = window.nav;
     if(typeof orig !== "function" || orig._m7post) return;
     window.nav = function(id){
@@ -459,7 +461,6 @@
       schedule(function(){
         normalizarPaginasVisibles(id);
         limpiarCruces();
-        if(id === "hoy") { estabilizarVistaHoy(); renderTareasMayorDemora(); }
         if(id === "guardias") ocultarDiasPasadosEnGuardias();
         if(id === "tablero") ocultarColumnaRealizada();
         if(id === "calendario") patchCalendarioVisible();
@@ -477,7 +478,7 @@
     try{
       new MutationObserver(function(){
         var t = gcBtn.textContent || "";
-        if(!done && /GCal\s*[·.]\s*\d+\s*ev/i.test(t)){
+        if(!done && /GCal\s*[Â·.]\s*\d+\s*ev/i.test(t)){
           done = true;
           var host = q("#p-hoy");
           if(host && visible(host) && typeof window._renderHoy === "function") schedule(window._renderHoy, 250);
