@@ -16,37 +16,15 @@
 
   var FLEX = { publicaciones:true, calendario:true };
   var ALIAS = {
-    agenda:"publicaciones",
-    publicacion:"publicaciones",
-    publicaciones:"publicaciones",
-    guardia:"guardias",
-    equipo:"equipo",
-    team:"equipo",
-    metrica:"metricas",
-    metricas:"metricas",
-    medio:"medios",
-    medios:"medios",
-    entrevista:"entrevistas",
-    entrevistas:"entrevistas",
-    contacto:"contactos",
-    contactos:"contactos",
-    recurso:"recursos",
-    recursos:"recursos",
-    biblioteca:"recursos"
+    agenda:"publicaciones", publicacion:"publicaciones", publicaciones:"publicaciones",
+    guardia:"guardias", equipo:"equipo", team:"equipo", metrica:"metricas", metricas:"metricas",
+    medio:"medios", medios:"medios", entrevista:"entrevistas", entrevistas:"entrevistas",
+    contacto:"contactos", contactos:"contactos", recurso:"recursos", recursos:"recursos", biblioteca:"recursos"
   };
 
-  function norm(id){
-    id = String(id || "hoy").trim().toLowerCase();
-    return ALIAS[id] || id;
-  }
-
-  function displayFor(id){
-    return FLEX[id] ? "flex" : "block";
-  }
-
-  function mainEl(){
-    return document.getElementById("main") || document.querySelector(".content");
-  }
+  function norm(id){ id = String(id || "hoy").trim().toLowerCase(); return ALIAS[id] || id; }
+  function displayFor(id){ return FLEX[id] ? "flex" : "block"; }
+  function mainEl(){ return document.getElementById("main") || document.querySelector(".content"); }
 
   function movePanelIntoMain(id){
     var main = mainEl();
@@ -71,12 +49,9 @@
   function repairStructure(){
     var main = mainEl();
     if (!main) return;
-
     ["recursos","agente"].forEach(movePanelIntoMain);
-
     var medios = Array.prototype.slice.call(document.querySelectorAll('[id="p-medios"]'));
     medios.forEach(function(el, idx){ if (idx > 0) el.id = "p-medios-cobertura"; });
-
     if (!document.getElementById("p-hoy")) {
       var hoy = document.createElement("div");
       hoy.id = "p-hoy";
@@ -85,7 +60,6 @@
       if (first && first.parentElement === main) main.insertBefore(hoy, first);
       else main.appendChild(hoy);
     }
-
     cleanSidebarText();
   }
 
@@ -101,6 +75,7 @@
       if (!modal.classList.contains("open")) {
         modal.classList.remove("show", "active", "on");
         modal.style.setProperty("display", "none", "important");
+        modal.style.setProperty("pointer-events", "none", "important");
         modal.setAttribute("aria-hidden", "true");
       }
     });
@@ -110,11 +85,9 @@
   function setPanelState(panel, active, id){
     if (!panel) return;
     var pid = (panel.id || "").replace(/^p-/, "");
-
     panel.classList.toggle("active", active);
     panel.classList.toggle("show", active);
     panel.classList.remove("open");
-
     if (active) {
       panel.hidden = false;
       panel.removeAttribute("hidden");
@@ -129,7 +102,6 @@
       panel.style.setProperty("display", "none", "important");
       panel.style.setProperty("visibility", "hidden", "important");
     }
-
     if (pid === "hoy" && !active) panel.classList.remove("m7-hoy-stable");
   }
 
@@ -152,9 +124,22 @@
     });
   }
 
+  function compactHoy(){
+    var hoy = document.getElementById("p-hoy");
+    if (!hoy) return;
+    hoy.classList.add("ui-hoy-compacto");
+    var main = mainEl();
+    if (main && document.body.getAttribute("data-active-panel") === "hoy") {
+      // Evita salto visual cuando otros scripts redibujan Hoy.
+      main.style.setProperty("scroll-behavior", "auto", "important");
+    }
+  }
+
   function callRender(id){
     var map = {
-      hoy:["_renderHoy","renderPanelHoyCustom","renderHoyRedisenado"],
+      // Hoy: NO llamamos renderHoyRedisenado acá porque mejoras7 ya lo hace.
+      // Llamarlo dos veces agrandaba la tipografía y provocaba saltos.
+      hoy:["_renderHoy","renderPanelHoyCustom"],
       tablero:["renderKanban"],
       material:["renderMaterial"],
       publicaciones:["renderPubDay","renderWeek"],
@@ -172,11 +157,18 @@
     (map[id] || []).forEach(function(fn){
       try { if (typeof window[fn] === "function") window[fn](); } catch (e) { console.warn("[ui-fixes] render fallo", fn, e); }
     });
+    if (id === "hoy") {
+      compactHoy();
+      setTimeout(compactHoy, 80);
+      setTimeout(compactHoy, 350);
+    }
   }
 
   function showOnly(id, explicitButton, skipRender){
     id = norm(id);
     repairStructure();
+
+    var previous = norm(document.body.getAttribute("data-active-panel") || "");
 
     if (id !== "agente") {
       window._agenteActual = null;
@@ -186,10 +178,7 @@
 
     var target = document.getElementById("p-" + id);
     if (!target && id === "biblioteca") target = document.getElementById("p-recursos");
-    if (!target) {
-      id = "tablero";
-      target = document.getElementById("p-tablero") || panels()[0];
-    }
+    if (!target) { id = "tablero"; target = document.getElementById("p-tablero") || panels()[0]; }
 
     panels().forEach(function(panel){ setPanelState(panel, panel === target, id); });
     setPanelState(target, true, id);
@@ -204,24 +193,19 @@
 
     setActiveButtons(id, explicitButton);
     closeClosedModals();
+    if (id === "hoy") compactHoy();
 
     var main = mainEl();
-    if (main) main.scrollTop = 0;
+    // No resetear scroll cuando sigue en el mismo panel o cuando es un re-render interno.
+    if (main && !skipRender && previous !== id) main.scrollTop = 0;
 
     if (!skipRender) {
-      setTimeout(function(){
-        callRender(id);
-        showOnly(id, explicitButton, true);
-      }, 30);
-      setTimeout(function(){ showOnly(id, explicitButton, true); }, 180);
+      setTimeout(function(){ callRender(id); showOnly(id, explicitButton, true); }, 30);
+      setTimeout(function(){ showOnly(id, explicitButton, true); if(id === "hoy") compactHoy(); }, 180);
     }
   }
 
-  function finalNav(id, tab, sb){
-    id = norm(id);
-    showOnly(id, sb || tab || null, false);
-    return false;
-  }
+  function finalNav(id, tab, sb){ id = norm(id); showOnly(id, sb || tab || null, false); return false; }
 
   function installNav(){
     window.nav = finalNav;
@@ -261,30 +245,47 @@
     var st = document.createElement("style");
     st.id = "ui-fixes-root-css";
     st.textContent = [
-      "html,body{font-size:13px!important;line-height:1.38!important}",
+      "html,body{font-size:13px!important;line-height:1.34!important}",
       "button,.btn,.ntab,.sbi{font-size:12px!important}",
       "input,select,textarea{font-size:13px!important}",
       ".ptitle,.pgtitle{font-size:16px!important}",
-      "h1{font-size:21px!important}h2{font-size:18px!important}h3{font-size:16px!important}",
+      "h1{font-size:20px!important}h2{font-size:17px!important}h3{font-size:15px!important}",
       "#p-guardias{display:block!important;width:100%!important;max-width:none!important}",
       "body:not(.full-panel) #p-guardias .gw-mobile{display:none!important}",
       "body:not(.full-panel) #p-guardias .gw-desktop{display:flex!important}",
       "#p-guardias .ptop{max-width:none!important}",
-      "#p-hoy.m7-hoy-stable{font-size:13px!important;padding:12px 14px 18px!important}",
-      "#p-hoy.m7-hoy-stable .m7-card{padding:12px 14px!important;margin-bottom:10px!important;border-radius:9px!important}",
-      "#p-hoy.m7-hoy-stable .m7-card-head h3{font-size:16px!important;line-height:1.18!important}",
-      "#p-hoy.m7-hoy-stable .m7-kicker{font-size:10px!important;letter-spacing:.08em!important}",
-      "#p-hoy.m7-hoy-stable .m7-delay-row{grid-template-columns:34px minmax(0,1fr) 54px!important;gap:9px!important;padding:8px 10px!important;margin-top:8px!important}",
-      "#p-hoy.m7-hoy-stable .m7-delay-rank{width:30px!important;height:30px!important;font-size:12px!important}",
-      "#p-hoy.m7-hoy-stable .m7-delay-title{font-size:13px!important;line-height:1.25!important;font-weight:700!important}",
-      "#p-hoy.m7-hoy-stable .m7-delay-meta{font-size:11px!important;line-height:1.2!important}",
-      "#p-hoy.m7-hoy-stable .m7-delay-age{padding-left:8px!important}",
-      "#p-hoy.m7-hoy-stable .m7-delay-age strong{font-size:22px!important;line-height:1!important}",
-      "#p-hoy.m7-hoy-stable .m7-delay-age span{font-size:8px!important}",
+
+      "#p-hoy.m7-hoy-stable,#p-hoy.ui-hoy-compacto{font-size:12px!important;padding:8px 12px 14px!important;overflow:auto!important;min-height:auto!important}",
+      "#p-hoy #m7-hoy-panel{max-width:none!important;margin:0!important;width:100%!important}",
+      "#p-hoy .m7-grid{gap:12px!important;margin-top:12px!important}",
+      "#p-hoy .m7-card{padding:10px 12px!important;margin-bottom:8px!important;border-radius:8px!important;box-shadow:0 4px 14px rgba(15,23,42,.05)!important}",
+      "#p-hoy .m7-card-head{margin-bottom:8px!important;align-items:center!important}",
+      "#p-hoy .m7-card-head h3{font-size:14px!important;line-height:1.18!important;font-weight:800!important}",
+      "#p-hoy .m7-kicker{font-size:9px!important;letter-spacing:.08em!important;margin-bottom:2px!important}",
+      "#p-hoy .m7-count{font-size:11px!important;padding:5px 9px!important}",
+      "#p-hoy .m7-delay-row{grid-template-columns:28px minmax(0,1fr) 44px!important;gap:8px!important;padding:7px 9px!important;margin-top:7px!important;min-height:46px!important}",
+      "#p-hoy .m7-delay-rank{width:24px!important;height:24px!important;font-size:11px!important;border-radius:8px!important}",
+      "#p-hoy .m7-delay-title{font-size:12px!important;line-height:1.22!important;font-weight:700!important;display:-webkit-box!important;-webkit-line-clamp:2!important;-webkit-box-orient:vertical!important;overflow:hidden!important}",
+      "#p-hoy .m7-delay-meta{font-size:10px!important;line-height:1.15!important;margin-top:2px!important}",
+      "#p-hoy .m7-delay-age{padding-left:6px!important}",
+      "#p-hoy .m7-delay-age strong{font-size:18px!important;line-height:1!important}",
+      "#p-hoy .m7-delay-age span{font-size:7px!important;margin-top:1px!important}",
+      "#p-hoy .m7-event-row,#p-hoy .m7-pub-row{padding:6px 0!important;gap:7px!important}",
+      "#p-hoy .m7-event-main{grid-template-columns:56px minmax(0,1fr)!important;gap:8px!important}",
+      "#p-hoy .m7-time{font-size:12px!important}",
+      "#p-hoy .m7-event-text strong{font-size:12px!important;line-height:1.2!important;font-weight:700!important}",
+      "#p-hoy .m7-event-text span{font-size:10px!important;line-height:1.15!important}",
+      "#p-hoy .m7-cover-btn{font-size:10px!important;padding:5px 8px!important}",
+      "#p-hoy .m7-guard{padding:8px!important;border-radius:10px!important}",
+      "#p-hoy .m7-avatar{width:32px!important;height:32px!important;font-size:11px!important}",
+      "#p-hoy .m7-guard strong{font-size:12px!important}",
+      "#p-hoy .m7-guard span{font-size:10px!important}",
+      "#p-hoy .m7-empty{font-size:11px!important;padding:10px!important}",
+
       ".ov:not(.open),.overlay:not(.open){display:none!important;pointer-events:none!important}",
-      ".ov.open,.overlay.open{display:flex;pointer-events:auto}",
+      ".ov.open,.overlay.open{display:flex!important;pointer-events:auto!important}",
       "#login{z-index:9999}.ov.open,.overlay.open{z-index:1200}#toast{z-index:2200}.topbar{z-index:100}.sb{z-index:90}#evpanel{z-index:800}",
-      ".content{overflow-y:auto!important;overflow-x:hidden!important}"
+      ".content{overflow-y:auto!important;overflow-x:hidden!important;scroll-behavior:auto!important}"
     ].join("\n");
     document.head.appendChild(st);
   }
@@ -292,7 +293,6 @@
   function clickCapture(e){
     var agentBtn = e.target.closest('[onclick*="abrirPanelAgente"]');
     if (agentBtn) return;
-
     var btn = e.target.closest(".ntab,.sbi,.mbn-btn,[data-mid],[data-nav]");
     if (!btn) return;
     var id = buttonId(btn);
@@ -312,6 +312,7 @@
     var active = norm(document.body.getAttribute("data-active-panel") || "hoy");
     if (!document.getElementById("p-" + active)) active = "hoy";
     showOnly(active, null, false);
+    if(active === "hoy") compactHoy();
   }
 
   document.addEventListener("click", clickCapture, true);
@@ -324,8 +325,9 @@
   setTimeout(function(){
     installAgentPanel();
     showOnly(norm(document.body.getAttribute("data-active-panel") || "hoy"), null, true);
+    compactHoy();
   }, 1800);
 
   window.uiFixesRun = run;
-  console.log("[ui-fixes] guardias agente hoy estable 2026-05-21d");
+  console.log("[ui-fixes] hoy compacto sin saltos 2026-05-21e");
 })();
