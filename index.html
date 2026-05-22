@@ -953,6 +953,8 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
 
 /* ============ DATOS POR DEFECTO ============ */
 const LS_KEY = 'pcomTA_v6';
+const CLOUD_URL = 'https://kvbwurvvgfarmiqtvlsc.supabase.co';
+const CLOUD_KEY = 'sb_publishable_XYkrltbXO7qOj4Tz48PoJg_uh8m-zmr';
 const DEF_USERS = ['Debora','Guada','Josefina Claromeco','Lina','Maiten','Marianela','Nai','Santiago','sofia','Yesi'];
 const DEF_FUNCS = [
   ['Pablo Garate','Intendente Municipal',''],['Santiago Garate','Sub Secretario de Gabinete',''],
@@ -1023,6 +1025,8 @@ function ensureDefaults(s){
   s.config = s.config || {};
   s.config.theme = s.config.theme || 'dark';
   s.config.password = s.config.password || '';
+  s.config.supabaseUrl = CLOUD_URL;
+  s.config.supabaseKey = CLOUD_KEY;
   if(s.agents.length===0) s.agents = seed().agents;
   if(s.funcionarios.length===0) s.funcionarios = seed().funcionarios;
   if(s.medios.length===0) s.medios = seed().medios;
@@ -1043,7 +1047,7 @@ function seed(){
     funcionarios: DEF_FUNCS.map((f,i)=>({id:'fn_'+i,name:f[0],role:f[1],phone:f[2]||''})),
     medios: DEF_MEDIOS.map((m,i)=>({id:'md_'+i,name:m[0],program:m[1],phone:'',email:'',type:m[2],specialty:m[3],notes:''})),
     tasks:[], publicaciones:[], events:[], entrevistas:[], guardias:{}, recursos:[], reclamos:[],
-    config:{theme:'dark',password:'',supabaseUrl:'https://kvbwurvvgfarmiqtvlsc.supabase.co',supabaseKey:'sb_publishable_XYkrltbXO7qOj4Tz48PoJg_uh8m-zmr'}
+    config:{theme:'dark',password:'',supabaseUrl:CLOUD_URL,supabaseKey:CLOUD_KEY}
   };
 }
 const BACKUP_PREFIX = LS_KEY + '_backup_';
@@ -1984,7 +1988,9 @@ function saveTask(){
 function delTask(){
   if(!confirm('¿Eliminar esta tarea?'))return;
   const id=$('tkId').value;
+  const item=state.tasks.find(t=>t.id===id);
   state.tasks=state.tasks.filter(t=>t.id!==id);
+  supaDelete('tareas',item);
   saveState();
   closeModal('tkMod');
   renderAll();
@@ -2037,7 +2043,9 @@ function savePub(){
 function delPub(){
   if(!confirm('¿Eliminar esta publicación?'))return;
   const id=$('pbId').value;
+  const item=state.publicaciones.find(p=>p.id===id);
   state.publicaciones=state.publicaciones.filter(p=>p.id!==id);
+  supaDelete('publicaciones',item);
   saveState();
   closeModal('pbMod');
   renderAll();
@@ -2093,7 +2101,9 @@ function saveEvent(){
 function delEvent(){
   if(!confirm('¿Eliminar este evento?'))return;
   const id=$('evId').value;
+  const item=state.events.find(e=>e.id===id);
   state.events=state.events.filter(e=>e.id!==id);
+  supaDelete('agenda',item);
   saveState();
   closeModal('evMod');
   renderAll();
@@ -2316,8 +2326,8 @@ function delRc(){
 
 /* ============ CONFIG / IMPORT-EXPORT ============ */
 function prepCfg(){
-  $('spUrl').value=state.config.supabaseUrl||'https://kvbwurvvgfarmiqtvlsc.supabase.co';
-  $('spKey').value=state.config.supabaseKey||'sb_publishable_XYkrltbXO7qOj4Tz48PoJg_uh8m-zmr';
+  $('spUrl').value=state.config.supabaseUrl||CLOUD_URL;
+  $('spKey').value=state.config.supabaseKey||CLOUD_KEY;
   $('spStat').textContent=state.config.supabaseKey?'Configurado · presioná "Probar conexión"':'No conectado';
   $('spStat').style.color='var(--tx-m)';
 }
@@ -2387,11 +2397,11 @@ function saveSupa(){
 }
 
 async function supaFetch(table, params){
-  const url = state.config.supabaseUrl + '/rest/v1/' + table + (params||'?select=*');
+  const url = CLOUD_URL + '/rest/v1/' + table + (params||'?select=*');
   const r = await fetch(url, {
     headers: {
-      'apikey': state.config.supabaseKey,
-      'Authorization': 'Bearer ' + state.config.supabaseKey,
+      'apikey': CLOUD_KEY,
+      'Authorization': 'Bearer ' + CLOUD_KEY,
       'Accept': 'application/json'
     }
   });
@@ -2405,7 +2415,7 @@ let cloudSyncBusy = false;
 let cloudSyncTimer = null;
 let cloudPushTimer = null;
 function supaReady(){
-  return !!(state.config && state.config.supabaseUrl && state.config.supabaseKey);
+  return !!(CLOUD_URL && CLOUD_KEY);
 }
 function isUuid(v){
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v||''));
@@ -2458,14 +2468,14 @@ function pubToSupa(p){
 async function supaWrite(table, item, body){
   const id = item._supaId || (isUuid(item.id) ? item.id : '');
   const headers = {
-    'apikey': state.config.supabaseKey,
-    'Authorization': 'Bearer ' + state.config.supabaseKey,
+    'apikey': CLOUD_KEY,
+    'Authorization': 'Bearer ' + CLOUD_KEY,
     'Content-Type': 'application/json',
     'Accept': 'application/json',
     'Prefer': 'return=representation'
   };
   if(id){
-    const pr = await fetch(state.config.supabaseUrl+'/rest/v1/'+table+'?id=eq.'+encodeURIComponent(id), {
+    const pr = await fetch(CLOUD_URL+'/rest/v1/'+table+'?id=eq.'+encodeURIComponent(id), {
       method:'PATCH',headers,body:JSON.stringify(body)
     });
     if(pr.ok){
@@ -2474,7 +2484,7 @@ async function supaWrite(table, item, body){
       return true;
     }
   }
-  const r = await fetch(state.config.supabaseUrl+'/rest/v1/'+table, {
+  const r = await fetch(CLOUD_URL+'/rest/v1/'+table, {
     method:'POST',headers,body:JSON.stringify(body)
   });
   if(r.ok){
@@ -2483,6 +2493,19 @@ async function supaWrite(table, item, body){
     return true;
   }
   return false;
+}
+async function supaDelete(table, item){
+  const id = item && (item._supaId || (isUuid(item.id) ? item.id : ''));
+  if(!id || !supaReady())return false;
+  const r = await fetch(CLOUD_URL+'/rest/v1/'+table+'?id=eq.'+encodeURIComponent(id), {
+    method:'DELETE',
+    headers:{
+      'apikey': CLOUD_KEY,
+      'Authorization': 'Bearer ' + CLOUD_KEY,
+      'Prefer':'return=minimal'
+    }
+  });
+  return r.ok;
 }
 async function pullSharedData(silent){
   if(!supaReady() || cloudSyncBusy)return;
@@ -2537,7 +2560,7 @@ function startSharedSync(){
   if(!supaReady())return;
   pullSharedData(true).then(()=>pushSharedData(true));
   if(cloudSyncTimer)clearInterval(cloudSyncTimer);
-  cloudSyncTimer = setInterval(()=>pullSharedData(true),45000);
+  cloudSyncTimer = setInterval(()=>pullSharedData(true),10000);
 }
 
 async function testSupa(){
@@ -2784,7 +2807,7 @@ function mapSupaToState(grupo, rows){
         id: p.id || uid('pb'),
         _supaId: p.id || '',
         date: p.fecha || p.date || '',
-        time: p.hora || p.time || '',
+        time: String(p.hora || p.time || '').slice(0,5),
         desc: p.descripcion || p.desc || '',
         account: p.cuenta || p.account || '',
         type: p.tipo || p.type || 'Foto',
@@ -2795,7 +2818,7 @@ function mapSupaToState(grupo, rows){
         const ag = state.agents.find(a=>a.name.toLowerCase()===String(p.responsable).toLowerCase());
         if(ag)data.responsable=ag.id;
       }
-      const ex = state.publicaciones.find(x=>x.id===data.id || x._supaId===data.id);
+      const ex = state.publicaciones.find(x=>x.id===data.id || x._supaId===data.id || ((x.desc||'').trim().toLowerCase()===data.desc.trim().toLowerCase() && (x.date||'')===data.date && (x.time||'')===data.time));
       if(ex)Object.assign(ex,data); else state.publicaciones.push(data);
       c.publicaciones++;
     });
@@ -2855,7 +2878,7 @@ function mapSupaToState(grupo, rows){
           if(ag)data.assignees.push(ag.id);
         });
       }
-      const ex = state.tasks.find(x=>x.id===data.id || x._supaId===data.id);
+      const ex = state.tasks.find(x=>x.id===data.id || x._supaId===data.id || (x.desc||'').trim().toLowerCase()===data.desc.trim().toLowerCase());
       if(ex)Object.assign(ex,data); else state.tasks.push(data);
       c.tareas++;
     });
@@ -2866,14 +2889,14 @@ function mapSupaToState(grupo, rows){
         id: e.id || uid('ev'),
         _supaId: e.id || '',
         date: e.fecha || e.date || '',
-        time: e.hora || e.time || '',
+        time: String(e.hora || e.time || '').slice(0,5),
         desc: e.descripcion || e.desc || e.titulo || e.tema || '',
         loc: e.lugar || e.loc || e.ubicacion || '',
         type: e.tipo || e.type || 'Agenda Intendente',
         cover: !!(e.cobertura || e.cover || e.cubrir),
         responsable: ''
       };
-      const ex = state.events.find(x=>x.id===data.id || x._supaId===data.id);
+      const ex = state.events.find(x=>x.id===data.id || x._supaId===data.id || ((x.desc||'').trim().toLowerCase()===data.desc.trim().toLowerCase() && (x.date||'')===data.date && (x.time||'')===data.time));
       if(ex)Object.assign(ex,data); else state.events.push(data);
       c.eventos++;
     });
