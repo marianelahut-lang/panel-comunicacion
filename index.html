@@ -955,6 +955,7 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
 const LS_KEY = 'pcomTA_v6';
 const CLOUD_URL = 'https://kvbwurvvgfarmiqtvlsc.supabase.co';
 const CLOUD_KEY = 'sb_publishable_XYkrltbXO7qOj4Tz48PoJg_uh8m-zmr';
+const SHARED_STATE_MARKER = '__PANEL_COMPLETO_COMPARTIDO_V1__';
 const DEF_USERS = ['Debora','Guada','Josefina Claromeco','Lina','Maiten','Marianela','Nai','Santiago','sofia','Yesi'];
 const DEF_FUNCS = [
   ['Pablo Garate','Intendente Municipal',''],['Santiago Garate','Sub Secretario de Gabinete',''],
@@ -1064,7 +1065,11 @@ function backupStateSnapshot(){
   }catch(e){}
 }
 function saveState(){
-  try{backupStateSnapshot();localStorage.setItem(LS_KEY,JSON.stringify(state))}
+  try{
+    if(state.config)state.config.sharedUpdatedAt=Date.now();
+    backupStateSnapshot();
+    localStorage.setItem(LS_KEY,JSON.stringify(state));
+  }
   catch(e){toast('Error al guardar: '+e.message,'err')}
 }
 
@@ -2513,10 +2518,67 @@ async function supaDelete(table, item){
   });
   return r.ok;
 }
+function cloudStateCopy(){
+  const copy = JSON.parse(JSON.stringify(state));
+  delete copy._supaTables;
+  if(copy.config){
+    copy.config.supabaseUrl = CLOUD_URL;
+    copy.config.supabaseKey = CLOUD_KEY;
+  }
+  return copy;
+}
+async function getSharedStateRow(){
+  const r = await supaFetch('tareas','?descripcion=eq.'+encodeURIComponent(SHARED_STATE_MARKER)+'&select=id,observaciones,updated_at&limit=1');
+  return r.ok && Array.isArray(r.data) && r.data[0] ? r.data[0] : null;
+}
+async function pullFullSharedState(silent){
+  const row = await getSharedStateRow();
+  if(!row || !row.observaciones)return false;
+  let pack;
+  try{pack=JSON.parse(row.observaciones)}catch(e){return false}
+  if(!pack || !pack.state)return false;
+  const remoteTs = Number(pack.ts || pack.state?.config?.sharedUpdatedAt || 0);
+  const localTs = Number(state.config?.sharedUpdatedAt || 0);
+  if(remoteTs <= localTs)return true;
+  backupStateSnapshot();
+  state = ensureDefaults(pack.state);
+  state.config.sharedUpdatedAt = remoteTs;
+  localStorage.setItem(LS_KEY,JSON.stringify(state));
+  renderAll();initFilters();applyPermissions();
+  if(!silent)toast('Panel compartido actualizado','suc');
+  return true;
+}
+async function pushFullSharedState(){
+  if(!supaReady())return false;
+  const ts = Number(state.config?.sharedUpdatedAt || Date.now());
+  const body = {
+    descripcion: SHARED_STATE_MARKER,
+    responsable: 'Sistema',
+    prioridad: 'Baja',
+    estado: 'Completo',
+    observaciones: JSON.stringify({ts, state: cloudStateCopy()})
+  };
+  const row = await getSharedStateRow();
+  const item = row ? {_supaId:row.id} : {};
+  return supaWrite('tareas',item,body);
+}
+function hasLocalPanelContent(){
+  return (state.events&&state.events.length) ||
+    (state.publicaciones&&state.publicaciones.length) ||
+    (state.entrevistas&&state.entrevistas.length) ||
+    (state.reclamos&&state.reclamos.length) ||
+    (state.guardias&&Object.keys(state.guardias).length);
+}
 async function pullSharedData(silent){
   if(!supaReady() || cloudSyncBusy)return;
   cloudSyncBusy = true;
   try{
+    const hasFullState = await pullFullSharedState(silent);
+    if(hasFullState)return;
+    if(hasLocalPanelContent()){
+      await pushFullSharedState();
+      return;
+    }
     const groups = [
       ['tareas','Tareas'],
       ['agenda','Eventos / Calendario'],
@@ -2545,6 +2607,7 @@ async function pushSharedData(silent){
   if(!supaReady() || cloudSyncBusy)return;
   cloudSyncBusy = true;
   try{
+    await pushFullSharedState();
     for(const t of state.tasks||[])await supaWrite('tareas',t,taskToSupa(t));
     for(const e of state.events||[])await supaWrite('agenda',e,eventToSupa(e));
     for(const p of state.publicaciones||[])await supaWrite('publicaciones',p,pubToSupa(p));
@@ -2863,6 +2926,7 @@ function mapSupaToState(grupo, rows){
   } else if(grupo==='Tareas'){
     c.tareas=0;
     rows.forEach(t=>{
+      if(t.descripcion===SHARED_STATE_MARKER)return;
       const stMap = {pendiente:'pendiente','en-proceso':'proceso','en proceso':'proceso',proceso:'proceso',lista:'lista','lista para publicar':'publicar',publicar:'publicar',realizada:'realizada',terminada:'realizada',hecha:'realizada'};
       const data = {
         id: t.id || uid('tk'),
