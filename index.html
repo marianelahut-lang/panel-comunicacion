@@ -1066,6 +1066,7 @@ Tareas del d      <button class="sbi" onclick="nav('calendario',null,this)"><svg
           <span id="gwlbl" style="font-size:11px;color:#6b7280;min-width:140px;text-align:center;font-weight:600"></span>
           <button class="btn sm" onclick="goGuardWeek(1)">Sig →</button>
           <button class="btn sm" onclick="guardWeekOff=0;renderGuardias()">Hoy</button>
+          <button onclick="openEditGuardia(isoToday)" class="btn sm" style="background:#667eea;color:#fff;border-color:#667eea">Editar guardia de hoy</button>
           <button onclick="notifyDay(isoToday)" class="btn sm">📧 Mail hoy</button>
           <button onclick="notifyWeek()" class="btn sm">📅 Mail semana</button>
         </div>
@@ -1074,6 +1075,7 @@ Tareas del d      <button class="sbi" onclick="nav('calendario',null,this)"><svg
           <span id="guard-daylbl" style="font-size:11px;color:#6b7280;min-width:120px;text-align:center;font-weight:600"></span>
           <button class="btn sm" onclick="goGuardDay(1)">Sig →</button>
           <button class="btn sm" onclick="guardDayOff=0;renderGuardDay()">Hoy</button>
+          <button onclick="openEditGuardia(iso(addD(TODAY,guardDayOff)))" class="btn sm" style="background:#667eea;color:#fff;border-color:#667eea">Editar dia</button>
           <button onclick="notifyDay(iso(addD(TODAY,guardDayOff)))" class="btn sm">📧 Mail</button>
         </div>
         <div class="gw-desktop">
