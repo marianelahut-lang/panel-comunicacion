@@ -208,17 +208,17 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
 .gpn{font-size:12px;font-weight:600;text-transform:capitalize;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .gpe{font-size:11px;color:var(--tx-m);font-style:italic;padding:5px}
 
-.tg{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
-.tc{background:var(--bg-card);border:1px solid var(--bd);border-radius:var(--r);padding:18px;cursor:pointer;transition:border-color .12s,background .12s}
+.tg{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
+.tc{background:var(--bg-card);border:1px solid var(--bd);border-radius:var(--r);padding:16px;cursor:pointer;transition:border-color .12s,background .12s}
 .tc:hover{border-color:var(--ac);background:var(--bg-h)}
 .th{display:flex;align-items:center;gap:12px;margin-bottom:14px}
 .tc .av{width:46px;height:46px;font-size:16px}
 .tn{font-weight:700;font-size:15px;text-transform:capitalize}
 .tr{font-size:11px;color:var(--tx-m);font-weight:600}
-.ts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
-.tst{background:var(--bg-soft);border-radius:10px;padding:8px}
-.tsv{font-family:var(--fd);font-weight:700;font-size:18px;letter-spacing:-.02em;line-height:1}
-.tsl{font-size:9.5px;color:var(--tx-m);text-transform:uppercase;letter-spacing:.04em;font-weight:700;margin-top:3px}
+.ts{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;text-align:center}
+.tst{background:var(--bg-soft);border-radius:8px;padding:6px 4px;min-width:0;overflow:hidden}
+.tsv{font-family:var(--fd);font-weight:700;font-size:17px;letter-spacing:-.02em;line-height:1}
+.tsl{font-size:8.5px;color:var(--tx-m);text-transform:uppercase;letter-spacing:.02em;font-weight:700;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tpr{margin-top:12px;height:6px;background:var(--bg-soft);border-radius:3px;overflow:hidden}
 .tpb{height:100%;background:linear-gradient(90deg,var(--ac) 0%,var(--gr) 100%);border-radius:3px;transition:width .3s}
 .tpi{display:flex;justify-content:space-between;font-size:11px;color:var(--tx-m);margin-top:6px}
@@ -362,7 +362,7 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
     </nav>
     <div class="sb-foot">
       <button class="sbf" onclick="toggleTheme()" id="thmBtn" title="Tema">🌙</button>
-      <button class="sbf" data-admin onclick="openModal('cfgMod')" title="Configuración (solo Marianela)">⚙</button>
+      <button class="sbf" data-admin onclick="openModal('cfgMod')" title="Configuración (solo admin)">⚙</button>
       <button class="sbf" onclick="doLogout()" title="Salir">⎋</button>
     </div>
     <div id="saveInd" style="padding:6px 14px;font-size:10.5px;color:var(--gr);text-align:center;border-top:1px solid var(--bd-s);font-weight:600">💾 Guardado</div>
@@ -374,7 +374,7 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
       <div class="tbt" id="tbtl">Hoy</div>
       <div class="tba">
         <button class="btn btn-p" onclick="newTask()">+ Tarea</button>
-        <button class="tbi" data-admin onclick="openModal('cfgMod')" title="Configuración (solo Marianela)">⚙</button>
+        <button class="tbi" data-admin onclick="openModal('cfgMod')" title="Configuración (admin)">⚙</button>
       </div>
     </header>
     <section class="ct">
@@ -475,7 +475,7 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
               <button id="cvM" class="on" onclick="setCalView('month')">Mes</button>
               <button id="cvD" onclick="setCalView('day')">Día</button>
             </div>
-            <button class="btn btn-s" data-admin onclick="openModal('gcalMod')" title="Sincronizar con Google Calendar (solo Marianela)">📅 Google</button>
+            <button class="btn btn-s" data-admin onclick="openModal('gcalMod')" title="Sincronizar con Google Calendar (admin)">📅 Google</button>
             <button class="btn btn-p btn-s" onclick="newEvent()">+ Evento</button>
           </div>
         </div>
@@ -515,7 +515,7 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
             <div class="ct-t">Equipo de Comunicaciones</div>
             <div class="ct-s">Clic en una persona para editar</div>
           </div>
-          <button class="btn btn-p" onclick="editAg(null)">+ Agregar persona</button>
+          <button class="btn btn-p" data-admin onclick="editAg(null)">+ Agregar persona</button>
         </div>
         <div class="tg" id="tg"></div>
       </div>
@@ -655,8 +655,14 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
       <option>Pendiente</option><option>En producción</option><option>Listo para publicar</option><option>Publicado</option>
     </select></div>
   </div>
+  <div class="fld">
+    <label>📎 Archivos adjuntos (imágenes, videos, PDFs)</label>
+    <input class="inp" type="file" id="pbArchivos" multiple onchange="onArchivosCambian('pb', this.files)">
+    <div id="pbArchivosLista" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
+  </div>
 </div><div class="mf">
   <button class="btn btn-d hide" id="pbDel" onclick="delPub()">🗑 Eliminar</button>
+  <button class="btn btn-w" onclick="pubCompartirConArchivos()">📤 Compartir con archivos</button>
   <button class="btn" onclick="closeModal('pbMod')">Cancelar</button>
   <button class="btn btn-p" onclick="savePub()">Guardar</button>
 </div></div></div>
@@ -886,17 +892,33 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
     </div>
   </div>
   <div class="card" style="margin-bottom:14px">
-    <div class="ct-t" style="margin-bottom:10px">☁ Supabase</div>
-    <div class="ct-s" style="margin-bottom:12px">Conectá con la base original para recuperar tareas, calendario, guardias y entrevistas que no están en el backup local.</div>
-    <div class="fld"><label>URL</label><input class="inp" id="spUrl" placeholder="https://kvbwurvvgfarmiqtvlsc.supabase.co"></div>
+    <div class="ct-t" style="margin-bottom:10px">☁ Sincronización en la nube</div>
+    <div class="ct-s" style="margin-bottom:12px">Permite que <b>todos los agentes vean lo mismo</b> y trabajen sincronizados desde cualquier dispositivo. Los cambios se reflejan cada ~25 segundos.</div>
+    <div class="fld"><label>URL Supabase</label><input class="inp" id="spUrl" placeholder="https://kvbwurvvgfarmiqtvlsc.supabase.co"></div>
     <div class="fld"><label>API Key (publishable / anon)</label><input class="inp" id="spKey" type="password" placeholder="sb_publishable_... o eyJhbGc..."></div>
     <div class="fl">
-      <button class="btn btn-s" onclick="saveSupa()">💾 Guardar</button>
-      <button class="btn btn-s" onclick="testSupa()">🔌 Probar conexión</button>
-      <button class="btn btn-p btn-s" onclick="scanSupa()">🔍 Escanear tablas</button>
+      <button class="btn btn-s" onclick="saveSupa()">💾 Guardar configuración</button>
+      <button class="btn btn-p btn-s" onclick="pushAhora()">📤 Subir mis datos</button>
+      <button class="btn btn-s" onclick="pullAhora()">📥 Bajar de la nube</button>
     </div>
     <div id="spStat" style="margin-top:10px;font-size:12px;color:var(--tx-m)">No conectado</div>
     <div id="supaResult"></div>
+    <div style="background:var(--ac-s);border-radius:10px;padding:12px;margin-top:14px;border:1px solid var(--ac)">
+      <div style="font-weight:700;font-size:13px;color:var(--ac);margin-bottom:6px">⚙ Configurar la tabla (1ra vez)</div>
+      <div class="ct-s" style="margin-bottom:10px">Hay que ejecutar este SQL en Supabase una sola vez. Después funciona solo para siempre.</div>
+      <ol style="font-size:12px;color:var(--tx-s);padding-left:18px;line-height:1.7;margin-bottom:10px">
+        <li>Andá a <b>supabase.com/dashboard</b> e ingresá a tu proyecto</li>
+        <li>En el menú izquierdo: <b>SQL Editor</b> → New query</li>
+        <li>Apretá el botón ↓ y pegá lo que copia</li>
+        <li>Apretá <b>Run</b> (o Ctrl+Enter)</li>
+        <li>Volvé al panel → recargá → ya sincroniza solo</li>
+      </ol>
+      <button class="btn btn-p btn-s" onclick="copiarSqlSupabase()" style="width:100%">📋 Copiar SQL al portapapeles</button>
+    </div>
+    <div class="ct-s" style="margin-top:10px">🔍 Para importar datos del panel anterior: usá el botón "Escanear tablas" si las tablas viejas siguen ahí.</div>
+    <div class="fl mt8">
+      <button class="btn btn-s" onclick="scanSupa()">🔍 Escanear tablas viejas</button>
+    </div>
   </div>
   <div class="card" style="margin-bottom:14px">
     <div class="ct-t" style="margin-bottom:10px">🔑 Contraseña del panel</div>
@@ -939,9 +961,15 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
   </div>
   <datalist id="rlFnL"></datalist>
   <div class="fld"><label>Notas / Historial</label><textarea class="inp" id="rlNotes" rows="2"></textarea></div>
+  <div class="fld">
+    <label>📸 Fotos del reclamo (para enviar al funcionario)</label>
+    <input class="inp" type="file" id="rlFotos" multiple accept="image/*" onchange="onArchivosCambian('rl', this.files)">
+    <div id="rlFotosLista" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
+  </div>
 </div><div class="mf">
   <button class="btn btn-d hide" id="rlDel" onclick="delReclamo()">🗑 Eliminar</button>
   <button class="btn btn-w" onclick="reclamoNotifyWa()">📱 WA funcionario</button>
+  <button class="btn btn-w" onclick="reclamoCompartirConFotos()">📤 Compartir con fotos</button>
   <button class="btn" onclick="closeModal('rcLmMod')">Cancelar</button>
   <button class="btn btn-p" onclick="saveReclamo()">Guardar</button>
 </div></div></div>
@@ -953,9 +981,6 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
 
 /* ============ DATOS POR DEFECTO ============ */
 const LS_KEY = 'pcomTA_v6';
-const CLOUD_URL = 'https://kvbwurvvgfarmiqtvlsc.supabase.co';
-const CLOUD_KEY = 'sb_publishable_XYkrltbXO7qOj4Tz48PoJg_uh8m-zmr';
-const SHARED_STATE_MARKER = '__PANEL_COMPLETO_COMPARTIDO_V1__';
 const DEF_USERS = ['Debora','Guada','Josefina Claromeco','Lina','Maiten','Marianela','Nai','Santiago','sofia','Yesi'];
 const DEF_FUNCS = [
   ['Pablo Garate','Intendente Municipal',''],['Santiago Garate','Sub Secretario de Gabinete',''],
@@ -1026,15 +1051,14 @@ function ensureDefaults(s){
   s.config = s.config || {};
   s.config.theme = s.config.theme || 'dark';
   s.config.password = s.config.password || '';
-  s.config.supabaseUrl = CLOUD_URL;
-  s.config.supabaseKey = CLOUD_KEY;
   if(s.agents.length===0) s.agents = seed().agents;
   if(s.funcionarios.length===0) s.funcionarios = seed().funcionarios;
   if(s.medios.length===0) s.medios = seed().medios;
-  // === MIGRACION: la configuracion queda solo para Marianela ===
+  // === MIGRACIÓN: forzar admin para Marianela y Santiago ===
   s.agents.forEach(a=>{
     const n = (a.name||'').toLowerCase().trim();
-    a.admin = n==='marianela';
+    if(n==='marianela' || n==='santiago') a.admin = true;
+    else if(a.admin === undefined) a.admin = false;
   });
   // === MIGRACIÓN: asegurar que existe Nai (sin perder datos) ===
   if(!s.agents.find(a=>(a.name||'').toLowerCase()==='nai')){
@@ -1048,28 +1072,11 @@ function seed(){
     funcionarios: DEF_FUNCS.map((f,i)=>({id:'fn_'+i,name:f[0],role:f[1],phone:f[2]||''})),
     medios: DEF_MEDIOS.map((m,i)=>({id:'md_'+i,name:m[0],program:m[1],phone:'',email:'',type:m[2],specialty:m[3],notes:''})),
     tasks:[], publicaciones:[], events:[], entrevistas:[], guardias:{}, recursos:[], reclamos:[],
-    config:{theme:'dark',password:'',supabaseUrl:CLOUD_URL,supabaseKey:CLOUD_KEY}
+    config:{theme:'dark',password:'',supabaseUrl:'https://kvbwurvvgfarmiqtvlsc.supabase.co',supabaseKey:'sb_publishable_XYkrltbXO7qOj4Tz48PoJg_uh8m-zmr'}
   };
 }
-const BACKUP_PREFIX = LS_KEY + '_backup_';
-function backupStateSnapshot(){
-  try{
-    const d=new Date();
-    const day=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-    const raw=JSON.stringify(state);
-    const startKey=BACKUP_PREFIX+'inicio_'+day;
-    if(!localStorage.getItem(startKey)){
-      localStorage.setItem(startKey,localStorage.getItem(LS_KEY)||raw);
-    }
-    localStorage.setItem(BACKUP_PREFIX+'ultimo_'+day,raw);
-  }catch(e){}
-}
 function saveState(){
-  try{
-    if(state.config)state.config.sharedUpdatedAt=Date.now();
-    backupStateSnapshot();
-    localStorage.setItem(LS_KEY,JSON.stringify(state));
-  }
+  try{localStorage.setItem(LS_KEY,JSON.stringify(state))}
   catch(e){toast('Error al guardar: '+e.message,'err')}
 }
 
@@ -1092,6 +1099,29 @@ function avHTML(name,color,size){
 const getAg = id => state.agents.find(a=>a.id===id);
 const getAgByName = n => state.agents.find(a=>a.name.toLowerCase()===String(n||'').toLowerCase());
 const isPM = t => t && parseInt(String(t).split(':')[0],10)>=15;
+
+// === FERIADOS ARGENTINOS (2026) - el admin puede editar/agregar ===
+const DEF_FERIADOS = [
+  '2026-01-01','2026-02-16','2026-02-17','2026-03-24','2026-04-02',
+  '2026-04-03','2026-05-01','2026-05-25','2026-06-15','2026-06-20',
+  '2026-07-09','2026-08-17','2026-10-12','2026-11-23','2026-12-08','2026-12-25'
+];
+function isFeriado(iso){
+  const lista = (state.config && state.config.feriados) || DEF_FERIADOS;
+  return lista.includes(iso);
+}
+function isWeekend(iso){
+  if(!iso)return false;
+  const d = new Date(iso+'T00:00:00');
+  const dow = d.getDay();
+  return dow === 0 || dow === 6; // domingo o sábado
+}
+// "¿Esta actividad pasa a la guardia del día?"
+// - Fin de semana o feriado: TODAS las actividades pasan
+// - Día hábil: solo las de >= 15hs
+function pasaAGuardia(iso, time){
+  return isWeekend(iso) || isFeriado(iso) || isPM(time);
+}
 function statusLabel(s){return{pendiente:'Pendiente',proceso:'En proceso',lista:'Lista',publicar:'Lista para publicar',realizada:'Realizada'}[s]||s||'—'}
 function statusColor(s){return{pendiente:'tag-x',proceso:'tag-b',lista:'tag-g',publicar:'tag-p',realizada:'tag-c'}[s]||'tag-x'}
 
@@ -1218,9 +1248,10 @@ function startApp(){
   initFilters();
   renderAll();
   applyPermissions();
-  setTimeout(startSharedSync, 700);
   // Detectar datos del panel anterior en localStorage que aún no se importaron
   setTimeout(autoDetectarDatosAnteriores, 800);
+  // Iniciar sincronización con Supabase (si está configurada)
+  setTimeout(()=>syncInit(), 1200);
 }
 
 function autoDetectarDatosAnteriores(){
@@ -1294,7 +1325,7 @@ function importarDatosDetectados(){
 // Validación de permisos
 function requireAdmin(){
   if(!currentUserIsAdmin){
-    toast('Solo Marianela puede entrar a configuracion','err');
+    toast('Solo Marianela y Santiago pueden hacer este cambio','err');
     return false;
   }
   return true;
@@ -1350,8 +1381,8 @@ function openFlyer(){window.open('https://marianelahut-lang.github.io/panel-comu
 /* ============ MODALES ============ */
 function openModal(id){
   const m=$(id);if(!m)return;
-  // Bloqueo admin-only para modales restringidos
-  if((id==='cfgMod' || id==='gcalMod') && !requireAdmin())return;
+  // Bloqueo admin-only SOLO para configuración, Google Calendar y edición de guardias
+  if((id==='cfgMod' || id==='gcalMod' || id==='gdMod') && !requireAdmin())return;
   m.classList.add('on');
   if(id==='cfgMod')prepCfg();
   if(id==='gcalMod'){
@@ -1361,6 +1392,9 @@ function openModal(id){
     $('gcStat').textContent = state.config.googleCalendarId?'Conectado a: '+state.config.googleCalendarId.slice(0,40)+'...':'';
   }
 }
+
+// (mantenida por compatibilidad pero ya no se invoca automáticamente)
+function aplicarSoloLecturaModal(modalEl){ return; }
 function closeModal(id){const m=$(id);if(m)m.classList.remove('on')}
 document.addEventListener('click',e=>{
   if(e.target.classList && e.target.classList.contains('mov'))e.target.classList.remove('on');
@@ -1368,14 +1402,6 @@ document.addEventListener('click',e=>{
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape')document.querySelectorAll('.mov.on').forEach(m=>m.classList.remove('on'));
 });
-document.addEventListener('visibilitychange',()=>{
-  if(!document.hidden && currentUser)pullSharedData(true);
-});
-window.addEventListener('focus',()=>{
-  if(currentUser)pullSharedData(true);
-});
-window.addEventListener('pagehide',flushSharedStateOnExit);
-window.addEventListener('beforeunload',flushSharedStateOnExit);
 
 /* ============ HOY ============ */
 function renderHoy(){
@@ -1686,27 +1712,33 @@ function renderGuardias(){
   }
   $('gw').innerHTML=html;
 
-  // Tareas asignadas a guardias = eventos cubrir >= 15hs en la semana + publicaciones >= 15hs en la semana
+  // Tareas asignadas a guardias = eventos cubrir + publicaciones; en weekend/feriado TODAS, en día hábil solo >=15hs
   const tasksList=[];
   for(let i=0;i<7;i++){
     const d=addDays(start,i);
     const iso=dateISO(d);
-    const evs=state.events.filter(e=>e.date===iso && e.cover && isPM(e.time));
-    const pubs=state.publicaciones.filter(p=>p.date===iso && isPM(p.time));
-    if(evs.length===0 && pubs.length===0)continue;
+    const wkOrFer = isWeekend(iso) || isFeriado(iso);
+    const evs=state.events.filter(e=>e.date===iso && (wkOrFer ? true : (e.cover && isPM(e.time))));
+    const pubs=state.publicaciones.filter(p=>p.date===iso && (wkOrFer ? true : isPM(p.time)));
+    const ents=state.entrevistas.filter(e=>e.date===iso && (wkOrFer ? true : isPM(e.time)));
+    if(evs.length===0 && pubs.length===0 && ents.length===0)continue;
     const g=state.guardias[iso]||{};
     const tit=g.titular?getAg(g.titular):null;
-    let dayHtml='<div style="margin-top:14px;padding-top:10px;border-top:1px solid var(--bd-s)"><div style="font-weight:700;font-size:13px;margin-bottom:8px">'+d.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'short'})+(tit?' · '+esc(tit.name):'')+'</div>';
+    const ferTag = isFeriado(iso) ? ' <span class="tag tag-r">FERIADO</span>' : (isWeekend(iso) ? ' <span class="tag tag-a">'+(d.getDay()===6?'SÁBADO':'DOMINGO')+'</span>' : '');
+    let dayHtml='<div style="margin-top:14px;padding-top:10px;border-top:1px solid var(--bd-s)"><div style="font-weight:700;font-size:13px;margin-bottom:8px">'+d.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'short'})+(tit?' · '+esc(tit.name):'')+ferTag+'</div>';
     evs.forEach(e=>{
       dayHtml+='<div class="li" onclick="editEvent(\''+e.id+'\')"><div class="li-i" style="background:var(--bl-s);color:var(--bl)">📅</div><div class="li-b"><div class="li-t">'+esc(e.desc||'')+'</div><div class="li-s">'+esc(e.time||'')+' · '+esc(e.loc||'')+'</div></div></div>';
     });
     pubs.forEach(p=>{
       dayHtml+='<div class="li" onclick="editPub(\''+p.id+'\')"><div class="li-i" style="background:var(--pu-s);color:var(--pu)">📱</div><div class="li-b"><div class="li-t">'+esc(p.desc||'')+'</div><div class="li-s">'+esc(p.time||'')+' · '+esc(p.account||'')+'</div></div></div>';
     });
+    ents.forEach(e=>{
+      dayHtml+='<div class="li" onclick="editEnt(\''+e.id+'\')"><div class="li-i" style="background:var(--pk-s);color:var(--pk)">🎙</div><div class="li-b"><div class="li-t">'+esc(e.func||'')+' con '+esc(e.medio||'')+'</div><div class="li-s">'+esc(e.time||'')+' · '+esc(e.tipo||'')+'</div></div></div>';
+    });
     dayHtml+='</div>';
     tasksList.push(dayHtml);
   }
-  $('gTkList').innerHTML=tasksList.length?tasksList.join(''):'<div class="emp"><div class="emi">📋</div><div class="emt">Sin tareas asignadas a guardias esta semana</div><div class="ems">Las coberturas después de las 15hs aparecen acá</div></div>';
+  $('gTkList').innerHTML=tasksList.length?tasksList.join(''):'<div class="emp"><div class="emi">📋</div><div class="emt">Sin tareas asignadas a guardias esta semana</div><div class="ems">Coberturas ≥15hs en días hábiles · TODAS las actividades en sábados, domingos y feriados</div></div>';
 }
 /* ============ PATRÓN DE GUARDIAS (Excel Planificación) ============ */
 // LUN: Marianela/Yesi · MAR: Debora/Maiten · MIE: Yesi/Debora · JUE: Maiten/Lina · VIE: Lina/Marianela
@@ -1797,6 +1829,7 @@ function aplicarPatronGuardias(){
 }
 
 function editGuardia(iso){
+  if(!requireAdmin())return;
   $('gdDate').value=iso;
   $('gdDateLbl').textContent=new Date(iso+'T00:00:00').toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
   const opts='<option value="">— Sin asignar —</option>'+state.agents.filter(a=>a.covers!=='no').map(a=>'<option value="'+esc(a.id)+'">'+esc(a.name)+'</option>').join('');
@@ -2001,9 +2034,7 @@ function saveTask(){
 function delTask(){
   if(!confirm('¿Eliminar esta tarea?'))return;
   const id=$('tkId').value;
-  const item=state.tasks.find(t=>t.id===id);
   state.tasks=state.tasks.filter(t=>t.id!==id);
-  supaDelete('tareas',item);
   saveState();
   closeModal('tkMod');
   renderAll();
@@ -2030,6 +2061,10 @@ function prepPub(p){
   $('pbResp').value=p.responsable||'';
   $('pbSt').value=p.status||'Pendiente';
   $('pbDel').classList.toggle('hide',!p.id);
+  // Cargar archivos
+  _archivosTemp.pb = p && Array.isArray(p.archivos) ? p.archivos.slice() : [];
+  renderArchivosTemp('pb');
+  $('pbArchivos').value = '';
 }
 function savePub(){
   const desc=$('pbDesc').value.trim();
@@ -2040,6 +2075,7 @@ function savePub(){
     date,time:$('pbTime').value,desc,
     account:$('pbAcc').value,type:$('pbType').value,
     responsable:$('pbResp').value,status:$('pbSt').value,
+    archivos: _archivosTemp.pb.slice(),
     updated:Date.now()
   };
   if(id){
@@ -2056,9 +2092,7 @@ function savePub(){
 function delPub(){
   if(!confirm('¿Eliminar esta publicación?'))return;
   const id=$('pbId').value;
-  const item=state.publicaciones.find(p=>p.id===id);
   state.publicaciones=state.publicaciones.filter(p=>p.id!==id);
-  supaDelete('publicaciones',item);
   saveState();
   closeModal('pbMod');
   renderAll();
@@ -2114,9 +2148,7 @@ function saveEvent(){
 function delEvent(){
   if(!confirm('¿Eliminar este evento?'))return;
   const id=$('evId').value;
-  const item=state.events.find(e=>e.id===id);
   state.events=state.events.filter(e=>e.id!==id);
-  supaDelete('agenda',item);
   saveState();
   closeModal('evMod');
   renderAll();
@@ -2339,8 +2371,8 @@ function delRc(){
 
 /* ============ CONFIG / IMPORT-EXPORT ============ */
 function prepCfg(){
-  $('spUrl').value=state.config.supabaseUrl||CLOUD_URL;
-  $('spKey').value=state.config.supabaseKey||CLOUD_KEY;
+  $('spUrl').value=state.config.supabaseUrl||'https://kvbwurvvgfarmiqtvlsc.supabase.co';
+  $('spKey').value=state.config.supabaseKey||'sb_publishable_XYkrltbXO7qOj4Tz48PoJg_uh8m-zmr';
   $('spStat').textContent=state.config.supabaseKey?'Configurado · presioná "Probar conexión"':'No conectado';
   $('spStat').style.color='var(--tx-m)';
 }
@@ -2410,286 +2442,17 @@ function saveSupa(){
 }
 
 async function supaFetch(table, params){
-  const url = CLOUD_URL + '/rest/v1/' + table + (params||'?select=*');
+  const url = state.config.supabaseUrl + '/rest/v1/' + table + (params||'?select=*');
   const r = await fetch(url, {
     headers: {
-      'apikey': CLOUD_KEY,
-      'Authorization': 'Bearer ' + CLOUD_KEY,
+      'apikey': state.config.supabaseKey,
+      'Authorization': 'Bearer ' + state.config.supabaseKey,
       'Accept': 'application/json'
     }
   });
   if(!r.ok) return {ok:false, status:r.status, text:await r.text()};
   const data = await r.json();
   return {ok:true, status:r.status, data};
-}
-
-/* ============ SINCRONIZACION COMPARTIDA ============ */
-let cloudSyncBusy = false;
-let cloudSyncTimer = null;
-let cloudPushTimer = null;
-let sharedStateRowId = null;
-let lastSharedStateScore = 0;
-function supaReady(){
-  return !!(CLOUD_URL && CLOUD_KEY);
-}
-function isUuid(v){
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v||''));
-}
-function firstAssignedName(ids){
-  const id = Array.isArray(ids) ? ids[0] : ids;
-  const ag = state.agents.find(a=>a.id===id || a.name===id);
-  return ag ? ag.name : (id||'');
-}
-function dbTime(v){
-  if(!v)return null;
-  const s=String(v).trim();
-  if(/^\d{2}:\d{2}:\d{2}$/.test(s))return s;
-  if(/^\d{2}:\d{2}$/.test(s))return s+':00';
-  return s;
-}
-function taskToSupa(t){
-  return {
-    descripcion: t.desc || '',
-    responsable: firstAssignedName(t.assignees),
-    prioridad: t.priority || 'Media',
-    estado: t.status || 'pendiente',
-    observaciones: t.notes || ''
-  };
-}
-function eventToSupa(e){
-  return {
-    fecha: e.date || null,
-    hora: dbTime(e.time),
-    descripcion: e.desc || '',
-    lugar: e.loc || '',
-    tipo: e.type || 'agenda',
-    responsable: firstAssignedName(e.responsable),
-    gcal_id: e.gcalId || '',
-    cancelado: !!e.cancelado
-  };
-}
-function pubToSupa(p){
-  return {
-    fecha: p.date || null,
-    hora: dbTime(p.time),
-    descripcion: p.desc || '',
-    cuenta: p.account || '',
-    tipo: p.type || '',
-    responsable: firstAssignedName(p.responsable),
-    colaboracion: p.collab || p.colaboracion || '',
-    estado: p.status || 'pendiente'
-  };
-}
-async function supaWrite(table, item, body){
-  const id = item._supaId || (isUuid(item.id) ? item.id : '');
-  const headers = {
-    'apikey': CLOUD_KEY,
-    'Authorization': 'Bearer ' + CLOUD_KEY,
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-    'Prefer': 'return=representation'
-  };
-  if(id){
-    const pr = await fetch(CLOUD_URL+'/rest/v1/'+table+'?id=eq.'+encodeURIComponent(id), {
-      method:'PATCH',headers,body:JSON.stringify(body)
-    });
-    if(pr.ok){
-      const data = await pr.json().catch(()=>[]);
-      if(data && data[0] && data[0].id)item._supaId = data[0].id;
-      return true;
-    }
-  }
-  const r = await fetch(CLOUD_URL+'/rest/v1/'+table, {
-    method:'POST',headers,body:JSON.stringify(body)
-  });
-  if(r.ok){
-    const data = await r.json().catch(()=>[]);
-    if(data && data[0] && data[0].id)item._supaId = data[0].id;
-    return true;
-  }
-  return false;
-}
-async function supaDelete(table, item){
-  const id = item && (item._supaId || (isUuid(item.id) ? item.id : ''));
-  if(!id || !supaReady())return false;
-  const r = await fetch(CLOUD_URL+'/rest/v1/'+table+'?id=eq.'+encodeURIComponent(id), {
-    method:'DELETE',
-    headers:{
-      'apikey': CLOUD_KEY,
-      'Authorization': 'Bearer ' + CLOUD_KEY,
-      'Prefer':'return=minimal'
-    }
-  });
-  return r.ok;
-}
-function cloudStateCopy(){
-  const copy = JSON.parse(JSON.stringify(state));
-  delete copy._supaTables;
-  if(copy.config){
-    copy.config.supabaseUrl = CLOUD_URL;
-    copy.config.supabaseKey = CLOUD_KEY;
-  }
-  return copy;
-}
-function panelContentScore(s){
-  if(!s)return 0;
-  return (s.tasks?.length||0) +
-    (s.publicaciones?.length||0) +
-    (s.events?.length||0) +
-    (s.entrevistas?.length||0) +
-    (s.reclamos?.length||0) +
-    (s.recursos?.length||0) +
-    (s.medios?.length||0) +
-    (s.funcionarios?.length||0) +
-    Object.keys(s.guardias||{}).length;
-}
-async function getSharedStateRow(){
-  const r = await supaFetch('tareas','?descripcion=eq.'+encodeURIComponent(SHARED_STATE_MARKER)+'&select=id,observaciones,updated_at&limit=1');
-  const row = r.ok && Array.isArray(r.data) && r.data[0] ? r.data[0] : null;
-  if(row && row.id)sharedStateRowId = row.id;
-  return row;
-}
-async function pullFullSharedState(silent){
-  const row = await getSharedStateRow();
-  if(!row || !row.observaciones)return false;
-  let pack;
-  try{pack=JSON.parse(row.observaciones)}catch(e){return false}
-  if(!pack || !pack.state)return false;
-  const remoteScore = panelContentScore(pack.state);
-  const localScore = panelContentScore(state);
-  lastSharedStateScore = remoteScore;
-  if(currentUserIsAdmin && localScore > remoteScore + 3){
-    await pushFullSharedState(true);
-    if(!silent)toast('Copia maestra actualizada','suc');
-    return true;
-  }
-  const remoteTs = Number(pack.ts || pack.state?.config?.sharedUpdatedAt || 0);
-  const localTs = Number(state.config?.sharedUpdatedAt || 0);
-  if(remoteTs <= localTs)return true;
-  backupStateSnapshot();
-  state = ensureDefaults(pack.state);
-  state.config.sharedUpdatedAt = remoteTs;
-  localStorage.setItem(LS_KEY,JSON.stringify(state));
-  renderAll();initFilters();applyPermissions();
-  if(!silent)toast('Panel compartido actualizado','suc');
-  return true;
-}
-async function pushFullSharedState(force){
-  if(!supaReady())return false;
-  const row = await getSharedStateRow();
-  if(row && row.observaciones && !force){
-    let pack=null;
-    try{pack=JSON.parse(row.observaciones)}catch(e){}
-    const remoteScore = panelContentScore(pack?.state);
-    const localScore = panelContentScore(state);
-    if(remoteScore > localScore + 3)return false;
-  }
-  const ts = Number(state.config?.sharedUpdatedAt || Date.now());
-  const body = {
-    descripcion: SHARED_STATE_MARKER,
-    responsable: 'Sistema',
-    prioridad: 'Baja',
-    estado: 'Completo',
-    observaciones: JSON.stringify({ts, state: cloudStateCopy()})
-  };
-  const item = row ? {_supaId:row.id} : {};
-  return supaWrite('tareas',item,body);
-}
-function flushSharedStateOnExit(){
-  if(!currentUser || !supaReady())return;
-  try{
-    if(lastSharedStateScore > panelContentScore(state) + 3)return;
-    const body = {
-      descripcion: SHARED_STATE_MARKER,
-      responsable: 'Sistema',
-      prioridad: 'Baja',
-      estado: 'Completo',
-      observaciones: JSON.stringify({ts:Number(state.config?.sharedUpdatedAt||Date.now()),state:cloudStateCopy()})
-    };
-    const url = sharedStateRowId
-      ? CLOUD_URL+'/rest/v1/tareas?id=eq.'+encodeURIComponent(sharedStateRowId)
-      : CLOUD_URL+'/rest/v1/tareas';
-    fetch(url,{
-      method:sharedStateRowId?'PATCH':'POST',
-      keepalive:true,
-      headers:{
-        'apikey':CLOUD_KEY,
-        'Authorization':'Bearer '+CLOUD_KEY,
-        'Content-Type':'application/json',
-        'Prefer':'return=minimal'
-      },
-      body:JSON.stringify(body)
-    });
-  }catch(e){}
-}
-function hasLocalPanelContent(){
-  return (state.events&&state.events.length) ||
-    (state.publicaciones&&state.publicaciones.length) ||
-    (state.entrevistas&&state.entrevistas.length) ||
-    (state.reclamos&&state.reclamos.length) ||
-    (state.guardias&&Object.keys(state.guardias).length);
-}
-async function pullSharedData(silent){
-  if(!supaReady() || cloudSyncBusy)return;
-  cloudSyncBusy = true;
-  try{
-    const hasFullState = await pullFullSharedState(silent);
-    if(hasFullState)return;
-    if(hasLocalPanelContent()){
-      await pushFullSharedState();
-      return;
-    }
-    const groups = [
-      ['tareas','Tareas'],
-      ['agenda','Eventos / Calendario'],
-      ['publicaciones','Publicaciones'],
-      ['usuarios','Agentes']
-    ];
-    let total = 0;
-    for(const [table,group] of groups){
-      const r = await supaFetch(table,'?select=*&limit=2000');
-      if(r.ok && Array.isArray(r.data)){
-        const c = mapSupaToState(group,r.data);
-        total += Object.values(c).reduce((a,b)=>a+(+b||0),0);
-      }
-    }
-    backupStateSnapshot();
-    localStorage.setItem(LS_KEY,JSON.stringify(state));
-    renderAll();initFilters();applyPermissions();
-    if(!silent && total>0)toast('Datos compartidos actualizados','suc');
-  }catch(e){
-    if(!silent)toast('No se pudo actualizar la base compartida','err');
-  }finally{
-    cloudSyncBusy = false;
-  }
-}
-async function pushSharedData(silent){
-  if(!supaReady() || cloudSyncBusy)return;
-  cloudSyncBusy = true;
-  try{
-    await pushFullSharedState();
-    for(const t of state.tasks||[])await supaWrite('tareas',t,taskToSupa(t));
-    for(const e of state.events||[])await supaWrite('agenda',e,eventToSupa(e));
-    for(const p of state.publicaciones||[])await supaWrite('publicaciones',p,pubToSupa(p));
-    backupStateSnapshot();
-    localStorage.setItem(LS_KEY,JSON.stringify(state));
-    if(!silent)toast('Datos compartidos guardados','suc');
-  }catch(e){
-    if(!silent)toast('No se pudo guardar en la base compartida','err');
-  }finally{
-    cloudSyncBusy = false;
-  }
-}
-function scheduleCloudPush(){
-  if(!currentUser || !supaReady() || cloudSyncBusy)return;
-  clearTimeout(cloudPushTimer);
-  cloudPushTimer = setTimeout(()=>pushSharedData(true),250);
-}
-function startSharedSync(){
-  if(!supaReady())return;
-  pullSharedData(true).then(()=>pushSharedData(true));
-  if(cloudSyncTimer)clearInterval(cloudSyncTimer);
-  cloudSyncTimer = setInterval(()=>pullSharedData(true),2000);
 }
 
 async function testSupa(){
@@ -2934,9 +2697,8 @@ function mapSupaToState(grupo, rows){
     rows.forEach(p=>{
       const data = {
         id: p.id || uid('pb'),
-        _supaId: p.id || '',
         date: p.fecha || p.date || '',
-        time: String(p.hora || p.time || '').slice(0,5),
+        time: p.hora || p.time || '',
         desc: p.descripcion || p.desc || '',
         account: p.cuenta || p.account || '',
         type: p.tipo || p.type || 'Foto',
@@ -2947,7 +2709,7 @@ function mapSupaToState(grupo, rows){
         const ag = state.agents.find(a=>a.name.toLowerCase()===String(p.responsable).toLowerCase());
         if(ag)data.responsable=ag.id;
       }
-      const ex = state.publicaciones.find(x=>x.id===data.id || x._supaId===data.id || ((x.desc||'').trim().toLowerCase()===data.desc.trim().toLowerCase() && (x.date||'')===data.date && (x.time||'')===data.time));
+      const ex = state.publicaciones.find(x=>x.id===data.id);
       if(ex)Object.assign(ex,data); else state.publicaciones.push(data);
       c.publicaciones++;
     });
@@ -2986,11 +2748,9 @@ function mapSupaToState(grupo, rows){
   } else if(grupo==='Tareas'){
     c.tareas=0;
     rows.forEach(t=>{
-      if(t.descripcion===SHARED_STATE_MARKER)return;
       const stMap = {pendiente:'pendiente','en-proceso':'proceso','en proceso':'proceso',proceso:'proceso',lista:'lista','lista para publicar':'publicar',publicar:'publicar',realizada:'realizada',terminada:'realizada',hecha:'realizada'};
       const data = {
         id: t.id || uid('tk'),
-        _supaId: t.id || '',
         desc: t.descripcion || t.desc || t.nombre || t.titulo || '',
         priority: t.prioridad || t.priority || 'Media',
         status: stMap[(t.estado||t.status||'').toLowerCase()] || 'pendiente',
@@ -3008,7 +2768,7 @@ function mapSupaToState(grupo, rows){
           if(ag)data.assignees.push(ag.id);
         });
       }
-      const ex = state.tasks.find(x=>x.id===data.id || x._supaId===data.id || (x.desc||'').trim().toLowerCase()===data.desc.trim().toLowerCase());
+      const ex = state.tasks.find(x=>x.id===data.id);
       if(ex)Object.assign(ex,data); else state.tasks.push(data);
       c.tareas++;
     });
@@ -3017,16 +2777,15 @@ function mapSupaToState(grupo, rows){
     rows.forEach(e=>{
       const data = {
         id: e.id || uid('ev'),
-        _supaId: e.id || '',
         date: e.fecha || e.date || '',
-        time: String(e.hora || e.time || '').slice(0,5),
+        time: e.hora || e.time || '',
         desc: e.descripcion || e.desc || e.titulo || e.tema || '',
         loc: e.lugar || e.loc || e.ubicacion || '',
         type: e.tipo || e.type || 'Agenda Intendente',
         cover: !!(e.cobertura || e.cover || e.cubrir),
         responsable: ''
       };
-      const ex = state.events.find(x=>x.id===data.id || x._supaId===data.id || ((x.desc||'').trim().toLowerCase()===data.desc.trim().toLowerCase() && (x.date||'')===data.date && (x.time||'')===data.time));
+      const ex = state.events.find(x=>x.id===data.id);
       if(ex)Object.assign(ex,data); else state.events.push(data);
       c.eventos++;
     });
@@ -3108,7 +2867,6 @@ function chgPass(){
 function resetAll(){
   if(!confirm('¿BORRAR TODOS los datos del panel? Esta acción no se puede deshacer.'))return;
   if(!confirm('Última oportunidad. ¿Estás SEGURA?'))return;
-  backupStateSnapshot();
   localStorage.removeItem(LS_KEY);
   localStorage.removeItem('pcomTA_lastU');
   location.reload();
@@ -3187,6 +2945,10 @@ function editReclamo(id){
   $('rlNotes').value=r?r.notes||'':'';
   $('rlFnL').innerHTML=state.funcionarios.map(f=>'<option value="'+esc(f.name)+'">'+esc(f.role||'')+'</option>').join('');
   $('rlTpL').innerHTML=DEF_TIPOS_RECLAMO.map(t=>'<option value="'+esc(t)+'">').join('');
+  // Cargar fotos al modal
+  _archivosTemp.rl = r && Array.isArray(r.fotos) ? r.fotos.slice() : [];
+  renderArchivosTemp('rl');
+  $('rlFotos').value = '';
   // auto-completar tel al cambiar funcionario
   $('rlFunc').oninput = function(){
     if(!$('rlFuncTel').value){
@@ -3214,7 +2976,9 @@ function saveReclamo(){
     direccion:$('rlDir').value,
     funcionario:funcName,funcionario_tel:funcTel,
     notes:$('rlNotes').value,
-    fecha_modificacion:new Date().toISOString()
+    fotos: _archivosTemp.rl.slice(),
+    fecha_modificacion:new Date().toISOString(),
+    updated: Date.now()
   };
   if(id){
     const r=state.reclamos.find(x=>x.id===id);
@@ -3688,20 +3452,383 @@ renderReclamos = function(){
   wrap.innerHTML = html;
 };
 
-/* ============ INDICADOR DE GUARDADO ============ */
+/* ============ SINCRONIZACIÓN COMPARTIDA EN SUPABASE ============ */
+const SUPA_TABLE = 'panel_data';
+const SUPA_ROW_KEY = 'panel_v6';
+const SYNC_INTERVAL_MS = 25000;
+
+let _syncEnabled = false;
+let _syncing = false;
+let _pushDebounce = null;
+let _remoteUpdatedAt = 0;
+let _syncTimer = null;
+
+function setSyncStatus(level, msg){
+  const ind = $('saveInd');
+  if(!ind) return;
+  const colors = {off:'var(--tx-m)', local:'var(--gr)', syncing:'var(--ac)', synced:'#22c55e', error:'var(--rd)'};
+  const icons  = {off:'💾', local:'💾', syncing:'🔄', synced:'☁', error:'⚠'};
+  ind.innerHTML = icons[level]+' '+msg;
+  ind.style.color = colors[level] || 'var(--tx-m)';
+}
+
+async function syncInit(){
+  if(!state.config.supabaseUrl || !state.config.supabaseKey){
+    setSyncStatus('local','Guardado local');
+    return;
+  }
+  setSyncStatus('syncing','Conectando con la nube...');
+  try {
+    const r = await fetch(state.config.supabaseUrl+'/rest/v1/'+SUPA_TABLE+'?key=eq.'+SUPA_ROW_KEY+'&select=*&limit=1', {
+      headers:{
+        'apikey':state.config.supabaseKey,
+        'Authorization':'Bearer '+state.config.supabaseKey
+      }
+    });
+    if(r.status === 200) {
+      _syncEnabled = true;
+      const rows = await r.json();
+      if(rows.length > 0 && rows[0].value) {
+        await mergeRemoteState(rows[0].value, new Date(rows[0].updated_at).getTime());
+      } else {
+        // Primera vez: subir el estado actual
+        await syncPush();
+      }
+      // Timer periódico para traer cambios de otros
+      if(_syncTimer) clearInterval(_syncTimer);
+      _syncTimer = setInterval(syncPull, SYNC_INTERVAL_MS);
+      setSyncStatus('synced','En la nube ✓');
+    } else if(r.status === 404 || r.status === 400) {
+      const txt = await r.text();
+      if(/relation|does not exist|not.*found/i.test(txt)){
+        setSyncStatus('error','Falta crear la tabla (ver Configuración)');
+      } else {
+        setSyncStatus('error','Sin permisos (RLS)');
+      }
+    } else {
+      setSyncStatus('error','Error '+r.status);
+    }
+  } catch(e){
+    setSyncStatus('error','Sin conexión');
+  }
+}
+
+async function syncPush(){
+  if(!_syncEnabled || _syncing) return;
+  if(!state.config.supabaseUrl || !state.config.supabaseKey) return;
+  _syncing = true;
+  setSyncStatus('syncing','Subiendo cambios...');
+  try {
+    const toSave = {...state};
+    delete toSave._supaTables;
+    delete toSave._datosDetectados;
+    const body = JSON.stringify({
+      key: SUPA_ROW_KEY,
+      value: toSave,
+      updated_at: new Date().toISOString(),
+      updated_by: currentUser || 'desconocido'
+    });
+    const r = await fetch(state.config.supabaseUrl+'/rest/v1/'+SUPA_TABLE, {
+      method:'POST',
+      headers:{
+        'apikey':state.config.supabaseKey,
+        'Authorization':'Bearer '+state.config.supabaseKey,
+        'Content-Type':'application/json',
+        'Prefer':'resolution=merge-duplicates,return=minimal'
+      },
+      body
+    });
+    if(r.ok || r.status === 201 || r.status === 204) {
+      _remoteUpdatedAt = Date.now();
+      setSyncStatus('synced','En la nube ✓');
+    } else {
+      setSyncStatus('error','Error al subir ('+r.status+')');
+    }
+  } catch(e){
+    setSyncStatus('error','Sin conexión');
+  }
+  _syncing = false;
+}
+
+async function syncPull(){
+  if(!_syncEnabled || _syncing) return;
+  if(!state.config.supabaseUrl || !state.config.supabaseKey) return;
+  _syncing = true;
+  try {
+    const r = await fetch(state.config.supabaseUrl+'/rest/v1/'+SUPA_TABLE+'?key=eq.'+SUPA_ROW_KEY+'&select=*&limit=1', {
+      headers:{
+        'apikey':state.config.supabaseKey,
+        'Authorization':'Bearer '+state.config.supabaseKey
+      }
+    });
+    if(r.ok) {
+      const rows = await r.json();
+      if(rows.length > 0 && rows[0].value) {
+        const remoteTs = new Date(rows[0].updated_at).getTime();
+        if(remoteTs > _remoteUpdatedAt) {
+          await mergeRemoteState(rows[0].value, remoteTs);
+        }
+      }
+      setSyncStatus('synced','En la nube ✓');
+    }
+  } catch(e){
+    setSyncStatus('error','Sin conexión');
+  }
+  _syncing = false;
+}
+
+async function mergeRemoteState(remote, remoteTs){
+  let changed = false;
+  // Mergear arrays por ID con last-write-wins según el campo `updated`
+  ['agents','funcionarios','medios','tasks','publicaciones','events','entrevistas','recursos','reclamos'].forEach(k=>{
+    if(!Array.isArray(remote[k])) return;
+    const localMap = {};
+    (state[k]||[]).forEach(item=>{ if(item && item.id) localMap[item.id]=item; });
+    const merged = [];
+    remote[k].forEach(rItem=>{
+      if(!rItem || !rItem.id) return;
+      const lItem = localMap[rItem.id];
+      if(!lItem){
+        merged.push(rItem);
+        changed = true;
+      } else {
+        const rUpd = rItem.updated || rItem.created || 0;
+        const lUpd = lItem.updated || lItem.created || 0;
+        if(rUpd > lUpd){
+          merged.push(rItem);
+          changed = true;
+        } else {
+          merged.push(lItem);
+        }
+        delete localMap[rItem.id];
+      }
+    });
+    Object.values(localMap).forEach(item=>merged.push(item));
+    state[k] = merged;
+  });
+  // Guardias por fecha
+  if(remote.guardias && typeof remote.guardias === 'object'){
+    Object.entries(remote.guardias).forEach(([fecha,g])=>{
+      if(!state.guardias[fecha] || JSON.stringify(state.guardias[fecha]) !== JSON.stringify(g)){
+        state.guardias[fecha] = g;
+        changed = true;
+      }
+    });
+  }
+  // Config compartido (URL Google Calendar, etc.)
+  if(remote.config){
+    if(remote.config.googleCalendarId && !state.config.googleCalendarId){
+      state.config.googleCalendarId = remote.config.googleCalendarId;
+    }
+  }
+  _remoteUpdatedAt = remoteTs;
+  if(changed){
+    try{localStorage.setItem(LS_KEY,JSON.stringify(state))}catch(e){}
+    renderAll();
+    initFilters();
+  }
+}
+
+function copiarSqlSupabase(){
+  const sql = `-- 1) Crear la tabla compartida del panel
+CREATE TABLE IF NOT EXISTS panel_data (
+  key text PRIMARY KEY,
+  value jsonb,
+  updated_at timestamptz DEFAULT now(),
+  updated_by text
+);
+
+-- 2) Activar Row Level Security
+ALTER TABLE panel_data ENABLE ROW LEVEL SECURITY;
+
+-- 3) Permitir lectura y escritura con la API key publishable
+DROP POLICY IF EXISTS "anon_all" ON panel_data;
+CREATE POLICY "anon_all" ON panel_data
+FOR ALL TO anon
+USING (true)
+WITH CHECK (true);
+
+DROP POLICY IF EXISTS "auth_all" ON panel_data;
+CREATE POLICY "auth_all" ON panel_data
+FOR ALL TO authenticated
+USING (true)
+WITH CHECK (true);`;
+  navigator.clipboard.writeText(sql).then(()=>{
+    toast('SQL copiado al portapapeles','suc');
+  }).catch(()=>{
+    // Fallback: mostrar en alerta
+    prompt('Copiá este SQL y pegalo en Supabase → SQL Editor → Run:', sql);
+  });
+}
+
+async function pushAhora(){
+  if(!state.config.supabaseUrl || !state.config.supabaseKey){
+    toast('Configurá Supabase primero','err');return;
+  }
+  if(!_syncEnabled){
+    await syncInit();
+  }
+  await syncPush();
+}
+async function pullAhora(){
+  if(!state.config.supabaseUrl || !state.config.supabaseKey){
+    toast('Configurá Supabase primero','err');return;
+  }
+  if(!_syncEnabled){
+    await syncInit();
+    return;
+  }
+  _remoteUpdatedAt = 0; // forzar pull
+  await syncPull();
+  toast('Datos descargados','suc');
+}
+
+/* ============ ARCHIVOS ADJUNTOS ============ */
+// Buffer temporal de archivos por contexto (rl=reclamo, pb=publicación)
+const _archivosTemp = {rl:[], pb:[]};
+
+function onArchivosCambian(ctx, fileList){
+  if(!fileList || fileList.length===0)return;
+  const procesar = async () => {
+    for(const f of fileList){
+      if(f.size > 5 * 1024 * 1024){
+        toast(f.name+' es muy grande (>5MB)','err');
+        continue;
+      }
+      const b64 = await new Promise((res,rej)=>{
+        const r = new FileReader();
+        r.onload = e => res(e.target.result);
+        r.onerror = rej;
+        r.readAsDataURL(f);
+      });
+      _archivosTemp[ctx].push({name:f.name, type:f.type, size:f.size, data:b64});
+    }
+    renderArchivosTemp(ctx);
+  };
+  procesar();
+}
+
+function renderArchivosTemp(ctx){
+  const wrap = $(ctx+'ArchivosLista') || $(ctx+'FotosLista');
+  if(!wrap)return;
+  wrap.innerHTML = _archivosTemp[ctx].map((a,i)=>{
+    const esImg = a.type && a.type.startsWith('image/');
+    const preview = esImg ? '<img src="'+a.data+'" style="width:60px;height:60px;object-fit:cover;border-radius:8px;display:block">' : '<div style="width:60px;height:60px;background:var(--bg-soft);border-radius:8px;display:grid;place-items:center;font-size:24px">📄</div>';
+    return '<div style="position:relative;display:inline-block">'+preview+'<button onclick="quitarArchivo(\''+ctx+'\','+i+')" style="position:absolute;top:-6px;right:-6px;background:var(--rd);color:#fff;border:0;border-radius:50%;width:20px;height:20px;font-size:12px;line-height:1;cursor:pointer">×</button><div style="font-size:9px;text-align:center;max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--tx-m);margin-top:2px">'+esc(a.name)+'</div></div>';
+  }).join('');
+}
+function quitarArchivo(ctx, idx){
+  _archivosTemp[ctx].splice(idx,1);
+  renderArchivosTemp(ctx);
+}
+
+// Convierte base64 a Blob → File para Web Share API
+function b64ToFile(item){
+  const arr = item.data.split(',');
+  const mime = (arr[0].match(/:(.*?);/)||[])[1] || item.type || 'application/octet-stream';
+  const bstr = atob(arr[1]);
+  const u8 = new Uint8Array(bstr.length);
+  for(let i=0;i<bstr.length;i++) u8[i] = bstr.charCodeAt(i);
+  return new File([u8], item.name, {type: mime});
+}
+
+// === COMPARTIR RECLAMO CON FOTOS POR WHATSAPP ===
+async function reclamoCompartirConFotos(){
+  const tel = $('rlFuncTel').value;
+  const tipo = $('rlTipo').value || 'Reclamo';
+  const desc = $('rlDesc').value || '';
+  const vec = $('rlVec').value || '';
+  const dir = $('rlDir').value || '';
+  const msg = '*'+tipo+'*\n'+desc+(dir?'\n📍 '+dir:'')+(vec?'\n👤 Vecino: '+vec:'')+(tel?'':'\n\nℹ Cargá el teléfono del funcionario primero');
+
+  const archivos = _archivosTemp.rl.slice();
+  // Si hay archivos y existe Web Share API con files
+  if(archivos.length > 0){
+    try {
+      const files = archivos.map(b64ToFile);
+      if(navigator.canShare && navigator.canShare({files})){
+        await navigator.share({title:tipo, text:msg, files});
+        toast('Compartido por sistema','suc');
+        return;
+      }
+    } catch(e){
+      if(e.name !== 'AbortError') console.error('share', e);
+    }
+    // Fallback: descargar archivos + abrir WA con texto
+    archivos.forEach((a,i)=>{
+      setTimeout(()=>{
+        const link = document.createElement('a');
+        link.href = a.data;
+        link.download = a.name;
+        link.click();
+      }, i*200);
+    });
+    setTimeout(()=>{
+      if(tel) waOpen(tel, msg + '\n\n📎 Se descargaron '+archivos.length+' archivo(s). Adjuntalos manualmente en WhatsApp.');
+      else { navigator.clipboard.writeText(msg); toast('Mensaje copiado. Archivos descargados.','suc'); }
+    }, archivos.length*200 + 500);
+  } else {
+    if(tel) waOpen(tel, msg);
+    else { toast('Sin teléfono ni archivos','err'); }
+  }
+}
+
+// === COMPARTIR PUBLICACIÓN CON ARCHIVOS ===
+async function pubCompartirConArchivos(){
+  const desc = $('pbDesc').value || 'Publicación';
+  const cuenta = $('pbAcc').value || '';
+  const tipo = $('pbType').value || '';
+  const fecha = $('pbDate').value || '';
+  const hora = $('pbTime').value || '';
+  const msg = '*'+desc+'*\n📅 '+fecha+' '+hora+'\n📱 '+cuenta+' · '+tipo;
+
+  const archivos = _archivosTemp.pb.slice();
+  if(archivos.length > 0){
+    try {
+      const files = archivos.map(b64ToFile);
+      if(navigator.canShare && navigator.canShare({files})){
+        await navigator.share({title:desc, text:msg, files});
+        toast('Compartido por sistema','suc');
+        return;
+      }
+    } catch(e){
+      if(e.name !== 'AbortError') console.error('share', e);
+    }
+    archivos.forEach((a,i)=>{
+      setTimeout(()=>{
+        const link = document.createElement('a');
+        link.href = a.data;
+        link.download = a.name;
+        link.click();
+      }, i*200);
+    });
+    setTimeout(()=>{
+      navigator.clipboard.writeText(msg).then(()=>toast('Mensaje copiado. Archivos descargados.','suc'));
+    }, archivos.length*200 + 500);
+  } else {
+    navigator.clipboard.writeText(msg).then(()=>toast('Mensaje copiado al portapapeles','suc'));
+  }
+}
+
+
 const _saveState_orig = saveState;
 saveState = function(){
   _saveState_orig();
-  scheduleCloudPush();
-  const ind = $('saveInd');
-  if(ind){
-    ind.innerHTML = '💾 Guardando...';
-    ind.style.color = 'var(--ac)';
-    clearTimeout(window._saveIndT);
-    window._saveIndT = setTimeout(()=>{
-      ind.innerHTML = '💾 Guardado';
-      ind.style.color = 'var(--gr)';
-    }, 300);
+  if(_syncEnabled){
+    setSyncStatus('syncing','Guardando...');
+    if(_pushDebounce) clearTimeout(_pushDebounce);
+    _pushDebounce = setTimeout(()=>syncPush(), 1500);
+  } else {
+    const ind = $('saveInd');
+    if(ind){
+      ind.innerHTML = '💾 Guardando...';
+      ind.style.color = 'var(--ac)';
+      clearTimeout(window._saveIndT);
+      window._saveIndT = setTimeout(()=>{
+        ind.innerHTML = '💾 Guardado local';
+        ind.style.color = 'var(--gr)';
+      }, 300);
+    }
   }
 };
 
