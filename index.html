@@ -1046,8 +1046,21 @@ function seed(){
     config:{theme:'dark',password:'',supabaseUrl:'https://kvbwurvvgfarmiqtvlsc.supabase.co',supabaseKey:'sb_publishable_XYkrltbXO7qOj4Tz48PoJg_uh8m-zmr'}
   };
 }
+const BACKUP_PREFIX = LS_KEY + '_backup_';
+function backupStateSnapshot(){
+  try{
+    const d=new Date();
+    const day=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    const raw=JSON.stringify(state);
+    const startKey=BACKUP_PREFIX+'inicio_'+day;
+    if(!localStorage.getItem(startKey)){
+      localStorage.setItem(startKey,localStorage.getItem(LS_KEY)||raw);
+    }
+    localStorage.setItem(BACKUP_PREFIX+'ultimo_'+day,raw);
+  }catch(e){}
+}
 function saveState(){
-  try{localStorage.setItem(LS_KEY,JSON.stringify(state))}
+  try{backupStateSnapshot();localStorage.setItem(LS_KEY,JSON.stringify(state))}
   catch(e){toast('Error al guardar: '+e.message,'err')}
 }
 
@@ -2798,6 +2811,7 @@ function chgPass(){
 function resetAll(){
   if(!confirm('¿BORRAR TODOS los datos del panel? Esta acción no se puede deshacer.'))return;
   if(!confirm('Última oportunidad. ¿Estás SEGURA?'))return;
+  backupStateSnapshot();
   localStorage.removeItem(LS_KEY);
   localStorage.removeItem('pcomTA_lastU');
   location.reload();
