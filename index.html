@@ -364,6 +364,7 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
       <button class="sbf" onclick="openModal('cfgMod')" title="Configuración">⚙</button>
       <button class="sbf" onclick="doLogout()" title="Salir">⎋</button>
     </div>
+    <div id="saveInd" style="padding:6px 14px;font-size:10.5px;color:var(--gr);text-align:center;border-top:1px solid var(--bd-s);font-weight:600">💾 Guardado</div>
   </aside>
 
   <main class="mn">
@@ -473,6 +474,7 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
               <button id="cvM" class="on" onclick="setCalView('month')">Mes</button>
               <button id="cvD" onclick="setCalView('day')">Día</button>
             </div>
+            <button class="btn btn-s" onclick="openModal('gcalMod')" title="Sincronizar con Google Calendar">📅 Google</button>
             <button class="btn btn-p btn-s" onclick="newEvent()">+ Evento</button>
           </div>
         </div>
@@ -562,6 +564,11 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
             <input class="inp" id="rcSrch" oninput="renderReclamos()" placeholder="Buscar..." style="width:160px">
             <button class="btn btn-p" onclick="editReclamo(null)">+ Nuevo reclamo</button>
           </div>
+        </div>
+        <div class="calvt" style="margin-bottom:12px;width:fit-content">
+          <button id="rcvL" class="on" onclick="setRcView('lista')">📋 Lista</button>
+          <button id="rcvF" onclick="setRcView('func')">👤 Por funcionario</button>
+          <button id="rcvT" onclick="setRcView('tipo')">🏷 Por tipo</button>
         </div>
         <div id="reclamosList"></div>
       </div>
@@ -825,6 +832,34 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
   <button class="btn btn-d hide" id="rcDel" onclick="delRc()">🗑 Eliminar</button>
   <button class="btn" onclick="closeModal('rcMod')">Cancelar</button>
   <button class="btn btn-p" onclick="saveRc()">Guardar</button>
+</div></div></div>
+
+<div class="mov" id="gcalMod"><div class="mod mod-l"><div class="mh">
+  <div class="mt">📅 Sincronizar Google Calendar</div>
+  <button class="mx" onclick="closeModal('gcalMod')">✕</button>
+</div><div class="mb">
+  <div class="ct-s" style="margin-bottom:14px">Importá automáticamente los eventos de un calendario público de Google. <b>El calendario debe estar marcado como "Disponible públicamente" en Google Calendar.</b></div>
+  <div class="fld">
+    <label>URL o ID del calendario</label>
+    <textarea class="inp" id="gcUrl" rows="2" placeholder="Pegá la URL completa de Google Calendar o solo el ID..."></textarea>
+    <small class="t-m">Acepta: URL completa (con cid=...), URL de iCal, o el ID directo</small>
+  </div>
+  <div class="fl">
+    <button class="btn btn-p" onclick="syncGoogleCal()">🔄 Sincronizar ahora</button>
+    <button class="btn" onclick="autoSyncToggle()" id="autoSyncBtn">🔁 Auto-sync: OFF</button>
+  </div>
+  <div id="gcStat" style="margin-top:10px;font-size:12px;color:var(--tx-m)"></div>
+  <div id="gcResult"></div>
+  <div class="ct-s mt16" style="background:var(--bg-soft);border-radius:10px;padding:12px">
+    <b>¿Cómo hago público el calendario?</b><br>
+    1. En Google Calendar, andá a "Mis calendarios" → tres puntos → <b>Configuración y uso compartido</b><br>
+    2. En "Permisos de acceso a eventos" tildá <b>Hacer disponible para el público</b><br>
+    3. Más abajo en "Integrar calendario" copiá la <b>URL pública en formato iCal</b><br>
+    4. Pegá esa URL acá arriba
+  </div>
+</div><div class="mf">
+  <button class="btn btn-d hide" id="gcDel" onclick="disconnectGCal()">🗑 Desconectar</button>
+  <button class="btn btn-p" onclick="closeModal('gcalMod')">Cerrar</button>
 </div></div></div>
 
 <div class="mov" id="cfgMod"><div class="mod mod-l"><div class="mh">
@@ -1142,6 +1177,12 @@ function openModal(id){
   const m=$(id);if(!m)return;
   m.classList.add('on');
   if(id==='cfgMod')prepCfg();
+  if(id==='gcalMod'){
+    $('gcUrl').value = state.config.googleCalendarId || '';
+    $('autoSyncBtn').textContent = state.config.googleAutoSync?'🔁 Auto-sync: ON (cada 30 min)':'🔁 Auto-sync: OFF';
+    $('gcDel').classList.toggle('hide', !state.config.googleCalendarId);
+    $('gcStat').textContent = state.config.googleCalendarId?'Conectado a: '+state.config.googleCalendarId.slice(0,40)+'...':'';
+  }
 }
 function closeModal(id){const m=$(id);if(m)m.classList.remove('on')}
 document.addEventListener('click',e=>{
@@ -2881,7 +2922,269 @@ importJSON = function(){
   }catch(e){toast('JSON inválido: '+e.message,'err');console.error(e)}
 };
 
-/* ============ INIT ============ */
+/* ============ GOOGLE CALENDAR SYNC ============ */
+function extractCalendarId(input){
+  input = (input||'').trim();
+  if(!input)return null;
+  // Si tiene cid= en base64
+  const cidMatch = input.match(/[?&]cid=([^&]+)/);
+  if(cidMatch){
+    try { return atob(cidMatch[1].replace(/-/g,'+').replace(/_/g,'/')); } catch(e){}
+  }
+  // Si es URL de iCal directa
+  const icalMatch = input.match(/\/ical\/([^\/]+)\//);
+  if(icalMatch){
+    try { return decodeURIComponent(icalMatch[1]); } catch(e){return icalMatch[1]}
+  }
+  // Si parece un calendar ID directo (tiene @)
+  if(input.includes('@'))return input;
+  return input; // último recurso, asumir que es el id
+}
+
+function buildICSUrl(calendarId){
+  return 'https://calendar.google.com/calendar/ical/'+encodeURIComponent(calendarId)+'/public/basic.ics';
+}
+
+function parseICS(text){
+  if(!text || !text.includes('BEGIN:VCALENDAR'))return [];
+  // unfold lines (lines starting with space are continuations)
+  const lines = text.replace(/\r\n[ \t]/g,'').replace(/\n[ \t]/g,'').split(/\r?\n/);
+  const events = [];
+  let cur = null;
+  for(const line of lines){
+    if(line === 'BEGIN:VEVENT'){ cur = {}; continue }
+    if(line === 'END:VEVENT'){ if(cur)events.push(cur); cur = null; continue }
+    if(!cur)continue;
+    const idx = line.indexOf(':');
+    if(idx < 0)continue;
+    let key = line.slice(0, idx);
+    let val = line.slice(idx+1);
+    // strip parameters from key but capture TZID/VALUE if relevant
+    const params = key.split(';');
+    const k = params[0];
+    // unescape
+    val = val.replace(/\\n/g,'\n').replace(/\\,/g,',').replace(/\\;/g,';').replace(/\\\\/g,'\\');
+    cur[k] = val;
+  }
+  return events;
+}
+
+function parseICSDate(s){
+  if(!s)return null;
+  const m = String(s).match(/(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(?:\d{2})?Z?)?/);
+  if(!m)return null;
+  return {date: m[1]+'-'+m[2]+'-'+m[3], time: (m[4]&&m[5])? m[4]+':'+m[5] : ''};
+}
+
+async function syncGoogleCal(){
+  const input = $('gcUrl').value.trim();
+  if(!input){toast('Pegá la URL o ID del calendario','err');return}
+  const calId = extractCalendarId(input);
+  if(!calId){toast('No pude extraer el ID del calendario','err');return}
+  const icsUrl = buildICSUrl(calId);
+  state.config.googleCalendarId = calId;
+  saveState();
+
+  $('gcStat').innerHTML = '⬇ Descargando eventos...';
+  $('gcStat').style.color='var(--ac)';
+
+  // Intentar varios proxies CORS hasta que uno funcione
+  const proxies = [
+    u => 'https://corsproxy.io/?'+encodeURIComponent(u),
+    u => 'https://api.allorigins.win/raw?url='+encodeURIComponent(u),
+    u => 'https://api.codetabs.com/v1/proxy/?quest='+u
+  ];
+
+  let icsText = null;
+  let proxyUsed = '';
+  for(const buildProxy of proxies){
+    try {
+      const proxyUrl = buildProxy(icsUrl);
+      $('gcStat').textContent = '⬇ Probando '+proxyUrl.split('/')[2]+'...';
+      const r = await fetch(proxyUrl);
+      if(r.ok){
+        const txt = await r.text();
+        if(txt.includes('BEGIN:VCALENDAR')){
+          icsText = txt;
+          proxyUsed = proxyUrl.split('/')[2];
+          break;
+        }
+      }
+    } catch(e){console.error('proxy',e)}
+  }
+
+  if(!icsText){
+    $('gcStat').innerHTML='<span style="color:var(--rd)">✗ No se pudo descargar el calendario</span><br><span class="t-m">Verificá que esté marcado como público en Google Calendar.</span>';
+    toast('Error al descargar','err');
+    return;
+  }
+
+  // Parsear y convertir
+  const icsEvents = parseICS(icsText);
+  let imported = 0;
+  let updated = 0;
+  let skipped = 0;
+
+  icsEvents.forEach(ev=>{
+    const dt = parseICSDate(ev.DTSTART);
+    if(!dt || !dt.date){skipped++;return}
+    const dtEnd = parseICSDate(ev.DTEND);
+    const id = 'gcal_' + (ev.UID || (dt.date+'_'+dt.time+'_'+(ev.SUMMARY||'').slice(0,20)));
+    const data = {
+      id,
+      date: dt.date,
+      time: dt.time,
+      desc: ev.SUMMARY || '(sin título)',
+      loc: ev.LOCATION || '',
+      type: 'Agenda Intendente',
+      cover: false,
+      gcalSource: true,
+      gcalUID: ev.UID || '',
+      notes: ev.DESCRIPTION || ''
+    };
+    const exists = state.events.find(x=>x.id===id || (x.gcalUID && x.gcalUID===data.gcalUID));
+    if(exists){Object.assign(exists,data);updated++}
+    else {state.events.push(data);imported++}
+  });
+
+  saveState();
+  renderCal();renderHoy();
+  $('gcStat').innerHTML = '<span style="color:var(--gr)">✓ Sincronizado vía '+proxyUsed+'</span><br><span class="t-m">'+imported+' nuevos · '+updated+' actualizados · '+skipped+' omitidos</span>';
+  $('gcDel').classList.remove('hide');
+  toast('Calendario sincronizado','suc');
+
+  if(state.config.googleAutoSync)scheduleAutoSync();
+}
+
+function autoSyncToggle(){
+  state.config.googleAutoSync = !state.config.googleAutoSync;
+  saveState();
+  $('autoSyncBtn').textContent = state.config.googleAutoSync?'🔁 Auto-sync: ON (cada 30 min)':'🔁 Auto-sync: OFF';
+  if(state.config.googleAutoSync){
+    scheduleAutoSync();
+    toast('Auto-sync activado','suc');
+  } else {
+    if(window._gcalTimer)clearInterval(window._gcalTimer);
+    toast('Auto-sync desactivado','inf');
+  }
+}
+function scheduleAutoSync(){
+  if(window._gcalTimer)clearInterval(window._gcalTimer);
+  if(!state.config.googleAutoSync || !state.config.googleCalendarId)return;
+  window._gcalTimer = setInterval(()=>{
+    if(state.config.googleCalendarId && state.config.googleAutoSync){
+      $('gcUrl').value = state.config.googleCalendarId;
+      syncGoogleCal();
+    }
+  }, 30*60*1000);
+}
+function disconnectGCal(){
+  if(!confirm('¿Desconectar Google Calendar? Los eventos importados quedan, pero no se sincronizarán más.'))return;
+  state.config.googleCalendarId = '';
+  state.config.googleAutoSync = false;
+  if(window._gcalTimer)clearInterval(window._gcalTimer);
+  saveState();
+  $('gcUrl').value='';
+  $('gcStat').textContent='';
+  $('gcDel').classList.add('hide');
+  $('autoSyncBtn').textContent='🔁 Auto-sync: OFF';
+  toast('Desconectado','inf');
+}
+
+/* ============ RECLAMOS: VISTA AGRUPADA ============ */
+let _rcView = 'lista';
+function setRcView(v){
+  _rcView = v;
+  $('rcvL').classList.toggle('on', v==='lista');
+  $('rcvF').classList.toggle('on', v==='func');
+  $('rcvT').classList.toggle('on', v==='tipo');
+  renderReclamos();
+}
+
+// override de renderReclamos para soportar agrupación
+const _renderReclamos_orig = renderReclamos;
+renderReclamos = function(){
+  if(_rcView==='lista'){_renderReclamos_orig();return}
+  const f = $('rcFilt')?$('rcFilt').value:'';
+  const q = $('rcSrch')?($('rcSrch').value||'').toLowerCase().trim():'';
+  let list = state.reclamos.slice();
+  if(f)list = list.filter(r=>r.estado===f);
+  if(q)list = list.filter(r=>((r.tipo||'')+' '+(r.descripcion||'')+' '+(r.vecino||'')+' '+(r.funcionario||'')+' '+(r.direccion||'')).toLowerCase().includes(q));
+  const wrap = $('reclamosList');
+  if(list.length===0){
+    wrap.innerHTML = '<div class="emp"><div class="emi">📣</div><div class="emt">Sin reclamos</div></div>';
+    return;
+  }
+  // Agrupar
+  const groupBy = _rcView==='func'?'funcionario':'tipo';
+  const groups = {};
+  list.forEach(r=>{
+    const k = (r[groupBy]||'(sin '+groupBy+')');
+    if(!groups[k])groups[k] = [];
+    groups[k].push(r);
+  });
+  const ord = {pendiente:1,'en-proceso':2,resuelto:3};
+  const groupNames = Object.keys(groups).sort((a,b)=>{
+    // ordenar por cantidad de pendientes desc
+    const pa = groups[a].filter(r=>r.estado==='pendiente').length;
+    const pb = groups[b].filter(r=>r.estado==='pendiente').length;
+    if(pa!==pb)return pb-pa;
+    return a.localeCompare(b);
+  });
+
+  let html = '';
+  groupNames.forEach(name=>{
+    const items = groups[name].sort((a,b)=>(ord[a.estado]||9)-(ord[b.estado]||9));
+    const pend = items.filter(r=>r.estado==='pendiente').length;
+    const proc = items.filter(r=>r.estado==='en-proceso').length;
+    const resv = items.filter(r=>r.estado==='resuelto').length;
+    // teléfono del funcionario (si agrupado por func)
+    let telBtn = '';
+    if(_rcView==='func' && name!=='(sin funcionario)'){
+      const tel = items.find(r=>r.funcionario_tel)?.funcionario_tel || state.funcionarios.find(f=>f.name.toLowerCase()===name.toLowerCase())?.phone;
+      if(tel){
+        // mensaje resumen con los pendientes/en-proceso
+        const enviar = items.filter(r=>r.estado!=='resuelto');
+        let m = '*Reclamos pendientes:*\n\n';
+        enviar.forEach((r,i)=>{m+=(i+1)+'. ['+r.estado.toUpperCase()+'] '+r.tipo+(r.vecino?' · '+r.vecino:'')+(r.direccion?' · 📍 '+r.direccion:'')+'\n   '+(r.descripcion||'')+'\n\n'});
+        telBtn = '<button class="btn btn-w btn-xs" onclick="waOpen(\''+tel+'\', '+JSON.stringify(m).replace(/'/g,'&#39;')+')">📱 WA todos los pendientes</button>';
+      }
+    }
+    html += '<div class="card" style="margin-bottom:14px"><div class="ch"><div class="ct-t">'+esc(name)+' <span class="tag tag-x">'+items.length+'</span></div><div class="fl">';
+    if(pend>0)html+='<span class="tag tag-r">'+pend+' pendientes</span>';
+    if(proc>0)html+='<span class="tag tag-b">'+proc+' en proceso</span>';
+    if(resv>0)html+='<span class="tag tag-g">'+resv+' resueltos</span>';
+    html += telBtn+'</div></div>';
+    items.forEach(r=>{
+      const stT = r.estado==='resuelto'?'<span class="tag tag-g">Resuelto</span>':r.estado==='en-proceso'?'<span class="tag tag-b">En proceso</span>':'<span class="tag tag-r">Pendiente</span>';
+      const icon = r.estado==='resuelto'?'✓':r.estado==='en-proceso'?'⏳':'⚠';
+      const iconC = r.estado==='resuelto'?'var(--gr)':r.estado==='en-proceso'?'var(--bl)':'var(--rd)';
+      const iconB = r.estado==='resuelto'?'var(--gr-s)':r.estado==='en-proceso'?'var(--bl-s)':'var(--rd-s)';
+      const secundario = _rcView==='func' ? r.tipo : r.funcionario;
+      html += '<div class="li" onclick="editReclamo(\''+r.id+'\')"><div class="li-i" style="background:'+iconB+';color:'+iconC+'">'+icon+'</div><div class="li-b"><div class="li-t">'+esc(secundario||'(sin '+( _rcView==='func'?'tipo':'funcionario')+')')+(r.vecino?' · '+esc(r.vecino):'')+'</div><div class="li-s">'+stT+(r.direccion?' · 📍 '+esc(r.direccion):'')+'</div>'+(r.descripcion?'<div class="li-s" style="margin-top:4px;color:var(--tx-s)">'+esc(r.descripcion).slice(0,180)+'</div>':'')+'</div></div>';
+    });
+    html += '</div>';
+  });
+  wrap.innerHTML = html;
+};
+
+/* ============ INDICADOR DE GUARDADO ============ */
+const _saveState_orig = saveState;
+saveState = function(){
+  _saveState_orig();
+  const ind = $('saveInd');
+  if(ind){
+    ind.innerHTML = '💾 Guardando...';
+    ind.style.color = 'var(--ac)';
+    clearTimeout(window._saveIndT);
+    window._saveIndT = setTimeout(()=>{
+      ind.innerHTML = '💾 Guardado';
+      ind.style.color = 'var(--gr)';
+    }, 300);
+  }
+};
+
+
 function init(){
   initLogin();
   applyTheme();
@@ -2893,8 +3196,11 @@ function init(){
       currentUser=last;
       $('loginOv').style.display='none';
       startApp();
-      return;
     }
+  }
+  // re-activar auto-sync de Google Calendar si estaba activo
+  if(state.config.googleAutoSync && state.config.googleCalendarId){
+    setTimeout(scheduleAutoSync, 2000);
   }
 }
 document.addEventListener('DOMContentLoaded',init);
