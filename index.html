@@ -354,6 +354,7 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
       <button class="nav" data-v="equipo" onclick="switchView('equipo')"><span class="ni">⚇</span><span>Equipo</span></button>
       <button class="nav" data-v="medios" onclick="switchView('medios')"><span class="ni">📞</span><span>Contactos de medios</span></button>
       <button class="nav" data-v="entrevistas" onclick="switchView('entrevistas')"><span class="ni">🎙</span><span>Entrevistas</span></button>
+      <button class="nav" data-v="reclamos" onclick="switchView('reclamos')"><span class="ni">📣</span><span>Reclamos</span><span class="nbadge" id="bgRec"></span></button>
       <div class="sb-sec">Herramientas</div>
       <button class="nav" data-v="recursos" onclick="switchView('recursos')"><span class="ni">⎕</span><span>Recursos</span></button>
       <button class="nav" data-v="flyer" onclick="openFlyer()"><span class="ni">✦</span><span>Generador de Flyer</span></button>
@@ -541,6 +542,27 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
           <button class="btn btn-p" onclick="editEnt(null)">+ Nueva entrevista</button>
         </div>
         <div id="entList"></div>
+      </div>
+
+      <!-- RECLAMOS -->
+      <div class="view" id="v-reclamos">
+        <div class="fb" style="margin-bottom:14px">
+          <div>
+            <div class="ct-t">📣 Reclamos de vecinos</div>
+            <div class="ct-s">Reclamos derivados a funcionarios y áreas</div>
+          </div>
+          <div class="fl">
+            <select class="inp" id="rcFilt" onchange="renderReclamos()" style="width:150px">
+              <option value="">Todos los estados</option>
+              <option value="pendiente">Pendientes</option>
+              <option value="en-proceso">En proceso</option>
+              <option value="resuelto">Resueltos</option>
+            </select>
+            <input class="inp" id="rcSrch" oninput="renderReclamos()" placeholder="Buscar..." style="width:160px">
+            <button class="btn btn-p" onclick="editReclamo(null)">+ Nuevo reclamo</button>
+          </div>
+        </div>
+        <div id="reclamosList"></div>
       </div>
 
       <!-- RECURSOS -->
@@ -843,6 +865,36 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
   <button class="btn btn-p" onclick="closeModal('cfgMod')">Cerrar</button>
 </div></div></div>
 
+<div class="mov" id="rcLmMod"><div class="mod mod-l"><div class="mh">
+  <div class="mt">📣 Reclamo</div>
+  <button class="mx" onclick="closeModal('rcLmMod')">✕</button>
+</div><div class="mb">
+  <input type="hidden" id="rlId">
+  <div class="ir">
+    <div class="fld"><label>Tipo de reclamo</label><input class="inp" id="rlTipo" placeholder="Ej: Basura en la calle"></div>
+    <div class="fld"><label>Estado</label><select class="inp" id="rlEst">
+      <option value="pendiente">Pendiente</option><option value="en-proceso">En proceso</option><option value="resuelto">Resuelto</option>
+    </select></div>
+  </div>
+  <div class="fld"><label>Descripción</label><textarea class="inp" id="rlDesc" placeholder="Detalle del reclamo"></textarea></div>
+  <div class="ir">
+    <div class="fld"><label>Vecino</label><input class="inp" id="rlVec"></div>
+    <div class="fld"><label>Tel. vecino</label><input class="inp" id="rlVecTel"></div>
+  </div>
+  <div class="fld"><label>Dirección</label><input class="inp" id="rlDir"></div>
+  <div class="ir">
+    <div class="fld"><label>Funcionario / Área</label><input class="inp" id="rlFunc" list="rlFnL"></div>
+    <div class="fld"><label>Tel. funcionario</label><input class="inp" id="rlFuncTel"></div>
+  </div>
+  <datalist id="rlFnL"></datalist>
+  <div class="fld"><label>Notas / Historial</label><textarea class="inp" id="rlNotes" rows="2"></textarea></div>
+</div><div class="mf">
+  <button class="btn btn-d hide" id="rlDel" onclick="delReclamo()">🗑 Eliminar</button>
+  <button class="btn btn-w" onclick="reclamoNotifyWa()">📱 WA funcionario</button>
+  <button class="btn" onclick="closeModal('rcLmMod')">Cancelar</button>
+  <button class="btn btn-p" onclick="saveReclamo()">Guardar</button>
+</div></div></div>
+
 <div class="tcn" id="toasts"></div>
 
 <script>
@@ -1038,13 +1090,16 @@ function initFilters(){
   $('fAg').innerHTML='<option value="">Todos los agentes</option>'+state.agents.map(a=>'<option value="'+esc(a.id)+'">'+esc(a.name)+'</option>').join('');
 }
 function renderAll(){
-  renderHoy();renderTab();renderMat();renderCal();renderGuardias();renderEquipo();renderMed();renderEnt();renderRec();updateBadges();
+  renderHoy();renderTab();renderMat();renderCal();renderGuardias();renderEquipo();renderMed();renderEnt();renderReclamos();renderRec();updateBadges();
 }
 function updateBadges(){
   const p=state.tasks.filter(t=>t.status!=='realizada').length;
   const bH=$('bgHoy'),bT=$('bgTab');
   if(p>0){bH.textContent=p;bH.style.display='inline-block';bT.textContent=p;bT.style.display='inline-block'}
   else{bH.style.display='none';bT.style.display='none'}
+  const pr=state.reclamos.filter(r=>r.estado!=='resuelto').length;
+  const bR=$('bgRec');
+  if(bR){if(pr>0){bR.textContent=pr;bR.style.display='inline-block'}else bR.style.display='none'}
 }
 function switchView(name){
   currentView=name;
@@ -1052,7 +1107,7 @@ function switchView(name){
   document.querySelectorAll('.nav').forEach(n=>n.classList.remove('on'));
   const v=$('v-'+name);if(v)v.classList.add('on');
   const n=document.querySelector('.nav[data-v="'+name+'"]');if(n)n.classList.add('on');
-  const titles={hoy:'Hoy',tablero:'Tablero de tareas',material:'Material y Agenda',calendario:'Calendario',guardias:'Guardias',equipo:'Equipo',medios:'Contactos de medios',entrevistas:'Entrevistas',recursos:'Recursos'};
+  const titles={hoy:'Hoy',tablero:'Tablero de tareas',material:'Material y Agenda',calendario:'Calendario',guardias:'Guardias',equipo:'Equipo',medios:'Contactos de medios',entrevistas:'Entrevistas',reclamos:'Reclamos de vecinos',recursos:'Recursos'};
   $('tbtl').textContent=titles[name]||name;
   toggleSidebar(false);
   // refresh por las dudas
@@ -1065,6 +1120,7 @@ function switchView(name){
     case 'equipo':renderEquipo();break;
     case 'medios':renderMed();break;
     case 'entrevistas':renderEnt();break;
+    case 'reclamos':renderReclamos();break;
     case 'recursos':renderRec();break;
   }
 }
@@ -2016,6 +2072,292 @@ function resetAll(){
   localStorage.removeItem('pcomTA_lastU');
   location.reload();
 }
+
+/* ============ RECLAMOS ============ */
+function renderReclamos(){
+  const f=$('rcFilt')?$('rcFilt').value:'';
+  const q=$('rcSrch')?($('rcSrch').value||'').toLowerCase().trim():'';
+  let list=state.reclamos.slice();
+  if(f)list=list.filter(r=>r.estado===f);
+  if(q)list=list.filter(r=>((r.tipo||'')+' '+(r.descripcion||'')+' '+(r.vecino||'')+' '+(r.funcionario||'')+' '+(r.direccion||'')).toLowerCase().includes(q));
+  // ordenar pendientes primero, luego en-proceso, luego resueltos
+  const ord={pendiente:1,'en-proceso':2,resuelto:3};
+  list.sort((a,b)=>{
+    const oa=ord[a.estado]||9,ob=ord[b.estado]||9;
+    if(oa!==ob)return oa-ob;
+    return (b.fecha_creacion||'').localeCompare(a.fecha_creacion||'');
+  });
+  const wrap=$('reclamosList');
+  if(list.length===0){
+    wrap.innerHTML='<div class="emp"><div class="emi">📣</div><div class="emt">Sin reclamos</div><div class="ems">Agregá reclamos de vecinos para derivar a funcionarios</div></div>';
+    return;
+  }
+  wrap.innerHTML=list.map(r=>{
+    const stT=r.estado==='resuelto'?'<span class="tag tag-g">Resuelto</span>':r.estado==='en-proceso'?'<span class="tag tag-b">En proceso</span>':'<span class="tag tag-r">Pendiente</span>';
+    const icon=r.estado==='resuelto'?'✓':r.estado==='en-proceso'?'⏳':'⚠';
+    const iconC=r.estado==='resuelto'?'var(--gr)':r.estado==='en-proceso'?'var(--bl)':'var(--rd)';
+    const iconB=r.estado==='resuelto'?'var(--gr-s)':r.estado==='en-proceso'?'var(--bl-s)':'var(--rd-s)';
+    return '<div class="li" onclick="editReclamo(\''+r.id+'\')"><div class="li-i" style="background:'+iconB+';color:'+iconC+'">'+icon+'</div><div class="li-b"><div class="li-t">'+esc(r.tipo||'(sin tipo)')+(r.vecino?' · '+esc(r.vecino):'')+'</div><div class="li-s">'+stT+(r.funcionario?' · 👤 '+esc(r.funcionario):'')+(r.direccion?' · 📍 '+esc(r.direccion):'')+'</div>'+(r.descripcion?'<div class="li-s" style="margin-top:4px;color:var(--tx-s)">'+esc(r.descripcion).slice(0,180)+'</div>':'')+'</div>'+(r.funcionario_tel?'<div class="li-a"><button class="btn btn-w btn-xs" onclick="event.stopPropagation();reclamoNotifyWaId(\''+r.id+'\')">📱</button></div>':'')+'</div>';
+  }).join('');
+}
+function editReclamo(id){
+  const r=id?state.reclamos.find(x=>x.id===id):null;
+  $('rlId').value=r?r.id:'';
+  $('rlTipo').value=r?r.tipo||'':'';
+  $('rlEst').value=r?r.estado||'pendiente':'pendiente';
+  $('rlDesc').value=r?r.descripcion||'':'';
+  $('rlVec').value=r?r.vecino||'':'';
+  $('rlVecTel').value=r?r.vecino_tel||'':'';
+  $('rlDir').value=r?r.direccion||'':'';
+  $('rlFunc').value=r?r.funcionario||'':'';
+  $('rlFuncTel').value=r?r.funcionario_tel||'':'';
+  $('rlNotes').value=r?r.notes||'':'';
+  $('rlFnL').innerHTML=state.funcionarios.map(f=>'<option value="'+esc(f.name)+'">'+esc(f.role||'')+'</option>').join('');
+  $('rlDel').classList.toggle('hide',!r);
+  openModal('rcLmMod');
+}
+function saveReclamo(){
+  const tipo=$('rlTipo').value.trim();
+  if(!tipo){toast('El tipo es obligatorio','err');return}
+  const id=$('rlId').value;
+  // auto-completar tel del funcionario si está cargado
+  let funcTel=$('rlFuncTel').value;
+  const funcName=$('rlFunc').value.trim();
+  if(funcName && !funcTel){
+    const fn=state.funcionarios.find(f=>f.name.toLowerCase()===funcName.toLowerCase());
+    if(fn && fn.phone)funcTel=fn.phone;
+  }
+  const data={
+    tipo,estado:$('rlEst').value,descripcion:$('rlDesc').value,
+    vecino:$('rlVec').value,vecino_tel:$('rlVecTel').value,
+    direccion:$('rlDir').value,
+    funcionario:funcName,funcionario_tel:funcTel,
+    notes:$('rlNotes').value,
+    fecha_modificacion:new Date().toISOString()
+  };
+  if(id){
+    const r=state.reclamos.find(x=>x.id===id);
+    if(r)Object.assign(r,data);
+  } else {
+    state.reclamos.push({id:uid('rl'),fecha_creacion:new Date().toISOString(),...data});
+  }
+  saveState();
+  closeModal('rcLmMod');
+  renderReclamos();updateBadges();
+  toast(id?'Reclamo actualizado':'Reclamo creado','suc');
+}
+function delReclamo(){
+  if(!confirm('¿Eliminar este reclamo?'))return;
+  const id=$('rlId').value;
+  state.reclamos=state.reclamos.filter(r=>r.id!==id);
+  saveState();
+  closeModal('rcLmMod');
+  renderReclamos();updateBadges();
+  toast('Reclamo eliminado','suc');
+}
+function reclamoNotifyWa(){
+  const tel=$('rlFuncTel').value;
+  if(!tel){toast('Sin teléfono del funcionario','err');return}
+  const msg='Hola! Reclamo recibido:\n\n*'+($('rlTipo').value||'')+'*\n'+($('rlDesc').value||'')+(($('rlDir').value)?'\n📍 Dirección: '+$('rlDir').value:'')+(($('rlVec').value)?'\n👤 Vecino/a: '+$('rlVec').value+(($('rlVecTel').value)?' ('+$('rlVecTel').value+')':''):'');
+  waOpen(tel,msg);
+}
+function reclamoNotifyWaId(id){
+  const r=state.reclamos.find(x=>x.id===id);
+  if(!r||!r.funcionario_tel){toast('Sin teléfono','err');return}
+  const msg='Hola! Reclamo:\n\n*'+(r.tipo||'')+'*\n'+(r.descripcion||'')+(r.direccion?'\n📍 '+r.direccion:'')+(r.vecino?'\n👤 '+r.vecino:'');
+  waOpen(r.funcionario_tel,msg);
+}
+
+/* ============ IMPORTADOR INTELIGENTE ============ */
+// Reconoce el formato del backup viejo {meta:{...},localStorage:{...}}
+function importBackupViejo(backupObj){
+  const ls = backupObj.localStorage || backupObj;
+  let counts = {funcs:0, pubs:0, med:0, rec:0, recursos:0, telef:0};
+
+  // FUNCIONARIOS
+  if(ls['panel-comunicacion-funcionarios-v1']){
+    try{
+      const arr = typeof ls['panel-comunicacion-funcionarios-v1']==='string'?JSON.parse(ls['panel-comunicacion-funcionarios-v1']):ls['panel-comunicacion-funcionarios-v1'];
+      arr.forEach(f=>{
+        const exists = state.funcionarios.find(x=>x.id===f.id || (x.name||'').toLowerCase()===(f.nombre||'').toLowerCase());
+        const data = {
+          id: f.id || uid('fn'),
+          name: f.nombre || '',
+          role: f.area || f.cargo || '',
+          phone: f.telefono || f.tel || ''
+        };
+        if(exists)Object.assign(exists,data);
+        else state.funcionarios.push(data);
+        counts.funcs++;
+      });
+    }catch(e){console.error('funcs',e)}
+  }
+
+  // PUBLICACIONES
+  if(ls['panel-comunicacion-publicaciones-v1']){
+    try{
+      const arr = typeof ls['panel-comunicacion-publicaciones-v1']==='string'?JSON.parse(ls['panel-comunicacion-publicaciones-v1']):ls['panel-comunicacion-publicaciones-v1'];
+      arr.forEach(p=>{
+        const exists = state.publicaciones.find(x=>x.id===p.id);
+        const data = {
+          id: p.id || uid('pb'),
+          date: p.fecha || p.date || '',
+          time: p.hora || p.time || '',
+          desc: p.descripcion || p.desc || '',
+          account: p.cuenta || p.account || (p.red?'IG/'+p.red:''),
+          type: p.tipo || p.type || 'Foto',
+          status: (p.estado==='publicado'?'Publicado':p.estado==='listo'?'Listo para publicar':p.estado||'Pendiente'),
+          responsable: ''
+        };
+        // mapear responsable por nombre
+        if(p.responsable){
+          const ag = state.agents.find(a=>a.name.toLowerCase()===String(p.responsable).toLowerCase());
+          if(ag)data.responsable=ag.id;
+        }
+        if(exists)Object.assign(exists,data);
+        else state.publicaciones.push(data);
+        counts.pubs++;
+      });
+    }catch(e){console.error('pubs',e)}
+  }
+
+  // MEDIOS (ct_medios_v2)
+  if(ls['ct_medios_v2']){
+    try{
+      const arr = typeof ls['ct_medios_v2']==='string'?JSON.parse(ls['ct_medios_v2']):ls['ct_medios_v2'];
+      arr.forEach(m=>{
+        const data = {
+          id: m.id || uid('md'),
+          name: m.nombre || '',
+          program: m.medio || m.program || '',
+          phone: m.tel || m.phone || '',
+          email: m.email || '',
+          type: (m.tipo==='radio'?'📻 Radio':m.tipo==='tv'?'📺 TV':m.tipo==='diario'?'📰 Diario / Digital':m.tipo||'📰 Diario / Digital'),
+          specialty: m.especialidad || m.specialty || 'General',
+          notes: m.notas || m.notes || ''
+        };
+        const exists = state.medios.find(x=>x.id===data.id || ((x.name||'').toLowerCase()===data.name.toLowerCase() && (x.program||'').toLowerCase()===data.program.toLowerCase()));
+        if(exists)Object.assign(exists,data);
+        else state.medios.push(data);
+        counts.med++;
+      });
+    }catch(e){console.error('medios',e)}
+  }
+
+  // RECLAMOS
+  if(ls['panel-comunicacion-reclamos-v1']){
+    try{
+      const arr = typeof ls['panel-comunicacion-reclamos-v1']==='string'?JSON.parse(ls['panel-comunicacion-reclamos-v1']):ls['panel-comunicacion-reclamos-v1'];
+      arr.forEach(r=>{
+        const exists = state.reclamos.find(x=>x.id===r.id);
+        const data = {
+          id: r.id || uid('rl'),
+          tipo: r.tipo || '',
+          descripcion: r.descripcion || '',
+          vecino: r.vecino || '',
+          vecino_tel: r.vecino_tel || '',
+          direccion: r.direccion || '',
+          funcionario: r.funcionario || '',
+          funcionario_tel: r.funcionario_tel || '',
+          estado: r.estado || 'pendiente',
+          fecha_creacion: r.fecha_creacion || new Date().toISOString(),
+          fecha_modificacion: r.fecha_modificacion,
+          notes: r.notes || (r.historial?JSON.stringify(r.historial):'')
+        };
+        if(exists)Object.assign(exists,data);
+        else state.reclamos.push(data);
+        counts.rec++;
+      });
+    }catch(e){console.error('reclamos',e)}
+  }
+
+  // RECURSOS
+  if(ls['rec_v1']){
+    try{
+      const arr = typeof ls['rec_v1']==='string'?JSON.parse(ls['rec_v1']):ls['rec_v1'];
+      arr.forEach(rc=>{
+        const exists = state.recursos.find(x=>x.id===rc.id);
+        const catMap = {drive:'Google Drive',foto:'Fotos / Multimedia',template:'Templates / Canva',doc:'Documentos',contacto:'Contactos útiles'};
+        const data = {
+          id: rc.id || uid('rc'),
+          name: rc.nombre || rc.name || '',
+          cat: catMap[rc.categoria] || rc.categoria || 'Otro',
+          url: rc.url || '',
+          desc: rc.descripcion || rc.desc || ''
+        };
+        if(exists)Object.assign(exists,data);
+        else state.recursos.push(data);
+        counts.recursos++;
+      });
+    }catch(e){console.error('recursos',e)}
+  }
+
+  // CONTACTOS DE AGENTES (panelContactos)
+  if(ls['panelContactos']){
+    try{
+      const cts = typeof ls['panelContactos']==='string'?JSON.parse(ls['panelContactos']):ls['panelContactos'];
+      Object.entries(cts).forEach(([nombre, info])=>{
+        const ag = state.agents.find(a=>a.name.toLowerCase()===String(nombre).toLowerCase());
+        if(ag && info && info.tel){
+          ag.phone = info.tel;
+          counts.telef++;
+        }
+      });
+    }catch(e){console.error('contactos',e)}
+  }
+
+  return counts;
+}
+
+// Override importJSON con detección automática
+const _importJSON_orig = importJSON;
+importJSON = function(){
+  const raw=$('impData').value.trim();
+  if(!raw){toast('Pegá el JSON primero','err');return}
+  try{
+    const data=JSON.parse(raw);
+    // Detectar formato del backup viejo
+    if(data.meta && data.localStorage){
+      if(!confirm('Detecté un backup del panel anterior. ¿Importar todos los datos? (Los actuales se mantienen)'))return;
+      const c = importBackupViejo(data);
+      saveState();
+      $('impData').value='';
+      renderAll();initFilters();
+      const msg = '✓ Importado:\n• '+c.funcs+' funcionarios\n• '+c.pubs+' publicaciones\n• '+c.med+' medios\n• '+c.rec+' reclamos\n• '+c.recursos+' recursos\n• '+c.telef+' teléfonos de agentes';
+      alert(msg);
+      toast('Importación completa','suc');
+      return;
+    }
+    // Detectar si es solo el objeto localStorage (sin meta)
+    if(data['panel-comunicacion-reclamos-v1'] || data['panel-comunicacion-funcionarios-v1']){
+      if(!confirm('Detecté datos del panel anterior. ¿Importar?'))return;
+      const c = importBackupViejo({localStorage:data});
+      saveState();
+      $('impData').value='';
+      renderAll();initFilters();
+      alert('✓ Importado:\n• '+c.funcs+' funcionarios\n• '+c.pubs+' publicaciones\n• '+c.med+' medios\n• '+c.rec+' reclamos\n• '+c.recursos+' recursos\n• '+c.telef+' teléfonos');
+      toast('Importación completa','suc');
+      return;
+    }
+    // Si es el formato nativo del panel nuevo
+    if(!confirm('¿Mezclar estos datos con los actuales? (Se conservan por ID)'))return;
+    ['agents','funcionarios','medios','tasks','publicaciones','events','entrevistas','recursos','reclamos'].forEach(k=>{
+      if(Array.isArray(data[k])){
+        data[k].forEach(item=>{
+          if(!item.id)item.id=uid(k.slice(0,2));
+          const exists=state[k].find(x=>x.id===item.id);
+          if(exists)Object.assign(exists,item);
+          else state[k].push(item);
+        });
+      }
+    });
+    if(data.guardias)Object.assign(state.guardias,data.guardias);
+    saveState();
+    $('impData').value='';
+    renderAll();initFilters();
+    toast('Datos importados','suc');
+  }catch(e){toast('JSON inválido: '+e.message,'err');console.error(e)}
+};
 
 /* ============ INIT ============ */
 function init(){
