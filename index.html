@@ -489,6 +489,7 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
               <span id="gwLbl" style="font-weight:600;font-size:13px"></span>
               <button class="calnb" onclick="guardiaNav(7)">›</button>
               <button class="btn btn-s" onclick="guardiaToday()">Esta semana</button>
+              <button class="btn btn-p btn-s" onclick="aplicarPatronGuardias()" title="Aplica la rotación del Excel a las próximas semanas">🔄 Cargar patrón</button>
             </div>
           </div>
           <div class="gw" id="gw"></div>
@@ -876,11 +877,12 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
 </div><div class="mb">
   <input type="hidden" id="rlId">
   <div class="ir">
-    <div class="fld"><label>Tipo de reclamo</label><input class="inp" id="rlTipo" placeholder="Ej: Basura en la calle"></div>
+    <div class="fld"><label>Tipo de reclamo</label><input class="inp" id="rlTipo" placeholder="Ej: Basura en la calle" list="rlTpL"></div>
     <div class="fld"><label>Estado</label><select class="inp" id="rlEst">
       <option value="pendiente">Pendiente</option><option value="en-proceso">En proceso</option><option value="resuelto">Resuelto</option>
     </select></div>
   </div>
+  <datalist id="rlTpL"></datalist>
   <div class="fld"><label>Descripción</label><textarea class="inp" id="rlDesc" placeholder="Detalle del reclamo"></textarea></div>
   <div class="ir">
     <div class="fld"><label>Vecino</label><input class="inp" id="rlVec"></div>
@@ -907,22 +909,26 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
 
 /* ============ DATOS POR DEFECTO ============ */
 const LS_KEY = 'pcomTA_v6';
-const DEF_USERS = ['Debora','Guada','Josefina Claromeco','Lina','Maiten','Marianela','Santiago','sofia','Yesi'];
+const DEF_USERS = ['Debora','Guada','Josefina Claromeco','Lina','Maiten','Marianela','Nai','Santiago','sofia','Yesi'];
 const DEF_FUNCS = [
-  ['Pablo Garate','Intendente Municipal'],['Santiago Garate','Sub Secretario de Gabinete'],
-  ['Julio Federico','Jefe de gabinete'],['Tomas Paniga','Director de Cultura'],
-  ['Facundo Liebana','Director de Deporte'],['Juan Moizzi','Dir. Oficina de Empleo / Parque Industrial'],
-  ['Julian Tornini','Coordinador de Juventud y Deporte'],['Carolina Goicoechea','Directora de Turismo'],
-  ['Mauro Dadario','Director de Emprendedurismo'],['Margarita Tour','Directora de Impulsar'],
-  ['Paola Salerno','Secretaria de Planeamiento Urbano'],['Nicolas Franganillo','Director de Obras Publicas'],
-  ['Luis Juarez','Director de Planeamiento Urbano'],['Ignacio Quintas','Director de Obras Sanitarias'],
-  ['Juan Apolonio','Secretario de Seguridad'],['Martin Legarreta','Director de Seguridad Operativo'],
-  ['Maria Paz Lopez Peralta','Dir. Administrativa de Seguridad'],['Martin Garate','Secretario de Desarrollo Social'],
-  ['Damian Almeira','Director de Accion Social'],['Emiliano Capandegui','Director Tecnico del Hospital'],
-  ['Mercedes Moreno','Directora de Salud Integral'],['Juan Manuel Serna','Director de CAPS'],
-  ['Juan Cruz Lopez','Director Administrativo'],['Eliana Rossi','Directora de Bromatologia y Zoonosis'],
-  ['Gabriel Francia','Sub Secretario de Gestion Ambiental']
+  ['Pablo Garate','Intendente Municipal',''],['Santiago Garate','Sub Secretario de Gabinete',''],
+  ['Julio Federico','Jefe de gabinete','5492983570209'],['Tomas Paniga','Director de Cultura','5492983447249'],
+  ['Facundo Liebana','Director de Deporte','5492983382366'],['Juan Moizzi','Dir. Oficina de Empleo / Parque Industrial',''],
+  ['Julian Tornini','Coordinador de Juventud y Deporte','5492983305218'],['Carolina Goicoechea','Directora de Turismo','5492983449098'],
+  ['Mauro Dadario','Director de Emprendedurismo','5492983446264'],['Margarita Tour','Directora de Impulsar',''],
+  ['Paola Salerno','Secretaria de Planeamiento Urbano',''],['Nicolas Franganillo','Director de Obras Publicas','5492983412126'],
+  ['Luis Juarez','Director de Paseos Publicos','2983459048'],['Ignacio Quintas','Director de Obras Sanitarias','5492983615881'],
+  ['Juan Apolonio','Secretario de Seguridad','5492983409217'],['Martin Legarreta','Director de Seguridad Operativo',''],
+  ['Maria Paz Lopez Peralta','Dir. Administrativa de Seguridad',''],['Martin Garate','Secretario de Desarrollo Social','5492983413996'],
+  ['Damian Almeira','Director de Accion Social','5492983650085'],['Emiliano Capandegui','Director Tecnico del Hospital','5492983602937'],
+  ['Mercedes Moreno','Directora de Salud Integral','5492983447789'],['Juan Manuel Serna','Director de CAPS','5491154842469'],
+  ['Juan Cruz Lopez','Director Administrativo',''],['Eliana Rossi','Directora de Bromatologia y Zoonosis','5492983505668'],
+  ['Gabriel Francia','Sub Secretario de Gestion Ambiental','5492983385858'],
+  ['Bernardina Varese','Servicios Públicos','5492983584387'],['Kevin Monrroy','Funcionario','5492983406170'],
+  ['Pity Federico','Jefatura de Gabinete','5492983570209'],['Valeria Guido','Funcionaria','5491166920622'],
+  ['Vanesa Cursio','Higiene Urbana','5492983463615'],['Daniel Civetta','Coordinador de Higiene Urbana','5492983388256']
 ];
+const DEF_TIPOS_RECLAMO = ['Agua','Asfalto','Caño Roto','Pérdida de Agua','Calles de tierra','Basura en la calle','Terreno en malas condiciones','Inundados','Pastos Crecidos','Alumbrado público','Poda de árboles','Obras Sanitarias','Otros'];
 const DEF_MEDIOS = [
   ['LU24','Radio principal','📻 Radio','General'],
   ['La Voz del Pueblo','Diario local','📰 Diario / Digital','General'],
@@ -981,7 +987,7 @@ function ensureDefaults(s){
 function seed(){
   return {
     agents: DEF_USERS.map((n,i)=>({id:'ag_'+i,name:n,color:COLORS[i%COLORS.length],email:'',phone:'',role:'Comunicador/a',covers:'si'})),
-    funcionarios: DEF_FUNCS.map((f,i)=>({id:'fn_'+i,name:f[0],role:f[1],phone:''})),
+    funcionarios: DEF_FUNCS.map((f,i)=>({id:'fn_'+i,name:f[0],role:f[1],phone:f[2]||''})),
     medios: DEF_MEDIOS.map((m,i)=>({id:'md_'+i,name:m[0],program:m[1],phone:'',email:'',type:m[2],specialty:m[3],notes:''})),
     tasks:[], publicaciones:[], events:[], entrevistas:[], guardias:{}, recursos:[], reclamos:[],
     config:{theme:'dark',password:'',supabaseUrl:'https://kvbwurvvgfarmiqtvlsc.supabase.co',supabaseKey:'sb_publishable_XYkrltbXO7qOj4Tz48PoJg_uh8m-zmr'}
@@ -1476,6 +1482,93 @@ function renderGuardias(){
   }
   $('gTkList').innerHTML=tasksList.length?tasksList.join(''):'<div class="emp"><div class="emi">📋</div><div class="emt">Sin tareas asignadas a guardias esta semana</div><div class="ems">Las coberturas después de las 15hs aparecen acá</div></div>';
 }
+/* ============ PATRÓN DE GUARDIAS (Excel Planificación) ============ */
+// LUN: Marianela/Yesi · MAR: Debora/Maiten · MIE: Yesi/Debora · JUE: Maiten/Lina · VIE: Lina/Marianela
+// SAB+DOM: rota cada semana entre [Nai/Lina, Debora/Yesi, Maiten/Marianela]
+const PATRON_GUARDIAS = {
+  semanal: [
+    null,                              // domingo (lo manejamos con rotación)
+    ['Marianela','Yesi'],             // lunes
+    ['Debora','Maiten'],              // martes
+    ['Yesi','Debora'],                // miércoles
+    ['Maiten','Lina'],                // jueves
+    ['Lina','Marianela'],             // viernes
+    null                              // sábado (rotación)
+  ],
+  finsemana: [
+    ['Nai','Lina'],         // semana 1
+    ['Debora','Yesi'],      // semana 2
+    ['Maiten','Marianela']  // semana 3
+  ]
+};
+
+function aplicarPatronGuardias(){
+  const semanas = prompt('¿Cuántas semanas hacia adelante querés generar?\n(empezando desde la semana actual)','12');
+  if(!semanas)return;
+  const N = parseInt(semanas,10);
+  if(isNaN(N) || N<1 || N>52){toast('Número inválido (1-52)','err');return}
+
+  // Asegurar que el agente "Nai" existe
+  if(!state.agents.find(a=>a.name.toLowerCase()==='nai')){
+    state.agents.push({id:uid('ag'),name:'Nai',color:'#06b6d4',email:'',phone:'',role:'Comunicador/a',covers:'si'});
+  }
+
+  // Resolver nombres a IDs (insensible a mayúsculas, con apodos comunes)
+  function resolver(nombre){
+    if(!nombre)return '';
+    const mapApodos = {'mary':'marianela','mai':'maiten','deb':'debora','debb':'debora'};
+    const n = mapApodos[nombre.toLowerCase()] || nombre.toLowerCase();
+    const ag = state.agents.find(a=>a.name.toLowerCase()===n);
+    if(!ag){
+      // Crear agente si no existe
+      const nuevo = {id:uid('ag'),name:nombre,color:COLORS[state.agents.length%COLORS.length],email:'',phone:'',role:'Comunicador/a',covers:'si'};
+      state.agents.push(nuevo);
+      return nuevo.id;
+    }
+    return ag.id;
+  }
+
+  const inicio = startOfWeek(new Date()); // lunes de esta semana
+  let aplicadas = 0;
+  let sobrescritas = 0;
+
+  for(let s=0; s<N; s++){
+    const lunesSemana = addDays(inicio, s*7);
+    const rotIdx = s % PATRON_GUARDIAS.finsemana.length;
+    const finde = PATRON_GUARDIAS.finsemana[rotIdx];
+
+    for(let d=0; d<7; d++){
+      const fecha = addDays(lunesSemana, d); // d=0 lunes, 5=sab, 6=dom
+      const iso = dateISO(fecha);
+      const dow = fecha.getDay(); // 0=dom, 1=lun, ..., 6=sab
+
+      let titular, soporte;
+      if(dow===0 || dow===6){ // domingo o sábado
+        titular = finde[0]; soporte = finde[1];
+      } else {
+        const par = PATRON_GUARDIAS.semanal[dow];
+        if(!par)continue;
+        titular = par[0]; soporte = par[1];
+      }
+
+      const yaExistia = !!state.guardias[iso];
+      if(yaExistia)sobrescritas++;
+      state.guardias[iso] = {
+        titular: resolver(titular),
+        soporte: resolver(soporte)
+      };
+      aplicadas++;
+    }
+  }
+
+  saveState();
+  renderGuardias();renderHoy();renderCal();
+  let msg = '✓ Patrón aplicado: '+aplicadas+' días en '+N+' semanas';
+  if(sobrescritas>0)msg+='\n('+sobrescritas+' guardias previas se sobrescribieron)';
+  alert(msg);
+  toast('Guardias generadas','suc');
+}
+
 function editGuardia(iso){
   $('gdDate').value=iso;
   $('gdDateLbl').textContent=new Date(iso+'T00:00:00').toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
@@ -2099,90 +2192,149 @@ async function testSupa(){
   }
 }
 
+function classifyTable(name, sample){
+  const n = (name||'').toLowerCase();
+  // Por nombre
+  if(/funcionari|gabinete|secretari|director|cargo|area/.test(n)) return 'Funcionarios';
+  if(/reclamo|queja|denuncia/.test(n)) return 'Reclamos';
+  if(/publicaci|agenda_pub|programa|posteo|posting/.test(n)) return 'Publicaciones';
+  if(/medio|prensa|periodist|contacto.*medio|ct_medio/.test(n)) return 'Medios';
+  if(/recurso|biblio|enlace|link/.test(n)) return 'Recursos';
+  if(/tarea|task|actividad|pendient|to.?do|kanban/.test(n)) return 'Tareas';
+  if(/event|calendari|agenda(?!_pub)/.test(n)) return 'Eventos / Calendario';
+  if(/entrevista|nota|interview/.test(n)) return 'Entrevistas';
+  if(/guardia|turno/.test(n)) return 'Guardias';
+  if(/agente|integrante|equipo|usuario|user|profile|miembro/.test(n)) return 'Agentes';
+  if(/cobertura/.test(n)) return 'Coberturas';
+  // Por columnas
+  if(sample){
+    const cols = Object.keys(sample).map(c=>c.toLowerCase());
+    if(cols.includes('vecino') || cols.includes('vecino_tel')) return 'Reclamos';
+    if(cols.includes('titular') && cols.includes('soporte')) return 'Guardias';
+    if(cols.includes('medio') && (cols.includes('funcionario') || cols.includes('func'))) return 'Entrevistas';
+    if(cols.includes('cuenta') && (cols.includes('red') || cols.includes('redes'))) return 'Publicaciones';
+    if(cols.includes('lugar') && cols.includes('fecha') && cols.includes('hora')) return 'Eventos / Calendario';
+    if((cols.includes('prioridad') || cols.includes('priority')) && (cols.includes('estado') || cols.includes('status'))) return 'Tareas';
+    if((cols.includes('area') || cols.includes('cargo')) && cols.includes('telefono')) return 'Funcionarios';
+    if(cols.includes('categoria') && cols.includes('url')) return 'Recursos';
+    if(cols.includes('especialidad') || (cols.includes('medio') && cols.includes('tipo'))) return 'Medios';
+  }
+  return 'Sin clasificar';
+}
+
 async function scanSupa(){
   if(!state.config.supabaseUrl || !state.config.supabaseKey){
     toast('Cargá y guardá la conexión primero','err');return;
   }
-  $('spStat').textContent='🔍 Escaneando tablas...';
+  $('spStat').textContent='🔍 Descubriendo tablas...';
   $('spStat').style.color='var(--ac)';
+  $('supaResult').innerHTML='';
 
-  // Lista de posibles nombres de tablas, agrupados por categoría
-  const candidatos = {
-    'Funcionarios': ['funcionarios','panel_comunicacion_funcionarios_v1','panel_funcionarios','funcionarios_v1'],
-    'Reclamos': ['reclamos','panel_comunicacion_reclamos_v1','panel_reclamos','reclamos_v1'],
-    'Publicaciones': ['publicaciones','panel_comunicacion_publicaciones_v1','publicaciones_v1','agenda_publicaciones'],
-    'Medios': ['medios','contactos_medios','ct_medios','ct_medios_v2','medios_v1'],
-    'Recursos': ['recursos','rec_v1','panel_recursos'],
-    'Tareas': ['tareas','tasks','panel_tareas','tareas_v1','actividades'],
-    'Eventos / Calendario': ['eventos','calendario','events','agenda','panel_eventos','eventos_v1','agenda_eventos'],
-    'Entrevistas': ['entrevistas','entrevistas_v1','panel_entrevistas'],
-    'Guardias': ['guardias','guardias_v1','panel_guardias'],
-    'Agentes': ['agentes','agents','panel_agentes','users','usuarios'],
-    'Coberturas': ['coberturas','cobertura','panel_coberturas']
-  };
+  let tables = [];
+  let usedOpenApi = false;
 
-  const encontradas = [];
-  const huboError401 = {v:false};
-
-  for(const [grupo, nombres] of Object.entries(candidatos)){
-    for(const t of nombres){
-      const r = await supaFetch(t,'?select=*&limit=1');
-      if(r.ok){
-        // Contar
-        const r2 = await fetch(state.config.supabaseUrl+'/rest/v1/'+t+'?select=*', {
-          headers:{
-            'apikey':state.config.supabaseKey,
-            'Authorization':'Bearer '+state.config.supabaseKey,
-            'Prefer':'count=exact',
-            'Range':'0-0'
-          }
-        });
-        const cr = r2.headers.get('content-range')||'';
-        const total = parseInt((cr.split('/')[1]||'0'),10) || (Array.isArray(r.data)?r.data.length:0);
-        encontradas.push({grupo, tabla:t, total, sample:r.data[0]});
-        break; // solo primera tabla encontrada por grupo
-      } else if(r.status===401 || r.status===403){
-        huboError401.v = true;
+  // 1) Intentar descubrir todas las tablas con OpenAPI
+  try{
+    const r = await fetch(state.config.supabaseUrl+'/rest/v1/', {
+      headers:{
+        'apikey':state.config.supabaseKey,
+        'Authorization':'Bearer '+state.config.supabaseKey,
+        'Accept':'application/openapi+json'
       }
-      // 404/406: no existe, probar próxima
+    });
+    if(r.ok){
+      const spec = await r.json();
+      const paths = spec.paths || {};
+      tables = Object.keys(paths).filter(p=>p && p!=='/' && !p.includes('{')).map(p=>p.replace(/^\//,'')).filter(Boolean);
+      usedOpenApi = tables.length>0;
+    }
+  }catch(e){console.error('openapi',e)}
+
+  // 2) Fallback: probar nombres conocidos
+  if(!usedOpenApi){
+    const knownNames = ['funcionarios','reclamos','publicaciones','medios','contactos_medios','recursos','tareas','tasks','actividades','eventos','calendario','agenda','entrevistas','guardias','agentes','users','usuarios','profiles','coberturas','panel_comunicacion_funcionarios_v1','panel_comunicacion_reclamos_v1','panel_comunicacion_publicaciones_v1','ct_medios_v2','rec_v1'];
+    for(const t of knownNames){
+      const r = await supaFetch(t,'?select=*&limit=1');
+      if(r.ok)tables.push(t);
     }
   }
 
-  if(huboError401.v && encontradas.length===0){
-    $('spStat').textContent='✗ Sin permisos';
+  if(tables.length===0){
+    $('spStat').textContent='⚠ No se descubrieron tablas';
     $('spStat').style.color='var(--rd)';
-    toast('La key no tiene permiso de lectura. Revisá las RLS policies.','err');
+    $('supaResult').innerHTML='<div class="card" style="background:var(--rd-s);border-color:var(--rd);margin-top:10px"><div style="font-weight:700;color:var(--rd);margin-bottom:6px">No se encontraron tablas accesibles</div><div class="ct-s">Posibles causas:<br>1. La API key no tiene permisos (RLS bloquea lectura anónima)<br>2. Las tablas tienen otros nombres no probados<br><br>Andá a Supabase → Authentication → Policies y verificá que haya policies de SELECT para "anon" en cada tabla, o pasame los nombres exactos de las tablas que ves en Table Editor.</div></div>';
     return;
   }
 
-  if(encontradas.length===0){
-    $('spStat').textContent='⚠ No se encontraron tablas conocidas';
-    $('spStat').style.color='var(--ac)';
-    alert('No se encontraron tablas con los nombres habituales.\nProbá darme nombres específicos o verificá las RLS policies en Supabase.');
-    return;
+  $('spStat').textContent='📋 '+tables.length+' tablas detectadas · cargando muestras...';
+
+  // 3) Para cada tabla: contar registros y leer 1 muestra
+  const results = [];
+  for(const t of tables){
+    try{
+      // contar
+      const r2 = await fetch(state.config.supabaseUrl+'/rest/v1/'+t+'?select=*', {
+        headers:{
+          'apikey':state.config.supabaseKey,
+          'Authorization':'Bearer '+state.config.supabaseKey,
+          'Prefer':'count=exact',
+          'Range':'0-0'
+        }
+      });
+      const cr = r2.headers.get('content-range')||'';
+      const total = parseInt((cr.split('/')[1]||'0'),10);
+      // muestra
+      const rs = await supaFetch(t,'?select=*&limit=1');
+      const sample = (rs.ok && rs.data && rs.data[0])||null;
+      const grupo = classifyTable(t, sample);
+      results.push({tabla:t, total, sample, grupo});
+    }catch(e){console.error(t,e)}
   }
 
-  $('spStat').textContent='✓ '+encontradas.length+' tablas encontradas';
+  state._supaTables = results;
+  $('spStat').textContent='✓ '+results.length+' tablas detectadas';
   $('spStat').style.color='var(--gr)';
 
-  state._supaEncontradas = encontradas;
-  // Renderizar lista de tablas encontradas en el panel
-  let html = '<div style="background:var(--bg-card);border-radius:10px;padding:12px;margin-top:10px"><div style="font-weight:700;margin-bottom:8px;font-size:13px">Tablas encontradas:</div>';
-  encontradas.forEach(e=>{
-    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--bd-s);font-size:12.5px"><div><b>'+esc(e.grupo)+'</b> <span class="t-m">→ '+esc(e.tabla)+'</span></div><div><span class="tag tag-b">'+e.total+' registros</span></div></div>';
+  // 4) Renderizar UI con dropdowns para confirmar mapeo
+  const grupos = ['Sin clasificar','Funcionarios','Reclamos','Publicaciones','Medios','Recursos','Tareas','Eventos / Calendario','Entrevistas','Guardias','Agentes','Coberturas','— Ignorar —'];
+  let html = '<div class="card" style="margin-top:10px;padding:12px"><div style="font-weight:700;font-size:13px;margin-bottom:10px">📋 Tablas detectadas — confirmá a qué corresponde cada una</div>';
+  html += '<div style="max-height:340px;overflow-y:auto">';
+  results.forEach((r,i)=>{
+    const cols = r.sample ? Object.keys(r.sample).slice(0,5).join(', ') : '(vacía)';
+    const opts = grupos.map(g=>'<option value="'+esc(g)+'"'+(g===r.grupo?' selected':'')+'>'+esc(g)+'</option>').join('');
+    html += '<div style="padding:8px 0;border-bottom:1px solid var(--bd-s);font-size:12.5px">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">'+
+        '<div style="flex:1;min-width:0"><b>'+esc(r.tabla)+'</b> <span class="tag tag-b">'+r.total+' filas</span></div>'+
+        '<select class="inp" style="width:auto;padding:5px 8px;font-size:12px" data-idx="'+i+'" onchange="updTblGroup('+i+',this.value)">'+opts+'</select>'+
+      '</div>'+
+      '<div style="font-size:11px;color:var(--tx-m);margin-top:4px">cols: '+esc(cols)+'</div>'+
+    '</div>';
   });
-  html += '<button class="btn btn-p mt12" style="width:100%" onclick="pullSupa()">📥 Descargar e importar todo</button></div>';
+  html += '</div><button class="btn btn-p mt12" style="width:100%" onclick="pullSupa()">📥 Descargar e importar los datos clasificados</button></div>';
   $('supaResult').innerHTML = html;
+}
+function updTblGroup(idx, val){
+  if(state._supaTables && state._supaTables[idx])state._supaTables[idx].grupo = val;
 }
 
 async function pullSupa(){
-  if(!state._supaEncontradas){toast('Escaneá primero','err');return}
+  if(!state._supaTables || state._supaTables.length===0){toast('Escaneá primero','err');return}
   $('spStat').textContent='⬇ Descargando...';
+  $('spStat').style.color='var(--ac)';
 
   const counts = {agents:0,funcionarios:0,medios:0,reclamos:0,publicaciones:0,recursos:0,tareas:0,eventos:0,entrevistas:0,guardias:0,coberturas:0};
+  // filtrar las tablas que el usuario haya marcado como ignoradas o sin clasificar
+  const aProcesar = state._supaTables.filter(t=>t.grupo && t.grupo!=='— Ignorar —' && t.grupo!=='Sin clasificar');
 
-  for(const e of state._supaEncontradas){
+  if(aProcesar.length===0){
+    alert('Todas las tablas están sin clasificar o marcadas para ignorar.\nUsá los dropdowns para asignar cada tabla a un grupo.');
+    $('spStat').textContent='⚠ Sin tablas clasificadas';
+    return;
+  }
+
+  for(const e of aProcesar){
     try{
+      $('spStat').textContent='⬇ Descargando '+e.tabla+'...';
       let all = [];
       let from = 0;
       const PAGE = 1000;
@@ -2201,7 +2353,6 @@ async function pullSupa(){
         from += PAGE;
         if(from>50000)break;
       }
-      // Mapear cada grupo
       const c = mapSupaToState(e.grupo, all);
       Object.entries(c).forEach(([k,v])=>{counts[k]=(counts[k]||0)+v});
     }catch(err){console.error(e.tabla,err)}
@@ -2210,9 +2361,10 @@ async function pullSupa(){
   saveState();
   renderAll();initFilters();
   $('spStat').textContent='✓ Descarga completa';
+  $('spStat').style.color='var(--gr)';
   let msg = '✓ Importado desde Supabase:\n';
   Object.entries(counts).filter(([k,v])=>v>0).forEach(([k,v])=>{msg+='• '+v+' '+k+'\n'});
-  if(msg==='✓ Importado desde Supabase:\n')msg='No se importaron registros (puede que las tablas estén vacías o el formato no coincida).';
+  if(msg==='✓ Importado desde Supabase:\n')msg='No se importaron registros nuevos (puede que ya estuvieran cargados o las columnas no coincidan).';
   alert(msg);
   toast('Descarga completa','suc');
 }
@@ -2475,6 +2627,14 @@ function editReclamo(id){
   $('rlFuncTel').value=r?r.funcionario_tel||'':'';
   $('rlNotes').value=r?r.notes||'':'';
   $('rlFnL').innerHTML=state.funcionarios.map(f=>'<option value="'+esc(f.name)+'">'+esc(f.role||'')+'</option>').join('');
+  $('rlTpL').innerHTML=DEF_TIPOS_RECLAMO.map(t=>'<option value="'+esc(t)+'">').join('');
+  // auto-completar tel al cambiar funcionario
+  $('rlFunc').oninput = function(){
+    if(!$('rlFuncTel').value){
+      const fn = state.funcionarios.find(f=>f.name.toLowerCase()===this.value.toLowerCase());
+      if(fn && fn.phone) $('rlFuncTel').value = fn.phone;
+    }
+  };
   $('rlDel').classList.toggle('hide',!r);
   openModal('rcLmMod');
 }
