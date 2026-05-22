@@ -841,12 +841,17 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
     </div>
   </div>
   <div class="card" style="margin-bottom:14px">
-    <div class="ct-t" style="margin-bottom:10px">☁ Supabase (opcional)</div>
-    <div class="ct-s" style="margin-bottom:12px">Sincronización entre dispositivos. Necesita URL y Anon Key públicos.</div>
+    <div class="ct-t" style="margin-bottom:10px">☁ Supabase</div>
+    <div class="ct-s" style="margin-bottom:12px">Conectá con la base original para recuperar tareas, calendario, guardias y entrevistas que no están en el backup local.</div>
     <div class="fld"><label>URL</label><input class="inp" id="spUrl" placeholder="https://kvbwurvvgfarmiqtvlsc.supabase.co"></div>
-    <div class="fld"><label>Anon Key</label><input class="inp" id="spKey" type="password" placeholder="eyJhbGc..."></div>
-    <button class="btn btn-p btn-s" onclick="saveSupa()">Guardar conexión</button>
-    <span id="spStat" style="margin-left:10px;font-size:12px;color:var(--tx-m)">No conectado</span>
+    <div class="fld"><label>API Key (publishable / anon)</label><input class="inp" id="spKey" type="password" placeholder="sb_publishable_... o eyJhbGc..."></div>
+    <div class="fl">
+      <button class="btn btn-s" onclick="saveSupa()">💾 Guardar</button>
+      <button class="btn btn-s" onclick="testSupa()">🔌 Probar conexión</button>
+      <button class="btn btn-p btn-s" onclick="scanSupa()">🔍 Escanear tablas</button>
+    </div>
+    <div id="spStat" style="margin-top:10px;font-size:12px;color:var(--tx-m)">No conectado</div>
+    <div id="supaResult"></div>
   </div>
   <div class="card" style="margin-bottom:14px">
     <div class="ct-t" style="margin-bottom:10px">🔑 Contraseña del panel</div>
@@ -979,7 +984,7 @@ function seed(){
     funcionarios: DEF_FUNCS.map((f,i)=>({id:'fn_'+i,name:f[0],role:f[1],phone:''})),
     medios: DEF_MEDIOS.map((m,i)=>({id:'md_'+i,name:m[0],program:m[1],phone:'',email:'',type:m[2],specialty:m[3],notes:''})),
     tasks:[], publicaciones:[], events:[], entrevistas:[], guardias:{}, recursos:[], reclamos:[],
-    config:{theme:'dark',password:'',supabaseUrl:'',supabaseKey:''}
+    config:{theme:'dark',password:'',supabaseUrl:'https://kvbwurvvgfarmiqtvlsc.supabase.co',supabaseKey:'sb_publishable_XYkrltbXO7qOj4Tz48PoJg_uh8m-zmr'}
   };
 }
 function saveState(){
@@ -1989,8 +1994,9 @@ function delRc(){
 /* ============ CONFIG / IMPORT-EXPORT ============ */
 function prepCfg(){
   $('spUrl').value=state.config.supabaseUrl||'https://kvbwurvvgfarmiqtvlsc.supabase.co';
-  $('spKey').value=state.config.supabaseKey||'';
-  $('spStat').textContent=state.config.supabaseKey?'Configurado (no activo)':'No conectado';
+  $('spKey').value=state.config.supabaseKey||'sb_publishable_XYkrltbXO7qOj4Tz48PoJg_uh8m-zmr';
+  $('spStat').textContent=state.config.supabaseKey?'Configurado · presioná "Probar conexión"':'No conectado';
+  $('spStat').style.color='var(--tx-m)';
 }
 function importJSON(){
   const raw=$('impData').value.trim();
@@ -2050,11 +2056,367 @@ function detectOld(){
   toast('Datos cargados en el campo. Revisalos antes de importar.','inf');
 }
 function saveSupa(){
-  state.config.supabaseUrl=$('spUrl').value.trim();
+  state.config.supabaseUrl=$('spUrl').value.trim().replace(/\/+$/,'');
   state.config.supabaseKey=$('spKey').value.trim();
   saveState();
-  $('spStat').textContent=state.config.supabaseKey?'Guardado (sincronización en futuras versiones)':'No conectado';
+  $('spStat').textContent=state.config.supabaseKey?'Guardado · presioná "Probar conexión"':'No conectado';
   toast('Configuración guardada','suc');
+}
+
+async function supaFetch(table, params){
+  const url = state.config.supabaseUrl + '/rest/v1/' + table + (params||'?select=*');
+  const r = await fetch(url, {
+    headers: {
+      'apikey': state.config.supabaseKey,
+      'Authorization': 'Bearer ' + state.config.supabaseKey,
+      'Accept': 'application/json'
+    }
+  });
+  if(!r.ok) return {ok:false, status:r.status, text:await r.text()};
+  const data = await r.json();
+  return {ok:true, status:r.status, data};
+}
+
+async function testSupa(){
+  if(!state.config.supabaseUrl || !state.config.supabaseKey){
+    toast('Cargá URL y Key primero','err');return;
+  }
+  $('spStat').textContent='Probando...';
+  // probar varios endpoints, alguno tiene que responder 200 o 404 (no 403/401)
+  const r = await supaFetch('funcionarios','?select=*&limit=1');
+  if(r.ok || r.status===404 || r.status===406){
+    $('spStat').textContent='✓ Conectado';
+    $('spStat').style.color='var(--gr)';
+    toast('Conexión OK','suc');
+  } else if(r.status===401 || r.status===403){
+    $('spStat').textContent='✗ Key inválida o sin permisos';
+    $('spStat').style.color='var(--rd)';
+    toast('No autorizado: revisá la API key','err');
+  } else {
+    $('spStat').textContent='✗ Error '+r.status;
+    $('spStat').style.color='var(--rd)';
+    toast('Error: '+r.status,'err');
+  }
+}
+
+async function scanSupa(){
+  if(!state.config.supabaseUrl || !state.config.supabaseKey){
+    toast('Cargá y guardá la conexión primero','err');return;
+  }
+  $('spStat').textContent='🔍 Escaneando tablas...';
+  $('spStat').style.color='var(--ac)';
+
+  // Lista de posibles nombres de tablas, agrupados por categoría
+  const candidatos = {
+    'Funcionarios': ['funcionarios','panel_comunicacion_funcionarios_v1','panel_funcionarios','funcionarios_v1'],
+    'Reclamos': ['reclamos','panel_comunicacion_reclamos_v1','panel_reclamos','reclamos_v1'],
+    'Publicaciones': ['publicaciones','panel_comunicacion_publicaciones_v1','publicaciones_v1','agenda_publicaciones'],
+    'Medios': ['medios','contactos_medios','ct_medios','ct_medios_v2','medios_v1'],
+    'Recursos': ['recursos','rec_v1','panel_recursos'],
+    'Tareas': ['tareas','tasks','panel_tareas','tareas_v1','actividades'],
+    'Eventos / Calendario': ['eventos','calendario','events','agenda','panel_eventos','eventos_v1','agenda_eventos'],
+    'Entrevistas': ['entrevistas','entrevistas_v1','panel_entrevistas'],
+    'Guardias': ['guardias','guardias_v1','panel_guardias'],
+    'Agentes': ['agentes','agents','panel_agentes','users','usuarios'],
+    'Coberturas': ['coberturas','cobertura','panel_coberturas']
+  };
+
+  const encontradas = [];
+  const huboError401 = {v:false};
+
+  for(const [grupo, nombres] of Object.entries(candidatos)){
+    for(const t of nombres){
+      const r = await supaFetch(t,'?select=*&limit=1');
+      if(r.ok){
+        // Contar
+        const r2 = await fetch(state.config.supabaseUrl+'/rest/v1/'+t+'?select=*', {
+          headers:{
+            'apikey':state.config.supabaseKey,
+            'Authorization':'Bearer '+state.config.supabaseKey,
+            'Prefer':'count=exact',
+            'Range':'0-0'
+          }
+        });
+        const cr = r2.headers.get('content-range')||'';
+        const total = parseInt((cr.split('/')[1]||'0'),10) || (Array.isArray(r.data)?r.data.length:0);
+        encontradas.push({grupo, tabla:t, total, sample:r.data[0]});
+        break; // solo primera tabla encontrada por grupo
+      } else if(r.status===401 || r.status===403){
+        huboError401.v = true;
+      }
+      // 404/406: no existe, probar próxima
+    }
+  }
+
+  if(huboError401.v && encontradas.length===0){
+    $('spStat').textContent='✗ Sin permisos';
+    $('spStat').style.color='var(--rd)';
+    toast('La key no tiene permiso de lectura. Revisá las RLS policies.','err');
+    return;
+  }
+
+  if(encontradas.length===0){
+    $('spStat').textContent='⚠ No se encontraron tablas conocidas';
+    $('spStat').style.color='var(--ac)';
+    alert('No se encontraron tablas con los nombres habituales.\nProbá darme nombres específicos o verificá las RLS policies en Supabase.');
+    return;
+  }
+
+  $('spStat').textContent='✓ '+encontradas.length+' tablas encontradas';
+  $('spStat').style.color='var(--gr)';
+
+  state._supaEncontradas = encontradas;
+  // Renderizar lista de tablas encontradas en el panel
+  let html = '<div style="background:var(--bg-card);border-radius:10px;padding:12px;margin-top:10px"><div style="font-weight:700;margin-bottom:8px;font-size:13px">Tablas encontradas:</div>';
+  encontradas.forEach(e=>{
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--bd-s);font-size:12.5px"><div><b>'+esc(e.grupo)+'</b> <span class="t-m">→ '+esc(e.tabla)+'</span></div><div><span class="tag tag-b">'+e.total+' registros</span></div></div>';
+  });
+  html += '<button class="btn btn-p mt12" style="width:100%" onclick="pullSupa()">📥 Descargar e importar todo</button></div>';
+  $('supaResult').innerHTML = html;
+}
+
+async function pullSupa(){
+  if(!state._supaEncontradas){toast('Escaneá primero','err');return}
+  $('spStat').textContent='⬇ Descargando...';
+
+  const counts = {agents:0,funcionarios:0,medios:0,reclamos:0,publicaciones:0,recursos:0,tareas:0,eventos:0,entrevistas:0,guardias:0,coberturas:0};
+
+  for(const e of state._supaEncontradas){
+    try{
+      let all = [];
+      let from = 0;
+      const PAGE = 1000;
+      while(true){
+        const r = await fetch(state.config.supabaseUrl+'/rest/v1/'+e.tabla+'?select=*&limit='+PAGE+'&offset='+from, {
+          headers:{
+            'apikey':state.config.supabaseKey,
+            'Authorization':'Bearer '+state.config.supabaseKey
+          }
+        });
+        if(!r.ok)break;
+        const data = await r.json();
+        if(!Array.isArray(data) || data.length===0)break;
+        all = all.concat(data);
+        if(data.length<PAGE)break;
+        from += PAGE;
+        if(from>50000)break;
+      }
+      // Mapear cada grupo
+      const c = mapSupaToState(e.grupo, all);
+      Object.entries(c).forEach(([k,v])=>{counts[k]=(counts[k]||0)+v});
+    }catch(err){console.error(e.tabla,err)}
+  }
+
+  saveState();
+  renderAll();initFilters();
+  $('spStat').textContent='✓ Descarga completa';
+  let msg = '✓ Importado desde Supabase:\n';
+  Object.entries(counts).filter(([k,v])=>v>0).forEach(([k,v])=>{msg+='• '+v+' '+k+'\n'});
+  if(msg==='✓ Importado desde Supabase:\n')msg='No se importaron registros (puede que las tablas estén vacías o el formato no coincida).';
+  alert(msg);
+  toast('Descarga completa','suc');
+}
+
+function mapSupaToState(grupo, rows){
+  const c = {};
+  if(!Array.isArray(rows) || rows.length===0)return c;
+
+  if(grupo==='Funcionarios'){
+    c.funcionarios=0;
+    rows.forEach(r=>{
+      const data = {
+        id: r.id || uid('fn'),
+        name: r.nombre || r.name || '',
+        role: r.area || r.cargo || r.role || '',
+        phone: r.telefono || r.tel || r.phone || ''
+      };
+      const ex = state.funcionarios.find(x=>x.id===data.id || (x.name||'').toLowerCase()===data.name.toLowerCase());
+      if(ex)Object.assign(ex,data); else state.funcionarios.push(data);
+      c.funcionarios++;
+    });
+  } else if(grupo==='Reclamos'){
+    c.reclamos=0;
+    rows.forEach(r=>{
+      const data = {
+        id: r.id || uid('rl'),
+        tipo: r.tipo || '',
+        descripcion: r.descripcion || r.desc || '',
+        vecino: r.vecino || '',
+        vecino_tel: r.vecino_tel || '',
+        direccion: r.direccion || '',
+        funcionario: r.funcionario || '',
+        funcionario_tel: r.funcionario_tel || '',
+        estado: r.estado || 'pendiente',
+        fecha_creacion: r.fecha_creacion || r.created_at || new Date().toISOString(),
+        fecha_modificacion: r.fecha_modificacion || r.updated_at,
+        notes: r.notes || (r.historial?JSON.stringify(r.historial):'')
+      };
+      const ex = state.reclamos.find(x=>x.id===data.id);
+      if(ex)Object.assign(ex,data); else state.reclamos.push(data);
+      c.reclamos++;
+    });
+  } else if(grupo==='Publicaciones'){
+    c.publicaciones=0;
+    rows.forEach(p=>{
+      const data = {
+        id: p.id || uid('pb'),
+        date: p.fecha || p.date || '',
+        time: p.hora || p.time || '',
+        desc: p.descripcion || p.desc || '',
+        account: p.cuenta || p.account || '',
+        type: p.tipo || p.type || 'Foto',
+        status: p.estado==='publicado'?'Publicado':p.estado==='listo'?'Listo para publicar':p.estado||'Pendiente',
+        responsable: ''
+      };
+      if(p.responsable){
+        const ag = state.agents.find(a=>a.name.toLowerCase()===String(p.responsable).toLowerCase());
+        if(ag)data.responsable=ag.id;
+      }
+      const ex = state.publicaciones.find(x=>x.id===data.id);
+      if(ex)Object.assign(ex,data); else state.publicaciones.push(data);
+      c.publicaciones++;
+    });
+  } else if(grupo==='Medios'){
+    c.medios=0;
+    rows.forEach(m=>{
+      const data = {
+        id: m.id || uid('md'),
+        name: m.nombre || m.name || '',
+        program: m.medio || m.program || '',
+        phone: m.tel || m.phone || '',
+        email: m.email || '',
+        type: m.tipo==='radio'?'📻 Radio':m.tipo==='tv'?'📺 TV':m.tipo==='diario'?'📰 Diario / Digital':m.tipo||'📰 Diario / Digital',
+        specialty: m.especialidad || m.specialty || 'General',
+        notes: m.notas || m.notes || ''
+      };
+      const ex = state.medios.find(x=>x.id===data.id || ((x.name||'').toLowerCase()===data.name.toLowerCase() && (x.program||'').toLowerCase()===data.program.toLowerCase()));
+      if(ex)Object.assign(ex,data); else state.medios.push(data);
+      c.medios++;
+    });
+  } else if(grupo==='Recursos'){
+    c.recursos=0;
+    const catMap = {drive:'Google Drive',foto:'Fotos / Multimedia',template:'Templates / Canva',doc:'Documentos',contacto:'Contactos útiles'};
+    rows.forEach(rc=>{
+      const data = {
+        id: rc.id || uid('rc'),
+        name: rc.nombre || rc.name || '',
+        cat: catMap[rc.categoria] || rc.categoria || rc.cat || 'Otro',
+        url: rc.url || '',
+        desc: rc.descripcion || rc.desc || ''
+      };
+      const ex = state.recursos.find(x=>x.id===data.id);
+      if(ex)Object.assign(ex,data); else state.recursos.push(data);
+      c.recursos++;
+    });
+  } else if(grupo==='Tareas'){
+    c.tareas=0;
+    rows.forEach(t=>{
+      const stMap = {pendiente:'pendiente','en-proceso':'proceso','en proceso':'proceso',proceso:'proceso',lista:'lista','lista para publicar':'publicar',publicar:'publicar',realizada:'realizada',terminada:'realizada',hecha:'realizada'};
+      const data = {
+        id: t.id || uid('tk'),
+        desc: t.descripcion || t.desc || t.nombre || t.titulo || '',
+        priority: t.prioridad || t.priority || 'Media',
+        status: stMap[(t.estado||t.status||'').toLowerCase()] || 'pendiente',
+        due: t.vencimiento || t.due || t.fecha_vencimiento || null,
+        tags: Array.isArray(t.etiquetas)?t.etiquetas:Array.isArray(t.tags)?t.tags:typeof t.tags==='string'?t.tags.split(','):[],
+        notes: t.notas || t.notes || t.observaciones || '',
+        assignees: [],
+        created: t.created_at || t.creado || Date.now()
+      };
+      // Mapear responsables
+      const rsps = t.responsables || t.assignees || (t.responsable?[t.responsable]:[]);
+      if(Array.isArray(rsps)){
+        rsps.forEach(n=>{
+          const ag = state.agents.find(a=>a.name.toLowerCase()===String(n).toLowerCase() || a.id===n);
+          if(ag)data.assignees.push(ag.id);
+        });
+      }
+      const ex = state.tasks.find(x=>x.id===data.id);
+      if(ex)Object.assign(ex,data); else state.tasks.push(data);
+      c.tareas++;
+    });
+  } else if(grupo==='Eventos / Calendario'){
+    c.eventos=0;
+    rows.forEach(e=>{
+      const data = {
+        id: e.id || uid('ev'),
+        date: e.fecha || e.date || '',
+        time: e.hora || e.time || '',
+        desc: e.descripcion || e.desc || e.titulo || e.tema || '',
+        loc: e.lugar || e.loc || e.ubicacion || '',
+        type: e.tipo || e.type || 'Agenda Intendente',
+        cover: !!(e.cobertura || e.cover || e.cubrir),
+        responsable: ''
+      };
+      const ex = state.events.find(x=>x.id===data.id);
+      if(ex)Object.assign(ex,data); else state.events.push(data);
+      c.eventos++;
+    });
+  } else if(grupo==='Entrevistas'){
+    c.entrevistas=0;
+    rows.forEach(e=>{
+      const data = {
+        id: e.id || uid('en'),
+        date: e.fecha || e.date || '',
+        time: e.hora || e.time || '',
+        medio: e.medio || '',
+        func: e.funcionario || e.func || '',
+        loc: e.lugar || e.loc || '',
+        phone: e.telefono || e.phone || e.tel || '',
+        tema: e.tema || e.descripcion || '',
+        duracion: e.duracion || '30 min',
+        tipo: e.tipo_entrevista || e.tipo_ent || e.tipo || 'Nota periodística',
+        obs: e.observaciones || e.obs || ''
+      };
+      const ex = state.entrevistas.find(x=>x.id===data.id);
+      if(ex)Object.assign(ex,data); else state.entrevistas.push(data);
+      c.entrevistas++;
+    });
+  } else if(grupo==='Guardias'){
+    c.guardias=0;
+    rows.forEach(g=>{
+      const fecha = g.fecha || g.date;
+      if(!fecha)return;
+      const tit = g.titular || g.guardia || g.responsable;
+      const sop = g.soporte || g.colaborador;
+      const titAg = tit?state.agents.find(a=>a.name.toLowerCase()===String(tit).toLowerCase() || a.id===tit):null;
+      const sopAg = sop?state.agents.find(a=>a.name.toLowerCase()===String(sop).toLowerCase() || a.id===sop):null;
+      state.guardias[fecha] = {titular: titAg?titAg.id:tit, soporte: sopAg?sopAg.id:sop};
+      c.guardias++;
+    });
+  } else if(grupo==='Agentes'){
+    c.agents=0;
+    rows.forEach(a=>{
+      const name = a.nombre || a.name;
+      if(!name)return;
+      const data = {
+        id: a.id || uid('ag'),
+        name,
+        color: a.color || COLORS[state.agents.length%COLORS.length],
+        email: a.email || '',
+        phone: a.telefono || a.phone || '',
+        role: a.rol || a.role || 'Comunicador/a',
+        covers: a.covers || 'si'
+      };
+      const ex = state.agents.find(x=>x.id===data.id || (x.name||'').toLowerCase()===name.toLowerCase());
+      if(ex){Object.assign(ex,data);} else state.agents.push(data);
+      c.agents++;
+    });
+  } else if(grupo==='Coberturas'){
+    c.coberturas=0;
+    // Las coberturas pueden ser una tabla puente evento↔agente; las dejamos como notes en eventos
+    rows.forEach(co=>{
+      const evId = co.evento_id || co.event_id;
+      if(!evId)return;
+      const ev = state.events.find(x=>x.id===evId);
+      if(ev){
+        ev.cover=true;
+        if(!ev.responsable && co.agente_id) ev.responsable = co.agente_id;
+        c.coberturas++;
+      }
+    });
+  }
+  return c;
 }
 function chgPass(){
   const p1=$('npw').value;
