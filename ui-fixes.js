@@ -21,6 +21,7 @@
   function disp(id){ return FLEX[id] ? "flex" : "block"; }
   function todayISO(){ try { return new Date(typeof TODAY !== "undefined" ? TODAY : new Date()).toISOString().slice(0,10); } catch(_){ return new Date().toISOString().slice(0,10); } }
   function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]; }); }
+  function jsq(s){ return String(s == null ? "" : s).replace(/\\/g,"\\\\").replace(/'/g,"\\'").replace(/"/g,"&quot;"); }
   function arr(name){
     try { if(Array.isArray(window[name])) return window[name]; } catch(_w){}
     try { var v = eval(name); return Array.isArray(v) ? v : []; } catch(_e){ return []; }
@@ -98,12 +99,22 @@
     if(!skipRender){ renderFor(id); setTimeout(function(){ renderFor(id); show(id,btn,true); },160); }
   }
 
-  function ageDays(t){ var d=t.fecha || t.created_at || t.updated_at; var dt=d?new Date(d):new Date(); var n=Math.floor((new Date()-dt)/86400000); return isNaN(n)?0:Math.max(0,n); }
+  function dateOnly(v){ if(!v) return ""; return String(v).slice(0,10); }
+  function taskDate(t){ return dateOnly(t.created_at) || dateOnly(t.creado_en) || dateOnly(t.fecha_creacion) || dateOnly(t.fecha) || dateOnly(t.updated_at) || "9999-12-31"; }
+  function taskMeta(t){
+    var ds=taskDate(t), today=todayISO();
+    if(ds==="9999-12-31") return "Sin fecha";
+    var d=new Date(ds+"T00:00:00"), n=new Date(today+"T00:00:00");
+    var diff=Math.round((n-d)/86400000);
+    if(diff<0) return "Creada despues de hoy";
+    if(diff===0) return "Creada hoy";
+    return "Creada hace "+diff+" dias";
+  }
   function pending(){
     return arr("tasks").filter(function(t){
       var e=String(t.estado||"Pendiente").toLowerCase();
       return e!=="completo" && e!=="completa" && e!=="realizada" && e!=="realizado" && e!=="lista para publicar" && e!=="listo s/publicar";
-    }).sort(function(a,b){ return ageDays(b)-ageDays(a); }).slice(0,10);
+    }).sort(function(a,b){ return taskDate(a).localeCompare(taskDate(b)); }).slice(0,10);
   }
   function todayEvents(){
     var ds=todayISO(), seen={};
@@ -133,14 +144,17 @@
     var dias=["domingo","lunes","martes","miercoles","jueves","viernes","sabado"];
     var meses=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
     window.__uiEventMap={}; evs.forEach(function(ev){ window.__uiEventMap[evId(ev)]=ev; });
-    page.classList.remove("m7-hoy-stable"); page.classList.add("ui-hoy-final");
-    page.innerHTML='<div class="ui-hoy-head"><div><div class="ui-kicker">Hoy</div><h1>'+dias[now.getDay()]+' '+now.getDate()+' de '+meses[now.getMonth()]+'</h1></div><button class="ui-btn" onclick="openTaskMod()">+ Nueva tarea</button></div>'+
+    var html='<div class="ui-hoy-head"><div><div class="ui-kicker">Hoy</div><h1>'+dias[now.getDay()]+' '+now.getDate()+' de '+meses[now.getMonth()]+'</h1></div><button class="ui-btn" onclick="openTaskMod()">+ Nueva tarea</button></div>'+
       '<div class="ui-hoy-grid">'+
-      '<section class="ui-panel"><h2>Guardia del dia</h2><div class="ui-guards">'+(g.length?g.map(function(n,i){ var m=member(n); return '<div class="ui-guard"><span style="background:'+(m.color||'#667eea')+'">'+esc(String(n).slice(0,2).toUpperCase())+'</span><div><strong>'+esc(n)+'</strong><small>'+(i===0?'titular':'soporte')+'</small></div></div>'; }).join(''):'<p class="ui-empty">Sin guardia asignada.</p>')+'</div></section>'+
-      '<section class="ui-panel"><h2>Eventos de hoy</h2>'+(evs.length?evs.map(function(ev){ var id=evId(ev), on=!!cov[id]; return '<div class="ui-event" onclick="openEvPanel && openEvPanel(window.__uiEventMap['+JSON.stringify(id)+'])"><div><strong>'+(ev.hora?esc(String(ev.hora).slice(0,5))+' - ':'')+esc(ev.descripcion||'Evento')+'</strong><small>'+(isLate(ev)?'Despues de las 15 - ':'')+(ev.lugar?esc(ev.lugar):'')+'</small></div><button class="ui-cover '+(on?'on':'')+'" onclick="event.stopPropagation();uiToggleCoverage('+JSON.stringify(id)+')">'+(on?'Cubrir':'No cubrir')+'</button></div>'; }).join(''):'<p class="ui-empty">Sin eventos cargados para hoy.</p>')+'</section>'+
-      '<section class="ui-panel ui-wide"><h2>10 actividades pendientes con mayor demora</h2>'+(tks.length?tks.map(function(t,i){ return '<button class="ui-task" onclick="editTask && editTask('+JSON.stringify(String(t.id))+')"><span>'+(i+1)+'</span><div><strong>'+esc(t.descripcion||'Sin descripcion')+'</strong><small>'+esc(t.responsable||'Sin asignar')+' - '+esc(t.estado||'Pendiente')+' - '+ageDays(t)+' dias</small></div></button>'; }).join(''):'<p class="ui-empty">Sin actividades pendientes.</p>')+'</section>'+
+      '<section class="ui-panel"><h2>Agentes de guardia</h2><div class="ui-guards">'+(g.length?g.map(function(n,i){ var m=member(n); return '<div class="ui-guard"><span style="background:'+(m.color||'#667eea')+'">'+esc(String(n).slice(0,2).toUpperCase())+'</span><div><strong>'+esc(n)+'</strong><small>'+(i===0?'titular':'soporte')+'</small></div></div>'; }).join(''):'<p class="ui-empty">Sin guardia asignada.</p>')+'</div></section>'+
+      '<section class="ui-panel"><h2>Eventos de agenda de hoy</h2>'+(evs.length?evs.map(function(ev){ var id=evId(ev), sid=jsq(id), on=!!cov[id]; return '<div class="ui-event" onclick="openEvPanel && openEvPanel(window.__uiEventMap[\''+sid+'\'])"><div><strong>'+(ev.hora?esc(String(ev.hora).slice(0,5))+' - ':'')+esc(ev.descripcion||'Evento')+'</strong><small>'+(ev.lugar?esc(ev.lugar):'')+'</small></div><button class="ui-cover '+(on?'on':'')+'" onclick="event.stopPropagation();uiToggleCoverage(\''+sid+'\')">'+(on?'Cubierto':'Cubrir')+'</button></div>'; }).join(''):'<p class="ui-empty">Sin eventos cargados para hoy.</p>')+'</section>'+
+      '<section class="ui-panel ui-wide"><h2>10 tareas pendientes con mas antiguedad</h2>'+(tks.length?tks.map(function(t,i){ return '<button class="ui-task" onclick="editTask && editTask(\''+jsq(String(t.id))+'\')"><span>'+(i+1)+'</span><div><strong>'+esc(t.descripcion||'Sin descripcion')+'</strong><small>'+esc(t.responsable||'Sin asignar')+' - '+esc(t.estado||'Pendiente')+' - '+esc(taskMeta(t))+'</small></div></button>'; }).join(''):'<p class="ui-empty">Sin tareas pendientes.</p>')+'</section>'+
       '<section class="ui-panel"><h2>Entrevistas pactadas</h2>'+(ents.length?ents.map(function(e){ return '<div class="ui-line"><strong>'+esc(e.hora||'')+' '+esc(e.funcionario||e.nombre||e.titulo||'Funcionario')+'</strong><small>'+esc(e.tema||e.descripcion||'Entrevista')+'</small></div>'; }).join(''):'<p class="ui-empty">Sin entrevistas pactadas para hoy.</p>')+'</section>'+
       '</div>';
+    page.classList.remove("m7-hoy-stable"); page.classList.add("ui-hoy-final");
+    if(page.getAttribute("data-hoy-html")===html) return;
+    page.setAttribute("data-hoy-html",html);
+    page.innerHTML=html;
   }
 
   function hideMetrics(){
@@ -187,6 +201,11 @@
     window.nav._stableFinal=true; window.nav._v4patched=true; window.nav._v5patched=true; window.nav.__patcheadoActivo=true;
     window.exitFullPanel=function(id){ document.body.classList.remove("full-panel","show-calendario","show-publicaciones","show-guardias"); return window.nav(id || document.body.getAttribute("data-active-panel") || "hoy"); };
   }
+  function installHoyOverride(){
+    window._renderHoy=renderHoy;
+    window.renderHoy=renderHoy;
+    try { if(typeof _renderHoy==="function") _renderHoy=renderHoy; } catch(_h){}
+  }
   function installAgent(){
     if(typeof window.abrirPanelAgente!=="function" || window.abrirPanelAgente._uiFinal) return;
     var orig=window.abrirPanelAgente;
@@ -212,7 +231,7 @@
     document.head.appendChild(st);
   }
   function clickNav(e){ var agent=e.target.closest('[onclick*=\"abrirPanelAgente\"]'); if(agent) return; var b=e.target.closest(".ntab,.sbi,.mbn-btn,[data-mid],[data-nav]"); if(!b) return; var id=buttonId(b); if(!id) return; e.preventDefault(); e.stopPropagation(); if(e.stopImmediatePropagation) e.stopImmediatePropagation(); window.nav(id,null,b); }
-  function run(){ css(); installNav(); installAgent(); ensure(); closeClosedOverlays(); var active=norm(document.body.getAttribute("data-active-panel") || "hoy"); show(active,null,false); }
+  function run(){ css(); installNav(); installHoyOverride(); installAgent(); ensure(); closeClosedOverlays(); var active=norm(document.body.getAttribute("data-active-panel") || "hoy"); show(active,null,false); }
 
   document.addEventListener("click",clickNav,true);
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",run,{once:true}); else run();

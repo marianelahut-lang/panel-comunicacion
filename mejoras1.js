@@ -3585,10 +3585,24 @@ window._guardiaDelPub = function(id){
     });
 
     // Cargar tareas urgentes (Alta) pendientes/en proceso
-    var tareasUrgentes = (_tareasGlobalCache || []).filter(function(t){
-      return /alta|urgent/i.test(t.prioridad || "") &&
-             /pendiente|proceso/i.test(t.estado || "");
-    });
+    function fechaAntiguedadTarea(t){
+      var v = t && (t.created_at || t.creado_en || t.fecha_creacion || t.fecha || t.updated_at);
+      return v ? String(v).slice(0,10) : "9999-12-31";
+    }
+    function textoAntiguedadTarea(t){
+      var ds = fechaAntiguedadTarea(t);
+      if(ds === "9999-12-31") return "Sin fecha";
+      var d = new Date(ds+"T00:00:00"), n = new Date(hoyStr+"T00:00:00");
+      var diff = Math.round((n-d)/86400000);
+      if(diff < 0) return "Creada despues de hoy";
+      if(diff === 0) return "Creada hoy";
+      return "Creada hace "+diff+" dias";
+    }
+    var tareasAntiguas = (_tareasGlobalCache || []).filter(function(t){
+      return /pendiente|proceso/i.test(t.estado || "");
+    }).sort(function(a,b){
+      return fechaAntiguedadTarea(a).localeCompare(fechaAntiguedadTarea(b));
+    }).slice(0,10);
     var tareasTotalPend = (_tareasGlobalCache || []).filter(function(t){
       return /pendiente|proceso/i.test(t.estado || "");
     }).length;
@@ -3661,7 +3675,7 @@ window._guardiaDelPub = function(id){
 
     // HTML del panel
     var statPubs = pubs.length;
-    var statUrg = tareasUrgentes.length;
+    var statUrg = tareasAntiguas.length;
     var statPend = tareasTotalPend;
     var statGuard = pubsGuardia.length;
 
@@ -3675,13 +3689,13 @@ window._guardiaDelPub = function(id){
           "<div style=\"font-size:24px;font-weight:700;margin-top:2px\">"+escH(fechaFmt)+"</div>"+
           "<div style=\"display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:18px\">"+
             "<div style=\"background:rgba(255,255,255,.07);border-radius:10px;padding:12px;cursor:pointer\" onclick=\"(function(){var b=document.getElementById('mbn-tablero');if(b)b.click();})()\" ><div style=\"font-size:26px;font-weight:700;color:#fde047\">"+statPend+"</div><div style=\"font-size:11px;opacity:.85;margin-top:2px\">📋 PENDIENTES</div></div>"+
-            "<div style=\"background:rgba(255,255,255,.07);border-radius:10px;padding:12px;cursor:pointer\" onclick=\"(function(){var b=document.getElementById('mbn-tablero');if(b)b.click();})()\" ><div style=\"font-size:26px;font-weight:700;color:#fca5a5\">"+statUrg+"</div><div style=\"font-size:11px;opacity:.85;margin-top:2px\">🔥 URGENTES</div></div>"+
+            "<div style=\"background:rgba(255,255,255,.07);border-radius:10px;padding:12px;cursor:pointer\" onclick=\"(function(){var b=document.getElementById('mbn-tablero');if(b)b.click();})()\" ><div style=\"font-size:26px;font-weight:700;color:#fca5a5\">"+statUrg+"</div><div style=\"font-size:11px;opacity:.85;margin-top:2px\">🔥 ANTIGUAS</div></div>"+
             "<div style=\"background:rgba(255,255,255,.07);border-radius:10px;padding:12px\"><div style=\"font-size:26px;font-weight:700;color:#c4b5fd\">"+eventosHoy.length+"</div><div style=\"font-size:11px;opacity:.85;margin-top:2px\">📅 AGENDA</div></div>"+
             "<div style=\"background:rgba(255,255,255,.07);border-radius:10px;padding:12px\"><div style=\"font-size:26px;font-weight:700;color:#86efac\">"+statPubs+"</div><div style=\"font-size:11px;opacity:.85;margin-top:2px\">📱 PUBLICAR</div></div>"+
           "</div>"+
         "</div>"+
 
-        // Grid 2 columnas: Agenda de hoy + Tareas urgentes
+        // Grid 2 columnas: Agenda de hoy + Tareas antiguas
         "<div style=\"display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px\">"+
 
           // Agenda de hoy (eventos del calendario)
@@ -3695,9 +3709,8 @@ window._guardiaDelPub = function(id){
               : eventosHoy.map(function(ev){
                   var hora2 = ev.hora ? String(ev.hora).substring(0,5) : "\u2013";
                   var tipoCol = ev.tipo==="prensa" ? "#ec4899" : ev.tipo==="municipal" ? "#22c55e" : ev.tipo==="publicacion" ? "#8b5cf6" : "#3b82f6";
-                  var esDespues15 = ev.hora && String(ev.hora).substring(0,2) >= "15";
                   var esCubierto = typeof getPrensa === "function" && getPrensa(hoyStr+"_ev_"+safeKey(ev.id||ev.descripcion||""));
-                  var cubrirBtn = esDespues15 ? "<button onclick=\"if(typeof toggleCobertura==='function')toggleCobertura('"+escH(hoyStr)+"','ev_"+escH(safeKey(ev.id||ev.descripcion||"ev"))+"');if(typeof renderHoy==='function')renderHoy();\" style=\"background:"+(esCubierto?"#7c3aed":"#ede9fe")+";color:"+(esCubierto?"#fff":"#7c3aed")+";border:none;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0\">"+(esCubierto?"✅ Cubierto":"☑️ Cubrir")+"</button>" : "";
+                  var cubrirBtn = "<button onclick=\"if(typeof toggleCobertura==='function')toggleCobertura('"+escH(hoyStr)+"','ev_"+escH(safeKey(ev.id||ev.descripcion||"ev"))+"');if(typeof renderHoy==='function')renderHoy();\" style=\"background:"+(esCubierto?"#7c3aed":"#ede9fe")+";color:"+(esCubierto?"#fff":"#7c3aed")+";border:none;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0\">"+(esCubierto?"✅ Cubierto":"☑️ Cubrir")+"</button>";
                   return "<div style=\"display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #f3f4f6;align-items:center\">"+
                     "<span style=\"font-size:13px;color:#6b7280;min-width:44px;flex-shrink:0\">"+escH(hora2)+" hs</span>"+
                     "<div style=\"width:3px;height:36px;background:"+tipoCol+";border-radius:2px;flex-shrink:0\"></div>"+
@@ -3711,20 +3724,20 @@ window._guardiaDelPub = function(id){
             (eventosHoy.length > 5 ? "<div style=\"text-align:center;margin-top:8px\"><button onclick=\"if(typeof nav==='function')nav('calendario')\" style=\"font-size:11px;padding:4px 12px;background:#ede9fe;color:#6d28d9;border:none;border-radius:7px;cursor:pointer;font-weight:600\">+"+(eventosHoy.length-5)+" más</button></div>" : "")+
           "</div>"+
 
-          // Tareas urgentes
+          // Tareas antiguas
           "<div style=\"background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px 18px\">"+
             "<div style=\"display:flex;align-items:center;gap:8px;margin-bottom:12px\">"+
               "<div style=\"width:28px;height:28px;background:#fee2e2;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px\">🔥</div>"+
-              "<span style=\"font-size:14px;font-weight:700;color:#111827\">Tareas urgentes</span>"+
+              "<span style=\"font-size:14px;font-weight:700;color:#111827\">10 tareas con mas antiguedad</span>"+
             "</div>"+
-            (tareasUrgentes.length === 0
-              ? "<div style=\"font-size:13px;color:#9ca3af;text-align:center;padding:14px 0\">Sin tareas urgentes pendientes</div>"
-              : tareasUrgentes.map(function(t){
+            (tareasAntiguas.length === 0
+              ? "<div style=\"font-size:13px;color:#9ca3af;text-align:center;padding:14px 0\">Sin tareas pendientes</div>"
+              : tareasAntiguas.map(function(t){
                   return "<div style=\"display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #f3f4f6;align-items:flex-start\">"+
                     "<input type=\"checkbox\" style=\"margin-top:2px;accent-color:#7c3aed;flex-shrink:0\">"+
                     "<div style=\"flex:1;min-width:0\">"+
                       "<div style=\"font-size:13px;color:#111827;line-height:1.4\">"+escH(t.descripcion||t.titulo||"")+"</div>"+
-                      (t.responsable ? "<div style=\"font-size:11px;color:#6b7280;margin-top:2px\">"+escH(t.responsable)+"</div>" : "")+
+                      "<div style=\"font-size:11px;color:#6b7280;margin-top:2px\">"+escH((t.responsable || "Sin asignar")+" - "+textoAntiguedadTarea(t))+"</div>"+
                     "</div>"+
                   "</div>";
                 }).join(""))+
