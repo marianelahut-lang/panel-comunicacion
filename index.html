@@ -1363,6 +1363,12 @@ document.addEventListener('click',e=>{
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape')document.querySelectorAll('.mov.on').forEach(m=>m.classList.remove('on'));
 });
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden && currentUser)pullSharedData(true);
+});
+window.addEventListener('focus',()=>{
+  if(currentUser)pullSharedData(true);
+});
 
 /* ============ HOY ============ */
 function renderHoy(){
@@ -2554,13 +2560,13 @@ async function pushSharedData(silent){
 function scheduleCloudPush(){
   if(!currentUser || !supaReady() || cloudSyncBusy)return;
   clearTimeout(cloudPushTimer);
-  cloudPushTimer = setTimeout(()=>pushSharedData(true),1200);
+  cloudPushTimer = setTimeout(()=>pushSharedData(true),250);
 }
 function startSharedSync(){
   if(!supaReady())return;
   pullSharedData(true).then(()=>pushSharedData(true));
   if(cloudSyncTimer)clearInterval(cloudSyncTimer);
-  cloudSyncTimer = setInterval(()=>pullSharedData(true),10000);
+  cloudSyncTimer = setInterval(()=>pullSharedData(true),2000);
 }
 
 async function testSupa(){
