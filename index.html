@@ -318,8 +318,9 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
     </div>
     <div class="fld">
       <label>Contraseña</label>
-      <input class="inp" type="password" id="loginPass" placeholder="Dejá vacío si no tenés">
+      <input class="inp" type="password" id="loginPass" placeholder="Tu contraseña personal">
     </div>
+    <div style="font-size:11px;color:var(--tx-m);margin-bottom:12px;line-height:1.45">ℹ Si es tu <b>primer ingreso</b>, escribí la contraseña que querés usar y se va a crear automáticamente. La próxima vez vas a necesitar esa misma clave.</div>
     <button class="btn btn-p" style="width:100%;padding:11px" onclick="doLogin()">Ingresar</button>
     <div class="lf">Dpto. Comunicaciones · v6.0</div>
   </div>
@@ -361,7 +362,7 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
     </nav>
     <div class="sb-foot">
       <button class="sbf" onclick="toggleTheme()" id="thmBtn" title="Tema">🌙</button>
-      <button class="sbf" onclick="openModal('cfgMod')" title="Configuración">⚙</button>
+      <button class="sbf" data-admin onclick="openModal('cfgMod')" title="Configuración (solo admin)">⚙</button>
       <button class="sbf" onclick="doLogout()" title="Salir">⎋</button>
     </div>
     <div id="saveInd" style="padding:6px 14px;font-size:10.5px;color:var(--gr);text-align:center;border-top:1px solid var(--bd-s);font-weight:600">💾 Guardado</div>
@@ -373,7 +374,7 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
       <div class="tbt" id="tbtl">Hoy</div>
       <div class="tba">
         <button class="btn btn-p" onclick="newTask()">+ Tarea</button>
-        <button class="tbi" onclick="openModal('cfgMod')" title="Configuración">⚙</button>
+        <button class="tbi" data-admin onclick="openModal('cfgMod')" title="Configuración (admin)">⚙</button>
       </div>
     </header>
     <section class="ct">
@@ -474,7 +475,7 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
               <button id="cvM" class="on" onclick="setCalView('month')">Mes</button>
               <button id="cvD" onclick="setCalView('day')">Día</button>
             </div>
-            <button class="btn btn-s" onclick="openModal('gcalMod')" title="Sincronizar con Google Calendar">📅 Google</button>
+            <button class="btn btn-s" data-admin onclick="openModal('gcalMod')" title="Sincronizar con Google Calendar (admin)">📅 Google</button>
             <button class="btn btn-p btn-s" onclick="newEvent()">+ Evento</button>
           </div>
         </div>
@@ -491,7 +492,7 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
               <span id="gwLbl" style="font-weight:600;font-size:13px"></span>
               <button class="calnb" onclick="guardiaNav(7)">›</button>
               <button class="btn btn-s" onclick="guardiaToday()">Esta semana</button>
-              <button class="btn btn-p btn-s" onclick="aplicarPatronGuardias()" title="Aplica la rotación del Excel a las próximas semanas">🔄 Cargar patrón</button>
+              <button class="btn btn-p btn-s" data-admin onclick="aplicarPatronGuardias()" title="Aplica la rotación del Excel a las próximas semanas">🔄 Cargar patrón</button>
             </div>
           </div>
           <div class="gw" id="gw"></div>
@@ -710,6 +711,14 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
     <div class="fld"><label>WhatsApp (54...)</label><input class="inp" id="agPhone" placeholder="5492983..."></div>
   </div>
   <div class="fld"><label>¿Hace coberturas?</label><select class="inp" id="agCovers"><option value="si">Sí</option><option value="no">No</option></select></div>
+  <div class="fld">
+    <label>🔑 Cambiar contraseña (dejá vacío para no cambiar)</label>
+    <input class="inp" id="agPass" type="password" placeholder="Nueva contraseña">
+  </div>
+  <div class="fld" data-admin>
+    <label>⭐ ¿Es administrador? (acceso a configuración, guardias y calendarios)</label>
+    <select class="inp" id="agAdmin"><option value="false">No</option><option value="true">Sí</option></select>
+  </div>
 </div><div class="mf">
   <button class="btn btn-d hide" id="agDel" onclick="delAg()">🗑 Eliminar</button>
   <button class="btn" onclick="closeModal('agMod')">Cancelar</button>
@@ -1017,6 +1026,16 @@ function ensureDefaults(s){
   if(s.agents.length===0) s.agents = seed().agents;
   if(s.funcionarios.length===0) s.funcionarios = seed().funcionarios;
   if(s.medios.length===0) s.medios = seed().medios;
+  // === MIGRACIÓN: forzar admin para Marianela y Santiago ===
+  s.agents.forEach(a=>{
+    const n = (a.name||'').toLowerCase().trim();
+    if(n==='marianela' || n==='santiago') a.admin = true;
+    else if(a.admin === undefined) a.admin = false;
+  });
+  // === MIGRACIÓN: asegurar que existe Nai (sin perder datos) ===
+  if(!s.agents.find(a=>(a.name||'').toLowerCase()==='nai')){
+    s.agents.push({id:uid('ag'),name:'Nai',color:'#06b6d4',email:'',phone:'',role:'Comunicador/a',covers:'si',admin:false});
+  }
   return s;
 }
 function seed(){
@@ -1096,41 +1115,175 @@ function toggleSidebar(open){
 }
 
 /* ============ LOGIN ============ */
+// Hash de contraseñas con SHA-256 (Web Crypto)
+async function hashPass(text){
+  try {
+    const data = new TextEncoder().encode(text);
+    const buf = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  } catch(e) {
+    // Fallback simple si crypto.subtle no está disponible (http vs https)
+    let h = 0;
+    for(let i=0;i<text.length;i++){h=((h<<5)-h)+text.charCodeAt(i);h|=0}
+    return 'fb_'+Math.abs(h).toString(36);
+  }
+}
+
+let currentUserData = null;
+let currentUserIsAdmin = false;
+
 function initLogin(){
   const sel=$('loginUser');
-  sel.innerHTML='<option value="">— seleccioná —</option>'+state.agents.map(a=>'<option value="'+esc(a.name)+'">'+esc(a.name)+'</option>').join('');
+  sel.innerHTML='<option value="">— seleccioná —</option>'+state.agents.map(a=>{
+    const adm = a.admin?' ⭐':'';
+    const hasPass = a.passwordHash?'':' (sin clave)';
+    return '<option value="'+esc(a.name)+'">'+esc(a.name)+adm+hasPass+'</option>';
+  }).join('');
   const last=localStorage.getItem('pcomTA_lastU');
   if(last && state.agents.find(a=>a.name===last))sel.value=last;
   $('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
   $('loginUser').addEventListener('keydown',e=>{if(e.key==='Enter')$('loginPass').focus()});
 }
-function doLogin(){
-  const u=$('loginUser').value;
-  const p=$('loginPass').value;
+
+async function doLogin(){
+  const u = $('loginUser').value;
+  const p = $('loginPass').value;
   if(!u){toast('Elegí un usuario','err');return}
-  const correct=state.config.password||'';
-  if(correct && p!==correct){toast('Contraseña incorrecta','err');return}
-  currentUser=u;
-  localStorage.setItem('pcomTA_lastU',u);
+  if(!p){toast('Ingresá tu contraseña','err');return}
+
+  const ag = getAgByName(u);
+  if(!ag){toast('Usuario no encontrado','err');return}
+
+  const hash = await hashPass(p);
+
+  // Primera vez para este agente: crear su contraseña
+  if(!ag.passwordHash){
+    if(!confirm('Es la primera vez que ingresás como '+u+'.\n\n¿Querés usar esta contraseña? La vas a necesitar las próximas veces.\n\n(Podés cambiarla después desde tu perfil en Equipo)'))return;
+    ag.passwordHash = hash;
+    saveState();
+    toast('Contraseña creada para '+u,'suc');
+  } else if(ag.passwordHash !== hash){
+    toast('Contraseña incorrecta','err');
+    return;
+  }
+
+  currentUser = u;
+  currentUserData = ag;
+  currentUserIsAdmin = ag.admin === true;
+  localStorage.setItem('pcomTA_lastU', u);
   $('loginOv').style.display='none';
+  $('loginPass').value=''; // limpiar
   startApp();
-  toast('¡Bienvenida, '+u+'!','suc');
+  toast('¡Bienvenida, '+u+(currentUserIsAdmin?' (admin)':'')+'!','suc');
 }
+
 function doLogout(){
   if(!confirm('¿Cerrar sesión?'))return;
   currentUser=null;
+  currentUserData=null;
+  currentUserIsAdmin=false;
   $('loginOv').style.display='flex';
   $('loginPass').value='';
+  // refrescar lista por si se agregaron agentes
+  initLogin();
 }
 
 function startApp(){
   applyTheme();
   const ag=getAgByName(currentUser);
-  $('sbUn').textContent=currentUser;
+  $('sbUn').textContent=currentUser+(currentUserIsAdmin?' ⭐':'');
   $('sbAv').style.background=ag?.color||'#3b82f6';
   $('sbAv').textContent=(currentUser||'?').slice(0,1).toUpperCase();
   initFilters();
   renderAll();
+  applyPermissions();
+  // Detectar datos del panel anterior en localStorage que aún no se importaron
+  setTimeout(autoDetectarDatosAnteriores, 800);
+}
+
+function autoDetectarDatosAnteriores(){
+  // Solo proponemos si el estado actual tiene poco contenido propio
+  const tienePocoContenido = state.tasks.length<3 && state.events.length<3 && state.reclamos.length<3 && state.publicaciones.length<3;
+  if(!tienePocoContenido)return;
+  // Claves del panel viejo conocidas
+  const oldKeys = [
+    'panel-comunicacion-funcionarios-v1',
+    'panel-comunicacion-reclamos-v1',
+    'panel-comunicacion-publicaciones-v1',
+    'panel-comunicacion-eventos-v1',
+    'panel-comunicacion-tareas-v1',
+    'panel-comunicacion-guardias-v1',
+    'panel-comunicacion-entrevistas-v1',
+    'ct_medios_v2','rec_v1','panelContactos'
+  ];
+  const encontradas = {};
+  oldKeys.forEach(k=>{
+    try{
+      const v = localStorage.getItem(k);
+      if(v){encontradas[k]=v}
+    }catch(e){}
+  });
+  // También buscar genéricamente cualquier clave que parezca del panel viejo
+  for(let i=0;i<localStorage.length;i++){
+    const k = localStorage.key(i);
+    if(!k || k===LS_KEY || k==='pcomTA_lastU')continue;
+    if((/panel-comunicacion-|ct_medios|rec_v1|panelContactos|m4p_/.test(k)) && !encontradas[k]){
+      try{encontradas[k]=localStorage.getItem(k)}catch(e){}
+    }
+  }
+  const keys = Object.keys(encontradas);
+  if(keys.length===0)return;
+
+  // Detectar cuántos registros hay aproximadamente
+  let totalRegistros = 0;
+  keys.forEach(k=>{
+    try{
+      const v = JSON.parse(encontradas[k]);
+      if(Array.isArray(v))totalRegistros += v.length;
+      else if(typeof v==='object' && v)totalRegistros += Object.keys(v).length;
+    }catch(e){}
+  });
+
+  // Mostrar cartel persistente en pantalla
+  const banner = document.createElement('div');
+  banner.id = 'dataDetectedBanner';
+  banner.style.cssText = 'position:fixed;bottom:20px;right:20px;max-width:380px;background:var(--bg-el);border:2px solid var(--ac);border-radius:14px;padding:16px 18px;box-shadow:var(--sh-l);z-index:1500;animation:slideIn .3s ease-out';
+  banner.innerHTML = '<div style="font-weight:700;font-size:14px;color:var(--ac);margin-bottom:6px">⚠ Datos del panel anterior detectados</div><div style="font-size:13px;color:var(--tx-s);margin-bottom:10px">Encontré <b>~'+totalRegistros+' registros</b> guardados en este navegador desde el panel anterior, que aún no fueron importados al panel nuevo.</div><div style="display:flex;gap:8px"><button class="btn btn-p btn-s" onclick="importarDatosDetectados()" style="flex:1">📥 Importar todo</button><button class="btn btn-s" onclick="document.getElementById(\'dataDetectedBanner\').remove()">Cerrar</button></div>';
+  document.body.appendChild(banner);
+  // Guardar en window para acceder después
+  window._datosDetectados = encontradas;
+}
+
+function importarDatosDetectados(){
+  if(!window._datosDetectados)return;
+  const banner = document.getElementById('dataDetectedBanner');
+  if(banner)banner.remove();
+  if(!confirm('¿Importar todos los datos del panel anterior? (Se conserva todo lo que ya cargaste)'))return;
+  const counts = importBackupViejo({localStorage: window._datosDetectados});
+  saveState();
+  renderAll();initFilters();
+  let msg = '✓ Datos importados:\n';
+  Object.entries(counts).filter(([k,v])=>v>0).forEach(([k,v])=>{msg+='• '+v+' '+k+'\n'});
+  alert(msg);
+  toast('Datos importados','suc');
+  window._datosDetectados = null;
+}
+
+// Validación de permisos
+function requireAdmin(){
+  if(!currentUserIsAdmin){
+    toast('Solo Marianela y Santiago pueden hacer este cambio','err');
+    return false;
+  }
+  return true;
+}
+
+// Aplicar visibilidad de elementos según rol
+function applyPermissions(){
+  const hide = !currentUserIsAdmin;
+  document.querySelectorAll('[data-admin]').forEach(el=>{
+    el.style.display = hide ? 'none' : '';
+  });
 }
 function initFilters(){
   $('fAg').innerHTML='<option value="">Todos los agentes</option>'+state.agents.map(a=>'<option value="'+esc(a.id)+'">'+esc(a.name)+'</option>').join('');
@@ -1175,6 +1328,8 @@ function openFlyer(){window.open('https://marianelahut-lang.github.io/panel-comu
 /* ============ MODALES ============ */
 function openModal(id){
   const m=$(id);if(!m)return;
+  // Bloqueo admin-only para modales restringidos
+  if((id==='cfgMod' || id==='gcalMod' || id==='gdMod') && !requireAdmin())return;
   m.classList.add('on');
   if(id==='cfgMod')prepCfg();
   if(id==='gcalMod'){
@@ -1203,7 +1358,7 @@ function renderHoy(){
   const ents=state.entrevistas.filter(e=>e.date===iso).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
   $('hEvC').textContent=evs.length;
   $('hEnC').textContent=ents.length;
-  $('hTkC').textContent=state.tasks.filter(t=>t.status!=='realizada').length;
+  $('hTkC').textContent=state.tasks.filter(t=>t.status==='pendiente' || t.status==='proceso').length;
   const g=state.guardias[iso];
   const tit=g&&g.titular?getAg(g.titular):null;
   $('hGu').textContent=tit?tit.name:'sin asignar';
@@ -1254,9 +1409,9 @@ function renderHoy(){
     enW.innerHTML=ents.map(e=>'<div class="li" onclick="editEnt(\''+e.id+'\')"><div class="li-i" style="background:var(--pk-s);color:var(--pk)">🎙</div><div class="li-b"><div class="li-t">'+esc(e.func||'Funcionario')+' <span class="t-m">con</span> '+esc(e.medio||'')+'</div><div class="li-s">'+esc(e.time||'')+' · '+esc(e.tipo||'')+' · '+esc(e.loc||'')+'</div></div>'+(e.phone?'<div class="li-a"><button class="btn btn-w btn-xs" onclick="event.stopPropagation();waOpen(\''+e.phone+'\',\'Recordatorio: entrevista hoy a las '+esc(e.time||'')+'\')">📱</button></div>':'')+'</div>').join('');
   }
 
-  // top 10 pendientes
+  // top 10 pendientes (solo pendiente y en-proceso)
   const t0=stripTime(new Date());
-  const pend=state.tasks.filter(t=>t.status!=='realizada').map(t=>{
+  const pend=state.tasks.filter(t=>t.status==='pendiente' || t.status==='proceso').map(t=>{
     let ov=0;
     if(t.due){const d=new Date(t.due+'T00:00:00');ov=Math.floor((t0-d)/86400000)}
     return {...t,_over:ov};
@@ -1544,6 +1699,7 @@ const PATRON_GUARDIAS = {
 };
 
 function aplicarPatronGuardias(){
+  if(!requireAdmin())return;
   const semanas = prompt('¿Cuántas semanas hacia adelante querés generar?\n(empezando desde la semana actual)','12');
   if(!semanas)return;
   const N = parseInt(semanas,10);
@@ -1611,6 +1767,7 @@ function aplicarPatronGuardias(){
 }
 
 function editGuardia(iso){
+  if(!requireAdmin())return;
   $('gdDate').value=iso;
   $('gdDateLbl').textContent=new Date(iso+'T00:00:00').toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
   const opts='<option value="">— Sin asignar —</option>'+state.agents.filter(a=>a.covers!=='no').map(a=>'<option value="'+esc(a.id)+'">'+esc(a.name)+'</option>').join('');
@@ -1934,6 +2091,13 @@ function delEvent(){
 /* ============ CRUD AGENTES ============ */
 function editAg(id){
   const a=id?getAg(id):null;
+  // Permisos: solo admin puede editar a otros agentes; cualquiera puede editar su propio perfil
+  if(a && !currentUserIsAdmin && a.id !== currentUserData?.id){
+    toast('Solo podés editar tu propio perfil','err');return;
+  }
+  if(!a && !currentUserIsAdmin){
+    toast('Solo los admin pueden agregar personas','err');return;
+  }
   $('agId').value=a?a.id:'';
   $('agName').value=a?a.name:'';
   $('agColor').value=a?a.color:'#3b82f6';
@@ -1941,18 +2105,30 @@ function editAg(id){
   $('agEmail').value=a?a.email||'':'';
   $('agPhone').value=a?a.phone||'':'';
   $('agCovers').value=a?a.covers||'si':'si';
-  $('agDel').classList.toggle('hide',!a);
+  $('agPass').value='';
+  if($('agAdmin'))$('agAdmin').value=(a&&a.admin)?'true':'false';
+  $('agDel').classList.toggle('hide', !a || !currentUserIsAdmin);
   openModal('agMod');
 }
-function saveAg(){
+async function saveAg(){
   const name=$('agName').value.trim();
   if(!name){toast('El nombre es obligatorio','err');return}
   const id=$('agId').value;
+  const passInput = $('agPass').value;
   const data={
     name,color:$('agColor').value,role:$('agRole').value,
     email:$('agEmail').value,phone:$('agPhone').value,
     covers:$('agCovers').value,updated:Date.now()
   };
+  // Solo admin puede cambiar el flag admin
+  if(currentUserIsAdmin && $('agAdmin')){
+    data.admin = $('agAdmin').value === 'true';
+  }
+  // Hash de contraseña si la ingresó
+  if(passInput){
+    if(passInput.length < 3){toast('La contraseña debe tener al menos 3 caracteres','err');return}
+    data.passwordHash = await hashPass(passInput);
+  }
   if(id){
     const a=getAg(id);
     if(a)Object.assign(a,data);
@@ -1966,6 +2142,7 @@ function saveAg(){
   toast(id?'Persona actualizada':'Persona agregada','suc');
 }
 function delAg(){
+  if(!requireAdmin())return;
   const id=$('agId').value;
   const a=getAg(id);
   if(!a)return;
@@ -2629,6 +2806,35 @@ function resetAll(){
 }
 
 /* ============ RECLAMOS ============ */
+function reclamoIcon(tipo){
+  const t = (tipo||'').toLowerCase();
+  if(/agua|pérdida|perdida|caño|sanitar/.test(t)) return '💧';
+  if(/asfalto/.test(t)) return '🛣️';
+  if(/calle.*tierra|tierra/.test(t)) return '🚧';
+  if(/basura|residuo|recolec/.test(t)) return '🗑️';
+  if(/terreno|baldío|baldio/.test(t)) return '🏚️';
+  if(/inundad|agua acumulad/.test(t)) return '🌊';
+  if(/pasto|maleza|yuyo/.test(t)) return '🌿';
+  if(/alumbrado|luz|lampara|lámpara/.test(t)) return '💡';
+  if(/árbol|arbol|poda/.test(t)) return '🌳';
+  if(/ruido/.test(t)) return '🔊';
+  if(/animal|perro|gato/.test(t)) return '🐕';
+  if(/sem[aá]foro/.test(t)) return '🚦';
+  if(/contenedor|reciclaje/.test(t)) return '♻️';
+  if(/cloaca/.test(t)) return '🚿';
+  if(/poste|cable/.test(t)) return '⚡';
+  if(/bache|pozo/.test(t)) return '🕳️';
+  return '📣';
+}
+function reclamoIconColor(tipo){
+  const t = (tipo||'').toLowerCase();
+  if(/agua|pérdida|caño|sanitar|cloaca|inundad/.test(t)) return {bg:'var(--bl-s)',col:'var(--bl)'};
+  if(/basura|terreno|baldío/.test(t)) return {bg:'var(--or-s)',col:'var(--or)'};
+  if(/pasto|árbol|arbol|poda|maleza/.test(t)) return {bg:'var(--gr-s)',col:'var(--gr)'};
+  if(/alumbrado|luz|poste|cable/.test(t)) return {bg:'var(--ac-s)',col:'var(--ac)'};
+  if(/asfalto|tierra|bache|sem/.test(t)) return {bg:'var(--pu-s)',col:'var(--pu)'};
+  return {bg:'var(--pk-s)',col:'var(--pk)'};
+}
 function renderReclamos(){
   const f=$('rcFilt')?$('rcFilt').value:'';
   const q=$('rcSrch')?($('rcSrch').value||'').toLowerCase().trim():'';
@@ -2649,10 +2855,13 @@ function renderReclamos(){
   }
   wrap.innerHTML=list.map(r=>{
     const stT=r.estado==='resuelto'?'<span class="tag tag-g">Resuelto</span>':r.estado==='en-proceso'?'<span class="tag tag-b">En proceso</span>':'<span class="tag tag-r">Pendiente</span>';
-    const icon=r.estado==='resuelto'?'✓':r.estado==='en-proceso'?'⏳':'⚠';
-    const iconC=r.estado==='resuelto'?'var(--gr)':r.estado==='en-proceso'?'var(--bl)':'var(--rd)';
-    const iconB=r.estado==='resuelto'?'var(--gr-s)':r.estado==='en-proceso'?'var(--bl-s)':'var(--rd-s)';
-    return '<div class="li" onclick="editReclamo(\''+r.id+'\')"><div class="li-i" style="background:'+iconB+';color:'+iconC+'">'+icon+'</div><div class="li-b"><div class="li-t">'+esc(r.tipo||'(sin tipo)')+(r.vecino?' · '+esc(r.vecino):'')+'</div><div class="li-s">'+stT+(r.funcionario?' · 👤 '+esc(r.funcionario):'')+(r.direccion?' · 📍 '+esc(r.direccion):'')+'</div>'+(r.descripcion?'<div class="li-s" style="margin-top:4px;color:var(--tx-s)">'+esc(r.descripcion).slice(0,180)+'</div>':'')+'</div>'+(r.funcionario_tel?'<div class="li-a"><button class="btn btn-w btn-xs" onclick="event.stopPropagation();reclamoNotifyWaId(\''+r.id+'\')">📱</button></div>':'')+'</div>';
+    const icon = reclamoIcon(r.tipo);
+    const c = reclamoIconColor(r.tipo);
+    // si está resuelto, atenuar el color
+    const iconB = r.estado==='resuelto' ? 'var(--bg-soft)' : c.bg;
+    const iconC = r.estado==='resuelto' ? 'var(--tx-m)' : c.col;
+    const opacity = r.estado==='resuelto' ? ';opacity:.6' : '';
+    return '<div class="li" onclick="editReclamo(\''+r.id+'\')"><div class="li-i" style="background:'+iconB+';color:'+iconC+';font-size:18px'+opacity+'">'+icon+'</div><div class="li-b"><div class="li-t">'+esc(r.tipo||'(sin tipo)')+(r.vecino?' · '+esc(r.vecino):'')+'</div><div class="li-s">'+stT+(r.funcionario?' · 👤 '+esc(r.funcionario):'')+(r.direccion?' · 📍 '+esc(r.direccion):'')+'</div>'+(r.descripcion?'<div class="li-s" style="margin-top:4px;color:var(--tx-s)">'+esc(r.descripcion).slice(0,180)+'</div>':'')+'</div>'+(r.funcionario_tel?'<div class="li-a"><button class="btn btn-w btn-xs" onclick="event.stopPropagation();reclamoNotifyWaId(\''+r.id+'\')">📱</button></div>':'')+'</div>';
   }).join('');
 }
 function editReclamo(id){
@@ -3157,11 +3366,13 @@ renderReclamos = function(){
     html += telBtn+'</div></div>';
     items.forEach(r=>{
       const stT = r.estado==='resuelto'?'<span class="tag tag-g">Resuelto</span>':r.estado==='en-proceso'?'<span class="tag tag-b">En proceso</span>':'<span class="tag tag-r">Pendiente</span>';
-      const icon = r.estado==='resuelto'?'✓':r.estado==='en-proceso'?'⏳':'⚠';
-      const iconC = r.estado==='resuelto'?'var(--gr)':r.estado==='en-proceso'?'var(--bl)':'var(--rd)';
-      const iconB = r.estado==='resuelto'?'var(--gr-s)':r.estado==='en-proceso'?'var(--bl-s)':'var(--rd-s)';
+      const icon = reclamoIcon(r.tipo);
+      const cc = reclamoIconColor(r.tipo);
+      const iconB = r.estado==='resuelto' ? 'var(--bg-soft)' : cc.bg;
+      const iconC = r.estado==='resuelto' ? 'var(--tx-m)' : cc.col;
+      const opacity = r.estado==='resuelto' ? ';opacity:.6' : '';
       const secundario = _rcView==='func' ? r.tipo : r.funcionario;
-      html += '<div class="li" onclick="editReclamo(\''+r.id+'\')"><div class="li-i" style="background:'+iconB+';color:'+iconC+'">'+icon+'</div><div class="li-b"><div class="li-t">'+esc(secundario||'(sin '+( _rcView==='func'?'tipo':'funcionario')+')')+(r.vecino?' · '+esc(r.vecino):'')+'</div><div class="li-s">'+stT+(r.direccion?' · 📍 '+esc(r.direccion):'')+'</div>'+(r.descripcion?'<div class="li-s" style="margin-top:4px;color:var(--tx-s)">'+esc(r.descripcion).slice(0,180)+'</div>':'')+'</div></div>';
+      html += '<div class="li" onclick="editReclamo(\''+r.id+'\')"><div class="li-i" style="background:'+iconB+';color:'+iconC+';font-size:18px'+opacity+'">'+icon+'</div><div class="li-b"><div class="li-t">'+esc(secundario||'(sin '+( _rcView==='func'?'tipo':'funcionario')+')')+(r.vecino?' · '+esc(r.vecino):'')+'</div><div class="li-s">'+stT+(r.direccion?' · 📍 '+esc(r.direccion):'')+'</div>'+(r.descripcion?'<div class="li-s" style="margin-top:4px;color:var(--tx-s)">'+esc(r.descripcion).slice(0,180)+'</div>':'')+'</div></div>';
     });
     html += '</div>';
   });
@@ -3188,19 +3399,35 @@ saveState = function(){
 function init(){
   initLogin();
   applyTheme();
-  // si hay último usuario y NO hay contraseña, login auto
-  const last=localStorage.getItem('pcomTA_lastU');
-  if(last && !state.config.password){
-    const ag=getAgByName(last);
-    if(ag){
-      currentUser=last;
-      $('loginOv').style.display='none';
-      startApp();
-    }
-  }
+  // Avisar en el login si hay datos del panel viejo sin importar
+  detectarDatosAntesDeLogin();
   // re-activar auto-sync de Google Calendar si estaba activo
   if(state.config.googleAutoSync && state.config.googleCalendarId){
     setTimeout(scheduleAutoSync, 2000);
+  }
+}
+
+function detectarDatosAntesDeLogin(){
+  // Solo si el estado nuevo está prácticamente vacío
+  const tienePocoContenido = state.tasks.length<3 && state.events.length<3 && state.reclamos.length<3 && state.publicaciones.length<3;
+  if(!tienePocoContenido)return;
+  let hayDatosViejos = false;
+  for(let i=0;i<localStorage.length;i++){
+    const k = localStorage.key(i);
+    if(!k || k===LS_KEY)continue;
+    if(/panel-comunicacion-|ct_medios|rec_v1|panelContactos/.test(k)){
+      hayDatosViejos = true;break;
+    }
+  }
+  if(!hayDatosViejos)return;
+  // Insertar aviso en el login
+  const lf = document.querySelector('.lb');
+  if(lf && !document.getElementById('oldDataNotice')){
+    const div = document.createElement('div');
+    div.id = 'oldDataNotice';
+    div.style.cssText = 'background:var(--ac-s);border:1px solid var(--ac);border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:var(--ac);line-height:1.4';
+    div.innerHTML = '⚠ <b>Detectamos datos del panel anterior</b> guardados en este navegador. Ingresá normalmente con tu usuario; después del login podrás importarlos en un solo clic.';
+    lf.insertBefore(div, lf.querySelector('.fld'));
   }
 }
 document.addEventListener('DOMContentLoaded',init);
