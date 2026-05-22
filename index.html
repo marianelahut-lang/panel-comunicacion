@@ -1374,6 +1374,8 @@ document.addEventListener('visibilitychange',()=>{
 window.addEventListener('focus',()=>{
   if(currentUser)pullSharedData(true);
 });
+window.addEventListener('pagehide',flushSharedStateOnExit);
+window.addEventListener('beforeunload',flushSharedStateOnExit);
 
 /* ============ HOY ============ */
 function renderHoy(){
@@ -2425,6 +2427,8 @@ async function supaFetch(table, params){
 let cloudSyncBusy = false;
 let cloudSyncTimer = null;
 let cloudPushTimer = null;
+let sharedStateRowId = null;
+let lastSharedStateScore = 0;
 function supaReady(){
   return !!(CLOUD_URL && CLOUD_KEY);
 }
@@ -2527,9 +2531,23 @@ function cloudStateCopy(){
   }
   return copy;
 }
+function panelContentScore(s){
+  if(!s)return 0;
+  return (s.tasks?.length||0) +
+    (s.publicaciones?.length||0) +
+    (s.events?.length||0) +
+    (s.entrevistas?.length||0) +
+    (s.reclamos?.length||0) +
+    (s.recursos?.length||0) +
+    (s.medios?.length||0) +
+    (s.funcionarios?.length||0) +
+    Object.keys(s.guardias||{}).length;
+}
 async function getSharedStateRow(){
   const r = await supaFetch('tareas','?descripcion=eq.'+encodeURIComponent(SHARED_STATE_MARKER)+'&select=id,observaciones,updated_at&limit=1');
-  return r.ok && Array.isArray(r.data) && r.data[0] ? r.data[0] : null;
+  const row = r.ok && Array.isArray(r.data) && r.data[0] ? r.data[0] : null;
+  if(row && row.id)sharedStateRowId = row.id;
+  return row;
 }
 async function pullFullSharedState(silent){
   const row = await getSharedStateRow();
@@ -2537,6 +2555,14 @@ async function pullFullSharedState(silent){
   let pack;
   try{pack=JSON.parse(row.observaciones)}catch(e){return false}
   if(!pack || !pack.state)return false;
+  const remoteScore = panelContentScore(pack.state);
+  const localScore = panelContentScore(state);
+  lastSharedStateScore = remoteScore;
+  if(currentUserIsAdmin && localScore > remoteScore + 3){
+    await pushFullSharedState(true);
+    if(!silent)toast('Copia maestra actualizada','suc');
+    return true;
+  }
   const remoteTs = Number(pack.ts || pack.state?.config?.sharedUpdatedAt || 0);
   const localTs = Number(state.config?.sharedUpdatedAt || 0);
   if(remoteTs <= localTs)return true;
@@ -2548,8 +2574,16 @@ async function pullFullSharedState(silent){
   if(!silent)toast('Panel compartido actualizado','suc');
   return true;
 }
-async function pushFullSharedState(){
+async function pushFullSharedState(force){
   if(!supaReady())return false;
+  const row = await getSharedStateRow();
+  if(row && row.observaciones && !force){
+    let pack=null;
+    try{pack=JSON.parse(row.observaciones)}catch(e){}
+    const remoteScore = panelContentScore(pack?.state);
+    const localScore = panelContentScore(state);
+    if(remoteScore > localScore + 3)return false;
+  }
   const ts = Number(state.config?.sharedUpdatedAt || Date.now());
   const body = {
     descripcion: SHARED_STATE_MARKER,
@@ -2558,9 +2592,35 @@ async function pushFullSharedState(){
     estado: 'Completo',
     observaciones: JSON.stringify({ts, state: cloudStateCopy()})
   };
-  const row = await getSharedStateRow();
   const item = row ? {_supaId:row.id} : {};
   return supaWrite('tareas',item,body);
+}
+function flushSharedStateOnExit(){
+  if(!currentUser || !supaReady())return;
+  try{
+    if(lastSharedStateScore > panelContentScore(state) + 3)return;
+    const body = {
+      descripcion: SHARED_STATE_MARKER,
+      responsable: 'Sistema',
+      prioridad: 'Baja',
+      estado: 'Completo',
+      observaciones: JSON.stringify({ts:Number(state.config?.sharedUpdatedAt||Date.now()),state:cloudStateCopy()})
+    };
+    const url = sharedStateRowId
+      ? CLOUD_URL+'/rest/v1/tareas?id=eq.'+encodeURIComponent(sharedStateRowId)
+      : CLOUD_URL+'/rest/v1/tareas';
+    fetch(url,{
+      method:sharedStateRowId?'PATCH':'POST',
+      keepalive:true,
+      headers:{
+        'apikey':CLOUD_KEY,
+        'Authorization':'Bearer '+CLOUD_KEY,
+        'Content-Type':'application/json',
+        'Prefer':'return=minimal'
+      },
+      body:JSON.stringify(body)
+    });
+  }catch(e){}
 }
 function hasLocalPanelContent(){
   return (state.events&&state.events.length) ||
