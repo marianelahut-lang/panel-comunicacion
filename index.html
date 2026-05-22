@@ -530,6 +530,7 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
           <div class="fl">
             <input class="inp" id="mSrch" oninput="renderMed()" placeholder="Buscar..." style="width:160px">
             <button class="btn" onclick="openGac()">📢 Gacetilla masiva</button>
+            <button class="btn btn-w" onclick="flyerYGacetilla()" title="Abre el generador de flyer en pestaña nueva, después podés mandarlo a los medios">🎨 Flyer + WA medios</button>
             <button class="btn btn-p" onclick="editMd(null)">+ Agregar</button>
           </div>
         </div>
@@ -765,7 +766,13 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
   <div class="mt">📢 Gacetilla masiva por WhatsApp</div>
   <button class="mx" onclick="closeModal('gcMod')">✕</button>
 </div><div class="mb">
-  <div class="fld"><label>Mensaje</label><textarea class="inp" id="gcMsg" rows="5" placeholder="Escribí la gacetilla..."></textarea></div>
+  <div class="fld"><label>Mensaje</label><textarea class="inp" id="gcMsg" rows="4" placeholder="Escribí la gacetilla..."></textarea></div>
+  <div class="fld">
+    <label>📎 Adjuntar flyer / imagen (opcional)</label>
+    <input class="inp" type="file" id="gcArchivos" multiple accept="image/*,video/*,.pdf" onchange="onArchivosCambian('gc', this.files)">
+    <div id="gcArchivosLista" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
+    <small class="t-m">Generá el flyer en el "Generador de Flyers" → descargalo → subilo acá</small>
+  </div>
   <div class="fld">
     <label>Destinatarios</label>
     <div id="gcList" style="background:var(--bg-soft);border-radius:10px;padding:10px;max-height:280px;overflow-y:auto"></div>
@@ -774,7 +781,7 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
       <button class="btn btn-s" onclick="gcSelAll(false)">Limpiar</button>
     </div>
   </div>
-  <div class="ct-s">ℹ Se abre WhatsApp Web/app por cada contacto. Permití pop-ups.</div>
+  <div class="ct-s">ℹ Se abre WhatsApp Web/app por cada contacto. Si adjuntás archivos, se descargan para que los arrastres al chat.</div>
 </div><div class="mf">
   <button class="btn" onclick="closeModal('gcMod')">Cancelar</button>
   <button class="btn btn-w" onclick="sendGac()">📱 Enviar</button>
@@ -943,7 +950,12 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
 </div><div class="mb">
   <input type="hidden" id="rlId">
   <div class="ir">
-    <div class="fld"><label>Tipo de reclamo</label><input class="inp" id="rlTipo" placeholder="Ej: Basura en la calle" list="rlTpL"></div>
+    <div class="fld"><label>Tipo de reclamo</label>
+      <div style="display:flex;gap:6px">
+        <input class="inp" id="rlTipo" placeholder="Ej: Basura en la calle" list="rlTpL" style="flex:1">
+        <button class="btn btn-s" type="button" onclick="nuevoTipoReclamo()" title="Agregar nuevo tipo">+</button>
+      </div>
+    </div>
     <div class="fld"><label>Estado</label><select class="inp" id="rlEst">
       <option value="pendiente">Pendiente</option><option value="en-proceso">En proceso</option><option value="resuelto">Resuelto</option>
     </select></div>
@@ -956,7 +968,12 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
   </div>
   <div class="fld"><label>Dirección</label><input class="inp" id="rlDir"></div>
   <div class="ir">
-    <div class="fld"><label>Funcionario / Área</label><input class="inp" id="rlFunc" list="rlFnL"></div>
+    <div class="fld"><label>Funcionario / Área</label>
+      <div style="display:flex;gap:6px">
+        <input class="inp" id="rlFunc" list="rlFnL" style="flex:1">
+        <button class="btn btn-s" type="button" onclick="nuevoFuncionarioReclamo()" title="Agregar nuevo funcionario">+</button>
+      </div>
+    </div>
     <div class="fld"><label>Tel. funcionario</label><input class="inp" id="rlFuncTel"></div>
   </div>
   <datalist id="rlFnL"></datalist>
@@ -1051,6 +1068,8 @@ function ensureDefaults(s){
   s.config = s.config || {};
   s.config.theme = s.config.theme || 'dark';
   s.config.password = s.config.password || '';
+  // Migración aditiva: tipos de reclamo personalizados creados por los agentes
+  s.tiposReclamoCustom = Array.isArray(s.tiposReclamoCustom) ? s.tiposReclamoCustom : [];
   if(s.agents.length===0) s.agents = seed().agents;
   if(s.funcionarios.length===0) s.funcionarios = seed().funcionarios;
   if(s.medios.length===0) s.medios = seed().medios;
@@ -2944,7 +2963,9 @@ function editReclamo(id){
   $('rlFuncTel').value=r?r.funcionario_tel||'':'';
   $('rlNotes').value=r?r.notes||'':'';
   $('rlFnL').innerHTML=state.funcionarios.map(f=>'<option value="'+esc(f.name)+'">'+esc(f.role||'')+'</option>').join('');
-  $('rlTpL').innerHTML=DEF_TIPOS_RECLAMO.map(t=>'<option value="'+esc(t)+'">').join('');
+  // Lista combinada de tipos: default + personalizados que se hayan agregado
+  const tiposTodos = [...DEF_TIPOS_RECLAMO, ...(state.tiposReclamoCustom||[])];
+  $('rlTpL').innerHTML=tiposTodos.map(t=>'<option value="'+esc(t)+'">').join('');
   // Cargar fotos al modal
   _archivosTemp.rl = r && Array.isArray(r.fotos) ? r.fotos.slice() : [];
   renderArchivosTemp('rl');
@@ -2963,6 +2984,14 @@ function saveReclamo(){
   const tipo=$('rlTipo').value.trim();
   if(!tipo){toast('El tipo es obligatorio','err');return}
   const id=$('rlId').value;
+  // Si el tipo es nuevo, agregarlo a la lista custom para que aparezca la próxima vez
+  const tiposTodos = [...DEF_TIPOS_RECLAMO, ...(state.tiposReclamoCustom||[])];
+  const tiposNorm = tiposTodos.map(t=>t.toLowerCase());
+  if(!tiposNorm.includes(tipo.toLowerCase())){
+    state.tiposReclamoCustom = state.tiposReclamoCustom || [];
+    state.tiposReclamoCustom.push(tipo);
+    toast('Nuevo tipo de reclamo: '+tipo,'inf');
+  }
   // auto-completar tel del funcionario si está cargado
   let funcTel=$('rlFuncTel').value;
   const funcName=$('rlFunc').value.trim();
@@ -3470,6 +3499,19 @@ function setSyncStatus(level, msg){
   const icons  = {off:'💾', local:'💾', syncing:'🔄', synced:'☁', error:'⚠'};
   ind.innerHTML = icons[level]+' '+msg;
   ind.style.color = colors[level] || 'var(--tx-m)';
+  // Si hay error, hacer clickeable
+  if(level === 'error'){
+    ind.style.cursor = 'pointer';
+    ind.title = 'Click para diagnosticar';
+    ind.onclick = ()=>{
+      if(currentUserIsAdmin) openModal('cfgMod');
+      else alert('Hay un problema de sincronización. Pedile a Marianela o Santiago que abran Configuración → "Diagnosticar".');
+    };
+  } else {
+    ind.style.cursor = 'default';
+    ind.title = '';
+    ind.onclick = null;
+  }
 }
 
 async function syncInit(){
@@ -3488,29 +3530,63 @@ async function syncInit(){
     if(r.status === 200) {
       _syncEnabled = true;
       const rows = await r.json();
+      const hayDatosLocales = state.tasks.length+state.events.length+state.reclamos.length+state.publicaciones.length > 0;
       if(rows.length > 0 && rows[0].value) {
+        // Hay datos en la nube: mergear con local
         await mergeRemoteState(rows[0].value, new Date(rows[0].updated_at).getTime());
+        // Si después del merge mis datos locales tienen items que no estaban en remote, subir
+        if(hayDatosLocales) setTimeout(()=>syncPush(), 1000);
       } else {
-        // Primera vez: subir el estado actual
-        await syncPush();
+        // No hay datos en la nube: subir el local si hay
+        if(hayDatosLocales){
+          await syncPush();
+        }
       }
       // Timer periódico para traer cambios de otros
       if(_syncTimer) clearInterval(_syncTimer);
       _syncTimer = setInterval(syncPull, SYNC_INTERVAL_MS);
       setSyncStatus('synced','En la nube ✓');
+      // Mostrar notificación grande la primera vez
+      if(!localStorage.getItem('pcomTA_syncOnce')){
+        localStorage.setItem('pcomTA_syncOnce','1');
+        toast('☁ Sincronización activada. Todos los agentes verán los mismos datos.','suc');
+      }
     } else if(r.status === 404 || r.status === 400) {
       const txt = await r.text();
-      if(/relation|does not exist|not.*found/i.test(txt)){
-        setSyncStatus('error','Falta crear la tabla (ver Configuración)');
+      if(/relation|does not exist|not.*found|schema cache/i.test(txt)){
+        setSyncStatus('error','Falta crear tabla en Supabase');
+        mostrarAvisoSync('tabla');
       } else {
-        setSyncStatus('error','Sin permisos (RLS)');
+        setSyncStatus('error','Sin permisos (RLS) — Click acá');
+        mostrarAvisoSync('rls');
       }
+    } else if(r.status === 401 || r.status === 403){
+      setSyncStatus('error','Sin permisos (RLS) — Click acá');
+      mostrarAvisoSync('rls');
     } else {
       setSyncStatus('error','Error '+r.status);
     }
   } catch(e){
-    setSyncStatus('error','Sin conexión');
+    setSyncStatus('error','Sin conexión a internet');
   }
+}
+
+function mostrarAvisoSync(tipo){
+  // Solo mostrar una vez por sesión y solo para admins
+  if(!currentUserIsAdmin)return;
+  if(window._avisoSyncMostrado)return;
+  window._avisoSyncMostrado = true;
+  setTimeout(()=>{
+    const banner = document.createElement('div');
+    banner.id = 'syncAviso';
+    banner.style.cssText = 'position:fixed;bottom:20px;left:20px;max-width:420px;background:var(--bg-el);border:2px solid var(--rd);border-radius:14px;padding:16px 18px;box-shadow:var(--sh-l);z-index:1500;animation:slideIn .3s ease-out';
+    const titulo = tipo==='tabla' ? '⚠ Falta crear la tabla en Supabase' : '⚠ La sincronización está bloqueada';
+    const msg = tipo==='tabla' ?
+      'Sin esta tabla, los datos no se comparten entre dispositivos ni entre agentes.' :
+      'Las policies de Supabase no permiten leer/escribir. Sin esto, cada agente ve datos distintos.';
+    banner.innerHTML = '<div style="font-weight:700;font-size:14px;color:var(--rd);margin-bottom:6px">'+titulo+'</div><div style="font-size:13px;color:var(--tx-s);margin-bottom:10px">'+msg+'</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-p btn-s" onclick="document.getElementById(\'syncAviso\').remove();openModal(\'cfgMod\')">🔧 Solucionar ahora</button><button class="btn btn-s" onclick="document.getElementById(\'syncAviso\').remove()">Después</button></div>';
+    document.body.appendChild(banner);
+  }, 1500);
 }
 
 async function syncPush(){
@@ -3630,7 +3706,12 @@ async function mergeRemoteState(remote, remoteTs){
 }
 
 function copiarSqlSupabase(){
-  const sql = `-- 1) Crear la tabla compartida del panel
+  const sql = `-- ========================================
+-- PANEL DE COMUNICACIÓN TRES ARROYOS
+-- Configuración de tabla compartida (1ra vez)
+-- ========================================
+
+-- 1) Crear la tabla compartida
 CREATE TABLE IF NOT EXISTS panel_data (
   key text PRIMARY KEY,
   value jsonb,
@@ -3641,24 +3722,122 @@ CREATE TABLE IF NOT EXISTS panel_data (
 -- 2) Activar Row Level Security
 ALTER TABLE panel_data ENABLE ROW LEVEL SECURITY;
 
--- 3) Permitir lectura y escritura con la API key publishable
+-- 3) Limpiar policies anteriores si existían
 DROP POLICY IF EXISTS "anon_all" ON panel_data;
-CREATE POLICY "anon_all" ON panel_data
-FOR ALL TO anon
-USING (true)
-WITH CHECK (true);
-
 DROP POLICY IF EXISTS "auth_all" ON panel_data;
-CREATE POLICY "auth_all" ON panel_data
-FOR ALL TO authenticated
-USING (true)
-WITH CHECK (true);`;
+DROP POLICY IF EXISTS "public_all" ON panel_data;
+DROP POLICY IF EXISTS "Permitir todo" ON panel_data;
+
+-- 4) Permitir acceso público total a la tabla (lectura y escritura)
+CREATE POLICY "public_all" ON panel_data
+  FOR ALL
+  TO public
+  USING (true)
+  WITH CHECK (true);
+
+-- 5) Verificación final (debería devolver "OK")
+SELECT 'OK · Tabla y permisos configurados correctamente' AS status,
+       COUNT(*) AS registros_actuales
+FROM panel_data;`;
   navigator.clipboard.writeText(sql).then(()=>{
-    toast('SQL copiado al portapapeles','suc');
+    toast('✓ SQL copiado. Ahora pegalo en Supabase → SQL Editor → Run','suc');
   }).catch(()=>{
-    // Fallback: mostrar en alerta
     prompt('Copiá este SQL y pegalo en Supabase → SQL Editor → Run:', sql);
   });
+}
+
+// Diagnóstico paso a paso
+async function diagnosticarSupabase(){
+  if(!state.config.supabaseUrl || !state.config.supabaseKey){
+    alert('Falta configurar URL y API Key de Supabase.');
+    return;
+  }
+  let report = '🔍 DIAGNÓSTICO DE SINCRONIZACIÓN\n\n';
+  report += '🌐 URL: '+state.config.supabaseUrl+'\n';
+  report += '🔑 Key: '+state.config.supabaseKey.slice(0,30)+'...\n\n';
+  // Test 1: ¿Responde la API REST?
+  try {
+    const r = await fetch(state.config.supabaseUrl+'/rest/v1/', {
+      headers:{'apikey':state.config.supabaseKey}
+    });
+    report += '1) Servidor REST: '+(r.status===200||r.status===404?'✓ OK':'✗ Error '+r.status)+'\n';
+  } catch(e){
+    report += '1) Servidor REST: ✗ Sin conexión a internet\n';
+    alert(report);
+    return;
+  }
+  // Test 2: ¿Existe la tabla panel_data?
+  try {
+    const r = await fetch(state.config.supabaseUrl+'/rest/v1/panel_data?select=key&limit=1', {
+      headers:{'apikey':state.config.supabaseKey,'Authorization':'Bearer '+state.config.supabaseKey}
+    });
+    if(r.status === 200){
+      report += '2) Tabla panel_data: ✓ EXISTE\n';
+      const rows = await r.json();
+      report += '3) Lectura: ✓ Permitida ('+rows.length+' fila(s) visibles)\n';
+    } else if(r.status === 401 || r.status === 403){
+      const txt = await r.text();
+      if(/rls|policy|permission/i.test(txt)){
+        report += '2) Tabla panel_data: ✓ EXISTE\n';
+        report += '3) Lectura: ✗ BLOQUEADA POR RLS\n\n';
+        report += '⚠ PROBLEMA: La tabla existe pero las policies bloquean el acceso.\n\n';
+        report += 'SOLUCIÓN:\n';
+        report += '1) Apretá "📋 Copiar SQL"\n';
+        report += '2) Pegalo y ejecutalo en Supabase → SQL Editor\n';
+        report += '3) Volvé a Probar conexión';
+        alert(report);
+        return;
+      } else {
+        report += '2) Tabla panel_data: ✗ Sin permisos ('+r.status+')\n';
+      }
+    } else if(r.status === 404){
+      const txt = await r.text();
+      if(/relation|does not exist|not.*found|schema cache/i.test(txt)){
+        report += '2) Tabla panel_data: ✗ NO EXISTE\n\n';
+        report += '⚠ PROBLEMA: Falta crear la tabla en Supabase.\n\n';
+        report += 'SOLUCIÓN:\n';
+        report += '1) Apretá "📋 Copiar SQL"\n';
+        report += '2) Pegalo y ejecutalo en Supabase → SQL Editor\n';
+        report += '3) Volvé a Probar conexión';
+        alert(report);
+        return;
+      }
+    }
+  } catch(e){
+    report += '2) Tabla panel_data: ✗ Error: '+e.message+'\n';
+  }
+  // Test 3: ¿Puedo escribir?
+  try {
+    const testBody = JSON.stringify({
+      key:'__test_'+Date.now(),
+      value:{test:true},
+      updated_at:new Date().toISOString(),
+      updated_by:'diagnostic'
+    });
+    const r = await fetch(state.config.supabaseUrl+'/rest/v1/panel_data', {
+      method:'POST',
+      headers:{
+        'apikey':state.config.supabaseKey,
+        'Authorization':'Bearer '+state.config.supabaseKey,
+        'Content-Type':'application/json',
+        'Prefer':'return=minimal'
+      },
+      body:testBody
+    });
+    if(r.ok || r.status === 201 || r.status === 204){
+      report += '4) Escritura: ✓ Permitida\n\n';
+      report += '🎉 TODO FUNCIONA. La sincronización debería andar bien.';
+    } else {
+      report += '4) Escritura: ✗ Bloqueada ('+r.status+')\n\n';
+      report += '⚠ Las policies permiten leer pero no escribir.\n';
+      report += 'Volvé a ejecutar el SQL completo en Supabase.';
+    }
+  } catch(e){
+    report += '4) Escritura: ✗ Error\n';
+  }
+  alert(report);
+  // Reintentar conexión
+  await syncInit();
 }
 
 async function pushAhora(){
@@ -3811,9 +3990,111 @@ async function pubCompartirConArchivos(){
 }
 
 
-const _saveState_orig = saveState;
+/* ============ FLYER + GACETILLA A MEDIOS ============ */
+function flyerYGacetilla(){
+  if(!confirm('Esto va a:\n\n1) Abrir el GENERADOR DE FLYERS en una nueva pestaña\n2) Generás tu flyer y lo DESCARGÁS\n3) Volvés a esta pestaña — la gacetilla quedará abierta\n4) Subís el flyer y elegís los medios\n5) ¡Enviás!\n\n¿Listo?'))return;
+  window.open('https://marianelahut-lang.github.io/panel-comunicacion/generador-flyers.html','_blank');
+  setTimeout(()=>{
+    openGac();
+    $('gcMsg').focus();
+    $('gcMsg').placeholder = 'Escribí la gacetilla aquí. Después subí el flyer descargado abajo ↓';
+    toast('Cuando descargues el flyer, subilo en "Adjuntar flyer"','inf');
+  }, 400);
+}
+
+/* ============ AGREGAR TIPO DE RECLAMO Y FUNCIONARIO DESDE EL MODAL ============ */
+function nuevoTipoReclamo(){
+  const t = prompt('Nuevo tipo de reclamo:');
+  if(!t || !t.trim())return;
+  const tipo = t.trim();
+  const tiposTodos = [...DEF_TIPOS_RECLAMO, ...(state.tiposReclamoCustom||[])];
+  if(tiposTodos.map(x=>x.toLowerCase()).includes(tipo.toLowerCase())){
+    toast('Este tipo ya existe','inf');
+    $('rlTipo').value = tipo;
+    return;
+  }
+  state.tiposReclamoCustom = state.tiposReclamoCustom || [];
+  state.tiposReclamoCustom.push(tipo);
+  saveState();
+  const tiposNuevos = [...DEF_TIPOS_RECLAMO, ...state.tiposReclamoCustom];
+  $('rlTpL').innerHTML = tiposNuevos.map(t=>'<option value="'+esc(t)+'">').join('');
+  $('rlTipo').value = tipo;
+  toast('Tipo agregado: '+tipo,'suc');
+}
+
+function nuevoFuncionarioReclamo(){
+  const nombre = prompt('Nombre del nuevo funcionario:');
+  if(!nombre || !nombre.trim())return;
+  const cargo = prompt('Cargo o área del funcionario:', '') || '';
+  const tel = prompt('WhatsApp (con código país, 549...):','') || '';
+  const fn = {id: uid('fn'), name: nombre.trim(), role: cargo.trim(), phone: tel.trim()};
+  state.funcionarios.push(fn);
+  saveState();
+  $('rlFnL').innerHTML = state.funcionarios.map(f=>'<option value="'+esc(f.name)+'">'+esc(f.role||'')+'</option>').join('');
+  $('rlFunc').value = fn.name;
+  if(fn.phone)$('rlFuncTel').value = fn.phone;
+  toast('Funcionario agregado: '+fn.name,'suc');
+}
+
+/* ============ GACETILLA MASIVA CON IMAGEN ============ */
+if(typeof _archivosTemp === 'object')_archivosTemp.gc = [];
+
+const _openGac_orig = typeof openGac === 'function' ? openGac : null;
+openGac = function(){
+  const wrap=$('gcList');
+  wrap.innerHTML=state.medios.filter(m=>m.phone).map(m=>'<label style="display:flex;align-items:center;gap:10px;padding:8px;cursor:pointer;border-radius:8px"><input type="checkbox" data-id="'+esc(m.id)+'" style="width:16px;height:16px;cursor:pointer;accent-color:var(--ac)"><div><div style="font-weight:600;font-size:13px">'+esc(m.name)+'</div><div style="font-size:11px;color:var(--tx-m)">'+esc(m.program||'')+' · '+esc(m.phone)+'</div></div></label>').join('');
+  if(!wrap.innerHTML)wrap.innerHTML='<div class="ct-s" style="padding:14px;text-align:center">No hay medios con WhatsApp registrado</div>';
+  // Limpiar archivos previos
+  _archivosTemp.gc = [];
+  renderArchivosTemp('gc');
+  openModal('gcMod');
+};
+
+const _sendGac_orig = sendGac;
+sendGac = async function(){
+  const msg=$('gcMsg').value.trim();
+  if(!msg && _archivosTemp.gc.length===0){toast('Escribí un mensaje o adjuntá una imagen','err');return}
+  const sel=Array.from(document.querySelectorAll('#gcList input[type=checkbox]:checked')).map(c=>c.dataset.id);
+  if(sel.length===0){toast('Elegí al menos un medio','err');return}
+  const archivos = _archivosTemp.gc.slice();
+  // Si hay archivos: intentar Web Share API (móvil) para cada contacto, sino abrir WA y descargar
+  if(archivos.length > 0){
+    // En PC: descargar las imágenes y abrir wa.me para cada destinatario
+    if(!confirm('Se descargarán '+archivos.length+' archivo(s) y se abrirán '+sel.length+' ventanas de WhatsApp.\n\nAdjuntá manualmente las imágenes descargadas en cada chat.\n\n¿Continuar?'))return;
+    archivos.forEach((a,i)=>{
+      setTimeout(()=>{
+        const link = document.createElement('a');
+        link.href = a.data;
+        link.download = a.name;
+        link.click();
+      }, i*200);
+    });
+    setTimeout(()=>{
+      sel.forEach((id,i)=>{
+        const m=state.medios.find(x=>x.id===id);
+        if(m && m.phone){
+          setTimeout(()=>{waOpen(m.phone, msg||'(adjunto)');}, i*500);
+        }
+      });
+    }, archivos.length*200 + 500);
+  } else {
+    if(!confirm('Se abrirán '+sel.length+' ventanas de WhatsApp. ¿Continuar?'))return;
+    sel.forEach((id,i)=>{
+      const m=state.medios.find(x=>x.id===id);
+      if(m && m.phone){
+        setTimeout(()=>{waOpen(m.phone,msg)},i*400);
+      }
+    });
+  }
+  closeModal('gcMod');
+  toast('Enviando a '+sel.length+' medios...','suc');
+};
+
+
+/* ============ INDICADOR DE GUARDADO + PUSH AUTOMÁTICO ============ */
+const _saveState_orig2 = saveState;
 saveState = function(){
-  _saveState_orig();
+  _saveState_orig2();
   if(_syncEnabled){
     setSyncStatus('syncing','Guardando...');
     if(_pushDebounce) clearTimeout(_pushDebounce);
