@@ -362,7 +362,7 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
     </nav>
     <div class="sb-foot">
       <button class="sbf" onclick="toggleTheme()" id="thmBtn" title="Tema">🌙</button>
-      <button class="sbf" data-admin onclick="openModal('cfgMod')" title="Configuración (solo admin)">⚙</button>
+      <button class="sbf" data-admin onclick="openModal('cfgMod')" title="Configuración (solo Marianela)">⚙</button>
       <button class="sbf" onclick="doLogout()" title="Salir">⎋</button>
     </div>
     <div id="saveInd" style="padding:6px 14px;font-size:10.5px;color:var(--gr);text-align:center;border-top:1px solid var(--bd-s);font-weight:600">💾 Guardado</div>
@@ -374,7 +374,7 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
       <div class="tbt" id="tbtl">Hoy</div>
       <div class="tba">
         <button class="btn btn-p" onclick="newTask()">+ Tarea</button>
-        <button class="tbi" data-admin onclick="openModal('cfgMod')" title="Configuración (admin)">⚙</button>
+        <button class="tbi" data-admin onclick="openModal('cfgMod')" title="Configuración (solo Marianela)">⚙</button>
       </div>
     </header>
     <section class="ct">
@@ -475,7 +475,7 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
               <button id="cvM" class="on" onclick="setCalView('month')">Mes</button>
               <button id="cvD" onclick="setCalView('day')">Día</button>
             </div>
-            <button class="btn btn-s" data-admin onclick="openModal('gcalMod')" title="Sincronizar con Google Calendar (admin)">📅 Google</button>
+            <button class="btn btn-s" data-admin onclick="openModal('gcalMod')" title="Sincronizar con Google Calendar (solo Marianela)">📅 Google</button>
             <button class="btn btn-p btn-s" onclick="newEvent()">+ Evento</button>
           </div>
         </div>
@@ -1026,11 +1026,10 @@ function ensureDefaults(s){
   if(s.agents.length===0) s.agents = seed().agents;
   if(s.funcionarios.length===0) s.funcionarios = seed().funcionarios;
   if(s.medios.length===0) s.medios = seed().medios;
-  // === MIGRACIÓN: forzar admin para Marianela y Santiago ===
+  // === MIGRACION: la configuracion queda solo para Marianela ===
   s.agents.forEach(a=>{
     const n = (a.name||'').toLowerCase().trim();
-    if(n==='marianela' || n==='santiago') a.admin = true;
-    else if(a.admin === undefined) a.admin = false;
+    a.admin = n==='marianela';
   });
   // === MIGRACIÓN: asegurar que existe Nai (sin perder datos) ===
   if(!s.agents.find(a=>(a.name||'').toLowerCase()==='nai')){
@@ -1272,7 +1271,7 @@ function importarDatosDetectados(){
 // Validación de permisos
 function requireAdmin(){
   if(!currentUserIsAdmin){
-    toast('Solo Marianela y Santiago pueden hacer este cambio','err');
+    toast('Solo Marianela puede entrar a configuracion','err');
     return false;
   }
   return true;
@@ -1329,7 +1328,7 @@ function openFlyer(){window.open('https://marianelahut-lang.github.io/panel-comu
 function openModal(id){
   const m=$(id);if(!m)return;
   // Bloqueo admin-only para modales restringidos
-  if((id==='cfgMod' || id==='gcalMod' || id==='gdMod') && !requireAdmin())return;
+  if((id==='cfgMod' || id==='gcalMod') && !requireAdmin())return;
   m.classList.add('on');
   if(id==='cfgMod')prepCfg();
   if(id==='gcalMod'){
@@ -1767,7 +1766,6 @@ function aplicarPatronGuardias(){
 }
 
 function editGuardia(iso){
-  if(!requireAdmin())return;
   $('gdDate').value=iso;
   $('gdDateLbl').textContent=new Date(iso+'T00:00:00').toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
   const opts='<option value="">— Sin asignar —</option>'+state.agents.filter(a=>a.covers!=='no').map(a=>'<option value="'+esc(a.id)+'">'+esc(a.name)+'</option>').join('');
