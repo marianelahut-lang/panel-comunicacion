@@ -1068,12 +1068,8 @@ function ensureDefaults(s){
   s.config = s.config || {};
   s.config.theme = s.config.theme || 'dark';
   s.config.password = s.config.password || '';
-  // Tipos de reclamo personalizados
   s.tiposReclamoCustom = Array.isArray(s.tiposReclamoCustom) ? s.tiposReclamoCustom : [];
-  // Tracking de elementos borrados (para que el sync no los re-importe)
   s._deletedIds = Array.isArray(s._deletedIds) ? s._deletedIds : [];
-  // Seed inicial: SOLO la primera vez (cuando el state es completamente nuevo).
-  // Si después borraste personas, NO se re-crean.
   if(!s.__seeded){
     if(s.agents.length===0) s.agents = seed().agents;
     if(s.funcionarios.length===0) s.funcionarios = seed().funcionarios;
@@ -1086,7 +1082,75 @@ function ensureDefaults(s){
     if(/^(marianela|santiago)(\s|$)/.test(n) || /(^|\s)(marianela|santiago)$/.test(n)) a.admin = true;
     else if(a.admin === undefined) a.admin = false;
   });
+  // === DEDUPLICACIÓN AUTOMÁTICA POR NOMBRE ===
+  s.agents = deduplicarPorNombre(s.agents, s, 'agents');
+  s.funcionarios = deduplicarPorNombre(s.funcionarios, s, 'funcionarios');
+  s.medios = deduplicarPorNombre(s.medios, s, 'medios');
   return s;
+}
+
+// Deduplicar una lista por nombre (mantiene el más completo, marca el otro como borrado, re-mapea referencias)
+function deduplicarPorNombre(lista, s, nombreColeccion){
+  if(!Array.isArray(lista) || lista.length<=1) return lista;
+  const porNombre = {};
+  const idsAEliminar = [];
+  const remapeoIds = {}; // viejoId -> nuevoId
+  lista.forEach(item => {
+    if(!item || !item.name) return;
+    const key = item.name.toLowerCase().trim().replace(/\s+/g,' ');
+    if(!key) return;
+    const existente = porNombre[key];
+    if(!existente){
+      porNombre[key] = item;
+    } else {
+      // Hay duplicado: comparar y quedarse con el "mejor"
+      const ganador = elegirMejor(existente, item);
+      const perdedor = ganador === existente ? item : existente;
+      porNombre[key] = ganador;
+      idsAEliminar.push(perdedor.id);
+      remapeoIds[perdedor.id] = ganador.id;
+      // Fusionar campos: si el ganador no tiene un campo pero el perdedor sí, copiarlo
+      ['phone','email','role','color','covers','passwordHash','program','admin'].forEach(campo=>{
+        if(!ganador[campo] && perdedor[campo]) ganador[campo] = perdedor[campo];
+      });
+    }
+  });
+  if(idsAEliminar.length === 0) return lista;
+  // Re-mapear referencias en tareas (assignees y responsables)
+  if(nombreColeccion === 'agents'){
+    (s.tasks||[]).forEach(t => {
+      if(Array.isArray(t.assignees)){
+        t.assignees = t.assignees.map(id => remapeoIds[id] || id);
+      }
+    });
+    (s.publicaciones||[]).forEach(p => {
+      if(remapeoIds[p.responsable]) p.responsable = remapeoIds[p.responsable];
+    });
+    Object.values(s.guardias||{}).forEach(g => {
+      if(remapeoIds[g.titular]) g.titular = remapeoIds[g.titular];
+      if(remapeoIds[g.soporte]) g.soporte = remapeoIds[g.soporte];
+    });
+  }
+  // Agregar a _deletedIds para que el sync no los traiga de vuelta
+  s._deletedIds = Array.from(new Set([...(s._deletedIds||[]), ...idsAEliminar]));
+  console.log('[Deduplicación] '+nombreColeccion+': eliminados '+idsAEliminar.length+' duplicados');
+  return Object.values(porNombre);
+}
+
+// Elige el item más completo (más campos llenos) o el más reciente
+function elegirMejor(a, b){
+  const score = item => {
+    let s = 0;
+    ['phone','email','role','color','passwordHash','program'].forEach(c=>{if(item[c])s++});
+    if(item.admin) s += 5; // priorizar admins
+    return s;
+  };
+  const sa = score(a), sb = score(b);
+  if(sa !== sb) return sa > sb ? a : b;
+  // Si empate, el más reciente
+  const ta = a.updated || a.created || 0;
+  const tb = b.updated || b.created || 0;
+  return ta >= tb ? a : b;
 }
 function seed(){
   return {
@@ -3506,7 +3570,8 @@ renderReclamos = function(){
 /* ============ SINCRONIZACIÓN COMPARTIDA EN SUPABASE ============ */
 const SUPA_TABLE = 'panel_data';
 const SUPA_ROW_KEY = 'panel_v6';
-const SYNC_INTERVAL_MS = 25000;
+const SYNC_INTERVAL_MS = 10000; // Pull cada 10 segundos (antes 25)
+const PUSH_DEBOUNCE_MS = 600;   // Push 0.6s después de cada cambio (antes 1500)
 
 let _syncEnabled = false;
 let _syncing = false;
@@ -3735,6 +3800,10 @@ async function mergeRemoteState(remote, remoteTs){
     const todos = new Set([...(state.tiposReclamoCustom||[]), ...remote.tiposReclamoCustom]);
     state.tiposReclamoCustom = Array.from(todos);
   }
+  // Re-aplicar deduplicación después del merge para limpiar duplicados que vengan de la nube
+  state.agents = deduplicarPorNombre(state.agents, state, 'agents');
+  state.funcionarios = deduplicarPorNombre(state.funcionarios, state, 'funcionarios');
+  state.medios = deduplicarPorNombre(state.medios, state, 'medios');
   _remoteUpdatedAt = remoteTs;
   if(changed){
     try{localStorage.setItem(LS_KEY,JSON.stringify(state))}catch(e){}
@@ -4136,7 +4205,7 @@ saveState = function(){
   if(_syncEnabled){
     setSyncStatus('syncing','Guardando...');
     if(_pushDebounce) clearTimeout(_pushDebounce);
-    _pushDebounce = setTimeout(()=>syncPush(), 1500);
+    _pushDebounce = setTimeout(()=>syncPush(), PUSH_DEBOUNCE_MS);
   } else {
     const ind = $('saveInd');
     if(ind){
