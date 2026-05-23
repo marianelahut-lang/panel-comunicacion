@@ -1073,10 +1073,10 @@ function ensureDefaults(s){
   if(s.agents.length===0) s.agents = seed().agents;
   if(s.funcionarios.length===0) s.funcionarios = seed().funcionarios;
   if(s.medios.length===0) s.medios = seed().medios;
-  // === MIGRACIÓN: forzar admin para Marianela y Santiago ===
+  // === MIGRACIÓN: forzar admin para Marianela y Santiago (cualquier capitalización o variante) ===
   s.agents.forEach(a=>{
     const n = (a.name||'').toLowerCase().trim();
-    if(n==='marianela' || n==='santiago') a.admin = true;
+    if(/^(marianela|santiago)(\s|$)/.test(n) || /(^|\s)(marianela|santiago)$/.test(n)) a.admin = true;
     else if(a.admin === undefined) a.admin = false;
   });
   // === MIGRACIÓN: asegurar que existe Nai (sin perder datos) ===
@@ -1223,6 +1223,11 @@ async function doLogin(){
 
   const ag = getAgByName(u);
   if(!ag){toast('Usuario no encontrado','err');return}
+
+  // GARANTÍA: Marianela y Santiago SIEMPRE son admin (forzar por si falló la migración)
+  if(/^(marianela|santiago)$/i.test((ag.name||'').trim())){
+    ag.admin = true;
+  }
 
   const hash = await hashPass(p);
 
