@@ -1068,21 +1068,24 @@ function ensureDefaults(s){
   s.config = s.config || {};
   s.config.theme = s.config.theme || 'dark';
   s.config.password = s.config.password || '';
-  // Migración aditiva: tipos de reclamo personalizados creados por los agentes
+  // Tipos de reclamo personalizados
   s.tiposReclamoCustom = Array.isArray(s.tiposReclamoCustom) ? s.tiposReclamoCustom : [];
-  if(s.agents.length===0) s.agents = seed().agents;
-  if(s.funcionarios.length===0) s.funcionarios = seed().funcionarios;
-  if(s.medios.length===0) s.medios = seed().medios;
-  // === MIGRACIÓN: forzar admin para Marianela y Santiago (cualquier capitalización o variante) ===
+  // Tracking de elementos borrados (para que el sync no los re-importe)
+  s._deletedIds = Array.isArray(s._deletedIds) ? s._deletedIds : [];
+  // Seed inicial: SOLO la primera vez (cuando el state es completamente nuevo).
+  // Si después borraste personas, NO se re-crean.
+  if(!s.__seeded){
+    if(s.agents.length===0) s.agents = seed().agents;
+    if(s.funcionarios.length===0) s.funcionarios = seed().funcionarios;
+    if(s.medios.length===0) s.medios = seed().medios;
+    s.__seeded = true;
+  }
+  // === GARANTÍA: Marianela y Santiago SIEMPRE son admin ===
   s.agents.forEach(a=>{
     const n = (a.name||'').toLowerCase().trim();
     if(/^(marianela|santiago)(\s|$)/.test(n) || /(^|\s)(marianela|santiago)$/.test(n)) a.admin = true;
     else if(a.admin === undefined) a.admin = false;
   });
-  // === MIGRACIÓN: asegurar que existe Nai (sin perder datos) ===
-  if(!s.agents.find(a=>(a.name||'').toLowerCase()==='nai')){
-    s.agents.push({id:'ag_nai_'+Date.now(),name:'Nai',color:'#06b6d4',email:'',phone:'',role:'Comunicador/a',covers:'si',admin:false});
-  }
   return s;
 }
 function seed(){
@@ -2065,6 +2068,7 @@ function delTask(){
   if(!confirm('¿Eliminar esta tarea?'))return;
   const id=$('tkId').value;
   state.tasks=state.tasks.filter(t=>t.id!==id);
+  if(!state._deletedIds.includes(id))state._deletedIds.push(id);
   saveState();
   closeModal('tkMod');
   renderAll();
@@ -2123,6 +2127,7 @@ function delPub(){
   if(!confirm('¿Eliminar esta publicación?'))return;
   const id=$('pbId').value;
   state.publicaciones=state.publicaciones.filter(p=>p.id!==id);
+  if(!state._deletedIds.includes(id))state._deletedIds.push(id);
   saveState();
   closeModal('pbMod');
   renderAll();
@@ -2179,6 +2184,7 @@ function delEvent(){
   if(!confirm('¿Eliminar este evento?'))return;
   const id=$('evId').value;
   state.events=state.events.filter(e=>e.id!==id);
+  if(!state._deletedIds.includes(id))state._deletedIds.push(id);
   saveState();
   closeModal('evMod');
   renderAll();
@@ -2245,6 +2251,7 @@ function delAg(){
   if(!a)return;
   if(!confirm('¿Eliminar a '+a.name+'? Sus tareas asignadas no se borrarán.'))return;
   state.agents=state.agents.filter(x=>x.id!==id);
+  if(!state._deletedIds.includes(id))state._deletedIds.push(id);
   saveState();
   closeModal('agMod');
   initFilters();
@@ -2290,6 +2297,7 @@ function delMd(){
   if(!confirm('¿Eliminar este contacto?'))return;
   const id=$('mdId').value;
   state.medios=state.medios.filter(m=>m.id!==id);
+  if(!state._deletedIds.includes(id))state._deletedIds.push(id);
   saveState();
   closeModal('mdMod');
   renderMed();
@@ -2341,6 +2349,7 @@ function delEnt(){
   if(!confirm('¿Eliminar esta entrevista?'))return;
   const id=$('enId').value;
   state.entrevistas=state.entrevistas.filter(e=>e.id!==id);
+  if(!state._deletedIds.includes(id))state._deletedIds.push(id);
   saveState();
   closeModal('enMod');
   renderAll();
@@ -2393,6 +2402,7 @@ function delRc(){
   if(!confirm('¿Eliminar este recurso?'))return;
   const id=$('rcId').value;
   state.recursos=state.recursos.filter(r=>r.id!==id);
+  if(!state._deletedIds.includes(id))state._deletedIds.push(id);
   saveState();
   closeModal('rcMod');
   renderRec();
@@ -3035,6 +3045,7 @@ function delReclamo(){
   if(!confirm('¿Eliminar este reclamo?'))return;
   const id=$('rlId').value;
   state.reclamos=state.reclamos.filter(r=>r.id!==id);
+  if(!state._deletedIds.includes(id))state._deletedIds.push(id);
   saveState();
   closeModal('rcLmMod');
   renderReclamos();updateBadges();
@@ -3666,7 +3677,14 @@ async function syncPull(){
 
 async function mergeRemoteState(remote, remoteTs){
   let changed = false;
+  // Combinar las listas de IDs borrados (local + remoto)
+  const deletedSet = new Set([
+    ...(Array.isArray(state._deletedIds) ? state._deletedIds : []),
+    ...(Array.isArray(remote._deletedIds) ? remote._deletedIds : [])
+  ]);
+  state._deletedIds = Array.from(deletedSet);
   // Mergear arrays por ID con last-write-wins según el campo `updated`
+  // IMPORTANTE: ignorar items que estén en _deletedIds (alguien los eliminó)
   ['agents','funcionarios','medios','tasks','publicaciones','events','entrevistas','recursos','reclamos'].forEach(k=>{
     if(!Array.isArray(remote[k])) return;
     const localMap = {};
@@ -3674,6 +3692,7 @@ async function mergeRemoteState(remote, remoteTs){
     const merged = [];
     remote[k].forEach(rItem=>{
       if(!rItem || !rItem.id) return;
+      if(deletedSet.has(rItem.id)) return; // está borrado, ignorar
       const lItem = localMap[rItem.id];
       if(!lItem){
         merged.push(rItem);
@@ -3690,7 +3709,10 @@ async function mergeRemoteState(remote, remoteTs){
         delete localMap[rItem.id];
       }
     });
-    Object.values(localMap).forEach(item=>merged.push(item));
+    // Items que solo están en local (y NO están en _deletedIds)
+    Object.values(localMap).forEach(item=>{
+      if(!deletedSet.has(item.id)) merged.push(item);
+    });
     state[k] = merged;
   });
   // Guardias por fecha
@@ -3707,6 +3729,11 @@ async function mergeRemoteState(remote, remoteTs){
     if(remote.config.googleCalendarId && !state.config.googleCalendarId){
       state.config.googleCalendarId = remote.config.googleCalendarId;
     }
+  }
+  // Tipos de reclamo custom
+  if(Array.isArray(remote.tiposReclamoCustom)){
+    const todos = new Set([...(state.tiposReclamoCustom||[]), ...remote.tiposReclamoCustom]);
+    state.tiposReclamoCustom = Array.from(todos);
   }
   _remoteUpdatedAt = remoteTs;
   if(changed){
