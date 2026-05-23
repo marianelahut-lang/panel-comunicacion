@@ -1880,18 +1880,24 @@ function clearGuardia(){
   toast('Guardia limpiada','suc');
 }
 function sendGuardiaWa(){
-  const start=startOfWeek(guardiaCursor);
   const today=todayISO();
   const g=state.guardias[today];
   if(!g||!g.titular){toast('No hay titular de guardia hoy','err');return}
   const tit=getAg(g.titular);
   if(!tit||!tit.phone){toast('El titular no tiene WhatsApp','err');return}
-  const evs=state.events.filter(e=>e.date===today && e.cover && isPM(e.time));
-  const pubs=state.publicaciones.filter(p=>p.date===today && isPM(p.time));
-  let msg='*Tareas de guardia · '+new Date().toLocaleDateString('es-AR')+'*\n\n';
-  if(evs.length){msg+='📅 *Eventos:*\n';evs.forEach(e=>{msg+='• '+(e.time||'')+' - '+(e.desc||'')+(e.loc?' ('+e.loc+')':'')+'\n'});msg+='\n'}
+  // SOLO eventos TILDADOS para cubrir + lo que pasa a guardia (weekend/feriado o ≥15hs)
+  const evs=state.events.filter(e=>e.date===today && e.cover === true && pasaAGuardia(today, e.time));
+  const pubs=state.publicaciones.filter(p=>p.date===today && pasaAGuardia(today, p.time));
+  const ents=state.entrevistas.filter(e=>e.date===today && pasaAGuardia(today, e.time));
+  let msg='*Tareas de guardia · '+new Date().toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})+'*\n';
+  if(isFeriado(today))msg+='🎌 FERIADO\n';
+  else if(isWeekend(today))msg+=(new Date(today+'T00:00:00').getDay()===6?'📅 SÁBADO':'📅 DOMINGO')+'\n';
+  msg+='\n';
+  if(evs.length){msg+='📅 *Eventos a cubrir:*\n';evs.forEach(e=>{msg+='• '+(e.time||'')+' - '+(e.desc||'')+(e.loc?' ('+e.loc+')':'')+'\n'});msg+='\n'}
   if(pubs.length){msg+='📱 *Publicaciones:*\n';pubs.forEach(p=>{msg+='• '+(p.time||'')+' - '+(p.desc||'')+' ('+(p.account||'')+')\n'});msg+='\n'}
-  if(!evs.length && !pubs.length)msg+='Sin tareas asignadas para hoy.';
+  if(ents.length){msg+='🎙 *Entrevistas:*\n';ents.forEach(e=>{msg+='• '+(e.time||'')+' - '+(e.func||'')+' con '+(e.medio||'')+'\n'});msg+='\n'}
+  if(!evs.length && !pubs.length && !ents.length)msg+='Sin tareas tildadas para cubrir hoy.\n';
+  msg+='\n_Solo se incluyen los eventos marcados como "Cubrir: SÍ"._';
   waOpen(tit.phone,msg);
 }
 
