@@ -1081,7 +1081,7 @@ function ensureDefaults(s){
   });
   // === MIGRACIÓN: asegurar que existe Nai (sin perder datos) ===
   if(!s.agents.find(a=>(a.name||'').toLowerCase()==='nai')){
-    s.agents.push({id:uid('ag'),name:'Nai',color:'#06b6d4',email:'',phone:'',role:'Comunicador/a',covers:'si',admin:false});
+    s.agents.push({id:'ag_nai_'+Date.now(),name:'Nai',color:'#06b6d4',email:'',phone:'',role:'Comunicador/a',covers:'si',admin:false});
   }
   return s;
 }
