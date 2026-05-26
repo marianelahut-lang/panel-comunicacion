@@ -158,7 +158,7 @@ var d=ev.start&&ev.start.date?ev.start.date:"";
 return (dt&&dt.indexOf(iso)>-1)||(d&&d===iso);
 }).map(function(ev){
 var dt=ev.start&&ev.start.dateTime?ev.start.dateTime:"";
-var t="00:00";if(dt){var mm=dt.match(/T(\d{2}:\d{2})/);if(mm)t=mm[1];}
+var t="00:00";if(dt){var _d=new Date(dt);var _h=String(_d.getHours()).padStart(2,"0");var _m=String(_d.getMinutes()).padStart(2,"0");t=_h+":"+_m;}
 return {title:ev.summary||"Evento",time:t,type:"ev",id:ev.id||""};
 });
 }
@@ -685,7 +685,7 @@ var d=ev.start&&ev.start.date?ev.start.date:"";
 return (dt&&dt.indexOf(iso)>-1)||(d&&d===iso);
 }).map(function(ev){
 var dt=ev.start&&ev.start.dateTime?ev.start.dateTime:"";
-var t="00:00";if(dt){var mm=dt.match(/T(\d{2}:\d{2})/);if(mm)t=mm[1];}
+var t="00:00";if(dt){var _d=new Date(dt);var _h=String(_d.getHours()).padStart(2,"0");var _m=String(_d.getMinutes()).padStart(2,"0");t=_h+":"+_m;}
 return {title:ev.summary||"Evento",time:t,type:"ev",id:ev.id||""};
 });
 }
