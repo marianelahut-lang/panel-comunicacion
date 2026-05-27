@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Generador de Flyers · Comunicación Tres Arroyos</title>
+<title>Generador de Flyers Â· ComunicaciÃ³n Tres Arroyos</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Bricolage+Grotesque:wght@600;700;800;900&family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -89,7 +89,7 @@ button{font-family:var(--fb)}
 .media-meta{font-size:11px;color:var(--tx-m);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .empty-media{padding:14px;text-align:center;color:var(--tx-m);font-size:12px}
 
-/* ============ ÁREA DE PREVIEW ============ */
+/* ============ ÃREA DE PREVIEW ============ */
 .canvas-area{min-width:0;padding:24px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:14px;overflow:hidden;background:linear-gradient(180deg,var(--bg) 0%,#070b15 100%)}
 .badge{background:var(--bg-el);border:1px solid var(--bd);border-radius:999px;padding:8px 16px;font-size:12px;font-weight:700;color:var(--tx-s);max-width:100%;text-align:center}
 .wrap{background:#fff;border-radius:16px;padding:18px;box-shadow:0 30px 60px rgba(0,0,0,.5);overflow:hidden;max-width:100%}
@@ -211,6 +211,12 @@ button{font-family:var(--fb)}
 .flyer.conv.minimal .footer-logo-text,.flyer.conv.minimal .footer-info{color:white}
 .flyer.conv.minimal .footer-logo-text span,.flyer.conv.minimal .footer-info span{color:rgba(255,255,255,.95)}
 .flyer.conv.minimal .footer-info .ico{color:white}
+.flyer.square.ejecucion .progress{margin:16px 56px 0;padding:20px 32px}
+.flyer.square.ejecucion .photo{min-height:220px}
+.flyer.square.ejecucion .body{padding:24px 56px;gap:18px}
+.flyer.square.ejecucion .footer{margin:16px 46px 24px;padding:22px 36px}
+.flyer.square.ejecucion .data b{font-size:30px}
+.flyer.square.ejecucion .data small{font-size:17px;margin-bottom:6px}
 
 /* Toast */
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--bg-el);border:1px solid var(--bd);border-radius:10px;padding:12px 18px;font-size:13px;color:var(--tx);box-shadow:var(--sh-l);z-index:9999;font-weight:600;animation:slideUp .3s ease-out;max-width:380px}
@@ -222,7 +228,7 @@ button{font-family:var(--fb)}
 @media(max-width:560px){.canvas-area{padding:12px}.wrap{padding:12px}.badge{font-size:11px}.format,.zocalo{grid-template-columns:1fr}.sidebar{padding:18px}}
 
 
-/* === Corrector ortográfico (LanguageTool) === */
+/* === Corrector ortogrÃ¡fico (LanguageTool) === */
 .lt-btn{width:100%;margin-top:8px;background:#f3f6fa;color:var(--text);border:1.5px solid var(--line);border-radius:10px;padding:11px;font:800 12px Poppins;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
 .lt-btn:hover{background:#e8eef5}
 .lt-btn:disabled{opacity:.6;cursor:wait}
@@ -232,7 +238,7 @@ button{font-family:var(--fb)}
 .lt-modal-content h2{color:var(--deep);font-size:20px;margin-bottom:6px;font-weight:900}
 .lt-sub{color:var(--muted);font-size:13px;margin-bottom:16px}
 .lt-checking{text-align:center;padding:30px 10px;color:var(--muted);font-weight:700;font-size:14px}
-.lt-checking::before{content:"⌛";display:block;font-size:32px;margin-bottom:8px}
+.lt-checking::before{content:"â";display:block;font-size:32px;margin-bottom:8px}
 .lt-error{border-left:4px solid #ef4444;background:#fef2f2;padding:12px 14px;border-radius:10px;margin-bottom:10px}
 .lt-error .lt-field{font-size:10px;text-transform:uppercase;font-weight:900;color:#991b1b;margin-bottom:4px;letter-spacing:.5px}
 .lt-error .lt-msg{font-size:13px;color:#1f2937;font-weight:700;margin-bottom:8px;line-height:1.35}
@@ -243,7 +249,7 @@ button{font-family:var(--fb)}
 .lt-chip{background:white;border:1.5px solid #f87171;padding:4px 10px;border-radius:6px;cursor:pointer;font-weight:700;color:var(--primary);font-size:12px;font-family:Poppins;transition:all .15s}
 .lt-chip:hover{background:var(--primary);color:white;border-color:var(--primary)}
 .lt-ok{text-align:center;padding:24px 10px;color:#16a34a;font-weight:900;font-size:15px}
-.lt-ok::before{content:"✓";display:block;font-size:42px;margin-bottom:6px;color:#16a34a}
+.lt-ok::before{content:"â";display:block;font-size:42px;margin-bottom:6px;color:#16a34a}
 .lt-err-api{background:#fff7ed;border-left:4px solid #f59e0b;color:#92400e;padding:12px;border-radius:8px;font-size:13px;font-weight:600;line-height:1.4}
 .lt-actions{display:flex;gap:10px;margin-top:18px;justify-content:flex-end;flex-wrap:wrap}
 .lt-actions button{border:0;border-radius:9px;padding:11px 18px;font:800 13px Poppins;cursor:pointer}
@@ -262,23 +268,23 @@ button{font-family:var(--fb)}
 <body>
 <div class="app">
 <aside class="sidebar">
-<a class="back" href="./">← Volver al panel</a>
+<a class="back" href="./">â Volver al panel</a>
 <div class="brand">
   <div class="mark">TA</div>
   <div>
     <h1>Generador de Flyers</h1>
-    <p>Comunicación municipal · v3</p>
+    <p>ComunicaciÃ³n municipal Â· v3</p>
   </div>
 </div>
 
 <div class="section">
-  <div class="section-title">Tipo de comunicación</div>
+  <div class="section-title">Tipo de comunicaciÃ³n</div>
   <div class="tabs" id="tipoTabs"></div>
 </div>
 
 <div class="section">
-  <div class="section-title">Secretaría</div>
-  <div class="field"><label>Área institucional</label><select id="sec"></select></div>
+  <div class="section-title">SecretarÃ­a</div>
+  <div class="field"><label>Ãrea institucional</label><select id="sec"></select></div>
 </div>
 
 <div class="section">
@@ -291,15 +297,15 @@ button{font-family:var(--fb)}
 </div>
 
 <div class="section">
-  <div class="section-title">Zócalo / Redes</div>
+  <div class="section-title">ZÃ³calo / Redes</div>
   <div class="zocalo">
-    <button class="active" data-zocalo="full">Con zócalo</button>
-    <button data-zocalo="minimal">Sin zócalo</button>
+    <button class="active" data-zocalo="full">Con zÃ³calo</button>
+    <button data-zocalo="minimal">Sin zÃ³calo</button>
   </div>
 </div>
 
 <div class="section">
-  <div class="section-title">Logo del zócalo</div>
+  <div class="section-title">Logo del zÃ³calo</div>
   <div class="uploader" id="logoUp">Cargar logo municipal</div>
   <input id="logoInput" type="file" accept="image/*" hidden>
   <button class="remove" id="removeLogo" style="display:none">Quitar logo</button>
@@ -309,14 +315,14 @@ button{font-family:var(--fb)}
   <div class="section-title">Contenido</div>
   <div id="fields"></div>
   <div id="photoBox" style="display:none">
-    <div class="uploader" id="up">Subí una foto o render</div>
+    <div class="uploader" id="up">SubÃ­ una foto o render</div>
     <input id="photoInput" type="file" accept="image/*" hidden>
     <button class="remove" id="removePhoto" style="display:none">Quitar foto</button>
   </div>
 </div>
 
 <div class="section">
-  <div class="section-title">📱 Enviar a medios por WhatsApp</div>
+  <div class="section-title">ð± Enviar a medios por WhatsApp</div>
   <div id="mediaList" class="media-list"><div class="empty-media">Cargando contactos...</div></div>
   <div style="display:flex;gap:6px;margin-bottom:10px">
     <button class="btn" onclick="selAllMedios(true)" style="flex:1;padding:8px;font-size:11px">Todos</button>
@@ -324,16 +330,16 @@ button{font-family:var(--fb)}
   </div>
   <div class="field">
     <label>Mensaje para los medios</label>
-    <textarea id="mediaMsg" placeholder="Texto que acompaña al flyer..."></textarea>
+    <textarea id="mediaMsg" placeholder="Texto que acompaÃ±a al flyer..."></textarea>
   </div>
 </div>
 
-<button class="btn btn-p btn-full" id="download">⬇ Descargar PNG</button>
-<button class="lt-btn" id="ltCheck">🔍 Verificar ortografía</button>
-<button class="btn btn-w btn-full" id="sendMedios" style="margin-top:8px">📱 Descargar y enviar a medios</button>
+<button class="btn btn-p btn-full" id="download">â¬ Descargar PNG</button>
+<button class="lt-btn" id="ltCheck">ð Verificar ortografÃ­a</button>
+<button class="btn btn-w btn-full" id="sendMedios" style="margin-top:8px">ð± Descargar y enviar a medios</button>
 
 <div class="hint">
-  <strong>💡 Tip:</strong> Los medios aparecen automáticamente desde el panel. Si no se ve ninguno, agregalos primero en "Contactos de medios".
+  <strong>ð¡ Tip:</strong> Los medios aparecen automÃ¡ticamente desde el panel. Si no se ve ninguno, agregalos primero en "Contactos de medios".
 </div>
 </aside>
 
@@ -351,24 +357,25 @@ const SECRETARIAS={
   salud:['Salud','#19C2B3','#129487','#0A5F57','#E8FBF9'],
   desarrollo:['Desarrollo Social','#D80A52','#A3083E','#6A0428','#FCE7EE'],
   seguridad:['Seguridad','#1E3A67','#152C4E','#0D1B31','#E9EEF6'],
-  cultura:['Cultura y Educación','#FF4338','#D72F25','#941B15','#FFE9E7'],
+  cultura:['Cultura y EducaciÃ³n','#FF4338','#D72F25','#941B15','#FFE9E7'],
   ambiente:['Ambiente','#7AD14B','#59A432','#34651B','#EEF9E8'],
   hacienda:['Hacienda','#A8927B','#7E6A56','#544536','#F3EEE9'],
   juventud:['Juventud','#F6A400','#C17D00','#7B5000','#FFF4DA'],
   deportes:['Deportes','#18A9D1','#0E7F9F','#08586E','#E8F8FC'],
   omic:['OMIC','#7258C7','#573FA1','#39296D','#EEE9FB']
 };
-const TIPOS={inicio:'Inicio de obra',ejecucion:'En ejecución / avance',corte:'Corte de tránsito',inauguracion:'Inauguración',comunicado:'Comunicado oficial',crisis:'Gestión de crisis',convocatoria:'Convocatoria a vecinos'};
+const TIPOS={inicio:'Inicio de obra',ejecucion:'En ejecuciÃ³n / avance',corte:'Corte de trÃ¡nsito',inauguracion:'InauguraciÃ³n',comunicado:'Comunicado oficial',crisis:'GestiÃ³n de crisis',convocatoria:'Convocatoria a vecinos',corte_agua:'Corte de servicio'};
 const CAMPOS={
-  inicio:[['tag','Etiqueta'],['titulo','Título'],['categoria','Categoría / barrio'],['descripcion','Descripción','area'],['label1','Etiqueta dato 1'],['value1','Valor dato 1'],['label2','Etiqueta dato 2'],['value2','Valor dato 2']],
-  ejecucion:[['pretitulo','Etiqueta'],['titulo','Título'],['subtitulo','Subtítulo'],['avance','Porcentaje avance'],['etapa','Etapa actual'],['label1','Etiqueta dato 1'],['value1','Valor dato 1'],['label2','Etiqueta dato 2'],['value2','Valor dato 2']],
-  corte:[['asunto','Asunto'],['calle','Calle / zona','area'],['desde','Desde'],['hasta','Hasta'],['desvio','Desvío / info adicional','area']],
-  inauguracion:[['stamp','Etiqueta'],['titulo','Nombre de la obra'],['descripcion','Descripción','area'],['label1','Etiqueta dato 1'],['value1','Valor dato 1'],['label2','Etiqueta dato 2'],['value2','Valor dato 2']],
-  comunicado:[['etiqueta','Etiqueta'],['titulo','Título'],['copete','Copete','area'],['contenido','Texto comunicado','area']],
-  crisis:[['estado','Estado'],['titulo','Título'],['detalle','Detalle oficial','area'],['recomendaciones','Recomendaciones','area']],
-  convocatoria:[['pretitulo','Etiqueta'],['titulo','Frase principal'],['subtitulo','Texto explicativo','area'],['label1','Etiqueta 1'],['value1','Valor 1'],['label2','Etiqueta 2'],['value2','Valor 2'],['label3','Etiqueta 3'],['value3','Valor 3']]
+  inicio:[['tag','Etiqueta'],['titulo','TÃ­tulo'],['categoria','CategorÃ­a / barrio'],['descripcion','DescripciÃ³n','area'],['label1','Etiqueta dato 1'],['value1','Valor dato 1'],['label2','Etiqueta dato 2'],['value2','Valor dato 2']],
+  ejecucion:[['pretitulo','Etiqueta'],['titulo','TÃ­tulo'],['subtitulo','SubtÃ­tulo'],['avance','Porcentaje avance'],['etapa','Etapa actual'],['label1','Etiqueta dato 1'],['value1','Valor dato 1'],['label2','Etiqueta dato 2'],['value2','Valor dato 2']],
+  corte:[['asunto','Asunto'],['calle','Calle / zona','area'],['desde','Desde'],['hasta','Hasta'],['desvio','DesvÃ­o / info adicional','area']],
+  inauguracion:[['stamp','Etiqueta'],['titulo','Nombre de la obra'],['descripcion','DescripciÃ³n','area'],['label1','Etiqueta dato 1'],['value1','Valor dato 1'],['label2','Etiqueta dato 2'],['value2','Valor dato 2']],
+  comunicado:[['etiqueta','Etiqueta'],['titulo','TÃ­tulo'],['copete','Copete','area'],['contenido','Texto comunicado','area']],
+  crisis:[['estado','Estado'],['titulo','TÃ­tulo'],['detalle','Detalle oficial','area'],['recomendaciones','Recomendaciones','area']],
+  convocatoria:[['pretitulo','Etiqueta'],['titulo','Frase principal'],['subtitulo','Texto explicativo','area'],['label1','Etiqueta 1'],['value1','Valor 1'],['label2','Etiqueta 2'],['value2','Valor 2'],['label3','Etiqueta 3'],['value3','Valor 3']],
+  corte_agua:[['asunto','Asunto'],['servicio','Tipo de servicio','area'],['zona','Zona / barrio afectado','area'],['desde','Desde'],['hasta','Hasta (estimado)'],['motivo','Motivo / detalle','area']]
 };
-const state={tipo:'inicio',format:'square',sec:'municipio',zocalo:'full',foto:null,logo:null,campos:{inicio:{tag:'Comienza una nueva obra',titulo:'Cloacas',categoria:'100 metros · Barrio Ranchos',descripcion:'Seguimos trabajando, sumando servicios para los vecinos.',label1:'Ubicación',value1:'Emilio de la Calle 1700',label2:'Plazo estimado',value2:'10 días'},ejecucion:{pretitulo:'Obra en ejecución',titulo:'Cloacas',subtitulo:'100 metros de servicio',avance:'35',etapa:'Colocación de cañería',label1:'Inicio',value1:'18 de Mayo 2026',label2:'Finalización',value2:'25 de Mayo 2026'},corte:{asunto:'Corte total de tránsito',calle:'Av. Moreno entre San Martín y Rivadavia',desde:'Lunes 25/05 · 7:00 hs',hasta:'Viernes 29/05 · 19:00 hs',desvio:'Desvío sugerido por calle Mitre y Belgrano.'},inauguracion:{stamp:'Quedó inaugurada',titulo:'Plaza de los Niños',descripcion:'Renovamos la plaza con juegos, mobiliario urbano, iluminación LED y cancha multideporte.',label1:'Día',value1:'Sábado 24/05',label2:'Hora',value2:'11:00 hs'},comunicado:{etiqueta:'Comunicado Oficial',titulo:'Información importante para la comunidad',copete:'La Municipalidad de Tres Arroyos informa a vecinos y vecinas sobre las acciones que se están llevando adelante.',contenido:'Esta comunicación reúne información oficial, fechas relevantes y canales de consulta.'},crisis:{estado:'Información oficial',titulo:'Situación en seguimiento',detalle:'Los equipos municipales se encuentran trabajando y monitoreando la situación.',recomendaciones:'Seguí únicamente los canales oficiales. Evitá circular información no verificada.'},convocatoria:{pretitulo:'Encuentro vecinal',titulo:'Te invitamos',subtitulo:'Vení a participar de la próxima reunión barrial para presentar el plan de obras y escuchar propuestas.',label1:'Día',value1:'Jueves 22/05',label2:'Hora',value2:'19:00 hs',label3:'Lugar',value3:'Club Social Tres Arroyos'}}};
+const state={tipo:'inicio',format:'square',sec:'municipio',zocalo:'full',foto:null,logo:null,campos:{inicio:{tag:'Comienza una nueva obra',titulo:'Cloacas',categoria:'100 metros Â· Barrio Ranchos',descripcion:'Seguimos trabajando, sumando servicios para los vecinos.',label1:'UbicaciÃ³n',value1:'Emilio de la Calle 1700',label2:'Plazo estimado',value2:'10 dÃ­as'},ejecucion:{pretitulo:'Obra en ejecuciÃ³n',titulo:'Cloacas',subtitulo:'100 metros de servicio',avance:'35',etapa:'ColocaciÃ³n de caÃ±erÃ­a',label1:'Inicio',value1:'18 de Mayo 2026',label2:'FinalizaciÃ³n',value2:'25 de Mayo 2026'},corte:{asunto:'Corte total de trÃ¡nsito',calle:'Av. Moreno entre San MartÃ­n y Rivadavia',desde:'Lunes 25/05 Â· 7:00 hs',hasta:'Viernes 29/05 Â· 19:00 hs',desvio:'DesvÃ­o sugerido por calle Mitre y Belgrano.'},inauguracion:{stamp:'QuedÃ³ inaugurada',titulo:'Plaza de los NiÃ±os',descripcion:'Renovamos la plaza con juegos, mobiliario urbano, iluminaciÃ³n LED y cancha multideporte.',label1:'DÃ­a',value1:'SÃ¡bado 24/05',label2:'Hora',value2:'11:00 hs'},comunicado:{etiqueta:'Comunicado Oficial',titulo:'InformaciÃ³n importante para la comunidad',copete:'La Municipalidad de Tres Arroyos informa a vecinos y vecinas sobre las acciones que se estÃ¡n llevando adelante.',contenido:'Esta comunicaciÃ³n reÃºne informaciÃ³n oficial, fechas relevantes y canales de consulta.'},crisis:{estado:'InformaciÃ³n oficial',titulo:'SituaciÃ³n en seguimiento',detalle:'Los equipos municipales se encuentran trabajando y monitoreando la situaciÃ³n.',recomendaciones:'SeguÃ­ Ãºnicamente los canales oficiales. EvitÃ¡ circular informaciÃ³n no verificada.'},convocatoria:{pretitulo:'Encuentro vecinal',titulo:'Te invitamos',subtitulo:'VenÃ­ a participar de la prÃ³xima reuniÃ³n barrial para presentar el plan de obras y escuchar propuestas.',label1:'DÃ­a',value1:'Jueves 22/05',label2:'Hora',value2:'19:00 hs',label3:'Lugar',value3:'Club Social Tres Arroyos'},corte_agua:{asunto:'Corte de agua',servicio:'Servicio de agua potable',zona:'Zona afectada · Consultar área específica',desde:'Hoy · 8:00 hs',hasta:'Estimado 18:00 hs',motivo:'Trabajos de mantenimiento en la red.'}}};
 
 const $=id=>document.getElementById(id);
 const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -381,7 +388,7 @@ function toast(msg, type){
   setTimeout(()=>el.remove(), 3500);
 }
 
-// === Leer state del panel principal (compartido vía localStorage) ===
+// === Leer state del panel principal (compartido vÃ­a localStorage) ===
 function loadPanelState(){
   try {
     const raw = localStorage.getItem(LS_KEY);
@@ -404,12 +411,12 @@ function renderMedios(){
   const s = loadPanelState();
   const list = $('mediaList');
   if(!s || !Array.isArray(s.medios) || s.medios.length === 0){
-    list.innerHTML = '<div class="empty-media">No hay medios cargados.<br>Agregalos en el panel → Contactos de medios</div>';
+    list.innerHTML = '<div class="empty-media">No hay medios cargados.<br>Agregalos en el panel â Contactos de medios</div>';
     return;
   }
   const conWA = s.medios.filter(m => m.phone);
   if(conWA.length === 0){
-    list.innerHTML = '<div class="empty-media">Ningún medio tiene WhatsApp cargado.</div>';
+    list.innerHTML = '<div class="empty-media">NingÃºn medio tiene WhatsApp cargado.</div>';
     return;
   }
   list.innerHTML = conWA.map(m =>
@@ -417,7 +424,7 @@ function renderMedios(){
       '<input type="checkbox" data-id="'+esc(m.id)+'" data-phone="'+esc(m.phone)+'" data-name="'+esc(m.name)+'">' +
       '<div class="media-info">' +
         '<div class="media-name">'+esc(m.name)+'</div>' +
-        '<div class="media-meta">'+esc(m.program||'')+' · '+esc(m.phone)+'</div>' +
+        '<div class="media-meta">'+esc(m.program||'')+' Â· '+esc(m.phone)+'</div>' +
       '</div>' +
     '</label>'
   ).join('');
@@ -427,8 +434,10 @@ function selAllMedios(estado){
   document.querySelectorAll('#mediaList input[type=checkbox]').forEach(c => c.checked = estado);
 }
 
-// === Inicialización ===
+// === InicializaciÃ³n ===
 function init(){
+  $('tipoTabs').innerHTML='';
+  $('sec').innerHTML='';
   Object.entries(TIPOS).forEach(([k,v])=>$('tipoTabs').insertAdjacentHTML('beforeend',`<button class="tab ${k===state.tipo?'active':''}" data-tipo="${k}">${v}</button>`));
   Object.entries(SECRETARIAS).forEach(([k,v])=>$('sec').insertAdjacentHTML('beforeend',`<option value="${k}">${v[0]}</option>`));
   bind();
@@ -436,7 +445,7 @@ function init(){
   renderFields();
   render();
   renderMedios();
-  // Refrescar lista de medios cada 5s por si el panel sincronizó
+  // Refrescar lista de medios cada 5s por si el panel sincronizÃ³
   setInterval(renderMedios, 5000);
 }
 
@@ -447,7 +456,7 @@ function bind(){
   $('sec').onchange=e=>{state.sec=e.target.value;theme();render()};
   $('up').onclick=()=>$('photoInput').click();
   $('photoInput').onchange=e=>readImage(e.target.files[0],src=>{state.foto=src;$('up').classList.add('has-image');$('up').innerHTML=`<div class="photo-preview" style="background-image:url('${state.foto}')"></div>`;$('removePhoto').style.display='block';render()});
-  $('removePhoto').onclick=()=>{state.foto=null;$('up').classList.remove('has-image');$('up').textContent='Subí una foto o render';$('removePhoto').style.display='none';render()};
+  $('removePhoto').onclick=()=>{state.foto=null;$('up').classList.remove('has-image');$('up').textContent='SubÃ­ una foto o render';$('removePhoto').style.display='none';render()};
   $('logoUp').onclick=()=>$('logoInput').click();
   $('logoInput').onchange=e=>readImage(e.target.files[0],src=>{state.logo=src;$('logoUp').classList.add('has-image');$('logoUp').innerHTML=`<div class="logo-preview" style="background-image:url('${state.logo}')"></div>`;$('removeLogo').style.display='block';render()});
   $('removeLogo').onclick=()=>{state.logo=null;$('logoUp').classList.remove('has-image');$('logoUp').textContent='Cargar logo municipal';$('removeLogo').style.display='none';render()};
@@ -481,7 +490,7 @@ function footer(){
   const logo=state.logo
     ?`<img class="footer-logo-img" src="${state.logo}" alt="Municipalidad de Tres Arroyos">`
     :`<div class="footer-logo-text"><span>Municipalidad de</span>Tres Arroyos</div>`;
-  return `<div class="footer"><div class="footer-logo-slot">${logo}</div><div class="footer-info"><div><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg><strong>www.tresarroyos.gov.ar</strong></div><div><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg><span>municipalidadtresarroyos</span></div><div><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z"/></svg><span>municipalidaddetresarroyos</span></div></div></div>`;
+  return `<div class="footer"><div class="footer-logo-slot">${logo}</div><div class="footer-info"><div><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg><strong>www.tresarroyos.gov.ar</strong></div><div><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg><span>municipalidadtresarroyos</span></div><div><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z"/></svg><span>municipalidaddetresarroyos</span></div><div><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.38 2 2 0 0 1 3.58 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.56a16 16 0 0 0 5.72 5.72l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg><span>Arroyito: 2983 509001</span></div></div></div>`;
 }
 
 function photo(){
@@ -509,20 +518,24 @@ function render(){
     h=`<div class="hero"><div class="tag">${esc(c.estado)}</div><div class="title${titleClass(c.titulo)}">${esc(c.titulo)}</div></div><div class="body"><p class="text">${esc(c.detalle)}</p><div class="card"><strong>Recomendaciones oficiales</strong>${esc(c.recomendaciones)}</div></div>${footer()}`;
   }else if(state.tipo==='ejecucion'){
     const p=Math.max(0,Math.min(100,parseInt(c.avance)||0));
-    h=`<div class="hero"><div class="tag">${esc(c.pretitulo)}</div><div class="title${titleClass(c.titulo)}">${esc(c.titulo)}</div>${c.subtitulo?`<p class="text">${esc(c.subtitulo)}</p>`:''}</div><div class="progress"><div class="pct"><span>Avance · ${esc(c.etapa)}</span><b>${p}%</b></div><div class="bar"><div class="fill" style="width:${p}%"></div></div></div>${photo()}<div class="body"><div class="data"><div><small>${esc(c.label1)}</small><b>${esc(c.value1)}</b></div><div><small>${esc(c.label2)}</small><b>${esc(c.value2)}</b></div></div></div>${footer()}`;
+    h=`<div class="hero"><div class="tag">${esc(c.pretitulo)}</div><div class="title${titleClass(c.titulo)}">${esc(c.titulo)}</div>${c.subtitulo?`<p class="text">${esc(c.subtitulo)}</p>`:''}</div><div class="progress"><div class="pct"><span>Avance Â· ${esc(c.etapa)}</span><b>${p}%</b></div><div class="bar"><div class="fill" style="width:${p}%"></div></div></div>${photo()}<div class="body"><div class="data"><div><small>${esc(c.label1)}</small><b>${esc(c.value1)}</b></div><div><small>${esc(c.label2)}</small><b>${esc(c.value2)}</b></div></div></div>${footer()}`;
   }else if(state.tipo==='corte'){
     classes+=' cut';
-    h=`<div class="hero"><div class="tag">Atención</div><div class="title${titleClass(c.asunto)}">${esc(c.asunto)}</div></div><div class="body"><div class="card"><strong>Zona afectada</strong>${esc(c.calle)}</div><div class="data"><div><small>Desde</small><b>${esc(c.desde)}</b></div><div><small>Hasta</small><b>${esc(c.hasta)}</b></div></div><div class="card"><strong>Información para vecinos</strong>${esc(c.desvio)}</div></div>${footer()}`;
+    h=`<div class="hero"><div class="tag">AtenciÃ³n</div><div class="title${titleClass(c.asunto)}">${esc(c.asunto)}</div></div><div class="body"><div class="card"><strong>Zona afectada</strong>${esc(c.calle)}</div><div class="data"><div><small>Desde</small><b>${esc(c.desde)}</b></div><div><small>Hasta</small><b>${esc(c.hasta)}</b></div></div><div class="card"><strong>InformaciÃ³n para vecinos</strong>${esc(c.desvio)}</div></div>${footer()}`;
+  }else if(state.tipo==='corte_agua'){
+    const c=state.campos.corte_agua;
+    flyer.className='flyer '+state.format+' '+(state.zocalo==='minimal'?'minimal':'')+' cut';
+    flyer.innerHTML=`<div class="hero"><div class="tag">⚠️ Corte de servicio</div><div class="title${titleClass(c.asunto)}">${esc(c.asunto)}</div>${c.servicio?'<p class="text">'+esc(c.servicio)+'</p>':''}</div><div class="body">${c.zona?'<div class="card"><strong>Zona / sector afectado</strong>'+esc(c.zona)+'</div>':''}<div class="data"><div><small>Desde</small><b>${esc(c.desde)}</b></div><div><small>Hasta (estimado)</small><b>${esc(c.hasta)}</b></div></div>${c.motivo?'<div class="card"><strong>Motivo</strong>'+esc(c.motivo)+'</div>':''}</div>${footer()}`;
   }else if(state.tipo==='inauguracion'||state.tipo==='inicio'){
     const tt=c.titulo;
     h=`<div class="hero"><div class="tag">${esc(c.tag||c.stamp)}</div><div class="title${titleClass(tt)}">${esc(tt)}</div>${c.categoria?`<p class="text">${esc(c.categoria)}</p>`:''}</div>${photo()}<div class="body"><p class="text">${esc(c.descripcion)}</p><div class="data"><div><small>${esc(c.label1)}</small><b>${esc(c.value1)}</b></div><div><small>${esc(c.label2)}</small><b>${esc(c.value2)}</b></div></div></div>${footer()}`;
   }else{
-    h=`<div class="hero"><div class="tag">${esc(c.etiqueta)}</div><div class="title${titleClass(c.titulo)}">${esc(c.titulo)}</div></div><div class="body"><p class="text"><strong>${esc(c.copete)}</strong></p><div class="card"><strong>Información oficial</strong>${esc(c.contenido)}</div></div>${footer()}`;
+    h=`<div class="hero"><div class="tag">${esc(c.etiqueta)}</div><div class="title${titleClass(c.titulo)}">${esc(c.titulo)}</div></div><div class="body"><p class="text"><strong>${esc(c.copete)}</strong></p><div class="card"><strong>InformaciÃ³n oficial</strong>${esc(c.contenido)}</div></div>${footer()}`;
   }
 
   f.className=classes;
   f.innerHTML=h;
-  $('badge').textContent=`${TIPOS[state.tipo]} · ${state.format==='square'?'Cuadrado 1080x1080':state.format==='story'?'Historia 1080x1920':'9:16 vertical 1080x1920'} · ${state.zocalo==='minimal'?'Sin zócalo':'Con zócalo'}`;
+  $('badge').textContent=`${TIPOS[state.tipo]} Â· ${state.format==='square'?'Cuadrado 1080x1080':state.format==='story'?'Historia 1080x1920':'9:16 vertical 1080x1920'} Â· ${state.zocalo==='minimal'?'Sin zÃ³calo':'Con zÃ³calo'}`;
   scale();
 }
 
@@ -556,7 +569,7 @@ async function download(conEnvio){
   const dataUrl = canvas.toDataURL('image/png');
   const filename = `TresArroyos_${state.tipo}_${state.format}_${state.zocalo}_${new Date().toISOString().slice(0,10)}.png`;
 
-  // Guardar en el state compartido como último flyer generado
+  // Guardar en el state compartido como Ãºltimo flyer generado
   try {
     const s = loadPanelState() || {};
     if(!Array.isArray(s.flyersGenerados))s.flyersGenerados = [];
@@ -569,7 +582,7 @@ async function download(conEnvio){
       fecha: new Date().toISOString(),
       creadoPor: localStorage.getItem('pcomTA_lastU') || 'desconocido'
     });
-    // Quedarse solo con los últimos 50
+    // Quedarse solo con los Ãºltimos 50
     s.flyersGenerados = s.flyersGenerados.slice(0,50);
     localStorage.setItem(LS_KEY, JSON.stringify(s));
   } catch(e){console.warn('No se pudo guardar metadata',e)}
@@ -580,11 +593,11 @@ async function download(conEnvio){
   a.href=dataUrl;
   a.click();
 
-  // Si se eligió "enviar a medios"
+  // Si se eligiÃ³ "enviar a medios"
   if(conEnvio){
     const seleccionados = Array.from(document.querySelectorAll('#mediaList input[type=checkbox]:checked'));
     if(seleccionados.length === 0){
-      toast('Elegí al menos un medio para enviar','err');
+      toast('ElegÃ­ al menos un medio para enviar','err');
       btn.disabled=false;
       btn.textContent=txtOriginal;
       return;
@@ -596,7 +609,7 @@ async function download(conEnvio){
       const file = new File([blob], filename, {type:'image/png'});
       if(navigator.canShare && navigator.canShare({files:[file]})){
         // Solo se puede compartir a UN destino con Web Share API
-        toast('Se abrirá el menú de compartir. Elegí WhatsApp y los contactos.','suc');
+        toast('Se abrirÃ¡ el menÃº de compartir. ElegÃ­ WhatsApp y los contactos.','suc');
         await navigator.share({title: state.campos[state.tipo].titulo || 'Flyer', text: msg, files: [file]});
         btn.disabled=false;
         btn.textContent=txtOriginal;
@@ -610,7 +623,7 @@ async function download(conEnvio){
       }
     }
     // Fallback: abrir WhatsApp Web por cada contacto
-    if(!confirm('Se descargó el flyer.\n\nAhora se abrirán '+seleccionados.length+' ventanas de WhatsApp (una por medio).\nEn cada una, arrastrá el archivo descargado.\n\n¿Continuar?')){
+    if(!confirm('Se descargÃ³ el flyer.\n\nAhora se abrirÃ¡n '+seleccionados.length+' ventanas de WhatsApp (una por medio).\nEn cada una, arrastrÃ¡ el archivo descargado.\n\nÂ¿Continuar?')){
       btn.disabled=false;
       btn.textContent=txtOriginal;
       return;
@@ -622,7 +635,7 @@ async function download(conEnvio){
         window.open(url, '_blank');
       }, i * 500);
     });
-    toast('✓ Enviando a '+seleccionados.length+' medios. Pegá el archivo descargado en cada chat.','suc');
+    toast('â Enviando a '+seleccionados.length+' medios. PegÃ¡ el archivo descargado en cada chat.','suc');
   }
 
   btn.disabled=false;
@@ -633,11 +646,11 @@ window.addEventListener('resize',scale);
 if(document.fonts&&document.fonts.ready){document.fonts.ready.then(init)}else{init()}
 
 
-/* === INTEGRACIÓN LANGUAGETOOL =========================================
-   Verifica ortografía y gramática del texto del flyer antes de exportar.
-   - Botón "Verificar ortografía": chequeo manual en cualquier momento.
-   - Botón "Descargar PNG": chequeo automático previo a la descarga.
-   API pública: https://api.languagetool.org/v2/check (límite ~20 req/min)
+/* === INTEGRACIÃN LANGUAGETOOL =========================================
+   Verifica ortografÃ­a y gramÃ¡tica del texto del flyer antes de exportar.
+   - BotÃ³n "Verificar ortografÃ­a": chequeo manual en cualquier momento.
+   - BotÃ³n "Descargar PNG": chequeo automÃ¡tico previo a la descarga.
+   API pÃºblica: https://api.languagetool.org/v2/check (lÃ­mite ~20 req/min)
    ===================================================================== */
 
 async function ltCheck(){
@@ -645,7 +658,7 @@ async function ltCheck(){
   let cur=0;
   defs.forEach(([k,l])=>{
     const v=String(c[k]||'').trim();
-    // Saltar vacíos y valores puramente numéricos (ej: porcentaje)
+    // Saltar vacÃ­os y valores puramente numÃ©ricos (ej: porcentaje)
     if(!v||/^\d+$/.test(v))return;
     parts.push({key:k,label:l,start:cur,end:cur+v.length,text:v});
     cur+=v.length+2; // +2 por el separador "\n\n"
@@ -670,8 +683,8 @@ async function ltCheck(){
       label:p.label,
       message:m.message,
       word:word,
-      before:(s>0?'…':'')+p.text.substring(s,lo),
-      after:p.text.substring(lo+m.length,e)+(e<p.text.length?'…':''),
+      before:(s>0?'â¦':'')+p.text.substring(s,lo),
+      after:p.text.substring(lo+m.length,e)+(e<p.text.length?'â¦':''),
       suggestions:(m.replacements||[]).slice(0,5).map(x=>x.value).filter(x=>x&&x!==word)
     };
   }).filter(Boolean);
@@ -692,7 +705,7 @@ function ltShow(errors,opts){
   const m=$('ltModal'),body=$('ltBody'),acts=$('ltActions'),title=$('ltTitle'),sub=$('ltSub');
 
   if(opts.checking){
-    title.textContent='Verificando ortografía';
+    title.textContent='Verificando ortografÃ­a';
     sub.textContent='Consultando LanguageTool...';
     body.innerHTML='<div class="lt-checking">Revisando el texto</div>';
     acts.innerHTML='';
@@ -703,7 +716,7 @@ function ltShow(errors,opts){
   if(opts.apiError){
     title.textContent='No se pudo verificar';
     sub.textContent='Error al conectar con el corrector';
-    body.innerHTML='<div class="lt-err-api">No se pudo conectar con LanguageTool. Revisá tu conexión a internet e intentá de nuevo, o continuá sin verificación.</div>';
+    body.innerHTML='<div class="lt-err-api">No se pudo conectar con LanguageTool. RevisÃ¡ tu conexiÃ³n a internet e intentÃ¡ de nuevo, o continuÃ¡ sin verificaciÃ³n.</div>';
     acts.innerHTML='<button class="lt-secondary" id="ltBtnClose">Cerrar</button>'+(opts.allowContinue?'<button class="lt-warn" id="ltBtnContinue">Descargar igual</button>':'');
     $('ltBtnClose').onclick=ltClose;
     if(opts.allowContinue)$('ltBtnContinue').onclick=ltContinue;
@@ -713,7 +726,7 @@ function ltShow(errors,opts){
 
   if(!errors||!errors.length){
     title.textContent='Sin errores detectados';
-    sub.textContent='El texto pasó la revisión ortográfica y gramatical';
+    sub.textContent='El texto pasÃ³ la revisiÃ³n ortogrÃ¡fica y gramatical';
     body.innerHTML='<div class="lt-ok">Todo en orden</div>';
     acts.innerHTML='<button class="lt-secondary" id="ltBtnClose">Cerrar</button>'+(opts.fromDownload?'<button class="lt-primary" id="ltBtnContinue">Continuar descarga</button>':'');
     $('ltBtnClose').onclick=ltClose;
@@ -722,12 +735,12 @@ function ltShow(errors,opts){
     return;
   }
 
-  title.textContent=errors.length+' '+(errors.length===1?'observación encontrada':'observaciones encontradas');
-  sub.textContent='Hacé clic en una sugerencia para aplicarla automáticamente';
+  title.textContent=errors.length+' '+(errors.length===1?'observaciÃ³n encontrada':'observaciones encontradas');
+  sub.textContent='HacÃ© clic en una sugerencia para aplicarla automÃ¡ticamente';
   body.innerHTML=errors.map((e,i)=>{
     const chips=e.suggestions.length
       ? '<div class="lt-sug"><span class="lt-sug-label">Sugerencias:</span>'+e.suggestions.map((s,j)=>`<button class="lt-chip" data-err="${i}" data-sug="${j}">${esc(s)}</button>`).join('')+'</div>'
-      : '<div class="lt-sug"><span class="lt-sug-label">Sin sugerencias automáticas</span></div>';
+      : '<div class="lt-sug"><span class="lt-sug-label">Sin sugerencias automÃ¡ticas</span></div>';
     return `<div class="lt-error"><div class="lt-field">${esc(e.label)}</div><div class="lt-msg">${esc(e.message)}</div><div class="lt-ctx">${esc(e.before)}<mark>${esc(e.word)}</mark>${esc(e.after)}</div>${chips}</div>`;
   }).join('');
   acts.innerHTML='<button class="lt-secondary" id="ltBtnClose">Volver a corregir</button>'+(opts.fromDownload?'<button class="lt-warn" id="ltBtnContinue">Descargar igual</button>':'');
@@ -802,17 +815,5 @@ async function doDownload(){
 window.addEventListener('resize',scale);if(document.fonts&&document.fonts.ready){document.fonts.ready.then(init)}else{init()}
 
 </script>
-
-<!-- Modal de revisión ortográfica (LanguageTool) -->
-<div class="lt-modal" id="ltModal" role="dialog" aria-labelledby="ltTitle">
-  <div class="lt-modal-content">
-    <h2 id="ltTitle">Revisión ortográfica</h2>
-    <div class="lt-sub" id="ltSub">Resultados de LanguageTool</div>
-    <div id="ltBody"></div>
-    <div class="lt-actions" id="ltActions"></div>
-    <div class="lt-credit">Corrección por <a href="https://languagetool.org" target="_blank" rel="noopener">LanguageTool</a></div>
-  </div>
-</div>
-
 </body>
 </html>
