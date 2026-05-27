@@ -2369,6 +2369,26 @@ function delMd(){
 }
 
 /* ============ CRUD ENTREVISTAS ============ */
+function normName(v){
+  return String(v||'').toLowerCase().trim().replace(/\s+/g,' ');
+}
+function getFuncionarioName(f){
+  return f ? (f.name || f.nombre || f.funcionario || '') : '';
+}
+function getFuncionarioPhone(f){
+  return f ? (f.phone || f.telefono || f.tel || f.whatsapp || '') : '';
+}
+function findFuncionarioByName(name){
+  const key = normName(name);
+  if(!key)return null;
+  return state.funcionarios.find(f=>normName(getFuncionarioName(f))===key) || null;
+}
+function fillEntFuncionarioPhone(force){
+  const fn = findFuncionarioByName($('enFunc').value);
+  if(fn && getFuncionarioPhone(fn) && (force || !$('enPhone').value.trim())){
+    $('enPhone').value = getFuncionarioPhone(fn);
+  }
+}
 function editEnt(id){
   const e=id?state.entrevistas.find(x=>x.id===id):null;
   $('enId').value=e?e.id:'';
@@ -2383,7 +2403,9 @@ function editEnt(id){
   $('enTipo').value=e?e.tipo||'Nota periodística':'Nota periodística';
   $('enObs').value=e?e.obs||'':'';
   $('enMdL').innerHTML=state.medios.map(m=>'<option value="'+esc(m.name)+'">').join('');
-  $('enFnL').innerHTML=state.funcionarios.map(f=>'<option value="'+esc(f.name)+'">'+esc(f.role||'')+'</option>').join('');
+  $('enFnL').innerHTML=state.funcionarios.map(f=>'<option value="'+esc(getFuncionarioName(f))+'">'+esc(f.role||f.area||'')+'</option>').join('');
+  $('enFunc').oninput = function(){ fillEntFuncionarioPhone(false); };
+  fillEntFuncionarioPhone(false);
   $('enDel').classList.toggle('hide',!e);
   openModal('enMod');
 }
@@ -2392,6 +2414,7 @@ function saveEnt(){
   const func=$('enFunc').value.trim();
   if(!medio || !func){toast('Medio y funcionario son obligatorios','err');return}
   const id=$('enId').value;
+  fillEntFuncionarioPhone(false);
   const data={
     date:$('enDate').value,time:$('enTime').value,
     medio,func,loc:$('enLoc').value,phone:$('enPhone').value,
