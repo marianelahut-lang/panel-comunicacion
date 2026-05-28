@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es" data-theme="dark">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Panel · Comunicación Tres Arroyos</title>
+<title>Panel Â· ComunicaciÃ³n Tres Arroyos</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -292,7 +292,7 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
   .gw{grid-template-columns:1fr}
   .cc{min-height:52px}
   .cev{display:none}
-  .cc.hev::after{content:"•";color:var(--ac);font-size:18px;font-weight:700;line-height:0;text-align:center;margin-top:auto;display:block}
+  .cc.hev::after{content:"â€¢";color:var(--ac);font-size:18px;font-weight:700;line-height:0;text-align:center;margin-top:auto;display:block}
 }
 
 .hide{display:none!important}
@@ -310,19 +310,19 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
 <div class="lov" id="loginOv">
   <div class="lb">
     <div class="ll">TA</div>
-    <div class="lt">Panel de Comunicación</div>
+    <div class="lt">Panel de ComunicaciÃ³n</div>
     <div class="ls">Municipalidad de Tres Arroyos</div>
     <div class="fld">
-      <label>¿Quién sos?</label>
+      <label>Â¿QuiÃ©n sos?</label>
       <select class="inp" id="loginUser"></select>
     </div>
     <div class="fld">
-      <label>Contraseña</label>
-      <input class="inp" type="password" id="loginPass" placeholder="Tu contraseña personal">
+      <label>ContraseÃ±a</label>
+      <input class="inp" type="password" id="loginPass" placeholder="Tu contraseÃ±a personal">
     </div>
-    <div style="font-size:11px;color:var(--tx-m);margin-bottom:12px;line-height:1.45">ℹ Si es tu <b>primer ingreso</b>, escribí la contraseña que querés usar y se va a crear automáticamente. La próxima vez vas a necesitar esa misma clave.</div>
+    <div style="font-size:11px;color:var(--tx-m);margin-bottom:12px;line-height:1.45">â„¹ Si es tu <b>primer ingreso</b>, escribÃ­ la contraseÃ±a que querÃ©s usar y se va a crear automÃ¡ticamente. La prÃ³xima vez vas a necesitar esa misma clave.</div>
     <button class="btn btn-p" style="width:100%;padding:11px" onclick="doLogin()">Ingresar</button>
-    <div class="lf">Dpto. Comunicaciones · v6.0</div>
+    <div class="lf">Dpto. Comunicaciones Â· v6.0</div>
   </div>
 </div>
 
@@ -333,48 +333,48 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
     <div class="sb-brand">
       <div class="sb-logo">TA</div>
       <div>
-        <div class="sb-title">Comunicación</div>
-        <div class="sb-sub">Muni · Tres Arroyos</div>
+        <div class="sb-title">ComunicaciÃ³n</div>
+        <div class="sb-sub">Muni Â· Tres Arroyos</div>
       </div>
     </div>
     <div class="sb-user">
       <div class="av" id="sbAv">?</div>
       <div class="sb-uinfo">
-        <div class="sb-uname" id="sbUn">—</div>
-        <div class="sb-urol">En línea</div>
+        <div class="sb-uname" id="sbUn">â€”</div>
+        <div class="sb-urol">En lÃ­nea</div>
       </div>
     </div>
     <nav class="sb-nav">
-      <div class="sb-sec">Operación</div>
-      <button class="nav on" data-v="hoy" onclick="switchView('hoy')"><span class="ni">☀</span><span>Hoy</span><span class="nbadge" id="bgHoy"></span></button>
-      <button class="nav" data-v="tablero" onclick="switchView('tablero')"><span class="ni">▦</span><span>Tablero</span><span class="nbadge" id="bgTab"></span></button>
-      <button class="nav" data-v="material" onclick="switchView('material')"><span class="ni">▣</span><span>Material y Agenda</span></button>
-      <button class="nav" data-v="calendario" onclick="switchView('calendario')"><span class="ni">▤</span><span>Calendario</span></button>
-      <button class="nav" data-v="guardias" onclick="switchView('guardias')"><span class="ni">◷</span><span>Guardias</span></button>
+      <div class="sb-sec">OperaciÃ³n</div>
+      <button class="nav on" data-v="hoy" onclick="switchView('hoy')"><span class="ni">â˜€</span><span>Hoy</span><span class="nbadge" id="bgHoy"></span></button>
+      <button class="nav" data-v="tablero" onclick="switchView('tablero')"><span class="ni">â–¦</span><span>Tablero</span><span class="nbadge" id="bgTab"></span></button>
+      <button class="nav" data-v="material" onclick="switchView('material')"><span class="ni">â–£</span><span>Material y Agenda</span></button>
+      <button class="nav" data-v="calendario" onclick="switchView('calendario')"><span class="ni">â–¤</span><span>Calendario</span></button>
+      <button class="nav" data-v="guardias" onclick="switchView('guardias')"><span class="ni">â—·</span><span>Guardias</span></button>
       <div class="sb-sec">Personas</div>
-      <button class="nav" data-v="equipo" onclick="switchView('equipo')"><span class="ni">⚇</span><span>Equipo</span></button>
-      <button class="nav" data-v="medios" onclick="switchView('medios')"><span class="ni">📞</span><span>Contactos de medios</span></button>
-      <button class="nav" data-v="entrevistas" onclick="switchView('entrevistas')"><span class="ni">🎙</span><span>Entrevistas</span></button>
-      <button class="nav" data-v="reclamos" onclick="switchView('reclamos')"><span class="ni">📣</span><span>Reclamos</span><span class="nbadge" id="bgRec"></span></button>
+      <button class="nav" data-v="equipo" onclick="switchView('equipo')"><span class="ni">âš‡</span><span>Equipo</span></button>
+      <button class="nav" data-v="medios" onclick="switchView('medios')"><span class="ni">ðŸ“ž</span><span>Contactos de medios</span></button>
+      <button class="nav" data-v="entrevistas" onclick="switchView('entrevistas')"><span class="ni">ðŸŽ™</span><span>Entrevistas</span></button>
+      <button class="nav" data-v="reclamos" onclick="switchView('reclamos')"><span class="ni">ðŸ“£</span><span>Reclamos</span><span class="nbadge" id="bgRec"></span></button>
       <div class="sb-sec">Herramientas</div>
-      <button class="nav" data-v="recursos" onclick="switchView('recursos')"><span class="ni">⎕</span><span>Recursos</span></button>
-      <button class="nav" data-v="flyer" onclick="openFlyer()"><span class="ni">✦</span><span>Generador de Flyer</span></button>
+      <button class="nav" data-v="recursos" onclick="switchView('recursos')"><span class="ni">âŽ•</span><span>Recursos</span></button>
+      <button class="nav" data-v="flyer" onclick="openFlyer()"><span class="ni">âœ¦</span><span>Generador de Flyer</span></button>
     </nav>
     <div class="sb-foot">
-      <button class="sbf" onclick="toggleTheme()" id="thmBtn" title="Tema">🌙</button>
-      <button class="sbf" data-admin onclick="openModal('cfgMod')" title="Configuración (solo admin)">⚙</button>
-      <button class="sbf" onclick="doLogout()" title="Salir">⎋</button>
+      <button class="sbf" onclick="toggleTheme()" id="thmBtn" title="Tema">ðŸŒ™</button>
+      <button class="sbf" data-admin onclick="openModal('cfgMod')" title="ConfiguraciÃ³n (solo admin)">âš™</button>
+      <button class="sbf" onclick="doLogout()" title="Salir">âŽ‹</button>
     </div>
-    <div id="saveInd" style="padding:6px 14px;font-size:10.5px;color:var(--gr);text-align:center;border-top:1px solid var(--bd-s);font-weight:600">💾 Guardado</div>
+    <div id="saveInd" style="padding:6px 14px;font-size:10.5px;color:var(--gr);text-align:center;border-top:1px solid var(--bd-s);font-weight:600">ðŸ’¾ Guardado</div>
   </aside>
 
   <main class="mn">
     <header class="tb">
-      <button class="mnu" onclick="toggleSidebar(true)">☰</button>
+      <button class="mnu" onclick="toggleSidebar(true)">â˜°</button>
       <div class="tbt" id="tbtl">Hoy</div>
       <div class="tba">
         <button class="btn btn-p" onclick="newTask()">+ Tarea</button>
-        <button class="tbi" data-admin onclick="openModal('cfgMod')" title="Configuración (admin)">⚙</button>
+        <button class="tbi" data-admin onclick="openModal('cfgMod')" title="ConfiguraciÃ³n (admin)">âš™</button>
       </div>
     </header>
     <section class="ct">
@@ -382,28 +382,28 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
       <!-- HOY -->
       <div class="view on" id="v-hoy">
         <div class="hero">
-          <div class="h-date" id="hDate">—</div>
-          <div class="h-day" id="hDay">—</div>
+          <div class="h-date" id="hDate">â€”</div>
+          <div class="h-day" id="hDay">â€”</div>
           <div class="h-meta">
-            <div class="hm">📅 <span><b id="hEvC">0</b> eventos hoy</span></div>
-            <div class="hm">📋 <span><b id="hTkC">0</b> tareas pendientes</span></div>
-            <div class="hm">🎙 <span><b id="hEnC">0</b> entrevistas</span></div>
-            <div class="hm">👥 Guardia: <b id="hGu">—</b></div>
+            <div class="hm">ðŸ“… <span><b id="hEvC">0</b> eventos hoy</span></div>
+            <div class="hm">ðŸ“‹ <span><b id="hTkC">0</b> tareas pendientes</span></div>
+            <div class="hm">ðŸŽ™ <span><b id="hEnC">0</b> entrevistas</span></div>
+            <div class="hm">ðŸ‘¥ Guardia: <b id="hGu">â€”</b></div>
           </div>
         </div>
 
         <div class="grid g2">
           <div class="card">
             <div class="ch">
-              <div class="ct-t">⏱ Guardia del día</div>
+              <div class="ct-t">â± Guardia del dÃ­a</div>
               <button class="btn btn-s" onclick="switchView('guardias')">Ver semana</button>
             </div>
             <div id="hGuList"></div>
           </div>
           <div class="card">
             <div class="ch">
-              <div class="ct-t">📅 Eventos del día</div>
-              <button class="btn btn-s" onclick="switchView('calendario')">Ver más</button>
+              <div class="ct-t">ðŸ“… Eventos del dÃ­a</div>
+              <button class="btn btn-s" onclick="switchView('calendario')">Ver mÃ¡s</button>
             </div>
             <div id="hEv"></div>
           </div>
@@ -411,7 +411,7 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
 
         <div class="card mt16">
           <div class="ch">
-            <div class="ct-t">🎙 Entrevistas pactadas</div>
+            <div class="ct-t">ðŸŽ™ Entrevistas pactadas</div>
             <button class="btn btn-s" onclick="switchView('entrevistas')">Todas</button>
           </div>
           <div id="hEnt"></div>
@@ -419,7 +419,7 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
 
         <div class="card mt16">
           <div class="ch">
-            <div class="ct-t">🔥 Top 10 actividades pendientes <span class="pill">por días vencidos</span></div>
+            <div class="ct-t">ðŸ”¥ Top 10 actividades pendientes <span class="pill">por dÃ­as vencidos</span></div>
             <button class="btn btn-s" onclick="switchView('tablero')">Tablero</button>
           </div>
           <div id="hTk"></div>
@@ -431,8 +431,8 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
         <div class="fb" style="margin-bottom:14px">
           <div class="fl">
             <select class="inp" id="fAg" onchange="renderTab()" style="width:170px"><option value="">Todos</option></select>
-            <input class="inp" id="fTag" oninput="renderTab()" placeholder="🏷 Etiqueta..." style="width:170px">
-            <input class="inp" id="fTxt" oninput="renderTab()" placeholder="🔎 Buscar..." style="width:170px">
+            <input class="inp" id="fTag" oninput="renderTab()" placeholder="ðŸ· Etiqueta..." style="width:170px">
+            <input class="inp" id="fTxt" oninput="renderTab()" placeholder="ðŸ”Ž Buscar..." style="width:170px">
           </div>
           <button class="btn btn-p" onclick="newTask()">+ Nueva tarea</button>
         </div>
@@ -444,18 +444,18 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
         <div class="grid g2">
           <div class="card">
             <div class="ch">
-              <div class="ct-t">📦 Material disponible <span class="pill" id="mCnt">0</span></div>
+              <div class="ct-t">ðŸ“¦ Material disponible <span class="pill" id="mCnt">0</span></div>
               <button class="btn btn-s" onclick="newPub()">+ Programar</button>
             </div>
-            <div class="ct-s" style="margin-bottom:12px">Tareas marcadas como <b>Lista para publicar</b>. Hacé clic para programarlas.</div>
+            <div class="ct-s" style="margin-bottom:12px">Tareas marcadas como <b>Lista para publicar</b>. HacÃ© clic para programarlas.</div>
             <div id="matList"></div>
           </div>
           <div class="card">
             <div class="ch">
-              <div class="ct-t">📅 Agenda de publicaciones</div>
+              <div class="ct-t">ðŸ“… Agenda de publicaciones</div>
               <button class="btn btn-s" onclick="newPub()">+ Nueva</button>
             </div>
-            <div class="ct-s" style="margin-bottom:12px">Después de las <b>15:00</b> pasa a guardia del día.</div>
+            <div class="ct-s" style="margin-bottom:12px">DespuÃ©s de las <b>15:00</b> pasa a guardia del dÃ­a.</div>
             <div id="agList"></div>
           </div>
         </div>
@@ -465,17 +465,17 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
       <div class="view" id="v-calendario">
         <div class="calt">
           <div class="calnav">
-            <button class="calnb" onclick="calNav(-1)">‹</button>
-            <div class="calcur" id="calCur">—</div>
-            <button class="calnb" onclick="calNav(1)">›</button>
+            <button class="calnb" onclick="calNav(-1)">â€¹</button>
+            <div class="calcur" id="calCur">â€”</div>
+            <button class="calnb" onclick="calNav(1)">â€º</button>
             <button class="btn btn-s" onclick="calToday()">Hoy</button>
           </div>
           <div class="fl">
             <div class="calvt">
               <button id="cvM" class="on" onclick="setCalView('month')">Mes</button>
-              <button id="cvD" onclick="setCalView('day')">Día</button>
+              <button id="cvD" onclick="setCalView('day')">DÃ­a</button>
             </div>
-            <button class="btn btn-s" data-admin onclick="openModal('gcalMod')" title="Sincronizar con Google Calendar (admin)">📅 Google</button>
+            <button class="btn btn-s" data-admin onclick="openModal('gcalMod')" title="Sincronizar con Google Calendar (admin)">ðŸ“… Google</button>
             <button class="btn btn-p btn-s" onclick="newEvent()">+ Evento</button>
           </div>
         </div>
@@ -486,23 +486,23 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
       <div class="view" id="v-guardias">
         <div class="card" style="margin-bottom:14px">
           <div class="ch">
-            <div class="ct-t">⏱ Guardias de la semana</div>
+            <div class="ct-t">â± Guardias de la semana</div>
             <div class="fl">
-              <button class="calnb" onclick="guardiaNav(-7)">‹</button>
+              <button class="calnb" onclick="guardiaNav(-7)">â€¹</button>
               <span id="gwLbl" style="font-weight:600;font-size:13px"></span>
-              <button class="calnb" onclick="guardiaNav(7)">›</button>
+              <button class="calnb" onclick="guardiaNav(7)">â€º</button>
               <button class="btn btn-s" onclick="guardiaToday()">Esta semana</button>
-              <button class="btn btn-p btn-s" data-admin onclick="aplicarPatronGuardias()" title="Aplica la rotación del Excel a las próximas semanas">🔄 Cargar patrón</button>
+              <button class="btn btn-p btn-s" data-admin onclick="aplicarPatronGuardias()" title="Aplica la rotaciÃ³n del Excel a las prÃ³ximas semanas">ðŸ”„ Cargar patrÃ³n</button>
             </div>
           </div>
           <div class="gw" id="gw"></div>
-          <div class="ct-s mt12" style="text-align:center">Clic en cualquier día para editar titular y soporte</div>
+          <div class="ct-s mt12" style="text-align:center">Clic en cualquier dÃ­a para editar titular y soporte</div>
         </div>
 
         <div class="card">
           <div class="ch">
-            <div class="ct-t">📋 Tareas y eventos asignados a guardias</div>
-            <button class="btn btn-w btn-s" onclick="sendGuardiaWa()">📱 Enviar por WhatsApp</button>
+            <div class="ct-t">ðŸ“‹ Tareas y eventos asignados a guardias</div>
+            <button class="btn btn-w btn-s" onclick="sendGuardiaWa()">ðŸ“± Enviar por WhatsApp</button>
           </div>
           <div id="gTkList"></div>
         </div>
@@ -524,13 +524,13 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
       <div class="view" id="v-medios">
         <div class="fb" style="margin-bottom:14px">
           <div>
-            <div class="ct-t">📒 Contactos de medios</div>
+            <div class="ct-t">ðŸ“’ Contactos de medios</div>
             <div class="ct-s">Periodistas y medios de Tres Arroyos</div>
           </div>
           <div class="fl">
             <input class="inp" id="mSrch" oninput="renderMed()" placeholder="Buscar..." style="width:160px">
-            <button class="btn" onclick="openGac()">📢 Gacetilla masiva</button>
-            <button class="btn btn-w" onclick="flyerYGacetilla()" title="Abre el generador de flyer en pestaña nueva, después podés mandarlo a los medios">🎨 Flyer + WA medios</button>
+            <button class="btn" onclick="openGac()">ðŸ“¢ Gacetilla masiva</button>
+            <button class="btn btn-w" onclick="flyerYGacetilla()" title="Abre el generador de flyer en pestaÃ±a nueva, despuÃ©s podÃ©s mandarlo a los medios">ðŸŽ¨ Flyer + WA medios</button>
             <button class="btn btn-p" onclick="editMd(null)">+ Agregar</button>
           </div>
         </div>
@@ -541,7 +541,7 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
       <div class="view" id="v-entrevistas">
         <div class="fb" style="margin-bottom:14px">
           <div>
-            <div class="ct-t">🎙 Entrevistas</div>
+            <div class="ct-t">ðŸŽ™ Entrevistas</div>
             <div class="ct-s">Con medios y funcionarios</div>
           </div>
           <button class="btn btn-p" onclick="editEnt(null)">+ Nueva entrevista</button>
@@ -553,8 +553,8 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
       <div class="view" id="v-reclamos">
         <div class="fb" style="margin-bottom:14px">
           <div>
-            <div class="ct-t">📣 Reclamos de vecinos</div>
-            <div class="ct-s">Reclamos derivados a funcionarios y áreas</div>
+            <div class="ct-t">ðŸ“£ Reclamos de vecinos</div>
+            <div class="ct-s">Reclamos derivados a funcionarios y Ã¡reas</div>
           </div>
           <div class="fl">
             <select class="inp" id="rcFilt" onchange="renderReclamos()" style="width:150px">
@@ -568,9 +568,9 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
           </div>
         </div>
         <div class="calvt" style="margin-bottom:12px;width:fit-content">
-          <button id="rcvL" class="on" onclick="setRcView('lista')">📋 Lista</button>
-          <button id="rcvF" onclick="setRcView('func')">👤 Por funcionario</button>
-          <button id="rcvT" onclick="setRcView('tipo')">🏷 Por tipo</button>
+          <button id="rcvL" class="on" onclick="setRcView('lista')">ðŸ“‹ Lista</button>
+          <button id="rcvF" onclick="setRcView('func')">ðŸ‘¤ Por funcionario</button>
+          <button id="rcvT" onclick="setRcView('tipo')">ðŸ· Por tipo</button>
         </div>
         <div id="reclamosList"></div>
       </div>
@@ -579,15 +579,15 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
       <div class="view" id="v-recursos">
         <div class="fb" style="margin-bottom:14px">
           <div>
-            <div class="ct-t">⎕ Biblioteca de recursos</div>
+            <div class="ct-t">âŽ• Biblioteca de recursos</div>
             <div class="ct-s">Links y archivos del equipo</div>
           </div>
           <div class="fl">
             <select class="inp" id="rFilt" onchange="renderRec()" style="width:170px">
-              <option value="">Todas las categorías</option>
-              <option>Fotos / Multimedia</option><option>Templates / Canva</option>
+              <option value="">Todas las categorÃ­as</option>
+              <option>Flyers generados</option><option>Fotos / Multimedia</option><option>Templates / Canva</option>
               <option>Documentos</option><option>Google Drive</option>
-              <option>Contactos útiles</option><option>Otro</option>
+              <option>Contactos Ãºtiles</option><option>Otro</option>
             </select>
             <button class="btn btn-p" onclick="editRc(null)">+ Agregar</button>
           </div>
@@ -603,10 +603,10 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
 
 <div class="mov" id="tkMod"><div class="mod"><div class="mh">
   <div class="mt" id="tkTit">Nueva tarea</div>
-  <button class="mx" onclick="closeModal('tkMod')">✕</button>
+  <button class="mx" onclick="closeModal('tkMod')">âœ•</button>
 </div><div class="mb">
   <input type="hidden" id="tkId">
-  <div class="fld"><label>Descripción</label><textarea class="inp" id="tkDesc" placeholder="¿Qué hay que hacer?"></textarea></div>
+  <div class="fld"><label>DescripciÃ³n</label><textarea class="inp" id="tkDesc" placeholder="Â¿QuÃ© hay que hacer?"></textarea></div>
   <div class="fld">
     <label>Responsables (Ctrl+clic para varios)</label>
     <select class="inp" id="tkAsg" multiple size="4"></select>
@@ -625,21 +625,21 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
   </div>
   <div class="fld"><label>Observaciones / Link</label><textarea class="inp" id="tkNotes"></textarea></div>
 </div><div class="mf">
-  <button class="btn btn-d hide" id="tkDel" onclick="delTask()">🗑 Eliminar</button>
+  <button class="btn btn-d hide" id="tkDel" onclick="delTask()">ðŸ—‘ Eliminar</button>
   <button class="btn" onclick="closeModal('tkMod')">Cancelar</button>
   <button class="btn btn-p" onclick="saveTask()">Guardar</button>
 </div></div></div>
 
 <div class="mov" id="pbMod"><div class="mod"><div class="mh">
-  <div class="mt" id="pbTit">Nueva publicación</div>
-  <button class="mx" onclick="closeModal('pbMod')">✕</button>
+  <div class="mt" id="pbTit">Nueva publicaciÃ³n</div>
+  <button class="mx" onclick="closeModal('pbMod')">âœ•</button>
 </div><div class="mb">
   <input type="hidden" id="pbId">
   <div class="ir">
     <div class="fld"><label>Fecha</label><input class="inp" type="date" id="pbDate"></div>
     <div class="fld"><label>Hora</label><input class="inp" type="time" id="pbTime"></div>
   </div>
-  <div class="fld"><label>Descripción</label><textarea class="inp" id="pbDesc"></textarea></div>
+  <div class="fld"><label>DescripciÃ³n</label><textarea class="inp" id="pbDesc"></textarea></div>
   <div class="ir">
     <div class="fld"><label>Cuenta</label><select class="inp" id="pbAcc">
       <option>FB Municipalidad</option><option>IG Municipalidad</option><option>YT Municipalidad</option>
@@ -647,37 +647,37 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
     </select></div>
     <div class="fld"><label>Tipo</label><select class="inp" id="pbType">
       <option>Reel/Video</option><option>Foto</option><option>Carrusel</option><option>Historia</option>
-      <option>Gacetilla</option><option>Streaming</option><option>Pieza gráfica</option>
+      <option>Gacetilla</option><option>Streaming</option><option>Pieza grÃ¡fica</option>
     </select></div>
   </div>
   <div class="ir">
     <div class="fld"><label>Responsable</label><select class="inp" id="pbResp"></select></div>
     <div class="fld"><label>Estado</label><select class="inp" id="pbSt">
-      <option>Pendiente</option><option>En producción</option><option>Listo para publicar</option><option>Publicado</option>
+      <option>Pendiente</option><option>En producciÃ³n</option><option>Listo para publicar</option><option>Publicado</option>
     </select></div>
   </div>
   <div class="fld">
-    <label>📎 Archivos adjuntos (imágenes, videos, PDFs)</label>
+    <label>ðŸ“Ž Archivos adjuntos (imÃ¡genes, videos, PDFs)</label>
     <input class="inp" type="file" id="pbArchivos" multiple onchange="onArchivosCambian('pb', this.files)">
     <div id="pbArchivosLista" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
   </div>
 </div><div class="mf">
-  <button class="btn btn-d hide" id="pbDel" onclick="delPub()">🗑 Eliminar</button>
-  <button class="btn btn-w" onclick="pubCompartirConArchivos()">📤 Compartir con archivos</button>
+  <button class="btn btn-d hide" id="pbDel" onclick="delPub()">ðŸ—‘ Eliminar</button>
+  <button class="btn btn-w" onclick="pubCompartirConArchivos()">ðŸ“¤ Compartir con archivos</button>
   <button class="btn" onclick="closeModal('pbMod')">Cancelar</button>
   <button class="btn btn-p" onclick="savePub()">Guardar</button>
 </div></div></div>
 
 <div class="mov" id="evMod"><div class="mod"><div class="mh">
   <div class="mt" id="evTit">Nuevo evento</div>
-  <button class="mx" onclick="closeModal('evMod')">✕</button>
+  <button class="mx" onclick="closeModal('evMod')">âœ•</button>
 </div><div class="mb">
   <input type="hidden" id="evId">
   <div class="ir">
     <div class="fld"><label>Fecha</label><input class="inp" type="date" id="evDate"></div>
     <div class="fld"><label>Hora</label><input class="inp" type="time" id="evTime"></div>
   </div>
-  <div class="fld"><label>Descripción</label><textarea class="inp" id="evDesc"></textarea></div>
+  <div class="fld"><label>DescripciÃ³n</label><textarea class="inp" id="evDesc"></textarea></div>
   <div class="ir">
     <div class="fld"><label>Lugar</label><input class="inp" id="evLoc"></div>
     <div class="fld"><label>Tipo</label><select class="inp" id="evType">
@@ -687,17 +687,17 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
   <div class="fld"><label>Responsable</label><select class="inp" id="evResp"></select></div>
   <div style="background:var(--ac-s);border-radius:10px;padding:12px;display:flex;align-items:center;gap:10px;margin-top:4px;cursor:pointer" onclick="document.getElementById('evCov').click()">
     <input type="checkbox" id="evCov" style="width:18px;height:18px;cursor:pointer;accent-color:var(--ac)">
-    <label for="evCov" style="font-size:12.5px;font-weight:600;cursor:pointer;color:var(--ac)">📋 Cubrir con prensa (si es ≥15hs pasa a la guardia)</label>
+    <label for="evCov" style="font-size:12.5px;font-weight:600;cursor:pointer;color:var(--ac)">ðŸ“‹ Cubrir con prensa (si es â‰¥15hs pasa a la guardia)</label>
   </div>
 </div><div class="mf">
-  <button class="btn btn-d hide" id="evDel" onclick="delEvent()">🗑 Eliminar</button>
+  <button class="btn btn-d hide" id="evDel" onclick="delEvent()">ðŸ—‘ Eliminar</button>
   <button class="btn" onclick="closeModal('evMod')">Cancelar</button>
   <button class="btn btn-p" onclick="saveEvent()">Guardar</button>
 </div></div></div>
 
 <div class="mov" id="agMod"><div class="mod"><div class="mh">
   <div class="mt">Integrante del equipo</div>
-  <button class="mx" onclick="closeModal('agMod')">✕</button>
+  <button class="mx" onclick="closeModal('agMod')">âœ•</button>
 </div><div class="mb">
   <input type="hidden" id="agId">
   <div class="fld"><label>Nombre</label><input class="inp" id="agName"></div>
@@ -708,33 +708,33 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
       <option value="#06b6d4">Celeste</option><option value="#f97316">Naranja oscuro</option><option value="#84cc16">Lima</option>
     </select></div>
     <div class="fld"><label>Rol</label><select class="inp" id="agRole">
-      <option>Jefe/a de área</option><option>Responsable de equipo</option><option>Comunicador/a</option>
-      <option>Diseñador/a</option><option>Editor/a de video</option><option>Community Manager</option>
-      <option>Camarógrafo/a</option><option>Fotógrafo/a</option>
+      <option>Jefe/a de Ã¡rea</option><option>Responsable de equipo</option><option>Comunicador/a</option>
+      <option>DiseÃ±ador/a</option><option>Editor/a de video</option><option>Community Manager</option>
+      <option>CamarÃ³grafo/a</option><option>FotÃ³grafo/a</option>
     </select></div>
   </div>
   <div class="ir">
     <div class="fld"><label>Email</label><input class="inp" type="email" id="agEmail"></div>
     <div class="fld"><label>WhatsApp (54...)</label><input class="inp" id="agPhone" placeholder="5492983..."></div>
   </div>
-  <div class="fld"><label>¿Hace coberturas?</label><select class="inp" id="agCovers"><option value="si">Sí</option><option value="no">No</option></select></div>
+  <div class="fld"><label>Â¿Hace coberturas?</label><select class="inp" id="agCovers"><option value="si">SÃ­</option><option value="no">No</option></select></div>
   <div class="fld">
-    <label>🔑 Cambiar contraseña (dejá vacío para no cambiar)</label>
-    <input class="inp" id="agPass" type="password" placeholder="Nueva contraseña">
+    <label>ðŸ”‘ Cambiar contraseÃ±a (dejÃ¡ vacÃ­o para no cambiar)</label>
+    <input class="inp" id="agPass" type="password" placeholder="Nueva contraseÃ±a">
   </div>
   <div class="fld" data-admin>
-    <label>⭐ ¿Es administrador? (acceso a configuración, guardias y calendarios)</label>
-    <select class="inp" id="agAdmin"><option value="false">No</option><option value="true">Sí</option></select>
+    <label>â­ Â¿Es administrador? (acceso a configuraciÃ³n, guardias y calendarios)</label>
+    <select class="inp" id="agAdmin"><option value="false">No</option><option value="true">SÃ­</option></select>
   </div>
 </div><div class="mf">
-  <button class="btn btn-d hide" id="agDel" onclick="delAg()">🗑 Eliminar</button>
+  <button class="btn btn-d hide" id="agDel" onclick="delAg()">ðŸ—‘ Eliminar</button>
   <button class="btn" onclick="closeModal('agMod')">Cancelar</button>
   <button class="btn btn-p" onclick="saveAg()">Guardar</button>
 </div></div></div>
 
 <div class="mov" id="mdMod"><div class="mod"><div class="mh">
   <div class="mt">Contacto de medio</div>
-  <button class="mx" onclick="closeModal('mdMod')">✕</button>
+  <button class="mx" onclick="closeModal('mdMod')">âœ•</button>
 </div><div class="mb">
   <input type="hidden" id="mdId">
   <div class="ir">
@@ -747,31 +747,31 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
   </div>
   <div class="ir">
     <div class="fld"><label>Tipo</label><select class="inp" id="mdType">
-      <option>📻 Radio</option><option>📰 Diario / Digital</option><option>📺 TV</option>
-      <option>📖 Revista</option><option>🗞 Agencia</option><option>Otro</option>
+      <option>ðŸ“» Radio</option><option>ðŸ“° Diario / Digital</option><option>ðŸ“º TV</option>
+      <option>ðŸ“– Revista</option><option>ðŸ—ž Agencia</option><option>Otro</option>
     </select></div>
     <div class="fld"><label>Especialidad</label><select class="inp" id="mdSpec">
-      <option>General</option><option>Política</option><option>Municipio</option><option>Deportes</option>
-      <option>Cultura</option><option>Salud</option><option>Economía</option><option>Policial</option><option>Sociedad</option>
+      <option>General</option><option>PolÃ­tica</option><option>Municipio</option><option>Deportes</option>
+      <option>Cultura</option><option>Salud</option><option>EconomÃ­a</option><option>Policial</option><option>Sociedad</option>
     </select></div>
   </div>
   <div class="fld"><label>Notas</label><textarea class="inp" id="mdNotes"></textarea></div>
 </div><div class="mf">
-  <button class="btn btn-d hide" id="mdDel" onclick="delMd()">🗑 Eliminar</button>
+  <button class="btn btn-d hide" id="mdDel" onclick="delMd()">ðŸ—‘ Eliminar</button>
   <button class="btn" onclick="closeModal('mdMod')">Cancelar</button>
   <button class="btn btn-p" onclick="saveMd()">Guardar</button>
 </div></div></div>
 
 <div class="mov" id="gcMod"><div class="mod mod-l"><div class="mh">
-  <div class="mt">📢 Gacetilla masiva por WhatsApp</div>
-  <button class="mx" onclick="closeModal('gcMod')">✕</button>
+  <div class="mt">ðŸ“¢ Gacetilla masiva por WhatsApp</div>
+  <button class="mx" onclick="closeModal('gcMod')">âœ•</button>
 </div><div class="mb">
-  <div class="fld"><label>Mensaje</label><textarea class="inp" id="gcMsg" rows="4" placeholder="Escribí la gacetilla..."></textarea></div>
+  <div class="fld"><label>Mensaje</label><textarea class="inp" id="gcMsg" rows="4" placeholder="EscribÃ­ la gacetilla..."></textarea></div>
   <div class="fld">
-    <label>📎 Adjuntar flyer / imagen (opcional)</label>
+    <label>ðŸ“Ž Adjuntar flyer / imagen (opcional)</label>
     <input class="inp" type="file" id="gcArchivos" multiple accept="image/*,video/*,.pdf" onchange="onArchivosCambian('gc', this.files)">
     <div id="gcArchivosLista" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
-    <small class="t-m">Generá el flyer en el "Generador de Flyers" → descargalo → subilo acá</small>
+    <small class="t-m">GenerÃ¡ el flyer en el "Generador de Flyers" â†’ descargalo â†’ subilo acÃ¡</small>
   </div>
   <div class="fld">
     <label>Destinatarios</label>
@@ -781,172 +781,172 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
       <button class="btn btn-s" onclick="gcSelAll(false)">Limpiar</button>
     </div>
   </div>
-  <div class="ct-s">ℹ Se abre WhatsApp Web/app por cada contacto. Si adjuntás archivos, se descargan para que los arrastres al chat.</div>
+  <div class="ct-s">â„¹ Se abre WhatsApp Web/app por cada contacto. Si adjuntÃ¡s archivos, se descargan para que los arrastres al chat.</div>
 </div><div class="mf">
   <button class="btn" onclick="closeModal('gcMod')">Cancelar</button>
-  <button class="btn btn-w" onclick="sendGac()">📱 Enviar</button>
+  <button class="btn btn-w" onclick="sendGac()">ðŸ“± Enviar</button>
 </div></div></div>
 
 <div class="mov" id="enMod"><div class="mod mod-l"><div class="mh">
-  <div class="mt">🎙 Entrevista</div>
-  <button class="mx" onclick="closeModal('enMod')">✕</button>
+  <div class="mt">ðŸŽ™ Entrevista</div>
+  <button class="mx" onclick="closeModal('enMod')">âœ•</button>
 </div><div class="mb">
   <input type="hidden" id="enId">
   <div class="ir">
-    <div class="fld"><label>📅 Fecha</label><input class="inp" type="date" id="enDate"></div>
-    <div class="fld"><label>🕐 Hora</label><input class="inp" type="time" id="enTime"></div>
+    <div class="fld"><label>ðŸ“… Fecha</label><input class="inp" type="date" id="enDate"></div>
+    <div class="fld"><label>ðŸ• Hora</label><input class="inp" type="time" id="enTime"></div>
   </div>
   <div class="ir">
-    <div class="fld"><label>📻 Medio</label><input class="inp" id="enMedio" list="enMdL"></div>
-    <div class="fld"><label>👤 Funcionario</label><input class="inp" id="enFunc" list="enFnL"></div>
+    <div class="fld"><label>ðŸ“» Medio</label><input class="inp" id="enMedio" list="enMdL"></div>
+    <div class="fld"><label>ðŸ‘¤ Funcionario</label><input class="inp" id="enFunc" list="enFnL"></div>
   </div>
   <datalist id="enMdL"></datalist>
   <datalist id="enFnL"></datalist>
   <div class="ir">
-    <div class="fld"><label>📍 Lugar</label><input class="inp" id="enLoc"></div>
-    <div class="fld"><label>📱 WhatsApp funcionario</label><input class="inp" id="enPhone"></div>
+    <div class="fld"><label>ðŸ“ Lugar</label><input class="inp" id="enLoc"></div>
+    <div class="fld"><label>ðŸ“± WhatsApp funcionario</label><input class="inp" id="enPhone"></div>
   </div>
-  <div class="fld"><label>💬 Tema</label><textarea class="inp" id="enTema"></textarea></div>
+  <div class="fld"><label>ðŸ’¬ Tema</label><textarea class="inp" id="enTema"></textarea></div>
   <div class="ir">
-    <div class="fld"><label>⏱ Duración</label><select class="inp" id="enDur">
+    <div class="fld"><label>â± DuraciÃ³n</label><select class="inp" id="enDur">
       <option>15 min</option><option>30 min</option><option>45 min</option><option>60 min</option><option>Indefinida</option>
     </select></div>
-    <div class="fld"><label>🎬 Tipo</label><select class="inp" id="enTipo">
-      <option>Nota periodística</option><option>Editorial</option><option>Columna</option>
+    <div class="fld"><label>ðŸŽ¬ Tipo</label><select class="inp" id="enTipo">
+      <option>Nota periodÃ­stica</option><option>Editorial</option><option>Columna</option>
       <option>Radio en vivo</option><option>TV en vivo</option><option>Grabado</option><option>Comunicado</option>
     </select></div>
   </div>
-  <div class="fld"><label>📝 Observaciones</label><textarea class="inp" id="enObs"></textarea></div>
+  <div class="fld"><label>ðŸ“ Observaciones</label><textarea class="inp" id="enObs"></textarea></div>
 </div><div class="mf">
-  <button class="btn btn-d hide" id="enDel" onclick="delEnt()">🗑 Eliminar</button>
-  <button class="btn btn-w" onclick="entNotifyWa()">📱 Notificar funcionario</button>
+  <button class="btn btn-d hide" id="enDel" onclick="delEnt()">ðŸ—‘ Eliminar</button>
+  <button class="btn btn-w" onclick="entNotifyWa()">ðŸ“± Notificar funcionario</button>
   <button class="btn" onclick="closeModal('enMod')">Cancelar</button>
   <button class="btn btn-p" onclick="saveEnt()">Guardar</button>
 </div></div></div>
 
 <div class="mov" id="gdMod"><div class="mod"><div class="mh">
-  <div class="mt">Editar guardia · <span id="gdDateLbl"></span></div>
-  <button class="mx" onclick="closeModal('gdMod')">✕</button>
+  <div class="mt">Editar guardia Â· <span id="gdDateLbl"></span></div>
+  <button class="mx" onclick="closeModal('gdMod')">âœ•</button>
 </div><div class="mb">
   <input type="hidden" id="gdDate">
-  <div class="fld"><label>Titular</label><select class="inp" id="gdTit"><option value="">— Sin asignar —</option></select></div>
-  <div class="fld"><label>Soporte</label><select class="inp" id="gdSop"><option value="">— Sin soporte —</option></select></div>
-  <div class="ct-s">ℹ Este cambio aplica solo a este día.</div>
+  <div class="fld"><label>Titular</label><select class="inp" id="gdTit"><option value="">â€” Sin asignar â€”</option></select></div>
+  <div class="fld"><label>Soporte</label><select class="inp" id="gdSop"><option value="">â€” Sin soporte â€”</option></select></div>
+  <div class="ct-s">â„¹ Este cambio aplica solo a este dÃ­a.</div>
 </div><div class="mf">
-  <button class="btn btn-d" onclick="clearGuardia()">🗑 Limpiar</button>
+  <button class="btn btn-d" onclick="clearGuardia()">ðŸ—‘ Limpiar</button>
   <button class="btn" onclick="closeModal('gdMod')">Cancelar</button>
   <button class="btn btn-p" onclick="saveGuardia()">Guardar</button>
 </div></div></div>
 
 <div class="mov" id="rcMod"><div class="mod"><div class="mh">
   <div class="mt">Recurso</div>
-  <button class="mx" onclick="closeModal('rcMod')">✕</button>
+  <button class="mx" onclick="closeModal('rcMod')">âœ•</button>
 </div><div class="mb">
   <input type="hidden" id="rcId">
   <div class="fld"><label>Nombre</label><input class="inp" id="rcName"></div>
-  <div class="fld"><label>Categoría</label><select class="inp" id="rcCat">
-    <option>Fotos / Multimedia</option><option>Templates / Canva</option><option>Documentos</option>
-    <option>Google Drive</option><option>Contactos útiles</option><option>Otro</option>
+  <div class="fld"><label>CategorÃ­a</label><select class="inp" id="rcCat">
+    <option>Flyers generados</option><option>Fotos / Multimedia</option><option>Templates / Canva</option><option>Documentos</option>
+    <option>Google Drive</option><option>Contactos Ãºtiles</option><option>Otro</option>
   </select></div>
   <div class="fld"><label>URL o Link</label><input class="inp" id="rcUrl" placeholder="https://..."></div>
-  <div class="fld"><label>Descripción</label><textarea class="inp" id="rcDesc"></textarea></div>
+  <div class="fld"><label>DescripciÃ³n</label><textarea class="inp" id="rcDesc"></textarea></div>
 </div><div class="mf">
-  <button class="btn btn-d hide" id="rcDel" onclick="delRc()">🗑 Eliminar</button>
+  <button class="btn btn-d hide" id="rcDel" onclick="delRc()">ðŸ—‘ Eliminar</button>
   <button class="btn" onclick="closeModal('rcMod')">Cancelar</button>
   <button class="btn btn-p" onclick="saveRc()">Guardar</button>
 </div></div></div>
 
 <div class="mov" id="gcalMod"><div class="mod mod-l"><div class="mh">
-  <div class="mt">📅 Sincronizar Google Calendar</div>
-  <button class="mx" onclick="closeModal('gcalMod')">✕</button>
+  <div class="mt">ðŸ“… Sincronizar Google Calendar</div>
+  <button class="mx" onclick="closeModal('gcalMod')">âœ•</button>
 </div><div class="mb">
-  <div class="ct-s" style="margin-bottom:14px">Importá automáticamente los eventos de un calendario público de Google. <b>El calendario debe estar marcado como "Disponible públicamente" en Google Calendar.</b></div>
+  <div class="ct-s" style="margin-bottom:14px">ImportÃ¡ automÃ¡ticamente los eventos de un calendario pÃºblico de Google. <b>El calendario debe estar marcado como "Disponible pÃºblicamente" en Google Calendar.</b></div>
   <div class="fld">
     <label>URL o ID del calendario</label>
-    <textarea class="inp" id="gcUrl" rows="2" placeholder="Pegá la URL completa de Google Calendar o solo el ID..."></textarea>
+    <textarea class="inp" id="gcUrl" rows="2" placeholder="PegÃ¡ la URL completa de Google Calendar o solo el ID..."></textarea>
     <small class="t-m">Acepta: URL completa (con cid=...), URL de iCal, o el ID directo</small>
   </div>
   <div class="fl">
-    <button class="btn btn-p" onclick="syncGoogleCal()">🔄 Sincronizar ahora</button>
-    <button class="btn" onclick="autoSyncToggle()" id="autoSyncBtn">🔁 Auto-sync: OFF</button>
+    <button class="btn btn-p" onclick="syncGoogleCal()">ðŸ”„ Sincronizar ahora</button>
+    <button class="btn" onclick="autoSyncToggle()" id="autoSyncBtn">ðŸ” Auto-sync: OFF</button>
   </div>
   <div id="gcStat" style="margin-top:10px;font-size:12px;color:var(--tx-m)"></div>
   <div id="gcResult"></div>
   <div class="ct-s mt16" style="background:var(--bg-soft);border-radius:10px;padding:12px">
-    <b>¿Cómo hago público el calendario?</b><br>
-    1. En Google Calendar, andá a "Mis calendarios" → tres puntos → <b>Configuración y uso compartido</b><br>
-    2. En "Permisos de acceso a eventos" tildá <b>Hacer disponible para el público</b><br>
-    3. Más abajo en "Integrar calendario" copiá la <b>URL pública en formato iCal</b><br>
-    4. Pegá esa URL acá arriba
+    <b>Â¿CÃ³mo hago pÃºblico el calendario?</b><br>
+    1. En Google Calendar, andÃ¡ a "Mis calendarios" â†’ tres puntos â†’ <b>ConfiguraciÃ³n y uso compartido</b><br>
+    2. En "Permisos de acceso a eventos" tildÃ¡ <b>Hacer disponible para el pÃºblico</b><br>
+    3. MÃ¡s abajo en "Integrar calendario" copiÃ¡ la <b>URL pÃºblica en formato iCal</b><br>
+    4. PegÃ¡ esa URL acÃ¡ arriba
   </div>
 </div><div class="mf">
-  <button class="btn btn-d hide" id="gcDel" onclick="disconnectGCal()">🗑 Desconectar</button>
+  <button class="btn btn-d hide" id="gcDel" onclick="disconnectGCal()">ðŸ—‘ Desconectar</button>
   <button class="btn btn-p" onclick="closeModal('gcalMod')">Cerrar</button>
 </div></div></div>
 
 <div class="mov" id="cfgMod"><div class="mod mod-l"><div class="mh">
-  <div class="mt">⚙ Configuración y datos</div>
-  <button class="mx" onclick="closeModal('cfgMod')">✕</button>
+  <div class="mt">âš™ ConfiguraciÃ³n y datos</div>
+  <button class="mx" onclick="closeModal('cfgMod')">âœ•</button>
 </div><div class="mb">
   <div class="card" style="margin-bottom:14px">
-    <div class="ct-t" style="margin-bottom:10px">🔄 Importar / Exportar</div>
-    <div class="ct-s" style="margin-bottom:12px">Migrá tus datos del panel anterior pegando el JSON exportado.</div>
+    <div class="ct-t" style="margin-bottom:10px">ðŸ”„ Importar / Exportar</div>
+    <div class="ct-s" style="margin-bottom:12px">MigrÃ¡ tus datos del panel anterior pegando el JSON exportado.</div>
     <textarea class="inp" id="impData" rows="4" placeholder='{"agents":[...],"tasks":[...]}'></textarea>
     <div class="fl mt8">
-      <button class="btn btn-p btn-s" onclick="importJSON()">📥 Importar</button>
-      <button class="btn btn-s" onclick="exportJSON()">📤 Exportar todo</button>
-      <button class="btn btn-s" onclick="detectOld()">🔍 Detectar panel anterior</button>
+      <button class="btn btn-p btn-s" onclick="importJSON()">ðŸ“¥ Importar</button>
+      <button class="btn btn-s" onclick="exportJSON()">ðŸ“¤ Exportar todo</button>
+      <button class="btn btn-s" onclick="detectOld()">ðŸ” Detectar panel anterior</button>
     </div>
   </div>
   <div class="card" style="margin-bottom:14px">
-    <div class="ct-t" style="margin-bottom:10px">☁ Sincronización en la nube</div>
+    <div class="ct-t" style="margin-bottom:10px">â˜ SincronizaciÃ³n en la nube</div>
     <div class="ct-s" style="margin-bottom:12px">Permite que <b>todos los agentes vean lo mismo</b> y trabajen sincronizados desde cualquier dispositivo. Los cambios se reflejan cada ~25 segundos.</div>
     <div class="fld"><label>URL Supabase</label><input class="inp" id="spUrl" placeholder="https://kvbwurvvgfarmiqtvlsc.supabase.co"></div>
     <div class="fld"><label>API Key (publishable / anon)</label><input class="inp" id="spKey" type="password" placeholder="sb_publishable_... o eyJhbGc..."></div>
     <div class="fl">
-      <button class="btn btn-s" onclick="saveSupa()">💾 Guardar configuración</button>
-      <button class="btn btn-p btn-s" onclick="pushAhora()">📤 Subir mis datos</button>
-      <button class="btn btn-s" onclick="pullAhora()">📥 Bajar de la nube</button>
+      <button class="btn btn-s" onclick="saveSupa()">ðŸ’¾ Guardar configuraciÃ³n</button>
+      <button class="btn btn-p btn-s" onclick="pushAhora()">ðŸ“¤ Subir mis datos</button>
+      <button class="btn btn-s" onclick="pullAhora()">ðŸ“¥ Bajar de la nube</button>
     </div>
     <div id="spStat" style="margin-top:10px;font-size:12px;color:var(--tx-m)">No conectado</div>
     <div id="supaResult"></div>
     <div style="background:var(--ac-s);border-radius:10px;padding:12px;margin-top:14px;border:1px solid var(--ac)">
-      <div style="font-weight:700;font-size:13px;color:var(--ac);margin-bottom:6px">⚙ Configurar la tabla (1ra vez)</div>
-      <div class="ct-s" style="margin-bottom:10px">Hay que ejecutar este SQL en Supabase una sola vez. Después funciona solo para siempre.</div>
+      <div style="font-weight:700;font-size:13px;color:var(--ac);margin-bottom:6px">âš™ Configurar la tabla (1ra vez)</div>
+      <div class="ct-s" style="margin-bottom:10px">Hay que ejecutar este SQL en Supabase una sola vez. DespuÃ©s funciona solo para siempre.</div>
       <ol style="font-size:12px;color:var(--tx-s);padding-left:18px;line-height:1.7;margin-bottom:10px">
-        <li>Andá a <b>supabase.com/dashboard</b> e ingresá a tu proyecto</li>
-        <li>En el menú izquierdo: <b>SQL Editor</b> → New query</li>
-        <li>Apretá el botón ↓ y pegá lo que copia</li>
-        <li>Apretá <b>Run</b> (o Ctrl+Enter)</li>
-        <li>Volvé al panel → recargá → ya sincroniza solo</li>
+        <li>AndÃ¡ a <b>supabase.com/dashboard</b> e ingresÃ¡ a tu proyecto</li>
+        <li>En el menÃº izquierdo: <b>SQL Editor</b> â†’ New query</li>
+        <li>ApretÃ¡ el botÃ³n â†“ y pegÃ¡ lo que copia</li>
+        <li>ApretÃ¡ <b>Run</b> (o Ctrl+Enter)</li>
+        <li>VolvÃ© al panel â†’ recargÃ¡ â†’ ya sincroniza solo</li>
       </ol>
-      <button class="btn btn-p btn-s" onclick="copiarSqlSupabase()" style="width:100%">📋 Copiar SQL al portapapeles</button>
+      <button class="btn btn-p btn-s" onclick="copiarSqlSupabase()" style="width:100%">ðŸ“‹ Copiar SQL al portapapeles</button>
     </div>
-    <div class="ct-s" style="margin-top:10px">🔍 Para importar datos del panel anterior: usá el botón "Escanear tablas" si las tablas viejas siguen ahí.</div>
+    <div class="ct-s" style="margin-top:10px">ðŸ” Para importar datos del panel anterior: usÃ¡ el botÃ³n "Escanear tablas" si las tablas viejas siguen ahÃ­.</div>
     <div class="fl mt8">
-      <button class="btn btn-s" onclick="scanSupa()">🔍 Escanear tablas viejas</button>
+      <button class="btn btn-s" onclick="scanSupa()">ðŸ” Escanear tablas viejas</button>
     </div>
   </div>
   <div class="card" style="margin-bottom:14px">
-    <div class="ct-t" style="margin-bottom:10px">🔑 Contraseña del panel</div>
+    <div class="ct-t" style="margin-bottom:10px">ðŸ”‘ ContraseÃ±a del panel</div>
     <div class="ir">
       <div class="fld"><label>Nueva</label><input class="inp" type="password" id="npw"></div>
       <div class="fld"><label>Confirmar</label><input class="inp" type="password" id="npw2"></div>
     </div>
-    <button class="btn btn-p btn-s" onclick="chgPass()">Cambiar contraseña</button>
+    <button class="btn btn-p btn-s" onclick="chgPass()">Cambiar contraseÃ±a</button>
   </div>
   <div class="card" style="background:var(--rd-s);border-color:var(--rd)">
-    <div class="ct-t" style="margin-bottom:10px;color:var(--rd)">⚠ Borrar todo</div>
+    <div class="ct-t" style="margin-bottom:10px;color:var(--rd)">âš  Borrar todo</div>
     <div class="ct-s" style="margin-bottom:12px">Borra TODOS los datos locales. No se puede deshacer.</div>
-    <button class="btn btn-d btn-s" onclick="resetAll()">🗑 Borrar y reiniciar</button>
+    <button class="btn btn-d btn-s" onclick="resetAll()">ðŸ—‘ Borrar y reiniciar</button>
   </div>
 </div><div class="mf">
   <button class="btn btn-p" onclick="closeModal('cfgMod')">Cerrar</button>
 </div></div></div>
 
 <div class="mov" id="rcLmMod"><div class="mod mod-l"><div class="mh">
-  <div class="mt">📣 Reclamo</div>
-  <button class="mx" onclick="closeModal('rcLmMod')">✕</button>
+  <div class="mt">ðŸ“£ Reclamo</div>
+  <button class="mx" onclick="closeModal('rcLmMod')">âœ•</button>
 </div><div class="mb">
   <input type="hidden" id="rlId">
   <div class="ir">
@@ -961,14 +961,14 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
     </select></div>
   </div>
   <datalist id="rlTpL"></datalist>
-  <div class="fld"><label>Descripción</label><textarea class="inp" id="rlDesc" placeholder="Detalle del reclamo"></textarea></div>
+  <div class="fld"><label>DescripciÃ³n</label><textarea class="inp" id="rlDesc" placeholder="Detalle del reclamo"></textarea></div>
   <div class="ir">
     <div class="fld"><label>Vecino</label><input class="inp" id="rlVec"></div>
     <div class="fld"><label>Tel. vecino</label><input class="inp" id="rlVecTel"></div>
   </div>
-  <div class="fld"><label>Dirección</label><input class="inp" id="rlDir"></div>
+  <div class="fld"><label>DirecciÃ³n</label><input class="inp" id="rlDir"></div>
   <div class="ir">
-    <div class="fld"><label>Funcionario / Área</label>
+    <div class="fld"><label>Funcionario / Ãrea</label>
       <div style="display:flex;gap:6px">
         <input class="inp" id="rlFunc" list="rlFnL" style="flex:1">
         <button class="btn btn-s" type="button" onclick="nuevoFuncionarioReclamo()" title="Agregar nuevo funcionario">+</button>
@@ -979,14 +979,14 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
   <datalist id="rlFnL"></datalist>
   <div class="fld"><label>Notas / Historial</label><textarea class="inp" id="rlNotes" rows="2"></textarea></div>
   <div class="fld">
-    <label>📸 Fotos del reclamo (para enviar al funcionario)</label>
+    <label>ðŸ“¸ Fotos del reclamo (para enviar al funcionario)</label>
     <input class="inp" type="file" id="rlFotos" multiple accept="image/*" onchange="onArchivosCambian('rl', this.files)">
     <div id="rlFotosLista" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
   </div>
 </div><div class="mf">
-  <button class="btn btn-d hide" id="rlDel" onclick="delReclamo()">🗑 Eliminar</button>
-  <button class="btn btn-w" onclick="reclamoNotifyWa()">📱 WA funcionario</button>
-  <button class="btn btn-w" onclick="reclamoCompartirConFotos()">📤 Compartir con fotos</button>
+  <button class="btn btn-d hide" id="rlDel" onclick="delReclamo()">ðŸ—‘ Eliminar</button>
+  <button class="btn btn-w" onclick="reclamoNotifyWa()">ðŸ“± WA funcionario</button>
+  <button class="btn btn-w" onclick="reclamoCompartirConFotos()">ðŸ“¤ Compartir con fotos</button>
   <button class="btn" onclick="closeModal('rcLmMod')">Cancelar</button>
   <button class="btn btn-p" onclick="saveReclamo()">Guardar</button>
 </div></div></div>
@@ -1013,23 +1013,23 @@ const DEF_FUNCS = [
   ['Mercedes Moreno','Directora de Salud Integral','5492983447789'],['Juan Manuel Serna','Director de CAPS','5491154842469'],
   ['Juan Cruz Lopez','Director Administrativo',''],['Eliana Rossi','Directora de Bromatologia y Zoonosis','5492983505668'],
   ['Gabriel Francia','Sub Secretario de Gestion Ambiental','5492983385858'],
-  ['Bernardina Varese','Servicios Públicos','5492983584387'],['Kevin Monrroy','Funcionario','5492983406170'],
+  ['Bernardina Varese','Servicios PÃºblicos','5492983584387'],['Kevin Monrroy','Funcionario','5492983406170'],
   ['Pity Federico','Jefatura de Gabinete','5492983570209'],['Valeria Guido','Funcionaria','5491166920622'],
   ['Vanesa Cursio','Higiene Urbana','5492983463615'],['Daniel Civetta','Coordinador de Higiene Urbana','5492983388256']
 ];
-const DEF_TIPOS_RECLAMO = ['Agua','Asfalto','Caño Roto','Pérdida de Agua','Calles de tierra','Basura en la calle','Terreno en malas condiciones','Inundados','Pastos Crecidos','Alumbrado público','Poda de árboles','Obras Sanitarias','Otros'];
+const DEF_TIPOS_RECLAMO = ['Agua','Asfalto','CaÃ±o Roto','PÃ©rdida de Agua','Calles de tierra','Basura en la calle','Terreno en malas condiciones','Inundados','Pastos Crecidos','Alumbrado pÃºblico','Poda de Ã¡rboles','Obras Sanitarias','Otros'];
 const DEF_MEDIOS = [
-  ['LU24','Radio principal','📻 Radio','General'],
-  ['La Voz del Pueblo','Diario local','📰 Diario / Digital','General'],
-  ['Diario 3','Portal','📰 Diario / Digital','General'],
-  ['Via País','Portal regional','📰 Diario / Digital','General'],
-  ['Onda Uno','Radio','📻 Radio','General'],
-  ['Provincia Noticias','Portal provincial','📰 Diario / Digital','Política'],
-  ['Grupo 105','Radio','📻 Radio','General'],
-  ['Julio Scarabotti','Periodista','📰 Diario / Digital','Política'],
-  ['Adriana Gaitán','Periodista','📻 Radio','General'],
-  ['Milena Marcovecchio','Periodista','📰 Diario / Digital','General'],
-  ['Cuarto Poder','TV / Portal','📺 TV','General']
+  ['LU24','Radio principal','ðŸ“» Radio','General'],
+  ['La Voz del Pueblo','Diario local','ðŸ“° Diario / Digital','General'],
+  ['Diario 3','Portal','ðŸ“° Diario / Digital','General'],
+  ['Via PaÃ­s','Portal regional','ðŸ“° Diario / Digital','General'],
+  ['Onda Uno','Radio','ðŸ“» Radio','General'],
+  ['Provincia Noticias','Portal provincial','ðŸ“° Diario / Digital','PolÃ­tica'],
+  ['Grupo 105','Radio','ðŸ“» Radio','General'],
+  ['Julio Scarabotti','Periodista','ðŸ“° Diario / Digital','PolÃ­tica'],
+  ['Adriana GaitÃ¡n','Periodista','ðŸ“» Radio','General'],
+  ['Milena Marcovecchio','Periodista','ðŸ“° Diario / Digital','General'],
+  ['Cuarto Poder','TV / Portal','ðŸ“º TV','General']
 ];
 const COLORS = ['#3b82f6','#10b981','#f59e0b','#ef4444','#a855f7','#ec4899','#06b6d4','#f97316','#84cc16'];
 
@@ -1076,20 +1076,20 @@ function ensureDefaults(s){
     if(s.medios.length===0) s.medios = seed().medios;
     s.__seeded = true;
   }
-  // === GARANTÍA: Marianela y Santiago SIEMPRE son admin ===
+  // === GARANTÃA: Marianela y Santiago SIEMPRE son admin ===
   s.agents.forEach(a=>{
     const n = (a.name||'').toLowerCase().trim();
     if(/^(marianela|santiago)(\s|$)/.test(n) || /(^|\s)(marianela|santiago)$/.test(n)) a.admin = true;
     else if(a.admin === undefined) a.admin = false;
   });
-  // === DEDUPLICACIÓN AUTOMÁTICA POR NOMBRE ===
+  // === DEDUPLICACIÃ“N AUTOMÃTICA POR NOMBRE ===
   s.agents = deduplicarPorNombre(s.agents, s, 'agents');
   s.funcionarios = deduplicarPorNombre(s.funcionarios, s, 'funcionarios');
   s.medios = deduplicarPorNombre(s.medios, s, 'medios');
   return s;
 }
 
-// Deduplicar una lista por nombre (mantiene el más completo, marca el otro como borrado, re-mapea referencias)
+// Deduplicar una lista por nombre (mantiene el mÃ¡s completo, marca el otro como borrado, re-mapea referencias)
 function deduplicarPorNombre(lista, s, nombreColeccion){
   if(!Array.isArray(lista) || lista.length<=1) return lista;
   const porNombre = {};
@@ -1109,7 +1109,7 @@ function deduplicarPorNombre(lista, s, nombreColeccion){
       porNombre[key] = ganador;
       idsAEliminar.push(perdedor.id);
       remapeoIds[perdedor.id] = ganador.id;
-      // Fusionar campos: si el ganador no tiene un campo pero el perdedor sí, copiarlo
+      // Fusionar campos: si el ganador no tiene un campo pero el perdedor sÃ­, copiarlo
       ['phone','email','role','color','covers','passwordHash','program','admin'].forEach(campo=>{
         if(!ganador[campo] && perdedor[campo]) ganador[campo] = perdedor[campo];
       });
@@ -1133,11 +1133,11 @@ function deduplicarPorNombre(lista, s, nombreColeccion){
   }
   // Agregar a _deletedIds para que el sync no los traiga de vuelta
   s._deletedIds = Array.from(new Set([...(s._deletedIds||[]), ...idsAEliminar]));
-  console.log('[Deduplicación] '+nombreColeccion+': eliminados '+idsAEliminar.length+' duplicados');
+  console.log('[DeduplicaciÃ³n] '+nombreColeccion+': eliminados '+idsAEliminar.length+' duplicados');
   return Object.values(porNombre);
 }
 
-// Elige el item más completo (más campos llenos) o el más reciente
+// Elige el item mÃ¡s completo (mÃ¡s campos llenos) o el mÃ¡s reciente
 function elegirMejor(a, b){
   const score = item => {
     let s = 0;
@@ -1147,7 +1147,7 @@ function elegirMejor(a, b){
   };
   const sa = score(a), sb = score(b);
   if(sa !== sb) return sa > sb ? a : b;
-  // Si empate, el más reciente
+  // Si empate, el mÃ¡s reciente
   const ta = a.updated || a.created || 0;
   const tb = b.updated || b.created || 0;
   return ta >= tb ? a : b;
@@ -1200,15 +1200,15 @@ function isWeekend(iso){
   if(!iso)return false;
   const d = new Date(iso+'T00:00:00');
   const dow = d.getDay();
-  return dow === 0 || dow === 6; // domingo o sábado
+  return dow === 0 || dow === 6; // domingo o sÃ¡bado
 }
-// "¿Esta actividad pasa a la guardia del día?"
+// "Â¿Esta actividad pasa a la guardia del dÃ­a?"
 // - Fin de semana o feriado: TODAS las actividades pasan
-// - Día hábil: solo las de >= 15hs
+// - DÃ­a hÃ¡bil: solo las de >= 15hs
 function pasaAGuardia(iso, time){
   return isWeekend(iso) || isFeriado(iso) || isPM(time);
 }
-function statusLabel(s){return{pendiente:'Pendiente',proceso:'En proceso',lista:'Lista',publicar:'Lista para publicar',realizada:'Realizada'}[s]||s||'—'}
+function statusLabel(s){return{pendiente:'Pendiente',proceso:'En proceso',lista:'Lista',publicar:'Lista para publicar',realizada:'Realizada'}[s]||s||'â€”'}
 function statusColor(s){return{pendiente:'tag-x',proceso:'tag-b',lista:'tag-g',publicar:'tag-p',realizada:'tag-c'}[s]||'tag-x'}
 
 function toast(msg,type){
@@ -1237,13 +1237,13 @@ function toggleTheme(){
   const next=cur==='dark'?'light':'dark';
   document.documentElement.setAttribute('data-theme',next);
   state.config.theme=next;
-  $('thmBtn').textContent=next==='dark'?'🌙':'☀';
+  $('thmBtn').textContent=next==='dark'?'ðŸŒ™':'â˜€';
   saveState();
 }
 function applyTheme(){
   const t=state.config.theme||'dark';
   document.documentElement.setAttribute('data-theme',t);
-  $('thmBtn').textContent=t==='dark'?'🌙':'☀';
+  $('thmBtn').textContent=t==='dark'?'ðŸŒ™':'â˜€';
 }
 function toggleSidebar(open){
   const sb=$('sb'),bd=$('sbk');
@@ -1252,14 +1252,14 @@ function toggleSidebar(open){
 }
 
 /* ============ LOGIN ============ */
-// Hash de contraseñas con SHA-256 (Web Crypto)
+// Hash de contraseÃ±as con SHA-256 (Web Crypto)
 async function hashPass(text){
   try {
     const data = new TextEncoder().encode(text);
     const buf = await crypto.subtle.digest('SHA-256', data);
     return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
   } catch(e) {
-    // Fallback simple si crypto.subtle no está disponible (http vs https)
+    // Fallback simple si crypto.subtle no estÃ¡ disponible (http vs https)
     let h = 0;
     for(let i=0;i<text.length;i++){h=((h<<5)-h)+text.charCodeAt(i);h|=0}
     return 'fb_'+Math.abs(h).toString(36);
@@ -1271,8 +1271,8 @@ let currentUserIsAdmin = false;
 
 function initLogin(){
   const sel=$('loginUser');
-  sel.innerHTML='<option value="">— seleccioná —</option>'+state.agents.map(a=>{
-    const adm = a.admin?' ⭐':'';
+  sel.innerHTML='<option value="">â€” seleccionÃ¡ â€”</option>'+state.agents.map(a=>{
+    const adm = a.admin?' â­':'';
     const hasPass = a.passwordHash?'':' (sin clave)';
     return '<option value="'+esc(a.name)+'">'+esc(a.name)+adm+hasPass+'</option>';
   }).join('');
@@ -1285,27 +1285,27 @@ function initLogin(){
 async function doLogin(){
   const u = $('loginUser').value;
   const p = $('loginPass').value;
-  if(!u){toast('Elegí un usuario','err');return}
-  if(!p){toast('Ingresá tu contraseña','err');return}
+  if(!u){toast('ElegÃ­ un usuario','err');return}
+  if(!p){toast('IngresÃ¡ tu contraseÃ±a','err');return}
 
   const ag = getAgByName(u);
   if(!ag){toast('Usuario no encontrado','err');return}
 
-  // GARANTÍA: Marianela y Santiago SIEMPRE son admin (forzar por si falló la migración)
+  // GARANTÃA: Marianela y Santiago SIEMPRE son admin (forzar por si fallÃ³ la migraciÃ³n)
   if(/^(marianela|santiago)$/i.test((ag.name||'').trim())){
     ag.admin = true;
   }
 
   const hash = await hashPass(p);
 
-  // Primera vez para este agente: crear su contraseña
+  // Primera vez para este agente: crear su contraseÃ±a
   if(!ag.passwordHash){
-    if(!confirm('Es la primera vez que ingresás como '+u+'.\n\n¿Querés usar esta contraseña? La vas a necesitar las próximas veces.\n\n(Podés cambiarla después desde tu perfil en Equipo)'))return;
+    if(!confirm('Es la primera vez que ingresÃ¡s como '+u+'.\n\nÂ¿QuerÃ©s usar esta contraseÃ±a? La vas a necesitar las prÃ³ximas veces.\n\n(PodÃ©s cambiarla despuÃ©s desde tu perfil en Equipo)'))return;
     ag.passwordHash = hash;
     saveState();
-    toast('Contraseña creada para '+u,'suc');
+    toast('ContraseÃ±a creada para '+u,'suc');
   } else if(ag.passwordHash !== hash){
-    toast('Contraseña incorrecta','err');
+    toast('ContraseÃ±a incorrecta','err');
     return;
   }
 
@@ -1316,11 +1316,11 @@ async function doLogin(){
   $('loginOv').style.display='none';
   $('loginPass').value=''; // limpiar
   startApp();
-  toast('¡Bienvenida, '+u+(currentUserIsAdmin?' (admin)':'')+'!','suc');
+  toast('Â¡Bienvenida, '+u+(currentUserIsAdmin?' (admin)':'')+'!','suc');
 }
 
 function doLogout(){
-  if(!confirm('¿Cerrar sesión?'))return;
+  if(!confirm('Â¿Cerrar sesiÃ³n?'))return;
   currentUser=null;
   currentUserData=null;
   currentUserIsAdmin=false;
@@ -1333,15 +1333,15 @@ function doLogout(){
 function startApp(){
   applyTheme();
   const ag=getAgByName(currentUser);
-  $('sbUn').textContent=currentUser+(currentUserIsAdmin?' ⭐':'');
+  $('sbUn').textContent=currentUser+(currentUserIsAdmin?' â­':'');
   $('sbAv').style.background=ag?.color||'#3b82f6';
   $('sbAv').textContent=(currentUser||'?').slice(0,1).toUpperCase();
   initFilters();
   renderAll();
   applyPermissions();
-  // Detectar datos del panel anterior en localStorage que aún no se importaron
+  // Detectar datos del panel anterior en localStorage que aÃºn no se importaron
   setTimeout(autoDetectarDatosAnteriores, 800);
-  // Iniciar sincronización con Supabase (si está configurada)
+  // Iniciar sincronizaciÃ³n con Supabase (si estÃ¡ configurada)
   setTimeout(()=>syncInit(), 1200);
 }
 
@@ -1367,7 +1367,7 @@ function autoDetectarDatosAnteriores(){
       if(v){encontradas[k]=v}
     }catch(e){}
   });
-  // También buscar genéricamente cualquier clave que parezca del panel viejo
+  // TambiÃ©n buscar genÃ©ricamente cualquier clave que parezca del panel viejo
   for(let i=0;i<localStorage.length;i++){
     const k = localStorage.key(i);
     if(!k || k===LS_KEY || k==='pcomTA_lastU')continue;
@@ -1378,7 +1378,7 @@ function autoDetectarDatosAnteriores(){
   const keys = Object.keys(encontradas);
   if(keys.length===0)return;
 
-  // Detectar cuántos registros hay aproximadamente
+  // Detectar cuÃ¡ntos registros hay aproximadamente
   let totalRegistros = 0;
   keys.forEach(k=>{
     try{
@@ -1392,9 +1392,9 @@ function autoDetectarDatosAnteriores(){
   const banner = document.createElement('div');
   banner.id = 'dataDetectedBanner';
   banner.style.cssText = 'position:fixed;bottom:20px;right:20px;max-width:380px;background:var(--bg-el);border:2px solid var(--ac);border-radius:14px;padding:16px 18px;box-shadow:var(--sh-l);z-index:1500;animation:slideIn .3s ease-out';
-  banner.innerHTML = '<div style="font-weight:700;font-size:14px;color:var(--ac);margin-bottom:6px">⚠ Datos del panel anterior detectados</div><div style="font-size:13px;color:var(--tx-s);margin-bottom:10px">Encontré <b>~'+totalRegistros+' registros</b> guardados en este navegador desde el panel anterior, que aún no fueron importados al panel nuevo.</div><div style="display:flex;gap:8px"><button class="btn btn-p btn-s" onclick="importarDatosDetectados()" style="flex:1">📥 Importar todo</button><button class="btn btn-s" onclick="document.getElementById(\'dataDetectedBanner\').remove()">Cerrar</button></div>';
+  banner.innerHTML = '<div style="font-weight:700;font-size:14px;color:var(--ac);margin-bottom:6px">âš  Datos del panel anterior detectados</div><div style="font-size:13px;color:var(--tx-s);margin-bottom:10px">EncontrÃ© <b>~'+totalRegistros+' registros</b> guardados en este navegador desde el panel anterior, que aÃºn no fueron importados al panel nuevo.</div><div style="display:flex;gap:8px"><button class="btn btn-p btn-s" onclick="importarDatosDetectados()" style="flex:1">ðŸ“¥ Importar todo</button><button class="btn btn-s" onclick="document.getElementById(\'dataDetectedBanner\').remove()">Cerrar</button></div>';
   document.body.appendChild(banner);
-  // Guardar en window para acceder después
+  // Guardar en window para acceder despuÃ©s
   window._datosDetectados = encontradas;
 }
 
@@ -1402,18 +1402,18 @@ function importarDatosDetectados(){
   if(!window._datosDetectados)return;
   const banner = document.getElementById('dataDetectedBanner');
   if(banner)banner.remove();
-  if(!confirm('¿Importar todos los datos del panel anterior? (Se conserva todo lo que ya cargaste)'))return;
+  if(!confirm('Â¿Importar todos los datos del panel anterior? (Se conserva todo lo que ya cargaste)'))return;
   const counts = importBackupViejo({localStorage: window._datosDetectados});
   saveState();
   renderAll();initFilters();
-  let msg = '✓ Datos importados:\n';
-  Object.entries(counts).filter(([k,v])=>v>0).forEach(([k,v])=>{msg+='• '+v+' '+k+'\n'});
+  let msg = 'âœ“ Datos importados:\n';
+  Object.entries(counts).filter(([k,v])=>v>0).forEach(([k,v])=>{msg+='â€¢ '+v+' '+k+'\n'});
   alert(msg);
   toast('Datos importados','suc');
   window._datosDetectados = null;
 }
 
-// Validación de permisos
+// ValidaciÃ³n de permisos
 function requireAdmin(){
   if(!currentUserIsAdmin){
     toast('Solo Marianela y Santiago pueden hacer este cambio','err');
@@ -1422,7 +1422,7 @@ function requireAdmin(){
   return true;
 }
 
-// Aplicar visibilidad de elementos según rol
+// Aplicar visibilidad de elementos segÃºn rol
 function applyPermissions(){
   const hide = !currentUserIsAdmin;
   document.querySelectorAll('[data-admin]').forEach(el=>{
@@ -1472,19 +1472,19 @@ function openFlyer(){window.open('https://marianelahut-lang.github.io/panel-comu
 /* ============ MODALES ============ */
 function openModal(id){
   const m=$(id);if(!m)return;
-  // Bloqueo admin-only SOLO para configuración, Google Calendar y edición de guardias
+  // Bloqueo admin-only SOLO para configuraciÃ³n, Google Calendar y ediciÃ³n de guardias
   if((id==='cfgMod' || id==='gcalMod' || id==='gdMod') && !requireAdmin())return;
   m.classList.add('on');
   if(id==='cfgMod')prepCfg();
   if(id==='gcalMod'){
     $('gcUrl').value = state.config.googleCalendarId || '';
-    $('autoSyncBtn').textContent = state.config.googleAutoSync?'🔁 Auto-sync: ON (cada 30 min)':'🔁 Auto-sync: OFF';
+    $('autoSyncBtn').textContent = state.config.googleAutoSync?'ðŸ” Auto-sync: ON (cada 30 min)':'ðŸ” Auto-sync: OFF';
     $('gcDel').classList.toggle('hide', !state.config.googleCalendarId);
     $('gcStat').textContent = state.config.googleCalendarId?'Conectado a: '+state.config.googleCalendarId.slice(0,40)+'...':'';
   }
 }
 
-// (mantenida por compatibilidad pero ya no se invoca automáticamente)
+// (mantenida por compatibilidad pero ya no se invoca automÃ¡ticamente)
 function aplicarSoloLecturaModal(modalEl){ return; }
 function closeModal(id){const m=$(id);if(m)m.classList.remove('on')}
 document.addEventListener('click',e=>{
@@ -1510,40 +1510,40 @@ function renderHoy(){
   const tit=g&&g.titular?getAg(g.titular):null;
   $('hGu').textContent=tit?tit.name:'sin asignar';
 
-  // guardia del día
+  // guardia del dÃ­a
   const gW=$('hGuList');
   if(g && (g.titular||g.soporte)){
     const tA=g.titular?getAg(g.titular):null;
     const sA=g.soporte?getAg(g.soporte):null;
     let html='';
     if(tA){
-      html+='<div class="li" onclick="switchView(\'guardias\')">'+avHTML(tA.name,tA.color,36)+'<div class="li-b"><div class="li-t">'+esc(tA.name)+'</div><div class="li-s"><span class="tag tag-a">Titular</span> · '+esc(tA.role||'')+'</div></div><div class="li-a">'+(tA.phone?'<button class="btn btn-w btn-xs" onclick="event.stopPropagation();waOpen(\''+tA.phone+'\',\'Hola! Te paso las tareas del día como guardia.\')">📱</button>':'')+'</div></div>';
+      html+='<div class="li" onclick="switchView(\'guardias\')">'+avHTML(tA.name,tA.color,36)+'<div class="li-b"><div class="li-t">'+esc(tA.name)+'</div><div class="li-s"><span class="tag tag-a">Titular</span> Â· '+esc(tA.role||'')+'</div></div><div class="li-a">'+(tA.phone?'<button class="btn btn-w btn-xs" onclick="event.stopPropagation();waOpen(\''+tA.phone+'\',\'Hola! Te paso las tareas del dÃ­a como guardia.\')">ðŸ“±</button>':'')+'</div></div>';
     }
     if(sA){
-      html+='<div class="li" onclick="switchView(\'guardias\')" style="margin-top:8px">'+avHTML(sA.name,sA.color,36)+'<div class="li-b"><div class="li-t">'+esc(sA.name)+'</div><div class="li-s"><span class="tag tag-b">Soporte</span> · '+esc(sA.role||'')+'</div></div><div class="li-a">'+(sA.phone?'<button class="btn btn-w btn-xs" onclick="event.stopPropagation();waOpen(\''+sA.phone+'\',\'Hola! Sos soporte de guardia hoy.\')">📱</button>':'')+'</div></div>';
+      html+='<div class="li" onclick="switchView(\'guardias\')" style="margin-top:8px">'+avHTML(sA.name,sA.color,36)+'<div class="li-b"><div class="li-t">'+esc(sA.name)+'</div><div class="li-s"><span class="tag tag-b">Soporte</span> Â· '+esc(sA.role||'')+'</div></div><div class="li-a">'+(sA.phone?'<button class="btn btn-w btn-xs" onclick="event.stopPropagation();waOpen(\''+sA.phone+'\',\'Hola! Sos soporte de guardia hoy.\')">ðŸ“±</button>':'')+'</div></div>';
     }
     gW.innerHTML=html;
   } else {
-    gW.innerHTML='<div class="emp"><div class="emi">📅</div><div class="emt">Sin guardia asignada</div><div class="ems">Asigná desde la vista Guardias</div></div>';
+    gW.innerHTML='<div class="emp"><div class="emi">ðŸ“…</div><div class="emt">Sin guardia asignada</div><div class="ems">AsignÃ¡ desde la vista Guardias</div></div>';
   }
 
-  // eventos + publicaciones del día
+  // eventos + publicaciones del dÃ­a
   const eW=$('hEv');
   if(evs.length===0 && pubs.length===0){
-    eW.innerHTML='<div class="emp"><div class="emi">📭</div><div class="emt">Sin eventos hoy</div></div>';
+    eW.innerHTML='<div class="emp"><div class="emi">ðŸ“­</div><div class="emt">Sin eventos hoy</div></div>';
   } else {
     const items=[];
     evs.forEach(ev=>{
       const pm=isPM(ev.time);
-      const coverBtn=ev.cover?'<span class="tag tag-a">✓ Cubrir</span>':'<button class="btn btn-xs" onclick="event.stopPropagation();toggleCover(\''+ev.id+'\')">📋 Cubrir</button>';
-      const noBtn=ev.cover?'<button class="btn btn-xs" onclick="event.stopPropagation();toggleCover(\''+ev.id+'\')">✕ No</button>':'';
-      const pmTag=(pm&&ev.cover)?'<span class="tag tag-p">→ Guardia</span>':'';
-      items.push('<div class="li" onclick="editEvent(\''+ev.id+'\')"><div class="li-i" style="background:var(--bl-s);color:var(--bl)">📅</div><div class="li-b"><div class="li-t">'+esc(ev.desc||'(sin título)')+'</div><div class="li-s">'+esc(ev.time||'—')+' · '+esc(ev.loc||'—')+' '+pmTag+'</div></div><div class="li-a">'+coverBtn+' '+noBtn+'</div></div>');
+      const coverBtn=ev.cover?'<span class="tag tag-a">âœ“ Cubrir</span>':'<button class="btn btn-xs" onclick="event.stopPropagation();toggleCover(\''+ev.id+'\')">ðŸ“‹ Cubrir</button>';
+      const noBtn=ev.cover?'<button class="btn btn-xs" onclick="event.stopPropagation();toggleCover(\''+ev.id+'\')">âœ• No</button>':'';
+      const pmTag=(pm&&ev.cover)?'<span class="tag tag-p">â†’ Guardia</span>':'';
+      items.push('<div class="li" onclick="editEvent(\''+ev.id+'\')"><div class="li-i" style="background:var(--bl-s);color:var(--bl)">ðŸ“…</div><div class="li-b"><div class="li-t">'+esc(ev.desc||'(sin tÃ­tulo)')+'</div><div class="li-s">'+esc(ev.time||'â€”')+' Â· '+esc(ev.loc||'â€”')+' '+pmTag+'</div></div><div class="li-a">'+coverBtn+' '+noBtn+'</div></div>');
     });
     pubs.forEach(p=>{
       const pm=isPM(p.time);
-      const pmTag=pm?'<span class="tag tag-p">→ Guardia</span>':'';
-      items.push('<div class="li" onclick="editPub(\''+p.id+'\')"><div class="li-i" style="background:var(--pu-s);color:var(--pu)">📱</div><div class="li-b"><div class="li-t">'+esc(p.desc||'(sin título)')+'</div><div class="li-s">'+esc(p.time||'—')+' · '+esc(p.account||'')+' '+pmTag+'</div></div></div>');
+      const pmTag=pm?'<span class="tag tag-p">â†’ Guardia</span>':'';
+      items.push('<div class="li" onclick="editPub(\''+p.id+'\')"><div class="li-i" style="background:var(--pu-s);color:var(--pu)">ðŸ“±</div><div class="li-b"><div class="li-t">'+esc(p.desc||'(sin tÃ­tulo)')+'</div><div class="li-s">'+esc(p.time||'â€”')+' Â· '+esc(p.account||'')+' '+pmTag+'</div></div></div>');
     });
     eW.innerHTML=items.join('');
   }
@@ -1551,9 +1551,9 @@ function renderHoy(){
   // entrevistas
   const enW=$('hEnt');
   if(ents.length===0){
-    enW.innerHTML='<div class="emp"><div class="emi">🎙</div><div class="emt">Sin entrevistas pactadas hoy</div></div>';
+    enW.innerHTML='<div class="emp"><div class="emi">ðŸŽ™</div><div class="emt">Sin entrevistas pactadas hoy</div></div>';
   } else {
-    enW.innerHTML=ents.map(e=>'<div class="li" onclick="editEnt(\''+e.id+'\')"><div class="li-i" style="background:var(--pk-s);color:var(--pk)">🎙</div><div class="li-b"><div class="li-t">'+esc(e.func||'Funcionario')+' <span class="t-m">con</span> '+esc(e.medio||'')+'</div><div class="li-s">'+esc(e.time||'')+' · '+esc(e.tipo||'')+' · '+esc(e.loc||'')+'</div></div>'+(e.phone?'<div class="li-a"><button class="btn btn-w btn-xs" onclick="event.stopPropagation();waOpen(\''+e.phone+'\',\'Recordatorio: entrevista hoy a las '+esc(e.time||'')+'\')">📱</button></div>':'')+'</div>').join('');
+    enW.innerHTML=ents.map(e=>'<div class="li" onclick="editEnt(\''+e.id+'\')"><div class="li-i" style="background:var(--pk-s);color:var(--pk)">ðŸŽ™</div><div class="li-b"><div class="li-t">'+esc(e.func||'Funcionario')+' <span class="t-m">con</span> '+esc(e.medio||'')+'</div><div class="li-s">'+esc(e.time||'')+' Â· '+esc(e.tipo||'')+' Â· '+esc(e.loc||'')+'</div></div>'+(e.phone?'<div class="li-a"><button class="btn btn-w btn-xs" onclick="event.stopPropagation();waOpen(\''+e.phone+'\',\'Recordatorio: entrevista hoy a las '+esc(e.time||'')+'\')">ðŸ“±</button></div>':'')+'</div>').join('');
   }
 
   // top 10 pendientes (solo pendiente y en-proceso)
@@ -1565,7 +1565,7 @@ function renderHoy(){
   }).sort((a,b)=>b._over-a._over).slice(0,10);
   const tW=$('hTk');
   if(pend.length===0){
-    tW.innerHTML='<div class="emp"><div class="emi">✓</div><div class="emt">Sin tareas pendientes</div><div class="ems">¡Buen trabajo!</div></div>';
+    tW.innerHTML='<div class="emp"><div class="emi">âœ“</div><div class="emt">Sin tareas pendientes</div><div class="ems">Â¡Buen trabajo!</div></div>';
   } else {
     tW.innerHTML=pend.map(t=>{
       const ovT=t._over>0?'<span class="tag tag-r">'+t._over+'d vencida</span>':(t.due?'<span class="tag tag-x">vence '+fmtDate(t.due)+'</span>':'');
@@ -1573,7 +1573,7 @@ function renderHoy(){
       const stT='<span class="tag '+statusColor(t.status)+'">'+statusLabel(t.status)+'</span>';
       const tags=(t.tags||[]).map(x=>'<span class="tag tag-x">#'+esc(x)+'</span>').join('');
       const ass=(t.assignees||[]).map(id=>{const a=getAg(id);return a?avHTML(a.name,a.color,22):''}).join('');
-      return '<div class="li" onclick="editTask(\''+t.id+'\')"><div class="li-i" style="background:'+(t._over>0?'var(--rd-s)':'var(--bl-s)')+';color:'+(t._over>0?'var(--rd)':'var(--bl)')+'">'+(t._over>0?'⚠':'📋')+'</div><div class="li-b"><div class="li-t">'+esc(t.desc||'(sin descripción)')+'</div><div class="li-s">'+ovT+' '+prT+' '+stT+' '+tags+'</div></div><div class="li-a" style="display:flex;align-items:center;gap:0">'+ass+'</div></div>';
+      return '<div class="li" onclick="editTask(\''+t.id+'\')"><div class="li-i" style="background:'+(t._over>0?'var(--rd-s)':'var(--bl-s)')+';color:'+(t._over>0?'var(--rd)':'var(--bl)')+'">'+(t._over>0?'âš ':'ðŸ“‹')+'</div><div class="li-b"><div class="li-t">'+esc(t.desc||'(sin descripciÃ³n)')+'</div><div class="li-s">'+ovT+' '+prT+' '+stT+' '+tags+'</div></div><div class="li-a" style="display:flex;align-items:center;gap:0">'+ass+'</div></div>';
     }).join('');
   }
 }
@@ -1608,7 +1608,7 @@ function renderTab(){
   const wrap=$('kb');
   wrap.innerHTML=cols.map(c=>{
     const items=tasks.filter(t=>t.status===c.id);
-    return '<div class="kc"><div class="kch"><div class="kct"><span class="kdt" style="background:'+c.color+'"></span>'+c.title+'</div><div class="kcc">'+items.length+'</div></div><div class="kcb">'+items.map(t=>renderKTask(t)).join('')+(items.length===0?'<div class="emp" style="padding:20px 10px"><div class="ems">—</div></div>':'')+'</div></div>';
+    return '<div class="kc"><div class="kch"><div class="kct"><span class="kdt" style="background:'+c.color+'"></span>'+c.title+'</div><div class="kcc">'+items.length+'</div></div><div class="kcb">'+items.map(t=>renderKTask(t)).join('')+(items.length===0?'<div class="emp" style="padding:20px 10px"><div class="ems">â€”</div></div>':'')+'</div></div>';
   }).join('');
 }
 function renderKTask(t){
@@ -1616,7 +1616,7 @@ function renderKTask(t){
   const tags=(t.tags||[]).map(x=>'<span class="tag tag-x">#'+esc(x)+'</span>').join(' ');
   const ass=(t.assignees||[]).map(id=>{const a=getAg(id);return a?avHTML(a.name,a.color,22):''}).join('');
   const dueT=t.due?'<span class="tag tag-x">'+fmtDate(t.due)+'</span>':'';
-  return '<div class="kk" onclick="editTask(\''+t.id+'\')"><div class="kkt">'+esc(t.desc||'(sin descripción)')+'</div><div class="kkm">'+prT+dueT+tags+'<div class="kka">'+ass+'</div></div></div>';
+  return '<div class="kk" onclick="editTask(\''+t.id+'\')"><div class="kkt">'+esc(t.desc||'(sin descripciÃ³n)')+'</div><div class="kkm">'+prT+dueT+tags+'<div class="kka">'+ass+'</div></div></div>';
 }
 
 /* ============ MATERIAL Y AGENDA ============ */
@@ -1626,11 +1626,11 @@ function renderMat(){
   $('mCnt').textContent=mat.length;
   const mW=$('matList');
   if(mat.length===0){
-    mW.innerHTML='<div class="emp"><div class="emi">📦</div><div class="emt">Sin material disponible</div><div class="ems">Las tareas marcadas como "Lista para publicar" aparecen acá</div></div>';
+    mW.innerHTML='<div class="emp"><div class="emi">ðŸ“¦</div><div class="emt">Sin material disponible</div><div class="ems">Las tareas marcadas como "Lista para publicar" aparecen acÃ¡</div></div>';
   } else {
     mW.innerHTML=mat.map(t=>{
       const ass=(t.assignees||[]).map(id=>{const a=getAg(id);return a?avHTML(a.name,a.color,22):''}).join('');
-      return '<div class="li" onclick="editTask(\''+t.id+'\')"><div class="li-i" style="background:var(--gr-s);color:var(--gr)">✓</div><div class="li-b"><div class="li-t">'+esc(t.desc||'(sin título)')+'</div><div class="li-s"><span class="tag tag-g">Listo</span> '+(t.tags||[]).map(x=>'<span class="tag tag-x">#'+esc(x)+'</span>').join(' ')+'</div></div><div class="li-a" style="align-items:center">'+ass+' <button class="btn btn-p btn-xs" onclick="event.stopPropagation();schedulePub(\''+t.id+'\')">📅 Programar</button></div></div>';
+      return '<div class="li" onclick="editTask(\''+t.id+'\')"><div class="li-i" style="background:var(--gr-s);color:var(--gr)">âœ“</div><div class="li-b"><div class="li-t">'+esc(t.desc||'(sin tÃ­tulo)')+'</div><div class="li-s"><span class="tag tag-g">Listo</span> '+(t.tags||[]).map(x=>'<span class="tag tag-x">#'+esc(x)+'</span>').join(' ')+'</div></div><div class="li-a" style="align-items:center">'+ass+' <button class="btn btn-p btn-xs" onclick="event.stopPropagation();schedulePub(\''+t.id+'\')">ðŸ“… Programar</button></div></div>';
     }).join('');
   }
 
@@ -1642,15 +1642,15 @@ function renderMat(){
   });
   const aW=$('agList');
   if(ag.length===0){
-    aW.innerHTML='<div class="emp"><div class="emi">📅</div><div class="emt">Sin publicaciones programadas</div></div>';
+    aW.innerHTML='<div class="emp"><div class="emi">ðŸ“…</div><div class="emt">Sin publicaciones programadas</div></div>';
   } else {
     aW.innerHTML=ag.map(p=>{
       const past=p.date<today;
       const pm=isPM(p.time)&&p.date===today;
-      const pmTag=pm?'<span class="tag tag-p">→ Guardia</span>':'';
+      const pmTag=pm?'<span class="tag tag-p">â†’ Guardia</span>':'';
       const dateTag=past?'<span class="tag tag-x">'+fmtDate(p.date)+'</span>':p.date===today?'<span class="tag tag-a">HOY '+esc(p.time||'')+'</span>':'<span class="tag tag-b">'+fmtDate(p.date)+' '+esc(p.time||'')+'</span>';
       const stT='<span class="tag tag-x">'+esc(p.status||'')+'</span>';
-      return '<div class="li" onclick="editPub(\''+p.id+'\')"><div class="li-i" style="background:var(--pu-s);color:var(--pu)">📱</div><div class="li-b"><div class="li-t">'+esc(p.desc||'(sin título)')+'</div><div class="li-s">'+dateTag+' · '+esc(p.account||'')+' · '+esc(p.type||'')+' '+stT+' '+pmTag+'</div></div></div>';
+      return '<div class="li" onclick="editPub(\''+p.id+'\')"><div class="li-i" style="background:var(--pu-s);color:var(--pu)">ðŸ“±</div><div class="li-b"><div class="li-t">'+esc(p.desc||'(sin tÃ­tulo)')+'</div><div class="li-s">'+dateTag+' Â· '+esc(p.account||'')+' Â· '+esc(p.type||'')+' '+stT+' '+pmTag+'</div></div></div>';
     }).join('');
   }
 }
@@ -1731,9 +1731,9 @@ function renderCalCell(d,other){
   if(tit)html+='<div class="cg">'+esc(tit.name)+'</div>';
   html+='<div class="cev">';
   evs.slice(0,3).forEach(e=>{html+='<div class="ce">'+esc((e.time||'')+' '+(e.desc||''))+'</div>'});
-  pubs.slice(0,2).forEach(p=>{html+='<div class="ce cep">📱 '+esc(p.desc||'')+'</div>'});
-  ents.slice(0,2).forEach(e=>{html+='<div class="ce cen">🎙 '+esc(e.func||'')+'</div>'});
-  if(total>7)html+='<div class="ce">+'+(total-7)+' más</div>';
+  pubs.slice(0,2).forEach(p=>{html+='<div class="ce cep">ðŸ“± '+esc(p.desc||'')+'</div>'});
+  ents.slice(0,2).forEach(e=>{html+='<div class="ce cen">ðŸŽ™ '+esc(e.func||'')+'</div>'});
+  if(total>7)html+='<div class="ce">+'+(total-7)+' mÃ¡s</div>';
   html+='</div></div>';
   return html;
 }
@@ -1752,7 +1752,7 @@ function renderCalDay(){
   const sop=g&&g.soporte?getAg(g.soporte):null;
   let html='<div class="card">';
   if(tit||sop){
-    html+='<div class="ch"><div class="ct-t">👥 Guardia del día</div></div>';
+    html+='<div class="ch"><div class="ct-t">ðŸ‘¥ Guardia del dÃ­a</div></div>';
     if(tit)html+='<div class="li" style="cursor:default">'+avHTML(tit.name,tit.color,36)+'<div class="li-b"><div class="li-t">'+esc(tit.name)+'</div><div class="li-s"><span class="tag tag-a">Titular</span></div></div></div>';
     if(sop)html+='<div class="li" style="cursor:default;margin-top:8px">'+avHTML(sop.name,sop.color,36)+'<div class="li-b"><div class="li-t">'+esc(sop.name)+'</div><div class="li-s"><span class="tag tag-b">Soporte</span></div></div></div>';
   }
@@ -1761,18 +1761,18 @@ function renderCalDay(){
   const items=[];
   evs.forEach(e=>{
     const pm=isPM(e.time);
-    const cBtn=e.cover?'<span class="tag tag-a">✓ Cubrir</span>':'<button class="btn btn-xs" onclick="event.stopPropagation();toggleCover(\''+e.id+'\')">📋 Cubrir</button>';
-    const pmTag=(pm&&e.cover)?'<span class="tag tag-p">→ Guardia</span>':'';
-    items.push('<div class="li" onclick="editEvent(\''+e.id+'\')"><div class="li-i" style="background:var(--bl-s);color:var(--bl)">📅</div><div class="li-b"><div class="li-t">'+esc(e.desc||'')+'</div><div class="li-s">'+esc(e.time||'')+' · '+esc(e.loc||'')+' '+pmTag+'</div></div><div class="li-a">'+cBtn+'</div></div>');
+    const cBtn=e.cover?'<span class="tag tag-a">âœ“ Cubrir</span>':'<button class="btn btn-xs" onclick="event.stopPropagation();toggleCover(\''+e.id+'\')">ðŸ“‹ Cubrir</button>';
+    const pmTag=(pm&&e.cover)?'<span class="tag tag-p">â†’ Guardia</span>':'';
+    items.push('<div class="li" onclick="editEvent(\''+e.id+'\')"><div class="li-i" style="background:var(--bl-s);color:var(--bl)">ðŸ“…</div><div class="li-b"><div class="li-t">'+esc(e.desc||'')+'</div><div class="li-s">'+esc(e.time||'')+' Â· '+esc(e.loc||'')+' '+pmTag+'</div></div><div class="li-a">'+cBtn+'</div></div>');
   });
   pubs.forEach(p=>{
-    items.push('<div class="li" onclick="editPub(\''+p.id+'\')"><div class="li-i" style="background:var(--pu-s);color:var(--pu)">📱</div><div class="li-b"><div class="li-t">'+esc(p.desc||'')+'</div><div class="li-s">'+esc(p.time||'')+' · '+esc(p.account||'')+'</div></div></div>');
+    items.push('<div class="li" onclick="editPub(\''+p.id+'\')"><div class="li-i" style="background:var(--pu-s);color:var(--pu)">ðŸ“±</div><div class="li-b"><div class="li-t">'+esc(p.desc||'')+'</div><div class="li-s">'+esc(p.time||'')+' Â· '+esc(p.account||'')+'</div></div></div>');
   });
   ents.forEach(e=>{
-    items.push('<div class="li" onclick="editEnt(\''+e.id+'\')"><div class="li-i" style="background:var(--pk-s);color:var(--pk)">🎙</div><div class="li-b"><div class="li-t">'+esc(e.func||'')+' con '+esc(e.medio||'')+'</div><div class="li-s">'+esc(e.time||'')+' · '+esc(e.tipo||'')+'</div></div></div>');
+    items.push('<div class="li" onclick="editEnt(\''+e.id+'\')"><div class="li-i" style="background:var(--pk-s);color:var(--pk)">ðŸŽ™</div><div class="li-b"><div class="li-t">'+esc(e.func||'')+' con '+esc(e.medio||'')+'</div><div class="li-s">'+esc(e.time||'')+' Â· '+esc(e.tipo||'')+'</div></div></div>');
   });
 
-  html+='<div class="card mt16"><div class="ch"><div class="ct-t">Eventos del día</div><button class="btn btn-p btn-s" onclick="newEvent(\''+iso+'\')">+ Nuevo</button></div>'+(items.length?items.join(''):'<div class="emp"><div class="emi">📭</div><div class="emt">Sin actividad</div></div>')+'</div>';
+  html+='<div class="card mt16"><div class="ch"><div class="ct-t">Eventos del dÃ­a</div><button class="btn btn-p btn-s" onclick="newEvent(\''+iso+'\')">+ Nuevo</button></div>'+(items.length?items.join(''):'<div class="emp"><div class="emi">ðŸ“­</div><div class="emt">Sin actividad</div></div>')+'</div>';
   $('calBox').innerHTML=html;
 }
 
@@ -1782,7 +1782,7 @@ function guardiaToday(){guardiaCursor=startOfWeek(new Date());renderGuardias()}
 function renderGuardias(){
   const start=startOfWeek(guardiaCursor);
   const end=addDays(start,6);
-  $('gwLbl').textContent=start.toLocaleDateString('es-AR',{day:'numeric',month:'short'})+' — '+end.toLocaleDateString('es-AR',{day:'numeric',month:'short',year:'numeric'});
+  $('gwLbl').textContent=start.toLocaleDateString('es-AR',{day:'numeric',month:'short'})+' â€” '+end.toLocaleDateString('es-AR',{day:'numeric',month:'short',year:'numeric'});
   const dn=['LUN','MAR','MIE','JUE','VIE','SAB','DOM'];
   const today=todayISO();
   let html='';
@@ -1795,15 +1795,15 @@ function renderGuardias(){
     const isToday=iso===today;
     html+='<div class="gd '+(isToday?'tod':'')+'" onclick="editGuardia(\''+iso+'\')"><div class="gdw">'+dn[i]+'</div><div class="gdn">'+d.getDate()+'</div><div class="gr">Titular</div>';
     if(tit)html+='<div class="gp">'+avHTML(tit.name,tit.color,22)+'<span class="gpn">'+esc(tit.name)+'</span></div>';
-    else html+='<div class="gpe">— Sin asignar —</div>';
+    else html+='<div class="gpe">â€” Sin asignar â€”</div>';
     html+='<div class="gr">Soporte</div>';
     if(sop)html+='<div class="gp">'+avHTML(sop.name,sop.color,22)+'<span class="gpn">'+esc(sop.name)+'</span></div>';
-    else html+='<div class="gpe">— Sin soporte —</div>';
+    else html+='<div class="gpe">â€” Sin soporte â€”</div>';
     html+='</div>';
   }
   $('gw').innerHTML=html;
 
-  // Tareas asignadas a guardias = eventos cubrir + publicaciones; en weekend/feriado TODAS, en día hábil solo >=15hs
+  // Tareas asignadas a guardias = eventos cubrir + publicaciones; en weekend/feriado TODAS, en dÃ­a hÃ¡bil solo >=15hs
   const tasksList=[];
   for(let i=0;i<7;i++){
     const d=addDays(start,i);
@@ -1815,34 +1815,34 @@ function renderGuardias(){
     if(evs.length===0 && pubs.length===0 && ents.length===0)continue;
     const g=state.guardias[iso]||{};
     const tit=g.titular?getAg(g.titular):null;
-    const ferTag = isFeriado(iso) ? ' <span class="tag tag-r">FERIADO</span>' : (isWeekend(iso) ? ' <span class="tag tag-a">'+(d.getDay()===6?'SÁBADO':'DOMINGO')+'</span>' : '');
-    let dayHtml='<div style="margin-top:14px;padding-top:10px;border-top:1px solid var(--bd-s)"><div style="font-weight:700;font-size:13px;margin-bottom:8px">'+d.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'short'})+(tit?' · '+esc(tit.name):'')+ferTag+'</div>';
+    const ferTag = isFeriado(iso) ? ' <span class="tag tag-r">FERIADO</span>' : (isWeekend(iso) ? ' <span class="tag tag-a">'+(d.getDay()===6?'SÃBADO':'DOMINGO')+'</span>' : '');
+    let dayHtml='<div style="margin-top:14px;padding-top:10px;border-top:1px solid var(--bd-s)"><div style="font-weight:700;font-size:13px;margin-bottom:8px">'+d.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'short'})+(tit?' Â· '+esc(tit.name):'')+ferTag+'</div>';
     evs.forEach(e=>{
-      dayHtml+='<div class="li" onclick="editEvent(\''+e.id+'\')"><div class="li-i" style="background:var(--bl-s);color:var(--bl)">📅</div><div class="li-b"><div class="li-t">'+esc(e.desc||'')+'</div><div class="li-s">'+esc(e.time||'')+' · '+esc(e.loc||'')+'</div></div></div>';
+      dayHtml+='<div class="li" onclick="editEvent(\''+e.id+'\')"><div class="li-i" style="background:var(--bl-s);color:var(--bl)">ðŸ“…</div><div class="li-b"><div class="li-t">'+esc(e.desc||'')+'</div><div class="li-s">'+esc(e.time||'')+' Â· '+esc(e.loc||'')+'</div></div></div>';
     });
     pubs.forEach(p=>{
-      dayHtml+='<div class="li" onclick="editPub(\''+p.id+'\')"><div class="li-i" style="background:var(--pu-s);color:var(--pu)">📱</div><div class="li-b"><div class="li-t">'+esc(p.desc||'')+'</div><div class="li-s">'+esc(p.time||'')+' · '+esc(p.account||'')+'</div></div></div>';
+      dayHtml+='<div class="li" onclick="editPub(\''+p.id+'\')"><div class="li-i" style="background:var(--pu-s);color:var(--pu)">ðŸ“±</div><div class="li-b"><div class="li-t">'+esc(p.desc||'')+'</div><div class="li-s">'+esc(p.time||'')+' Â· '+esc(p.account||'')+'</div></div></div>';
     });
     ents.forEach(e=>{
-      dayHtml+='<div class="li" onclick="editEnt(\''+e.id+'\')"><div class="li-i" style="background:var(--pk-s);color:var(--pk)">🎙</div><div class="li-b"><div class="li-t">'+esc(e.func||'')+' con '+esc(e.medio||'')+'</div><div class="li-s">'+esc(e.time||'')+' · '+esc(e.tipo||'')+'</div></div></div>';
+      dayHtml+='<div class="li" onclick="editEnt(\''+e.id+'\')"><div class="li-i" style="background:var(--pk-s);color:var(--pk)">ðŸŽ™</div><div class="li-b"><div class="li-t">'+esc(e.func||'')+' con '+esc(e.medio||'')+'</div><div class="li-s">'+esc(e.time||'')+' Â· '+esc(e.tipo||'')+'</div></div></div>';
     });
     dayHtml+='</div>';
     tasksList.push(dayHtml);
   }
-  $('gTkList').innerHTML=tasksList.length?tasksList.join(''):'<div class="emp"><div class="emi">📋</div><div class="emt">Sin tareas asignadas a guardias esta semana</div><div class="ems">Coberturas ≥15hs en días hábiles · TODAS las actividades en sábados, domingos y feriados</div></div>';
+  $('gTkList').innerHTML=tasksList.length?tasksList.join(''):'<div class="emp"><div class="emi">ðŸ“‹</div><div class="emt">Sin tareas asignadas a guardias esta semana</div><div class="ems">Coberturas â‰¥15hs en dÃ­as hÃ¡biles Â· TODAS las actividades en sÃ¡bados, domingos y feriados</div></div>';
 }
-/* ============ PATRÓN DE GUARDIAS (Excel Planificación) ============ */
-// LUN: Marianela/Yesi · MAR: Debora/Maiten · MIE: Yesi/Debora · JUE: Maiten/Lina · VIE: Lina/Marianela
+/* ============ PATRÃ“N DE GUARDIAS (Excel PlanificaciÃ³n) ============ */
+// LUN: Marianela/Yesi Â· MAR: Debora/Maiten Â· MIE: Yesi/Debora Â· JUE: Maiten/Lina Â· VIE: Lina/Marianela
 // SAB+DOM: rota cada semana entre [Nai/Lina, Debora/Yesi, Maiten/Marianela]
 const PATRON_GUARDIAS = {
   semanal: [
-    null,                              // domingo (lo manejamos con rotación)
+    null,                              // domingo (lo manejamos con rotaciÃ³n)
     ['Marianela','Yesi'],             // lunes
     ['Debora','Maiten'],              // martes
-    ['Yesi','Debora'],                // miércoles
+    ['Yesi','Debora'],                // miÃ©rcoles
     ['Maiten','Lina'],                // jueves
     ['Lina','Marianela'],             // viernes
-    null                              // sábado (rotación)
+    null                              // sÃ¡bado (rotaciÃ³n)
   ],
   finsemana: [
     ['Nai','Lina'],         // semana 1
@@ -1853,17 +1853,17 @@ const PATRON_GUARDIAS = {
 
 function aplicarPatronGuardias(){
   if(!requireAdmin())return;
-  const semanas = prompt('¿Cuántas semanas hacia adelante querés generar?\n(empezando desde la semana actual)','12');
+  const semanas = prompt('Â¿CuÃ¡ntas semanas hacia adelante querÃ©s generar?\n(empezando desde la semana actual)','12');
   if(!semanas)return;
   const N = parseInt(semanas,10);
-  if(isNaN(N) || N<1 || N>52){toast('Número inválido (1-52)','err');return}
+  if(isNaN(N) || N<1 || N>52){toast('NÃºmero invÃ¡lido (1-52)','err');return}
 
   // Asegurar que el agente "Nai" existe
   if(!state.agents.find(a=>a.name.toLowerCase()==='nai')){
     state.agents.push({id:uid('ag'),name:'Nai',color:'#06b6d4',email:'',phone:'',role:'Comunicador/a',covers:'si'});
   }
 
-  // Resolver nombres a IDs (insensible a mayúsculas, con apodos comunes)
+  // Resolver nombres a IDs (insensible a mayÃºsculas, con apodos comunes)
   function resolver(nombre){
     if(!nombre)return '';
     const mapApodos = {'mary':'marianela','mai':'maiten','deb':'debora','debb':'debora'};
@@ -1893,7 +1893,7 @@ function aplicarPatronGuardias(){
       const dow = fecha.getDay(); // 0=dom, 1=lun, ..., 6=sab
 
       let titular, soporte;
-      if(dow===0 || dow===6){ // domingo o sábado
+      if(dow===0 || dow===6){ // domingo o sÃ¡bado
         titular = finde[0]; soporte = finde[1];
       } else {
         const par = PATRON_GUARDIAS.semanal[dow];
@@ -1913,7 +1913,7 @@ function aplicarPatronGuardias(){
 
   saveState();
   renderGuardias();renderHoy();renderCal();
-  let msg = '✓ Patrón aplicado: '+aplicadas+' días en '+N+' semanas';
+  let msg = 'âœ“ PatrÃ³n aplicado: '+aplicadas+' dÃ­as en '+N+' semanas';
   if(sobrescritas>0)msg+='\n('+sobrescritas+' guardias previas se sobrescribieron)';
   alert(msg);
   toast('Guardias generadas','suc');
@@ -1923,9 +1923,9 @@ function editGuardia(iso){
   if(!requireAdmin())return;
   $('gdDate').value=iso;
   $('gdDateLbl').textContent=new Date(iso+'T00:00:00').toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
-  const opts='<option value="">— Sin asignar —</option>'+state.agents.filter(a=>a.covers!=='no').map(a=>'<option value="'+esc(a.id)+'">'+esc(a.name)+'</option>').join('');
+  const opts='<option value="">â€” Sin asignar â€”</option>'+state.agents.filter(a=>a.covers!=='no').map(a=>'<option value="'+esc(a.id)+'">'+esc(a.name)+'</option>').join('');
   $('gdTit').innerHTML=opts;
-  $('gdSop').innerHTML=opts.replace('— Sin asignar —','— Sin soporte —');
+  $('gdSop').innerHTML=opts.replace('â€” Sin asignar â€”','â€” Sin soporte â€”');
   const g=state.guardias[iso]||{};
   $('gdTit').value=g.titular||'';
   $('gdSop').value=g.soporte||'';
@@ -1957,19 +1957,19 @@ function sendGuardiaWa(){
   if(!g||!g.titular){toast('No hay titular de guardia hoy','err');return}
   const tit=getAg(g.titular);
   if(!tit||!tit.phone){toast('El titular no tiene WhatsApp','err');return}
-  // SOLO eventos TILDADOS para cubrir + lo que pasa a guardia (weekend/feriado o ≥15hs)
+  // SOLO eventos TILDADOS para cubrir + lo que pasa a guardia (weekend/feriado o â‰¥15hs)
   const evs=state.events.filter(e=>e.date===today && e.cover === true && pasaAGuardia(today, e.time));
   const pubs=state.publicaciones.filter(p=>p.date===today && pasaAGuardia(today, p.time));
   const ents=state.entrevistas.filter(e=>e.date===today && pasaAGuardia(today, e.time));
-  let msg='*Tareas de guardia · '+new Date().toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})+'*\n';
-  if(isFeriado(today))msg+='🎌 FERIADO\n';
-  else if(isWeekend(today))msg+=(new Date(today+'T00:00:00').getDay()===6?'📅 SÁBADO':'📅 DOMINGO')+'\n';
+  let msg='*Tareas de guardia Â· '+new Date().toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})+'*\n';
+  if(isFeriado(today))msg+='ðŸŽŒ FERIADO\n';
+  else if(isWeekend(today))msg+=(new Date(today+'T00:00:00').getDay()===6?'ðŸ“… SÃBADO':'ðŸ“… DOMINGO')+'\n';
   msg+='\n';
-  if(evs.length){msg+='📅 *Eventos a cubrir:*\n';evs.forEach(e=>{msg+='• '+(e.time||'')+' - '+(e.desc||'')+(e.loc?' ('+e.loc+')':'')+'\n'});msg+='\n'}
-  if(pubs.length){msg+='📱 *Publicaciones:*\n';pubs.forEach(p=>{msg+='• '+(p.time||'')+' - '+(p.desc||'')+' ('+(p.account||'')+')\n'});msg+='\n'}
-  if(ents.length){msg+='🎙 *Entrevistas:*\n';ents.forEach(e=>{msg+='• '+(e.time||'')+' - '+(e.func||'')+' con '+(e.medio||'')+'\n'});msg+='\n'}
+  if(evs.length){msg+='ðŸ“… *Eventos a cubrir:*\n';evs.forEach(e=>{msg+='â€¢ '+(e.time||'')+' - '+(e.desc||'')+(e.loc?' ('+e.loc+')':'')+'\n'});msg+='\n'}
+  if(pubs.length){msg+='ðŸ“± *Publicaciones:*\n';pubs.forEach(p=>{msg+='â€¢ '+(p.time||'')+' - '+(p.desc||'')+' ('+(p.account||'')+')\n'});msg+='\n'}
+  if(ents.length){msg+='ðŸŽ™ *Entrevistas:*\n';ents.forEach(e=>{msg+='â€¢ '+(e.time||'')+' - '+(e.func||'')+' con '+(e.medio||'')+'\n'});msg+='\n'}
   if(!evs.length && !pubs.length && !ents.length)msg+='Sin tareas tildadas para cubrir hoy.\n';
-  msg+='\n_Solo se incluyen los eventos marcados como "Cubrir: SÍ"._';
+  msg+='\n_Solo se incluyen los eventos marcados como "Cubrir: SÃ"._';
   waOpen(tit.phone,msg);
 }
 
@@ -1977,7 +1977,7 @@ function sendGuardiaWa(){
 function renderEquipo(){
   const wrap=$('tg');
   if(state.agents.length===0){
-    wrap.innerHTML='<div class="emp"><div class="emi">👥</div><div class="emt">Sin integrantes</div><div class="ems">Agregá personas al equipo</div></div>';
+    wrap.innerHTML='<div class="emp"><div class="emi">ðŸ‘¥</div><div class="emt">Sin integrantes</div><div class="ems">AgregÃ¡ personas al equipo</div></div>';
     return;
   }
   wrap.innerHTML=state.agents.map(a=>{
@@ -1985,7 +1985,7 @@ function renderEquipo(){
     const done=tasks.filter(t=>t.status==='realizada').length;
     const pend=tasks.filter(t=>t.status!=='realizada').length;
     const pct=tasks.length?Math.round(done*100/tasks.length):0;
-    return '<div class="tc" onclick="editAg(\''+a.id+'\')"><div class="th">'+avHTML(a.name,a.color,46)+'<div><div class="tn">'+esc(a.name)+'</div><div class="tr">'+esc(a.role||'')+'</div></div></div><div class="ts"><div class="tst"><div class="tsv">'+tasks.length+'</div><div class="tsl">Total</div></div><div class="tst"><div class="tsv">'+pend+'</div><div class="tsl">Pend.</div></div><div class="tst"><div class="tsv">'+done+'</div><div class="tsl">Listas</div></div></div><div class="tpr"><div class="tpb" style="width:'+pct+'%"></div></div><div class="tpi"><span>'+pct+'% completadas</span><span>'+done+'/'+tasks.length+'</span></div><div class="ta">'+(a.phone?'<button class="btn btn-w" onclick="event.stopPropagation();sendAgWa(\''+a.id+'\')">📱 WA tareas</button>':'<button class="btn" disabled style="opacity:.4">Sin WA</button>')+(a.email?'<button class="btn" onclick="event.stopPropagation();sendAgMail(\''+a.id+'\')">📧 Mail</button>':'')+'</div></div>';
+    return '<div class="tc" onclick="editAg(\''+a.id+'\')"><div class="th">'+avHTML(a.name,a.color,46)+'<div><div class="tn">'+esc(a.name)+'</div><div class="tr">'+esc(a.role||'')+'</div></div></div><div class="ts"><div class="tst"><div class="tsv">'+tasks.length+'</div><div class="tsl">Total</div></div><div class="tst"><div class="tsv">'+pend+'</div><div class="tsl">Pend.</div></div><div class="tst"><div class="tsv">'+done+'</div><div class="tsl">Listas</div></div></div><div class="tpr"><div class="tpb" style="width:'+pct+'%"></div></div><div class="tpi"><span>'+pct+'% completadas</span><span>'+done+'/'+tasks.length+'</span></div><div class="ta">'+(a.phone?'<button class="btn btn-w" onclick="event.stopPropagation();sendAgWa(\''+a.id+'\')">ðŸ“± WA tareas</button>':'<button class="btn" disabled style="opacity:.4">Sin WA</button>')+(a.email?'<button class="btn" onclick="event.stopPropagation();sendAgMail(\''+a.id+'\')">ðŸ“§ Mail</button>':'')+'</div></div>';
   }).join('');
 }
 function sendAgWa(id){
@@ -1996,7 +1996,7 @@ function sendAgWa(id){
   tasks.forEach(t=>{
     const status=statusLabel(t.status);
     const due=t.due?' (vence '+fmtDate(t.due)+')':'';
-    msg+='• ['+status+'] '+(t.desc||'(sin desc)')+due+'\n';
+    msg+='â€¢ ['+status+'] '+(t.desc||'(sin desc)')+due+'\n';
   });
   waOpen(a.phone,msg);
 }
@@ -2017,27 +2017,27 @@ function renderMed(){
   });
   const wrap=$('mg');
   if(list.length===0){
-    wrap.innerHTML='<div class="emp"><div class="emi">📞</div><div class="emt">Sin medios</div></div>';
+    wrap.innerHTML='<div class="emp"><div class="emi">ðŸ“ž</div><div class="emt">Sin medios</div></div>';
     return;
   }
   wrap.innerHTML=list.map(m=>{
-    const icon=(m.type||'').includes('Radio')?'📻':(m.type||'').includes('TV')?'📺':(m.type||'').includes('Diario')?'📰':'📡';
-    return '<div class="mc" onclick="editMd(\''+m.id+'\')"><div class="mch"><div class="mci">'+icon+'</div><div class="mi"><div class="mn-n">'+esc(m.name)+'</div><div class="mp">'+esc(m.program||'')+'</div></div></div><div class="md"><span class="tag tag-x">'+esc(m.specialty||'')+'</span></div><div class="ma">'+(m.phone?'<button class="btn btn-w" onclick="event.stopPropagation();waOpen(\''+m.phone+'\',\'\')">📱 WA</button>':'')+(m.email?'<button class="btn" onclick="event.stopPropagation();mailOpen(\''+m.email+'\',\'\',\'\')">📧 Mail</button>':'')+'</div></div>';
+    const icon=(m.type||'').includes('Radio')?'ðŸ“»':(m.type||'').includes('TV')?'ðŸ“º':(m.type||'').includes('Diario')?'ðŸ“°':'ðŸ“¡';
+    return '<div class="mc" onclick="editMd(\''+m.id+'\')"><div class="mch"><div class="mci">'+icon+'</div><div class="mi"><div class="mn-n">'+esc(m.name)+'</div><div class="mp">'+esc(m.program||'')+'</div></div></div><div class="md"><span class="tag tag-x">'+esc(m.specialty||'')+'</span></div><div class="ma">'+(m.phone?'<button class="btn btn-w" onclick="event.stopPropagation();waOpen(\''+m.phone+'\',\'\')">ðŸ“± WA</button>':'')+(m.email?'<button class="btn" onclick="event.stopPropagation();mailOpen(\''+m.email+'\',\'\',\'\')">ðŸ“§ Mail</button>':'')+'</div></div>';
   }).join('');
 }
 function openGac(){
   const wrap=$('gcList');
-  wrap.innerHTML=state.medios.filter(m=>m.phone).map(m=>'<label style="display:flex;align-items:center;gap:10px;padding:8px;cursor:pointer;border-radius:8px" onmouseover="this.style.background=\'var(--bg-card)\'" onmouseout="this.style.background=\'\'"><input type="checkbox" data-id="'+esc(m.id)+'" style="width:16px;height:16px;cursor:pointer;accent-color:var(--ac)"><div><div style="font-weight:600;font-size:13px">'+esc(m.name)+'</div><div style="font-size:11px;color:var(--tx-m)">'+esc(m.program||'')+' · '+esc(m.phone)+'</div></div></label>').join('');
+  wrap.innerHTML=state.medios.filter(m=>m.phone).map(m=>'<label style="display:flex;align-items:center;gap:10px;padding:8px;cursor:pointer;border-radius:8px" onmouseover="this.style.background=\'var(--bg-card)\'" onmouseout="this.style.background=\'\'"><input type="checkbox" data-id="'+esc(m.id)+'" style="width:16px;height:16px;cursor:pointer;accent-color:var(--ac)"><div><div style="font-weight:600;font-size:13px">'+esc(m.name)+'</div><div style="font-size:11px;color:var(--tx-m)">'+esc(m.program||'')+' Â· '+esc(m.phone)+'</div></div></label>').join('');
   if(!wrap.innerHTML)wrap.innerHTML='<div class="ct-s" style="padding:14px;text-align:center">No hay medios con WhatsApp registrado</div>';
   openModal('gcMod');
 }
 function gcSelAll(b){document.querySelectorAll('#gcList input[type=checkbox]').forEach(c=>c.checked=b)}
 function sendGac(){
   const msg=$('gcMsg').value.trim();
-  if(!msg){toast('Escribí un mensaje','err');return}
+  if(!msg){toast('EscribÃ­ un mensaje','err');return}
   const sel=Array.from(document.querySelectorAll('#gcList input[type=checkbox]:checked')).map(c=>c.dataset.id);
-  if(sel.length===0){toast('Elegí al menos un medio','err');return}
-  if(!confirm('Se abrirán '+sel.length+' ventanas de WhatsApp. ¿Continuar?'))return;
+  if(sel.length===0){toast('ElegÃ­ al menos un medio','err');return}
+  if(!confirm('Se abrirÃ¡n '+sel.length+' ventanas de WhatsApp. Â¿Continuar?'))return;
   sel.forEach((id,i)=>{
     const m=state.medios.find(x=>x.id===id);
     if(m && m.phone){
@@ -2056,7 +2056,7 @@ function renderEnt(){
     return d!==0?d:(b.time||'').localeCompare(a.time||'');
   });
   if(list.length===0){
-    wrap.innerHTML='<div class="emp"><div class="emi">🎙</div><div class="emt">Sin entrevistas</div></div>';
+    wrap.innerHTML='<div class="emp"><div class="emi">ðŸŽ™</div><div class="emt">Sin entrevistas</div></div>';
     return;
   }
   const today=todayISO();
@@ -2064,7 +2064,7 @@ function renderEnt(){
     const past=e.date<today;
     const isToday=e.date===today;
     const tag=isToday?'<span class="tag tag-a">HOY '+esc(e.time||'')+'</span>':past?'<span class="tag tag-x">'+fmtDate(e.date)+'</span>':'<span class="tag tag-b">'+fmtDate(e.date)+' '+esc(e.time||'')+'</span>';
-    return '<div class="li" onclick="editEnt(\''+e.id+'\')"><div class="li-i" style="background:var(--pk-s);color:var(--pk)">🎙</div><div class="li-b"><div class="li-t">'+esc(e.func||'')+' <span class="t-m">con</span> '+esc(e.medio||'')+'</div><div class="li-s">'+tag+' · '+esc(e.tipo||'')+' · '+esc(e.loc||'')+'</div></div>'+(e.phone?'<div class="li-a"><button class="btn btn-w btn-xs" onclick="event.stopPropagation();entNotifyWaId(\''+e.id+'\')">📱</button></div>':'')+'</div>';
+    return '<div class="li" onclick="editEnt(\''+e.id+'\')"><div class="li-i" style="background:var(--pk-s);color:var(--pk)">ðŸŽ™</div><div class="li-b"><div class="li-t">'+esc(e.func||'')+' <span class="t-m">con</span> '+esc(e.medio||'')+'</div><div class="li-s">'+tag+' Â· '+esc(e.tipo||'')+' Â· '+esc(e.loc||'')+'</div></div>'+(e.phone?'<div class="li-a"><button class="btn btn-w btn-xs" onclick="event.stopPropagation();entNotifyWaId(\''+e.id+'\')">ðŸ“±</button></div>':'')+'</div>';
   }).join('');
 }
 
@@ -2074,13 +2074,26 @@ function renderRec(){
   const list=state.recursos.filter(r=>!f||r.cat===f);
   const wrap=$('rcList');
   if(list.length===0){
-    wrap.innerHTML='<div class="emp"><div class="emi">📁</div><div class="emt">Sin recursos</div><div class="ems">Agregá links, plantillas y archivos del equipo</div></div>';
+    wrap.innerHTML='<div class="emp"><div class="emi">ðŸ“</div><div class="emt">Sin recursos</div><div class="ems">AgregÃ¡ links, plantillas y archivos del equipo</div></div>';
     return;
   }
   wrap.innerHTML=list.map(r=>{
-    const icon={'Fotos / Multimedia':'🎨','Templates / Canva':'🖌','Documentos':'📄','Google Drive':'📁','Contactos útiles':'📞'}[r.cat]||'🔗';
-    return '<div class="mc" onclick="editRc(\''+r.id+'\')"><div class="mch"><div class="mci" style="background:var(--ac-s);color:var(--ac)">'+icon+'</div><div class="mi"><div class="mn-n">'+esc(r.name||'')+'</div><div class="mp">'+esc(r.cat||'')+'</div></div></div>'+(r.desc?'<div class="md">'+esc(r.desc)+'</div>':'')+'<div class="ma"><button class="btn btn-p" onclick="event.stopPropagation();window.open(\''+esc(r.url||'')+'\',\'_blank\')">🔗 Abrir</button></div></div>';
+    const icon={'Flyers generados':'ðŸ–¼','Fotos / Multimedia':'ðŸŽ¨','Templates / Canva':'ðŸ–Œ','Documentos':'ðŸ“„','Google Drive':'ðŸ“','Contactos Ãºtiles':'ðŸ“ž'}[r.cat]||'ðŸ”—';
+    return '<div class="mc" onclick="editRc(\''+r.id+'\')"><div class="mch"><div class="mci" style="background:var(--ac-s);color:var(--ac)">'+icon+'</div><div class="mi"><div class="mn-n">'+esc(r.name||'')+'</div><div class="mp">'+esc(r.cat||'')+'</div></div></div>'+(r.desc?'<div class="md">'+esc(r.desc)+'</div>':'')+'<div class="ma"><button class="btn btn-p" onclick="event.stopPropagation();openResource(\''+r.id+'\')">ðŸ”— '+(r.autoFlyer?'Descargar':'Abrir')+'</button></div></div>';
   }).join('');
+}
+
+function openResource(id){
+  const r=state.recursos.find(x=>x.id===id);
+  if(!r||!r.url)return;
+  if(r.autoFlyer && /^data:image\//.test(r.url)){
+    const a=document.createElement('a');
+    a.href=r.url;
+    a.download=(r.name||'flyer').replace(/[^\w\-]+/g,'_')+'.png';
+    a.click();
+    return;
+  }
+  window.open(r.url,'_blank');
 }
 
 /* ============ CRUD TAREAS ============ */
@@ -2103,7 +2116,7 @@ function editTask(id){
 }
 function saveTask(){
   const desc=$('tkDesc').value.trim();
-  if(!desc){toast('La descripción es obligatoria','err');return}
+  if(!desc){toast('La descripciÃ³n es obligatoria','err');return}
   const id=$('tkId').value;
   const asg=Array.from($('tkAsg').selectedOptions).map(o=>o.value);
   const tags=$('tkTags').value.split(',').map(s=>s.trim()).filter(Boolean);
@@ -2129,7 +2142,7 @@ function saveTask(){
   toast(id?'Tarea actualizada':'Tarea creada','suc');
 }
 function delTask(){
-  if(!confirm('¿Eliminar esta tarea?'))return;
+  if(!confirm('Â¿Eliminar esta tarea?'))return;
   const id=$('tkId').value;
   state.tasks=state.tasks.filter(t=>t.id!==id);
   if(!state._deletedIds.includes(id))state._deletedIds.push(id);
@@ -2148,7 +2161,7 @@ function editPub(id){
   openModal('pbMod');
 }
 function prepPub(p){
-  $('pbTit').textContent=p.id?'Editar publicación':'Nueva publicación';
+  $('pbTit').textContent=p.id?'Editar publicaciÃ³n':'Nueva publicaciÃ³n';
   $('pbId').value=p.id||'';
   $('pbDate').value=p.date||todayISO();
   $('pbTime').value=p.time||'09:00';
@@ -2167,7 +2180,7 @@ function prepPub(p){
 function savePub(){
   const desc=$('pbDesc').value.trim();
   const date=$('pbDate').value;
-  if(!desc||!date){toast('Fecha y descripción son obligatorias','err');return}
+  if(!desc||!date){toast('Fecha y descripciÃ³n son obligatorias','err');return}
   const id=$('pbId').value;
   const data={
     date,time:$('pbTime').value,desc,
@@ -2185,17 +2198,17 @@ function savePub(){
   saveState();
   closeModal('pbMod');
   renderAll();
-  toast(id?'Publicación actualizada':'Publicación creada','suc');
+  toast(id?'PublicaciÃ³n actualizada':'PublicaciÃ³n creada','suc');
 }
 function delPub(){
-  if(!confirm('¿Eliminar esta publicación?'))return;
+  if(!confirm('Â¿Eliminar esta publicaciÃ³n?'))return;
   const id=$('pbId').value;
   state.publicaciones=state.publicaciones.filter(p=>p.id!==id);
   if(!state._deletedIds.includes(id))state._deletedIds.push(id);
   saveState();
   closeModal('pbMod');
   renderAll();
-  toast('Publicación eliminada','suc');
+  toast('PublicaciÃ³n eliminada','suc');
 }
 
 /* ============ CRUD EVENTOS ============ */
@@ -2225,7 +2238,7 @@ function prepEvent(e){
 function saveEvent(){
   const desc=$('evDesc').value.trim();
   const date=$('evDate').value;
-  if(!desc||!date){toast('Fecha y descripción son obligatorias','err');return}
+  if(!desc||!date){toast('Fecha y descripciÃ³n son obligatorias','err');return}
   const id=$('evId').value;
   const data={
     date,time:$('evTime').value,desc,
@@ -2245,7 +2258,7 @@ function saveEvent(){
   toast(id?'Evento actualizado':'Evento creado','suc');
 }
 function delEvent(){
-  if(!confirm('¿Eliminar este evento?'))return;
+  if(!confirm('Â¿Eliminar este evento?'))return;
   const id=$('evId').value;
   state.events=state.events.filter(e=>e.id!==id);
   if(!state._deletedIds.includes(id))state._deletedIds.push(id);
@@ -2260,7 +2273,7 @@ function editAg(id){
   const a=id?getAg(id):null;
   // Permisos: solo admin puede editar a otros agentes; cualquiera puede editar su propio perfil
   if(a && !currentUserIsAdmin && a.id !== currentUserData?.id){
-    toast('Solo podés editar tu propio perfil','err');return;
+    toast('Solo podÃ©s editar tu propio perfil','err');return;
   }
   if(!a && !currentUserIsAdmin){
     toast('Solo los admin pueden agregar personas','err');return;
@@ -2291,9 +2304,9 @@ async function saveAg(){
   if(currentUserIsAdmin && $('agAdmin')){
     data.admin = $('agAdmin').value === 'true';
   }
-  // Hash de contraseña si la ingresó
+  // Hash de contraseÃ±a si la ingresÃ³
   if(passInput){
-    if(passInput.length < 3){toast('La contraseña debe tener al menos 3 caracteres','err');return}
+    if(passInput.length < 3){toast('La contraseÃ±a debe tener al menos 3 caracteres','err');return}
     data.passwordHash = await hashPass(passInput);
   }
   if(id){
@@ -2313,7 +2326,7 @@ function delAg(){
   const id=$('agId').value;
   const a=getAg(id);
   if(!a)return;
-  if(!confirm('¿Eliminar a '+a.name+'? Sus tareas asignadas no se borrarán.'))return;
+  if(!confirm('Â¿Eliminar a '+a.name+'? Sus tareas asignadas no se borrarÃ¡n.'))return;
   state.agents=state.agents.filter(x=>x.id!==id);
   if(!state._deletedIds.includes(id))state._deletedIds.push(id);
   saveState();
@@ -2331,7 +2344,7 @@ function editMd(id){
   $('mdProg').value=m?m.program||'':'';
   $('mdPhone').value=m?m.phone||'':'';
   $('mdEmail').value=m?m.email||'':'';
-  $('mdType').value=m?m.type||'📻 Radio':'📻 Radio';
+  $('mdType').value=m?m.type||'ðŸ“» Radio':'ðŸ“» Radio';
   $('mdSpec').value=m?m.specialty||'General':'General';
   $('mdNotes').value=m?m.notes||'':'';
   $('mdDel').classList.toggle('hide',!m);
@@ -2358,7 +2371,7 @@ function saveMd(){
   toast(id?'Medio actualizado':'Medio agregado','suc');
 }
 function delMd(){
-  if(!confirm('¿Eliminar este contacto?'))return;
+  if(!confirm('Â¿Eliminar este contacto?'))return;
   const id=$('mdId').value;
   state.medios=state.medios.filter(m=>m.id!==id);
   if(!state._deletedIds.includes(id))state._deletedIds.push(id);
@@ -2400,7 +2413,7 @@ function editEnt(id){
   $('enPhone').value=e?e.phone||'':'';
   $('enTema').value=e?e.tema||'':'';
   $('enDur').value=e?e.duracion||'30 min':'30 min';
-  $('enTipo').value=e?e.tipo||'Nota periodística':'Nota periodística';
+  $('enTipo').value=e?e.tipo||'Nota periodÃ­stica':'Nota periodÃ­stica';
   $('enObs').value=e?e.obs||'':'';
   $('enMdL').innerHTML=state.medios.map(m=>'<option value="'+esc(m.name)+'">').join('');
   $('enFnL').innerHTML=state.funcionarios.map(f=>'<option value="'+esc(getFuncionarioName(f))+'">'+esc(f.role||f.area||'')+'</option>').join('');
@@ -2433,7 +2446,7 @@ function saveEnt(){
   toast(id?'Entrevista actualizada':'Entrevista creada','suc');
 }
 function delEnt(){
-  if(!confirm('¿Eliminar esta entrevista?'))return;
+  if(!confirm('Â¿Eliminar esta entrevista?'))return;
   const id=$('enId').value;
   state.entrevistas=state.entrevistas.filter(e=>e.id!==id);
   if(!state._deletedIds.includes(id))state._deletedIds.push(id);
@@ -2444,13 +2457,13 @@ function delEnt(){
 }
 function entNotifyWa(){
   const phone=$('enPhone').value;
-  if(!phone){toast('Cargá el teléfono primero','err');return}
+  if(!phone){toast('CargÃ¡ el telÃ©fono primero','err');return}
   const msg='Hola! Te recuerdo la entrevista pactada para el '+($('enDate').value||'')+' a las '+($('enTime').value||'')+' con '+($('enMedio').value||'')+'.\n\nTema: '+($('enTema').value||'')+'\nLugar: '+($('enLoc').value||'');
   waOpen(phone,msg);
 }
 function entNotifyWaId(id){
   const e=state.entrevistas.find(x=>x.id===id);
-  if(!e||!e.phone){toast('Sin teléfono','err');return}
+  if(!e||!e.phone){toast('Sin telÃ©fono','err');return}
   const msg='Hola! Recordatorio entrevista: '+(e.date||'')+' '+(e.time||'')+' con '+(e.medio||'')+'.';
   waOpen(e.phone,msg);
 }
@@ -2486,7 +2499,7 @@ function saveRc(){
   toast(id?'Recurso actualizado':'Recurso agregado','suc');
 }
 function delRc(){
-  if(!confirm('¿Eliminar este recurso?'))return;
+  if(!confirm('Â¿Eliminar este recurso?'))return;
   const id=$('rcId').value;
   state.recursos=state.recursos.filter(r=>r.id!==id);
   if(!state._deletedIds.includes(id))state._deletedIds.push(id);
@@ -2500,15 +2513,15 @@ function delRc(){
 function prepCfg(){
   $('spUrl').value=state.config.supabaseUrl||'https://kvbwurvvgfarmiqtvlsc.supabase.co';
   $('spKey').value=state.config.supabaseKey||'sb_publishable_XYkrltbXO7qOj4Tz48PoJg_uh8m-zmr';
-  $('spStat').textContent=state.config.supabaseKey?'Configurado · presioná "Probar conexión"':'No conectado';
+  $('spStat').textContent=state.config.supabaseKey?'Configurado Â· presionÃ¡ "Probar conexiÃ³n"':'No conectado';
   $('spStat').style.color='var(--tx-m)';
 }
 function importJSON(){
   const raw=$('impData').value.trim();
-  if(!raw){toast('Pegá el JSON primero','err');return}
+  if(!raw){toast('PegÃ¡ el JSON primero','err');return}
   try{
     const data=JSON.parse(raw);
-    if(!confirm('¿Mezclar estos datos con los actuales? (Se conservarán por ID)'))return;
+    if(!confirm('Â¿Mezclar estos datos con los actuales? (Se conservarÃ¡n por ID)'))return;
     ['agents','funcionarios','medios','tasks','publicaciones','events','entrevistas','recursos','reclamos'].forEach(k=>{
       if(Array.isArray(data[k])){
         data[k].forEach(item=>{
@@ -2524,7 +2537,7 @@ function importJSON(){
     $('impData').value='';
     renderAll();initFilters();
     toast('Datos importados','suc');
-  }catch(e){toast('JSON inválido: '+e.message,'err')}
+  }catch(e){toast('JSON invÃ¡lido: '+e.message,'err')}
 }
 function exportJSON(){
   const data=JSON.stringify(state,null,2);
@@ -2553,7 +2566,7 @@ function detectOld(){
     }catch(e){}
   }
   if(found.length===0){toast('No se encontraron datos antiguos','inf');return}
-  const msg='Se encontraron '+found.length+' claves con datos:\n\n'+found.map(f=>'• '+f.key+' ('+f.size+' bytes)').join('\n')+'\n\n¿Querés que los exporte todos juntos como JSON?';
+  const msg='Se encontraron '+found.length+' claves con datos:\n\n'+found.map(f=>'â€¢ '+f.key+' ('+f.size+' bytes)').join('\n')+'\n\nÂ¿QuerÃ©s que los exporte todos juntos como JSON?';
   if(!confirm(msg))return;
   const all={};
   found.forEach(f=>{try{all[f.key]=JSON.parse(localStorage.getItem(f.key))}catch(e){}});
@@ -2564,8 +2577,8 @@ function saveSupa(){
   state.config.supabaseUrl=$('spUrl').value.trim().replace(/\/+$/,'');
   state.config.supabaseKey=$('spKey').value.trim();
   saveState();
-  $('spStat').textContent=state.config.supabaseKey?'Guardado · presioná "Probar conexión"':'No conectado';
-  toast('Configuración guardada','suc');
+  $('spStat').textContent=state.config.supabaseKey?'Guardado Â· presionÃ¡ "Probar conexiÃ³n"':'No conectado';
+  toast('ConfiguraciÃ³n guardada','suc');
 }
 
 async function supaFetch(table, params){
@@ -2584,21 +2597,21 @@ async function supaFetch(table, params){
 
 async function testSupa(){
   if(!state.config.supabaseUrl || !state.config.supabaseKey){
-    toast('Cargá URL y Key primero','err');return;
+    toast('CargÃ¡ URL y Key primero','err');return;
   }
   $('spStat').textContent='Probando...';
   // probar varios endpoints, alguno tiene que responder 200 o 404 (no 403/401)
   const r = await supaFetch('funcionarios','?select=*&limit=1');
   if(r.ok || r.status===404 || r.status===406){
-    $('spStat').textContent='✓ Conectado';
+    $('spStat').textContent='âœ“ Conectado';
     $('spStat').style.color='var(--gr)';
-    toast('Conexión OK','suc');
+    toast('ConexiÃ³n OK','suc');
   } else if(r.status===401 || r.status===403){
-    $('spStat').textContent='✗ Key inválida o sin permisos';
+    $('spStat').textContent='âœ— Key invÃ¡lida o sin permisos';
     $('spStat').style.color='var(--rd)';
-    toast('No autorizado: revisá la API key','err');
+    toast('No autorizado: revisÃ¡ la API key','err');
   } else {
-    $('spStat').textContent='✗ Error '+r.status;
+    $('spStat').textContent='âœ— Error '+r.status;
     $('spStat').style.color='var(--rd)';
     toast('Error: '+r.status,'err');
   }
@@ -2636,9 +2649,9 @@ function classifyTable(name, sample){
 
 async function scanSupa(){
   if(!state.config.supabaseUrl || !state.config.supabaseKey){
-    toast('Cargá y guardá la conexión primero','err');return;
+    toast('CargÃ¡ y guardÃ¡ la conexiÃ³n primero','err');return;
   }
-  $('spStat').textContent='🔍 Descubriendo tablas...';
+  $('spStat').textContent='ðŸ” Descubriendo tablas...';
   $('spStat').style.color='var(--ac)';
   $('supaResult').innerHTML='';
 
@@ -2672,13 +2685,13 @@ async function scanSupa(){
   }
 
   if(tables.length===0){
-    $('spStat').textContent='⚠ No se descubrieron tablas';
+    $('spStat').textContent='âš  No se descubrieron tablas';
     $('spStat').style.color='var(--rd)';
-    $('supaResult').innerHTML='<div class="card" style="background:var(--rd-s);border-color:var(--rd);margin-top:10px"><div style="font-weight:700;color:var(--rd);margin-bottom:6px">No se encontraron tablas accesibles</div><div class="ct-s">Posibles causas:<br>1. La API key no tiene permisos (RLS bloquea lectura anónima)<br>2. Las tablas tienen otros nombres no probados<br><br>Andá a Supabase → Authentication → Policies y verificá que haya policies de SELECT para "anon" en cada tabla, o pasame los nombres exactos de las tablas que ves en Table Editor.</div></div>';
+    $('supaResult').innerHTML='<div class="card" style="background:var(--rd-s);border-color:var(--rd);margin-top:10px"><div style="font-weight:700;color:var(--rd);margin-bottom:6px">No se encontraron tablas accesibles</div><div class="ct-s">Posibles causas:<br>1. La API key no tiene permisos (RLS bloquea lectura anÃ³nima)<br>2. Las tablas tienen otros nombres no probados<br><br>AndÃ¡ a Supabase â†’ Authentication â†’ Policies y verificÃ¡ que haya policies de SELECT para "anon" en cada tabla, o pasame los nombres exactos de las tablas que ves en Table Editor.</div></div>';
     return;
   }
 
-  $('spStat').textContent='📋 '+tables.length+' tablas detectadas · cargando muestras...';
+  $('spStat').textContent='ðŸ“‹ '+tables.length+' tablas detectadas Â· cargando muestras...';
 
   // 3) Para cada tabla: contar registros y leer 1 muestra
   const results = [];
@@ -2704,15 +2717,15 @@ async function scanSupa(){
   }
 
   state._supaTables = results;
-  $('spStat').textContent='✓ '+results.length+' tablas detectadas';
+  $('spStat').textContent='âœ“ '+results.length+' tablas detectadas';
   $('spStat').style.color='var(--gr)';
 
   // 4) Renderizar UI con dropdowns para confirmar mapeo
-  const grupos = ['Sin clasificar','Funcionarios','Reclamos','Publicaciones','Medios','Recursos','Tareas','Eventos / Calendario','Entrevistas','Guardias','Agentes','Coberturas','— Ignorar —'];
-  let html = '<div class="card" style="margin-top:10px;padding:12px"><div style="font-weight:700;font-size:13px;margin-bottom:10px">📋 Tablas detectadas — confirmá a qué corresponde cada una</div>';
+  const grupos = ['Sin clasificar','Funcionarios','Reclamos','Publicaciones','Medios','Recursos','Tareas','Eventos / Calendario','Entrevistas','Guardias','Agentes','Coberturas','â€” Ignorar â€”'];
+  let html = '<div class="card" style="margin-top:10px;padding:12px"><div style="font-weight:700;font-size:13px;margin-bottom:10px">ðŸ“‹ Tablas detectadas â€” confirmÃ¡ a quÃ© corresponde cada una</div>';
   html += '<div style="max-height:340px;overflow-y:auto">';
   results.forEach((r,i)=>{
-    const cols = r.sample ? Object.keys(r.sample).slice(0,5).join(', ') : '(vacía)';
+    const cols = r.sample ? Object.keys(r.sample).slice(0,5).join(', ') : '(vacÃ­a)';
     const opts = grupos.map(g=>'<option value="'+esc(g)+'"'+(g===r.grupo?' selected':'')+'>'+esc(g)+'</option>').join('');
     html += '<div style="padding:8px 0;border-bottom:1px solid var(--bd-s);font-size:12.5px">'+
       '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">'+
@@ -2722,7 +2735,7 @@ async function scanSupa(){
       '<div style="font-size:11px;color:var(--tx-m);margin-top:4px">cols: '+esc(cols)+'</div>'+
     '</div>';
   });
-  html += '</div><button class="btn btn-p mt12" style="width:100%" onclick="pullSupa()">📥 Descargar e importar los datos clasificados</button></div>';
+  html += '</div><button class="btn btn-p mt12" style="width:100%" onclick="pullSupa()">ðŸ“¥ Descargar e importar los datos clasificados</button></div>';
   $('supaResult').innerHTML = html;
 }
 function updTblGroup(idx, val){
@@ -2730,23 +2743,23 @@ function updTblGroup(idx, val){
 }
 
 async function pullSupa(){
-  if(!state._supaTables || state._supaTables.length===0){toast('Escaneá primero','err');return}
-  $('spStat').textContent='⬇ Descargando...';
+  if(!state._supaTables || state._supaTables.length===0){toast('EscaneÃ¡ primero','err');return}
+  $('spStat').textContent='â¬‡ Descargando...';
   $('spStat').style.color='var(--ac)';
 
   const counts = {agents:0,funcionarios:0,medios:0,reclamos:0,publicaciones:0,recursos:0,tareas:0,eventos:0,entrevistas:0,guardias:0,coberturas:0};
   // filtrar las tablas que el usuario haya marcado como ignoradas o sin clasificar
-  const aProcesar = state._supaTables.filter(t=>t.grupo && t.grupo!=='— Ignorar —' && t.grupo!=='Sin clasificar');
+  const aProcesar = state._supaTables.filter(t=>t.grupo && t.grupo!=='â€” Ignorar â€”' && t.grupo!=='Sin clasificar');
 
   if(aProcesar.length===0){
-    alert('Todas las tablas están sin clasificar o marcadas para ignorar.\nUsá los dropdowns para asignar cada tabla a un grupo.');
-    $('spStat').textContent='⚠ Sin tablas clasificadas';
+    alert('Todas las tablas estÃ¡n sin clasificar o marcadas para ignorar.\nUsÃ¡ los dropdowns para asignar cada tabla a un grupo.');
+    $('spStat').textContent='âš  Sin tablas clasificadas';
     return;
   }
 
   for(const e of aProcesar){
     try{
-      $('spStat').textContent='⬇ Descargando '+e.tabla+'...';
+      $('spStat').textContent='â¬‡ Descargando '+e.tabla+'...';
       let all = [];
       let from = 0;
       const PAGE = 1000;
@@ -2772,11 +2785,11 @@ async function pullSupa(){
 
   saveState();
   renderAll();initFilters();
-  $('spStat').textContent='✓ Descarga completa';
+  $('spStat').textContent='âœ“ Descarga completa';
   $('spStat').style.color='var(--gr)';
-  let msg = '✓ Importado desde Supabase:\n';
-  Object.entries(counts).filter(([k,v])=>v>0).forEach(([k,v])=>{msg+='• '+v+' '+k+'\n'});
-  if(msg==='✓ Importado desde Supabase:\n')msg='No se importaron registros nuevos (puede que ya estuvieran cargados o las columnas no coincidan).';
+  let msg = 'âœ“ Importado desde Supabase:\n';
+  Object.entries(counts).filter(([k,v])=>v>0).forEach(([k,v])=>{msg+='â€¢ '+v+' '+k+'\n'});
+  if(msg==='âœ“ Importado desde Supabase:\n')msg='No se importaron registros nuevos (puede que ya estuvieran cargados o las columnas no coincidan).';
   alert(msg);
   toast('Descarga completa','suc');
 }
@@ -2849,7 +2862,7 @@ function mapSupaToState(grupo, rows){
         program: m.medio || m.program || '',
         phone: m.tel || m.phone || '',
         email: m.email || '',
-        type: m.tipo==='radio'?'📻 Radio':m.tipo==='tv'?'📺 TV':m.tipo==='diario'?'📰 Diario / Digital':m.tipo||'📰 Diario / Digital',
+        type: m.tipo==='radio'?'ðŸ“» Radio':m.tipo==='tv'?'ðŸ“º TV':m.tipo==='diario'?'ðŸ“° Diario / Digital':m.tipo||'ðŸ“° Diario / Digital',
         specialty: m.especialidad || m.specialty || 'General',
         notes: m.notas || m.notes || ''
       };
@@ -2859,7 +2872,7 @@ function mapSupaToState(grupo, rows){
     });
   } else if(grupo==='Recursos'){
     c.recursos=0;
-    const catMap = {drive:'Google Drive',foto:'Fotos / Multimedia',template:'Templates / Canva',doc:'Documentos',contacto:'Contactos útiles'};
+    const catMap = {drive:'Google Drive',foto:'Fotos / Multimedia',template:'Templates / Canva',doc:'Documentos',contacto:'Contactos Ãºtiles'};
     rows.forEach(rc=>{
       const data = {
         id: rc.id || uid('rc'),
@@ -2929,7 +2942,7 @@ function mapSupaToState(grupo, rows){
         phone: e.telefono || e.phone || e.tel || '',
         tema: e.tema || e.descripcion || '',
         duracion: e.duracion || '30 min',
-        tipo: e.tipo_entrevista || e.tipo_ent || e.tipo || 'Nota periodística',
+        tipo: e.tipo_entrevista || e.tipo_ent || e.tipo || 'Nota periodÃ­stica',
         obs: e.observaciones || e.obs || ''
       };
       const ex = state.entrevistas.find(x=>x.id===data.id);
@@ -2968,7 +2981,7 @@ function mapSupaToState(grupo, rows){
     });
   } else if(grupo==='Coberturas'){
     c.coberturas=0;
-    // Las coberturas pueden ser una tabla puente evento↔agente; las dejamos como notes en eventos
+    // Las coberturas pueden ser una tabla puente eventoâ†”agente; las dejamos como notes en eventos
     rows.forEach(co=>{
       const evId = co.evento_id || co.event_id;
       if(!evId)return;
@@ -2985,15 +2998,15 @@ function mapSupaToState(grupo, rows){
 function chgPass(){
   const p1=$('npw').value;
   const p2=$('npw2').value;
-  if(p1!==p2){toast('Las contraseñas no coinciden','err');return}
+  if(p1!==p2){toast('Las contraseÃ±as no coinciden','err');return}
   state.config.password=p1;
   saveState();
   $('npw').value='';$('npw2').value='';
-  toast(p1?'Contraseña actualizada':'Contraseña eliminada','suc');
+  toast(p1?'ContraseÃ±a actualizada':'ContraseÃ±a eliminada','suc');
 }
 function resetAll(){
-  if(!confirm('¿BORRAR TODOS los datos del panel? Esta acción no se puede deshacer.'))return;
-  if(!confirm('Última oportunidad. ¿Estás SEGURA?'))return;
+  if(!confirm('Â¿BORRAR TODOS los datos del panel? Esta acciÃ³n no se puede deshacer.'))return;
+  if(!confirm('Ãšltima oportunidad. Â¿EstÃ¡s SEGURA?'))return;
   localStorage.removeItem(LS_KEY);
   localStorage.removeItem('pcomTA_lastU');
   location.reload();
@@ -3002,29 +3015,29 @@ function resetAll(){
 /* ============ RECLAMOS ============ */
 function reclamoIcon(tipo){
   const t = (tipo||'').toLowerCase();
-  if(/agua|pérdida|perdida|caño|sanitar/.test(t)) return '💧';
-  if(/asfalto/.test(t)) return '🛣️';
-  if(/calle.*tierra|tierra/.test(t)) return '🚧';
-  if(/basura|residuo|recolec/.test(t)) return '🗑️';
-  if(/terreno|baldío|baldio/.test(t)) return '🏚️';
-  if(/inundad|agua acumulad/.test(t)) return '🌊';
-  if(/pasto|maleza|yuyo/.test(t)) return '🌿';
-  if(/alumbrado|luz|lampara|lámpara/.test(t)) return '💡';
-  if(/árbol|arbol|poda/.test(t)) return '🌳';
-  if(/ruido/.test(t)) return '🔊';
-  if(/animal|perro|gato/.test(t)) return '🐕';
-  if(/sem[aá]foro/.test(t)) return '🚦';
-  if(/contenedor|reciclaje/.test(t)) return '♻️';
-  if(/cloaca/.test(t)) return '🚿';
-  if(/poste|cable/.test(t)) return '⚡';
-  if(/bache|pozo/.test(t)) return '🕳️';
-  return '📣';
+  if(/agua|pÃ©rdida|perdida|caÃ±o|sanitar/.test(t)) return 'ðŸ’§';
+  if(/asfalto/.test(t)) return 'ðŸ›£ï¸';
+  if(/calle.*tierra|tierra/.test(t)) return 'ðŸš§';
+  if(/basura|residuo|recolec/.test(t)) return 'ðŸ—‘ï¸';
+  if(/terreno|baldÃ­o|baldio/.test(t)) return 'ðŸšï¸';
+  if(/inundad|agua acumulad/.test(t)) return 'ðŸŒŠ';
+  if(/pasto|maleza|yuyo/.test(t)) return 'ðŸŒ¿';
+  if(/alumbrado|luz|lampara|lÃ¡mpara/.test(t)) return 'ðŸ’¡';
+  if(/Ã¡rbol|arbol|poda/.test(t)) return 'ðŸŒ³';
+  if(/ruido/.test(t)) return 'ðŸ”Š';
+  if(/animal|perro|gato/.test(t)) return 'ðŸ•';
+  if(/sem[aÃ¡]foro/.test(t)) return 'ðŸš¦';
+  if(/contenedor|reciclaje/.test(t)) return 'â™»ï¸';
+  if(/cloaca/.test(t)) return 'ðŸš¿';
+  if(/poste|cable/.test(t)) return 'âš¡';
+  if(/bache|pozo/.test(t)) return 'ðŸ•³ï¸';
+  return 'ðŸ“£';
 }
 function reclamoIconColor(tipo){
   const t = (tipo||'').toLowerCase();
-  if(/agua|pérdida|caño|sanitar|cloaca|inundad/.test(t)) return {bg:'var(--bl-s)',col:'var(--bl)'};
-  if(/basura|terreno|baldío/.test(t)) return {bg:'var(--or-s)',col:'var(--or)'};
-  if(/pasto|árbol|arbol|poda|maleza/.test(t)) return {bg:'var(--gr-s)',col:'var(--gr)'};
+  if(/agua|pÃ©rdida|caÃ±o|sanitar|cloaca|inundad/.test(t)) return {bg:'var(--bl-s)',col:'var(--bl)'};
+  if(/basura|terreno|baldÃ­o/.test(t)) return {bg:'var(--or-s)',col:'var(--or)'};
+  if(/pasto|Ã¡rbol|arbol|poda|maleza/.test(t)) return {bg:'var(--gr-s)',col:'var(--gr)'};
   if(/alumbrado|luz|poste|cable/.test(t)) return {bg:'var(--ac-s)',col:'var(--ac)'};
   if(/asfalto|tierra|bache|sem/.test(t)) return {bg:'var(--pu-s)',col:'var(--pu)'};
   return {bg:'var(--pk-s)',col:'var(--pk)'};
@@ -3044,18 +3057,18 @@ function renderReclamos(){
   });
   const wrap=$('reclamosList');
   if(list.length===0){
-    wrap.innerHTML='<div class="emp"><div class="emi">📣</div><div class="emt">Sin reclamos</div><div class="ems">Agregá reclamos de vecinos para derivar a funcionarios</div></div>';
+    wrap.innerHTML='<div class="emp"><div class="emi">ðŸ“£</div><div class="emt">Sin reclamos</div><div class="ems">AgregÃ¡ reclamos de vecinos para derivar a funcionarios</div></div>';
     return;
   }
   wrap.innerHTML=list.map(r=>{
     const stT=r.estado==='resuelto'?'<span class="tag tag-g">Resuelto</span>':r.estado==='en-proceso'?'<span class="tag tag-b">En proceso</span>':'<span class="tag tag-r">Pendiente</span>';
     const icon = reclamoIcon(r.tipo);
     const c = reclamoIconColor(r.tipo);
-    // si está resuelto, atenuar el color
+    // si estÃ¡ resuelto, atenuar el color
     const iconB = r.estado==='resuelto' ? 'var(--bg-soft)' : c.bg;
     const iconC = r.estado==='resuelto' ? 'var(--tx-m)' : c.col;
     const opacity = r.estado==='resuelto' ? ';opacity:.6' : '';
-    return '<div class="li" onclick="editReclamo(\''+r.id+'\')"><div class="li-i" style="background:'+iconB+';color:'+iconC+';font-size:18px'+opacity+'">'+icon+'</div><div class="li-b"><div class="li-t">'+esc(r.tipo||'(sin tipo)')+(r.vecino?' · '+esc(r.vecino):'')+'</div><div class="li-s">'+stT+(r.funcionario?' · 👤 '+esc(r.funcionario):'')+(r.direccion?' · 📍 '+esc(r.direccion):'')+'</div>'+(r.descripcion?'<div class="li-s" style="margin-top:4px;color:var(--tx-s)">'+esc(r.descripcion).slice(0,180)+'</div>':'')+'</div>'+(r.funcionario_tel?'<div class="li-a"><button class="btn btn-w btn-xs" onclick="event.stopPropagation();reclamoNotifyWaId(\''+r.id+'\')">📱</button></div>':'')+'</div>';
+    return '<div class="li" onclick="editReclamo(\''+r.id+'\')"><div class="li-i" style="background:'+iconB+';color:'+iconC+';font-size:18px'+opacity+'">'+icon+'</div><div class="li-b"><div class="li-t">'+esc(r.tipo||'(sin tipo)')+(r.vecino?' Â· '+esc(r.vecino):'')+'</div><div class="li-s">'+stT+(r.funcionario?' Â· ðŸ‘¤ '+esc(r.funcionario):'')+(r.direccion?' Â· ðŸ“ '+esc(r.direccion):'')+'</div>'+(r.descripcion?'<div class="li-s" style="margin-top:4px;color:var(--tx-s)">'+esc(r.descripcion).slice(0,180)+'</div>':'')+'</div>'+(r.funcionario_tel?'<div class="li-a"><button class="btn btn-w btn-xs" onclick="event.stopPropagation();reclamoNotifyWaId(\''+r.id+'\')">ðŸ“±</button></div>':'')+'</div>';
   }).join('');
 }
 function editReclamo(id){
@@ -3092,7 +3105,7 @@ function saveReclamo(){
   const tipo=$('rlTipo').value.trim();
   if(!tipo){toast('El tipo es obligatorio','err');return}
   const id=$('rlId').value;
-  // Si el tipo es nuevo, agregarlo a la lista custom para que aparezca la próxima vez
+  // Si el tipo es nuevo, agregarlo a la lista custom para que aparezca la prÃ³xima vez
   const tiposTodos = [...DEF_TIPOS_RECLAMO, ...(state.tiposReclamoCustom||[])];
   const tiposNorm = tiposTodos.map(t=>t.toLowerCase());
   if(!tiposNorm.includes(tipo.toLowerCase())){
@@ -3100,7 +3113,7 @@ function saveReclamo(){
     state.tiposReclamoCustom.push(tipo);
     toast('Nuevo tipo de reclamo: '+tipo,'inf');
   }
-  // auto-completar tel del funcionario si está cargado
+  // auto-completar tel del funcionario si estÃ¡ cargado
   let funcTel=$('rlFuncTel').value;
   const funcName=$('rlFunc').value.trim();
   if(funcName && !funcTel){
@@ -3129,7 +3142,7 @@ function saveReclamo(){
   toast(id?'Reclamo actualizado':'Reclamo creado','suc');
 }
 function delReclamo(){
-  if(!confirm('¿Eliminar este reclamo?'))return;
+  if(!confirm('Â¿Eliminar este reclamo?'))return;
   const id=$('rlId').value;
   state.reclamos=state.reclamos.filter(r=>r.id!==id);
   if(!state._deletedIds.includes(id))state._deletedIds.push(id);
@@ -3140,14 +3153,14 @@ function delReclamo(){
 }
 function reclamoNotifyWa(){
   const tel=$('rlFuncTel').value;
-  if(!tel){toast('Sin teléfono del funcionario','err');return}
-  const msg='Hola! Reclamo recibido:\n\n*'+($('rlTipo').value||'')+'*\n'+($('rlDesc').value||'')+(($('rlDir').value)?'\n📍 Dirección: '+$('rlDir').value:'')+(($('rlVec').value)?'\n👤 Vecino/a: '+$('rlVec').value+(($('rlVecTel').value)?' ('+$('rlVecTel').value+')':''):'');
+  if(!tel){toast('Sin telÃ©fono del funcionario','err');return}
+  const msg='Hola! Reclamo recibido:\n\n*'+($('rlTipo').value||'')+'*\n'+($('rlDesc').value||'')+(($('rlDir').value)?'\nðŸ“ DirecciÃ³n: '+$('rlDir').value:'')+(($('rlVec').value)?'\nðŸ‘¤ Vecino/a: '+$('rlVec').value+(($('rlVecTel').value)?' ('+$('rlVecTel').value+')':''):'');
   waOpen(tel,msg);
 }
 function reclamoNotifyWaId(id){
   const r=state.reclamos.find(x=>x.id===id);
-  if(!r||!r.funcionario_tel){toast('Sin teléfono','err');return}
-  const msg='Hola! Reclamo:\n\n*'+(r.tipo||'')+'*\n'+(r.descripcion||'')+(r.direccion?'\n📍 '+r.direccion:'')+(r.vecino?'\n👤 '+r.vecino:'');
+  if(!r||!r.funcionario_tel){toast('Sin telÃ©fono','err');return}
+  const msg='Hola! Reclamo:\n\n*'+(r.tipo||'')+'*\n'+(r.descripcion||'')+(r.direccion?'\nðŸ“ '+r.direccion:'')+(r.vecino?'\nðŸ‘¤ '+r.vecino:'');
   waOpen(r.funcionario_tel,msg);
 }
 
@@ -3215,7 +3228,7 @@ function importBackupViejo(backupObj){
           program: m.medio || m.program || '',
           phone: m.tel || m.phone || '',
           email: m.email || '',
-          type: (m.tipo==='radio'?'📻 Radio':m.tipo==='tv'?'📺 TV':m.tipo==='diario'?'📰 Diario / Digital':m.tipo||'📰 Diario / Digital'),
+          type: (m.tipo==='radio'?'ðŸ“» Radio':m.tipo==='tv'?'ðŸ“º TV':m.tipo==='diario'?'ðŸ“° Diario / Digital':m.tipo||'ðŸ“° Diario / Digital'),
           specialty: m.especialidad || m.specialty || 'General',
           notes: m.notas || m.notes || ''
         };
@@ -3260,7 +3273,7 @@ function importBackupViejo(backupObj){
       const arr = typeof ls['rec_v1']==='string'?JSON.parse(ls['rec_v1']):ls['rec_v1'];
       arr.forEach(rc=>{
         const exists = state.recursos.find(x=>x.id===rc.id);
-        const catMap = {drive:'Google Drive',foto:'Fotos / Multimedia',template:'Templates / Canva',doc:'Documentos',contacto:'Contactos útiles'};
+        const catMap = {drive:'Google Drive',foto:'Fotos / Multimedia',template:'Templates / Canva',doc:'Documentos',contacto:'Contactos Ãºtiles'};
         const data = {
           id: rc.id || uid('rc'),
           name: rc.nombre || rc.name || '',
@@ -3292,38 +3305,38 @@ function importBackupViejo(backupObj){
   return counts;
 }
 
-// Override importJSON con detección automática
+// Override importJSON con detecciÃ³n automÃ¡tica
 const _importJSON_orig = importJSON;
 importJSON = function(){
   const raw=$('impData').value.trim();
-  if(!raw){toast('Pegá el JSON primero','err');return}
+  if(!raw){toast('PegÃ¡ el JSON primero','err');return}
   try{
     const data=JSON.parse(raw);
     // Detectar formato del backup viejo
     if(data.meta && data.localStorage){
-      if(!confirm('Detecté un backup del panel anterior. ¿Importar todos los datos? (Los actuales se mantienen)'))return;
+      if(!confirm('DetectÃ© un backup del panel anterior. Â¿Importar todos los datos? (Los actuales se mantienen)'))return;
       const c = importBackupViejo(data);
       saveState();
       $('impData').value='';
       renderAll();initFilters();
-      const msg = '✓ Importado:\n• '+c.funcs+' funcionarios\n• '+c.pubs+' publicaciones\n• '+c.med+' medios\n• '+c.rec+' reclamos\n• '+c.recursos+' recursos\n• '+c.telef+' teléfonos de agentes';
+      const msg = 'âœ“ Importado:\nâ€¢ '+c.funcs+' funcionarios\nâ€¢ '+c.pubs+' publicaciones\nâ€¢ '+c.med+' medios\nâ€¢ '+c.rec+' reclamos\nâ€¢ '+c.recursos+' recursos\nâ€¢ '+c.telef+' telÃ©fonos de agentes';
       alert(msg);
-      toast('Importación completa','suc');
+      toast('ImportaciÃ³n completa','suc');
       return;
     }
     // Detectar si es solo el objeto localStorage (sin meta)
     if(data['panel-comunicacion-reclamos-v1'] || data['panel-comunicacion-funcionarios-v1']){
-      if(!confirm('Detecté datos del panel anterior. ¿Importar?'))return;
+      if(!confirm('DetectÃ© datos del panel anterior. Â¿Importar?'))return;
       const c = importBackupViejo({localStorage:data});
       saveState();
       $('impData').value='';
       renderAll();initFilters();
-      alert('✓ Importado:\n• '+c.funcs+' funcionarios\n• '+c.pubs+' publicaciones\n• '+c.med+' medios\n• '+c.rec+' reclamos\n• '+c.recursos+' recursos\n• '+c.telef+' teléfonos');
-      toast('Importación completa','suc');
+      alert('âœ“ Importado:\nâ€¢ '+c.funcs+' funcionarios\nâ€¢ '+c.pubs+' publicaciones\nâ€¢ '+c.med+' medios\nâ€¢ '+c.rec+' reclamos\nâ€¢ '+c.recursos+' recursos\nâ€¢ '+c.telef+' telÃ©fonos');
+      toast('ImportaciÃ³n completa','suc');
       return;
     }
     // Si es el formato nativo del panel nuevo
-    if(!confirm('¿Mezclar estos datos con los actuales? (Se conservan por ID)'))return;
+    if(!confirm('Â¿Mezclar estos datos con los actuales? (Se conservan por ID)'))return;
     ['agents','funcionarios','medios','tasks','publicaciones','events','entrevistas','recursos','reclamos'].forEach(k=>{
       if(Array.isArray(data[k])){
         data[k].forEach(item=>{
@@ -3339,7 +3352,7 @@ importJSON = function(){
     $('impData').value='';
     renderAll();initFilters();
     toast('Datos importados','suc');
-  }catch(e){toast('JSON inválido: '+e.message,'err');console.error(e)}
+  }catch(e){toast('JSON invÃ¡lido: '+e.message,'err');console.error(e)}
 };
 
 /* ============ GOOGLE CALENDAR SYNC ============ */
@@ -3358,7 +3371,7 @@ function extractCalendarId(input){
   }
   // Si parece un calendar ID directo (tiene @)
   if(input.includes('@'))return input;
-  return input; // último recurso, asumir que es el id
+  return input; // Ãºltimo recurso, asumir que es el id
 }
 
 function buildICSUrl(calendarId){
@@ -3398,14 +3411,14 @@ function parseICSDate(s){
 
 async function syncGoogleCal(){
   const input = $('gcUrl').value.trim();
-  if(!input){toast('Pegá la URL o ID del calendario','err');return}
+  if(!input){toast('PegÃ¡ la URL o ID del calendario','err');return}
   const calId = extractCalendarId(input);
   if(!calId){toast('No pude extraer el ID del calendario','err');return}
   const icsUrl = buildICSUrl(calId);
   state.config.googleCalendarId = calId;
   saveState();
 
-  $('gcStat').innerHTML = '⬇ Descargando eventos...';
+  $('gcStat').innerHTML = 'â¬‡ Descargando eventos...';
   $('gcStat').style.color='var(--ac)';
 
   // Intentar varios proxies CORS hasta que uno funcione
@@ -3420,7 +3433,7 @@ async function syncGoogleCal(){
   for(const buildProxy of proxies){
     try {
       const proxyUrl = buildProxy(icsUrl);
-      $('gcStat').textContent = '⬇ Probando '+proxyUrl.split('/')[2]+'...';
+      $('gcStat').textContent = 'â¬‡ Probando '+proxyUrl.split('/')[2]+'...';
       const r = await fetch(proxyUrl);
       if(r.ok){
         const txt = await r.text();
@@ -3434,7 +3447,7 @@ async function syncGoogleCal(){
   }
 
   if(!icsText){
-    $('gcStat').innerHTML='<span style="color:var(--rd)">✗ No se pudo descargar el calendario</span><br><span class="t-m">Verificá que esté marcado como público en Google Calendar.</span>';
+    $('gcStat').innerHTML='<span style="color:var(--rd)">âœ— No se pudo descargar el calendario</span><br><span class="t-m">VerificÃ¡ que estÃ© marcado como pÃºblico en Google Calendar.</span>';
     toast('Error al descargar','err');
     return;
   }
@@ -3454,7 +3467,7 @@ async function syncGoogleCal(){
       id,
       date: dt.date,
       time: dt.time,
-      desc: ev.SUMMARY || '(sin título)',
+      desc: ev.SUMMARY || '(sin tÃ­tulo)',
       loc: ev.LOCATION || '',
       type: 'Agenda Intendente',
       cover: false,
@@ -3469,7 +3482,7 @@ async function syncGoogleCal(){
 
   saveState();
   renderCal();renderHoy();
-  $('gcStat').innerHTML = '<span style="color:var(--gr)">✓ Sincronizado vía '+proxyUsed+'</span><br><span class="t-m">'+imported+' nuevos · '+updated+' actualizados · '+skipped+' omitidos</span>';
+  $('gcStat').innerHTML = '<span style="color:var(--gr)">âœ“ Sincronizado vÃ­a '+proxyUsed+'</span><br><span class="t-m">'+imported+' nuevos Â· '+updated+' actualizados Â· '+skipped+' omitidos</span>';
   $('gcDel').classList.remove('hide');
   toast('Calendario sincronizado','suc');
 
@@ -3479,7 +3492,7 @@ async function syncGoogleCal(){
 function autoSyncToggle(){
   state.config.googleAutoSync = !state.config.googleAutoSync;
   saveState();
-  $('autoSyncBtn').textContent = state.config.googleAutoSync?'🔁 Auto-sync: ON (cada 30 min)':'🔁 Auto-sync: OFF';
+  $('autoSyncBtn').textContent = state.config.googleAutoSync?'ðŸ” Auto-sync: ON (cada 30 min)':'ðŸ” Auto-sync: OFF';
   if(state.config.googleAutoSync){
     scheduleAutoSync();
     toast('Auto-sync activado','suc');
@@ -3499,7 +3512,7 @@ function scheduleAutoSync(){
   }, 30*60*1000);
 }
 function disconnectGCal(){
-  if(!confirm('¿Desconectar Google Calendar? Los eventos importados quedan, pero no se sincronizarán más.'))return;
+  if(!confirm('Â¿Desconectar Google Calendar? Los eventos importados quedan, pero no se sincronizarÃ¡n mÃ¡s.'))return;
   state.config.googleCalendarId = '';
   state.config.googleAutoSync = false;
   if(window._gcalTimer)clearInterval(window._gcalTimer);
@@ -3507,7 +3520,7 @@ function disconnectGCal(){
   $('gcUrl').value='';
   $('gcStat').textContent='';
   $('gcDel').classList.add('hide');
-  $('autoSyncBtn').textContent='🔁 Auto-sync: OFF';
+  $('autoSyncBtn').textContent='ðŸ” Auto-sync: OFF';
   toast('Desconectado','inf');
 }
 
@@ -3521,7 +3534,7 @@ function setRcView(v){
   renderReclamos();
 }
 
-// override de renderReclamos para soportar agrupación
+// override de renderReclamos para soportar agrupaciÃ³n
 const _renderReclamos_orig = renderReclamos;
 renderReclamos = function(){
   if(_rcView==='lista'){_renderReclamos_orig();return}
@@ -3532,7 +3545,7 @@ renderReclamos = function(){
   if(q)list = list.filter(r=>((r.tipo||'')+' '+(r.descripcion||'')+' '+(r.vecino||'')+' '+(r.funcionario||'')+' '+(r.direccion||'')).toLowerCase().includes(q));
   const wrap = $('reclamosList');
   if(list.length===0){
-    wrap.innerHTML = '<div class="emp"><div class="emi">📣</div><div class="emt">Sin reclamos</div></div>';
+    wrap.innerHTML = '<div class="emp"><div class="emi">ðŸ“£</div><div class="emt">Sin reclamos</div></div>';
     return;
   }
   // Agrupar
@@ -3558,7 +3571,7 @@ renderReclamos = function(){
     const pend = items.filter(r=>r.estado==='pendiente').length;
     const proc = items.filter(r=>r.estado==='en-proceso').length;
     const resv = items.filter(r=>r.estado==='resuelto').length;
-    // teléfono del funcionario (si agrupado por func)
+    // telÃ©fono del funcionario (si agrupado por func)
     let telBtn = '';
     if(_rcView==='func' && name!=='(sin funcionario)'){
       const tel = items.find(r=>r.funcionario_tel)?.funcionario_tel || state.funcionarios.find(f=>f.name.toLowerCase()===name.toLowerCase())?.phone;
@@ -3566,8 +3579,8 @@ renderReclamos = function(){
         // mensaje resumen con los pendientes/en-proceso
         const enviar = items.filter(r=>r.estado!=='resuelto');
         let m = '*Reclamos pendientes:*\n\n';
-        enviar.forEach((r,i)=>{m+=(i+1)+'. ['+r.estado.toUpperCase()+'] '+r.tipo+(r.vecino?' · '+r.vecino:'')+(r.direccion?' · 📍 '+r.direccion:'')+'\n   '+(r.descripcion||'')+'\n\n'});
-        telBtn = '<button class="btn btn-w btn-xs" onclick="waOpen(\''+tel+'\', '+JSON.stringify(m).replace(/'/g,'&#39;')+')">📱 WA todos los pendientes</button>';
+        enviar.forEach((r,i)=>{m+=(i+1)+'. ['+r.estado.toUpperCase()+'] '+r.tipo+(r.vecino?' Â· '+r.vecino:'')+(r.direccion?' Â· ðŸ“ '+r.direccion:'')+'\n   '+(r.descripcion||'')+'\n\n'});
+        telBtn = '<button class="btn btn-w btn-xs" onclick="waOpen(\''+tel+'\', '+JSON.stringify(m).replace(/'/g,'&#39;')+')">ðŸ“± WA todos los pendientes</button>';
       }
     }
     html += '<div class="card" style="margin-bottom:14px"><div class="ch"><div class="ct-t">'+esc(name)+' <span class="tag tag-x">'+items.length+'</span></div><div class="fl">';
@@ -3583,18 +3596,18 @@ renderReclamos = function(){
       const iconC = r.estado==='resuelto' ? 'var(--tx-m)' : cc.col;
       const opacity = r.estado==='resuelto' ? ';opacity:.6' : '';
       const secundario = _rcView==='func' ? r.tipo : r.funcionario;
-      html += '<div class="li" onclick="editReclamo(\''+r.id+'\')"><div class="li-i" style="background:'+iconB+';color:'+iconC+';font-size:18px'+opacity+'">'+icon+'</div><div class="li-b"><div class="li-t">'+esc(secundario||'(sin '+( _rcView==='func'?'tipo':'funcionario')+')')+(r.vecino?' · '+esc(r.vecino):'')+'</div><div class="li-s">'+stT+(r.direccion?' · 📍 '+esc(r.direccion):'')+'</div>'+(r.descripcion?'<div class="li-s" style="margin-top:4px;color:var(--tx-s)">'+esc(r.descripcion).slice(0,180)+'</div>':'')+'</div></div>';
+      html += '<div class="li" onclick="editReclamo(\''+r.id+'\')"><div class="li-i" style="background:'+iconB+';color:'+iconC+';font-size:18px'+opacity+'">'+icon+'</div><div class="li-b"><div class="li-t">'+esc(secundario||'(sin '+( _rcView==='func'?'tipo':'funcionario')+')')+(r.vecino?' Â· '+esc(r.vecino):'')+'</div><div class="li-s">'+stT+(r.direccion?' Â· ðŸ“ '+esc(r.direccion):'')+'</div>'+(r.descripcion?'<div class="li-s" style="margin-top:4px;color:var(--tx-s)">'+esc(r.descripcion).slice(0,180)+'</div>':'')+'</div></div>';
     });
     html += '</div>';
   });
   wrap.innerHTML = html;
 };
 
-/* ============ SINCRONIZACIÓN COMPARTIDA EN SUPABASE ============ */
+/* ============ SINCRONIZACIÃ“N COMPARTIDA EN SUPABASE ============ */
 const SUPA_TABLE = 'panel_data';
 const SUPA_ROW_KEY = 'panel_v6';
 const SYNC_INTERVAL_MS = 10000; // Pull cada 10 segundos (antes 25)
-const PUSH_DEBOUNCE_MS = 600;   // Push 0.6s después de cada cambio (antes 1500)
+const PUSH_DEBOUNCE_MS = 600;   // Push 0.6s despuÃ©s de cada cambio (antes 1500)
 
 let _syncEnabled = false;
 let _syncing = false;
@@ -3606,7 +3619,7 @@ function setSyncStatus(level, msg){
   const ind = $('saveInd');
   if(!ind) return;
   const colors = {off:'var(--tx-m)', local:'var(--gr)', syncing:'var(--ac)', synced:'#22c55e', error:'var(--rd)'};
-  const icons  = {off:'💾', local:'💾', syncing:'🔄', synced:'☁', error:'⚠'};
+  const icons  = {off:'ðŸ’¾', local:'ðŸ’¾', syncing:'ðŸ”„', synced:'â˜', error:'âš '};
   ind.innerHTML = icons[level]+' '+msg;
   ind.style.color = colors[level] || 'var(--tx-m)';
   // Si hay error, hacer clickeable
@@ -3615,7 +3628,7 @@ function setSyncStatus(level, msg){
     ind.title = 'Click para diagnosticar';
     ind.onclick = ()=>{
       if(currentUserIsAdmin) openModal('cfgMod');
-      else alert('Hay un problema de sincronización. Pedile a Marianela o Santiago que abran Configuración → "Diagnosticar".');
+      else alert('Hay un problema de sincronizaciÃ³n. Pedile a Marianela o Santiago que abran ConfiguraciÃ³n â†’ "Diagnosticar".');
     };
   } else {
     ind.style.cursor = 'default';
@@ -3644,7 +3657,7 @@ async function syncInit(){
       if(rows.length > 0 && rows[0].value) {
         // Hay datos en la nube: mergear con local
         await mergeRemoteState(rows[0].value, new Date(rows[0].updated_at).getTime());
-        // Si después del merge mis datos locales tienen items que no estaban en remote, subir
+        // Si despuÃ©s del merge mis datos locales tienen items que no estaban en remote, subir
         if(hayDatosLocales) setTimeout(()=>syncPush(), 1000);
       } else {
         // No hay datos en la nube: subir el local si hay
@@ -3652,14 +3665,14 @@ async function syncInit(){
           await syncPush();
         }
       }
-      // Timer periódico para traer cambios de otros
+      // Timer periÃ³dico para traer cambios de otros
       if(_syncTimer) clearInterval(_syncTimer);
       _syncTimer = setInterval(syncPull, SYNC_INTERVAL_MS);
-      setSyncStatus('synced','En la nube ✓');
-      // Mostrar notificación grande la primera vez
+      setSyncStatus('synced','En la nube âœ“');
+      // Mostrar notificaciÃ³n grande la primera vez
       if(!localStorage.getItem('pcomTA_syncOnce')){
         localStorage.setItem('pcomTA_syncOnce','1');
-        toast('☁ Sincronización activada. Todos los agentes verán los mismos datos.','suc');
+        toast('â˜ SincronizaciÃ³n activada. Todos los agentes verÃ¡n los mismos datos.','suc');
       }
     } else if(r.status === 404 || r.status === 400) {
       const txt = await r.text();
@@ -3667,22 +3680,22 @@ async function syncInit(){
         setSyncStatus('error','Falta crear tabla en Supabase');
         mostrarAvisoSync('tabla');
       } else {
-        setSyncStatus('error','Sin permisos (RLS) — Click acá');
+        setSyncStatus('error','Sin permisos (RLS) â€” Click acÃ¡');
         mostrarAvisoSync('rls');
       }
     } else if(r.status === 401 || r.status === 403){
-      setSyncStatus('error','Sin permisos (RLS) — Click acá');
+      setSyncStatus('error','Sin permisos (RLS) â€” Click acÃ¡');
       mostrarAvisoSync('rls');
     } else {
       setSyncStatus('error','Error '+r.status);
     }
   } catch(e){
-    setSyncStatus('error','Sin conexión a internet');
+    setSyncStatus('error','Sin conexiÃ³n a internet');
   }
 }
 
 function mostrarAvisoSync(tipo){
-  // Solo mostrar una vez por sesión y solo para admins
+  // Solo mostrar una vez por sesiÃ³n y solo para admins
   if(!currentUserIsAdmin)return;
   if(window._avisoSyncMostrado)return;
   window._avisoSyncMostrado = true;
@@ -3690,11 +3703,11 @@ function mostrarAvisoSync(tipo){
     const banner = document.createElement('div');
     banner.id = 'syncAviso';
     banner.style.cssText = 'position:fixed;bottom:20px;left:20px;max-width:420px;background:var(--bg-el);border:2px solid var(--rd);border-radius:14px;padding:16px 18px;box-shadow:var(--sh-l);z-index:1500;animation:slideIn .3s ease-out';
-    const titulo = tipo==='tabla' ? '⚠ Falta crear la tabla en Supabase' : '⚠ La sincronización está bloqueada';
+    const titulo = tipo==='tabla' ? 'âš  Falta crear la tabla en Supabase' : 'âš  La sincronizaciÃ³n estÃ¡ bloqueada';
     const msg = tipo==='tabla' ?
       'Sin esta tabla, los datos no se comparten entre dispositivos ni entre agentes.' :
       'Las policies de Supabase no permiten leer/escribir. Sin esto, cada agente ve datos distintos.';
-    banner.innerHTML = '<div style="font-weight:700;font-size:14px;color:var(--rd);margin-bottom:6px">'+titulo+'</div><div style="font-size:13px;color:var(--tx-s);margin-bottom:10px">'+msg+'</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-p btn-s" onclick="document.getElementById(\'syncAviso\').remove();openModal(\'cfgMod\')">🔧 Solucionar ahora</button><button class="btn btn-s" onclick="document.getElementById(\'syncAviso\').remove()">Después</button></div>';
+    banner.innerHTML = '<div style="font-weight:700;font-size:14px;color:var(--rd);margin-bottom:6px">'+titulo+'</div><div style="font-size:13px;color:var(--tx-s);margin-bottom:10px">'+msg+'</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-p btn-s" onclick="document.getElementById(\'syncAviso\').remove();openModal(\'cfgMod\')">ðŸ”§ Solucionar ahora</button><button class="btn btn-s" onclick="document.getElementById(\'syncAviso\').remove()">DespuÃ©s</button></div>';
     document.body.appendChild(banner);
   }, 1500);
 }
@@ -3726,12 +3739,12 @@ async function syncPush(){
     });
     if(r.ok || r.status === 201 || r.status === 204) {
       _remoteUpdatedAt = Date.now();
-      setSyncStatus('synced','En la nube ✓');
+      setSyncStatus('synced','En la nube âœ“');
     } else {
       setSyncStatus('error','Error al subir ('+r.status+')');
     }
   } catch(e){
-    setSyncStatus('error','Sin conexión');
+    setSyncStatus('error','Sin conexiÃ³n');
   }
   _syncing = false;
 }
@@ -3755,10 +3768,10 @@ async function syncPull(){
           await mergeRemoteState(rows[0].value, remoteTs);
         }
       }
-      setSyncStatus('synced','En la nube ✓');
+      setSyncStatus('synced','En la nube âœ“');
     }
   } catch(e){
-    setSyncStatus('error','Sin conexión');
+    setSyncStatus('error','Sin conexiÃ³n');
   }
   _syncing = false;
 }
@@ -3771,8 +3784,8 @@ async function mergeRemoteState(remote, remoteTs){
     ...(Array.isArray(remote._deletedIds) ? remote._deletedIds : [])
   ]);
   state._deletedIds = Array.from(deletedSet);
-  // Mergear arrays por ID con last-write-wins según el campo `updated`
-  // IMPORTANTE: ignorar items que estén en _deletedIds (alguien los eliminó)
+  // Mergear arrays por ID con last-write-wins segÃºn el campo `updated`
+  // IMPORTANTE: ignorar items que estÃ©n en _deletedIds (alguien los eliminÃ³)
   ['agents','funcionarios','medios','tasks','publicaciones','events','entrevistas','recursos','reclamos'].forEach(k=>{
     if(!Array.isArray(remote[k])) return;
     const localMap = {};
@@ -3780,7 +3793,7 @@ async function mergeRemoteState(remote, remoteTs){
     const merged = [];
     remote[k].forEach(rItem=>{
       if(!rItem || !rItem.id) return;
-      if(deletedSet.has(rItem.id)) return; // está borrado, ignorar
+      if(deletedSet.has(rItem.id)) return; // estÃ¡ borrado, ignorar
       const lItem = localMap[rItem.id];
       if(!lItem){
         merged.push(rItem);
@@ -3797,7 +3810,7 @@ async function mergeRemoteState(remote, remoteTs){
         delete localMap[rItem.id];
       }
     });
-    // Items que solo están en local (y NO están en _deletedIds)
+    // Items que solo estÃ¡n en local (y NO estÃ¡n en _deletedIds)
     Object.values(localMap).forEach(item=>{
       if(!deletedSet.has(item.id)) merged.push(item);
     });
@@ -3823,7 +3836,7 @@ async function mergeRemoteState(remote, remoteTs){
     const todos = new Set([...(state.tiposReclamoCustom||[]), ...remote.tiposReclamoCustom]);
     state.tiposReclamoCustom = Array.from(todos);
   }
-  // Re-aplicar deduplicación después del merge para limpiar duplicados que vengan de la nube
+  // Re-aplicar deduplicaciÃ³n despuÃ©s del merge para limpiar duplicados que vengan de la nube
   state.agents = deduplicarPorNombre(state.agents, state, 'agents');
   state.funcionarios = deduplicarPorNombre(state.funcionarios, state, 'funcionarios');
   state.medios = deduplicarPorNombre(state.medios, state, 'medios');
@@ -3837,8 +3850,8 @@ async function mergeRemoteState(remote, remoteTs){
 
 function copiarSqlSupabase(){
   const sql = `-- ========================================
--- PANEL DE COMUNICACIÓN TRES ARROYOS
--- Configuración de tabla compartida (1ra vez)
+-- PANEL DE COMUNICACIÃ“N TRES ARROYOS
+-- ConfiguraciÃ³n de tabla compartida (1ra vez)
 -- ========================================
 
 -- 1) Crear la tabla compartida
@@ -3852,91 +3865,91 @@ CREATE TABLE IF NOT EXISTS panel_data (
 -- 2) Activar Row Level Security
 ALTER TABLE panel_data ENABLE ROW LEVEL SECURITY;
 
--- 3) Limpiar policies anteriores si existían
+-- 3) Limpiar policies anteriores si existÃ­an
 DROP POLICY IF EXISTS "anon_all" ON panel_data;
 DROP POLICY IF EXISTS "auth_all" ON panel_data;
 DROP POLICY IF EXISTS "public_all" ON panel_data;
 DROP POLICY IF EXISTS "Permitir todo" ON panel_data;
 
--- 4) Permitir acceso público total a la tabla (lectura y escritura)
+-- 4) Permitir acceso pÃºblico total a la tabla (lectura y escritura)
 CREATE POLICY "public_all" ON panel_data
   FOR ALL
   TO public
   USING (true)
   WITH CHECK (true);
 
--- 5) Verificación final (debería devolver "OK")
-SELECT 'OK · Tabla y permisos configurados correctamente' AS status,
+-- 5) VerificaciÃ³n final (deberÃ­a devolver "OK")
+SELECT 'OK Â· Tabla y permisos configurados correctamente' AS status,
        COUNT(*) AS registros_actuales
 FROM panel_data;`;
   navigator.clipboard.writeText(sql).then(()=>{
-    toast('✓ SQL copiado. Ahora pegalo en Supabase → SQL Editor → Run','suc');
+    toast('âœ“ SQL copiado. Ahora pegalo en Supabase â†’ SQL Editor â†’ Run','suc');
   }).catch(()=>{
-    prompt('Copiá este SQL y pegalo en Supabase → SQL Editor → Run:', sql);
+    prompt('CopiÃ¡ este SQL y pegalo en Supabase â†’ SQL Editor â†’ Run:', sql);
   });
 }
 
-// Diagnóstico paso a paso
+// DiagnÃ³stico paso a paso
 async function diagnosticarSupabase(){
   if(!state.config.supabaseUrl || !state.config.supabaseKey){
     alert('Falta configurar URL y API Key de Supabase.');
     return;
   }
-  let report = '🔍 DIAGNÓSTICO DE SINCRONIZACIÓN\n\n';
-  report += '🌐 URL: '+state.config.supabaseUrl+'\n';
-  report += '🔑 Key: '+state.config.supabaseKey.slice(0,30)+'...\n\n';
-  // Test 1: ¿Responde la API REST?
+  let report = 'ðŸ” DIAGNÃ“STICO DE SINCRONIZACIÃ“N\n\n';
+  report += 'ðŸŒ URL: '+state.config.supabaseUrl+'\n';
+  report += 'ðŸ”‘ Key: '+state.config.supabaseKey.slice(0,30)+'...\n\n';
+  // Test 1: Â¿Responde la API REST?
   try {
     const r = await fetch(state.config.supabaseUrl+'/rest/v1/', {
       headers:{'apikey':state.config.supabaseKey}
     });
-    report += '1) Servidor REST: '+(r.status===200||r.status===404?'✓ OK':'✗ Error '+r.status)+'\n';
+    report += '1) Servidor REST: '+(r.status===200||r.status===404?'âœ“ OK':'âœ— Error '+r.status)+'\n';
   } catch(e){
-    report += '1) Servidor REST: ✗ Sin conexión a internet\n';
+    report += '1) Servidor REST: âœ— Sin conexiÃ³n a internet\n';
     alert(report);
     return;
   }
-  // Test 2: ¿Existe la tabla panel_data?
+  // Test 2: Â¿Existe la tabla panel_data?
   try {
     const r = await fetch(state.config.supabaseUrl+'/rest/v1/panel_data?select=key&limit=1', {
       headers:{'apikey':state.config.supabaseKey,'Authorization':'Bearer '+state.config.supabaseKey}
     });
     if(r.status === 200){
-      report += '2) Tabla panel_data: ✓ EXISTE\n';
+      report += '2) Tabla panel_data: âœ“ EXISTE\n';
       const rows = await r.json();
-      report += '3) Lectura: ✓ Permitida ('+rows.length+' fila(s) visibles)\n';
+      report += '3) Lectura: âœ“ Permitida ('+rows.length+' fila(s) visibles)\n';
     } else if(r.status === 401 || r.status === 403){
       const txt = await r.text();
       if(/rls|policy|permission/i.test(txt)){
-        report += '2) Tabla panel_data: ✓ EXISTE\n';
-        report += '3) Lectura: ✗ BLOQUEADA POR RLS\n\n';
-        report += '⚠ PROBLEMA: La tabla existe pero las policies bloquean el acceso.\n\n';
-        report += 'SOLUCIÓN:\n';
-        report += '1) Apretá "📋 Copiar SQL"\n';
-        report += '2) Pegalo y ejecutalo en Supabase → SQL Editor\n';
-        report += '3) Volvé a Probar conexión';
+        report += '2) Tabla panel_data: âœ“ EXISTE\n';
+        report += '3) Lectura: âœ— BLOQUEADA POR RLS\n\n';
+        report += 'âš  PROBLEMA: La tabla existe pero las policies bloquean el acceso.\n\n';
+        report += 'SOLUCIÃ“N:\n';
+        report += '1) ApretÃ¡ "ðŸ“‹ Copiar SQL"\n';
+        report += '2) Pegalo y ejecutalo en Supabase â†’ SQL Editor\n';
+        report += '3) VolvÃ© a Probar conexiÃ³n';
         alert(report);
         return;
       } else {
-        report += '2) Tabla panel_data: ✗ Sin permisos ('+r.status+')\n';
+        report += '2) Tabla panel_data: âœ— Sin permisos ('+r.status+')\n';
       }
     } else if(r.status === 404){
       const txt = await r.text();
       if(/relation|does not exist|not.*found|schema cache/i.test(txt)){
-        report += '2) Tabla panel_data: ✗ NO EXISTE\n\n';
-        report += '⚠ PROBLEMA: Falta crear la tabla en Supabase.\n\n';
-        report += 'SOLUCIÓN:\n';
-        report += '1) Apretá "📋 Copiar SQL"\n';
-        report += '2) Pegalo y ejecutalo en Supabase → SQL Editor\n';
-        report += '3) Volvé a Probar conexión';
+        report += '2) Tabla panel_data: âœ— NO EXISTE\n\n';
+        report += 'âš  PROBLEMA: Falta crear la tabla en Supabase.\n\n';
+        report += 'SOLUCIÃ“N:\n';
+        report += '1) ApretÃ¡ "ðŸ“‹ Copiar SQL"\n';
+        report += '2) Pegalo y ejecutalo en Supabase â†’ SQL Editor\n';
+        report += '3) VolvÃ© a Probar conexiÃ³n';
         alert(report);
         return;
       }
     }
   } catch(e){
-    report += '2) Tabla panel_data: ✗ Error: '+e.message+'\n';
+    report += '2) Tabla panel_data: âœ— Error: '+e.message+'\n';
   }
-  // Test 3: ¿Puedo escribir?
+  // Test 3: Â¿Puedo escribir?
   try {
     const testBody = JSON.stringify({
       key:'__test_'+Date.now(),
@@ -3955,24 +3968,24 @@ async function diagnosticarSupabase(){
       body:testBody
     });
     if(r.ok || r.status === 201 || r.status === 204){
-      report += '4) Escritura: ✓ Permitida\n\n';
-      report += '🎉 TODO FUNCIONA. La sincronización debería andar bien.';
+      report += '4) Escritura: âœ“ Permitida\n\n';
+      report += 'ðŸŽ‰ TODO FUNCIONA. La sincronizaciÃ³n deberÃ­a andar bien.';
     } else {
-      report += '4) Escritura: ✗ Bloqueada ('+r.status+')\n\n';
-      report += '⚠ Las policies permiten leer pero no escribir.\n';
-      report += 'Volvé a ejecutar el SQL completo en Supabase.';
+      report += '4) Escritura: âœ— Bloqueada ('+r.status+')\n\n';
+      report += 'âš  Las policies permiten leer pero no escribir.\n';
+      report += 'VolvÃ© a ejecutar el SQL completo en Supabase.';
     }
   } catch(e){
-    report += '4) Escritura: ✗ Error\n';
+    report += '4) Escritura: âœ— Error\n';
   }
   alert(report);
-  // Reintentar conexión
+  // Reintentar conexiÃ³n
   await syncInit();
 }
 
 async function pushAhora(){
   if(!state.config.supabaseUrl || !state.config.supabaseKey){
-    toast('Configurá Supabase primero','err');return;
+    toast('ConfigurÃ¡ Supabase primero','err');return;
   }
   if(!_syncEnabled){
     await syncInit();
@@ -3981,7 +3994,7 @@ async function pushAhora(){
 }
 async function pullAhora(){
   if(!state.config.supabaseUrl || !state.config.supabaseKey){
-    toast('Configurá Supabase primero','err');return;
+    toast('ConfigurÃ¡ Supabase primero','err');return;
   }
   if(!_syncEnabled){
     await syncInit();
@@ -3993,7 +4006,7 @@ async function pullAhora(){
 }
 
 /* ============ ARCHIVOS ADJUNTOS ============ */
-// Buffer temporal de archivos por contexto (rl=reclamo, pb=publicación)
+// Buffer temporal de archivos por contexto (rl=reclamo, pb=publicaciÃ³n)
 const _archivosTemp = {rl:[], pb:[]};
 
 function onArchivosCambian(ctx, fileList){
@@ -4022,8 +4035,8 @@ function renderArchivosTemp(ctx){
   if(!wrap)return;
   wrap.innerHTML = _archivosTemp[ctx].map((a,i)=>{
     const esImg = a.type && a.type.startsWith('image/');
-    const preview = esImg ? '<img src="'+a.data+'" style="width:60px;height:60px;object-fit:cover;border-radius:8px;display:block">' : '<div style="width:60px;height:60px;background:var(--bg-soft);border-radius:8px;display:grid;place-items:center;font-size:24px">📄</div>';
-    return '<div style="position:relative;display:inline-block">'+preview+'<button onclick="quitarArchivo(\''+ctx+'\','+i+')" style="position:absolute;top:-6px;right:-6px;background:var(--rd);color:#fff;border:0;border-radius:50%;width:20px;height:20px;font-size:12px;line-height:1;cursor:pointer">×</button><div style="font-size:9px;text-align:center;max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--tx-m);margin-top:2px">'+esc(a.name)+'</div></div>';
+    const preview = esImg ? '<img src="'+a.data+'" style="width:60px;height:60px;object-fit:cover;border-radius:8px;display:block">' : '<div style="width:60px;height:60px;background:var(--bg-soft);border-radius:8px;display:grid;place-items:center;font-size:24px">ðŸ“„</div>';
+    return '<div style="position:relative;display:inline-block">'+preview+'<button onclick="quitarArchivo(\''+ctx+'\','+i+')" style="position:absolute;top:-6px;right:-6px;background:var(--rd);color:#fff;border:0;border-radius:50%;width:20px;height:20px;font-size:12px;line-height:1;cursor:pointer">Ã—</button><div style="font-size:9px;text-align:center;max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--tx-m);margin-top:2px">'+esc(a.name)+'</div></div>';
   }).join('');
 }
 function quitarArchivo(ctx, idx){
@@ -4031,7 +4044,7 @@ function quitarArchivo(ctx, idx){
   renderArchivosTemp(ctx);
 }
 
-// Convierte base64 a Blob → File para Web Share API
+// Convierte base64 a Blob â†’ File para Web Share API
 function b64ToFile(item){
   const arr = item.data.split(',');
   const mime = (arr[0].match(/:(.*?);/)||[])[1] || item.type || 'application/octet-stream';
@@ -4048,7 +4061,7 @@ async function reclamoCompartirConFotos(){
   const desc = $('rlDesc').value || '';
   const vec = $('rlVec').value || '';
   const dir = $('rlDir').value || '';
-  const msg = '*'+tipo+'*\n'+desc+(dir?'\n📍 '+dir:'')+(vec?'\n👤 Vecino: '+vec:'')+(tel?'':'\n\nℹ Cargá el teléfono del funcionario primero');
+  const msg = '*'+tipo+'*\n'+desc+(dir?'\nðŸ“ '+dir:'')+(vec?'\nðŸ‘¤ Vecino: '+vec:'')+(tel?'':'\n\nâ„¹ CargÃ¡ el telÃ©fono del funcionario primero');
 
   const archivos = _archivosTemp.rl.slice();
   // Si hay archivos y existe Web Share API con files
@@ -4073,23 +4086,23 @@ async function reclamoCompartirConFotos(){
       }, i*200);
     });
     setTimeout(()=>{
-      if(tel) waOpen(tel, msg + '\n\n📎 Se descargaron '+archivos.length+' archivo(s). Adjuntalos manualmente en WhatsApp.');
+      if(tel) waOpen(tel, msg + '\n\nðŸ“Ž Se descargaron '+archivos.length+' archivo(s). Adjuntalos manualmente en WhatsApp.');
       else { navigator.clipboard.writeText(msg); toast('Mensaje copiado. Archivos descargados.','suc'); }
     }, archivos.length*200 + 500);
   } else {
     if(tel) waOpen(tel, msg);
-    else { toast('Sin teléfono ni archivos','err'); }
+    else { toast('Sin telÃ©fono ni archivos','err'); }
   }
 }
 
-// === COMPARTIR PUBLICACIÓN CON ARCHIVOS ===
+// === COMPARTIR PUBLICACIÃ“N CON ARCHIVOS ===
 async function pubCompartirConArchivos(){
-  const desc = $('pbDesc').value || 'Publicación';
+  const desc = $('pbDesc').value || 'PublicaciÃ³n';
   const cuenta = $('pbAcc').value || '';
   const tipo = $('pbType').value || '';
   const fecha = $('pbDate').value || '';
   const hora = $('pbTime').value || '';
-  const msg = '*'+desc+'*\n📅 '+fecha+' '+hora+'\n📱 '+cuenta+' · '+tipo;
+  const msg = '*'+desc+'*\nðŸ“… '+fecha+' '+hora+'\nðŸ“± '+cuenta+' Â· '+tipo;
 
   const archivos = _archivosTemp.pb.slice();
   if(archivos.length > 0){
@@ -4122,12 +4135,12 @@ async function pubCompartirConArchivos(){
 
 /* ============ FLYER + GACETILLA A MEDIOS ============ */
 function flyerYGacetilla(){
-  if(!confirm('Esto va a:\n\n1) Abrir el GENERADOR DE FLYERS en una nueva pestaña\n2) Generás tu flyer y lo DESCARGÁS\n3) Volvés a esta pestaña — la gacetilla quedará abierta\n4) Subís el flyer y elegís los medios\n5) ¡Enviás!\n\n¿Listo?'))return;
+  if(!confirm('Esto va a:\n\n1) Abrir el GENERADOR DE FLYERS en una nueva pestaÃ±a\n2) GenerÃ¡s tu flyer y lo DESCARGÃS\n3) VolvÃ©s a esta pestaÃ±a â€” la gacetilla quedarÃ¡ abierta\n4) SubÃ­s el flyer y elegÃ­s los medios\n5) Â¡EnviÃ¡s!\n\nÂ¿Listo?'))return;
   window.open('https://marianelahut-lang.github.io/panel-comunicacion/generador-flyers.html','_blank');
   setTimeout(()=>{
     openGac();
     $('gcMsg').focus();
-    $('gcMsg').placeholder = 'Escribí la gacetilla aquí. Después subí el flyer descargado abajo ↓';
+    $('gcMsg').placeholder = 'EscribÃ­ la gacetilla aquÃ­. DespuÃ©s subÃ­ el flyer descargado abajo â†“';
     toast('Cuando descargues el flyer, subilo en "Adjuntar flyer"','inf');
   }, 400);
 }
@@ -4155,8 +4168,8 @@ function nuevoTipoReclamo(){
 function nuevoFuncionarioReclamo(){
   const nombre = prompt('Nombre del nuevo funcionario:');
   if(!nombre || !nombre.trim())return;
-  const cargo = prompt('Cargo o área del funcionario:', '') || '';
-  const tel = prompt('WhatsApp (con código país, 549...):','') || '';
+  const cargo = prompt('Cargo o Ã¡rea del funcionario:', '') || '';
+  const tel = prompt('WhatsApp (con cÃ³digo paÃ­s, 549...):','') || '';
   const fn = {id: uid('fn'), name: nombre.trim(), role: cargo.trim(), phone: tel.trim()};
   state.funcionarios.push(fn);
   saveState();
@@ -4172,7 +4185,7 @@ if(typeof _archivosTemp === 'object')_archivosTemp.gc = [];
 const _openGac_orig = typeof openGac === 'function' ? openGac : null;
 openGac = function(){
   const wrap=$('gcList');
-  wrap.innerHTML=state.medios.filter(m=>m.phone).map(m=>'<label style="display:flex;align-items:center;gap:10px;padding:8px;cursor:pointer;border-radius:8px"><input type="checkbox" data-id="'+esc(m.id)+'" style="width:16px;height:16px;cursor:pointer;accent-color:var(--ac)"><div><div style="font-weight:600;font-size:13px">'+esc(m.name)+'</div><div style="font-size:11px;color:var(--tx-m)">'+esc(m.program||'')+' · '+esc(m.phone)+'</div></div></label>').join('');
+  wrap.innerHTML=state.medios.filter(m=>m.phone).map(m=>'<label style="display:flex;align-items:center;gap:10px;padding:8px;cursor:pointer;border-radius:8px"><input type="checkbox" data-id="'+esc(m.id)+'" style="width:16px;height:16px;cursor:pointer;accent-color:var(--ac)"><div><div style="font-weight:600;font-size:13px">'+esc(m.name)+'</div><div style="font-size:11px;color:var(--tx-m)">'+esc(m.program||'')+' Â· '+esc(m.phone)+'</div></div></label>').join('');
   if(!wrap.innerHTML)wrap.innerHTML='<div class="ct-s" style="padding:14px;text-align:center">No hay medios con WhatsApp registrado</div>';
   // Limpiar archivos previos
   _archivosTemp.gc = [];
@@ -4183,14 +4196,14 @@ openGac = function(){
 const _sendGac_orig = sendGac;
 sendGac = async function(){
   const msg=$('gcMsg').value.trim();
-  if(!msg && _archivosTemp.gc.length===0){toast('Escribí un mensaje o adjuntá una imagen','err');return}
+  if(!msg && _archivosTemp.gc.length===0){toast('EscribÃ­ un mensaje o adjuntÃ¡ una imagen','err');return}
   const sel=Array.from(document.querySelectorAll('#gcList input[type=checkbox]:checked')).map(c=>c.dataset.id);
-  if(sel.length===0){toast('Elegí al menos un medio','err');return}
+  if(sel.length===0){toast('ElegÃ­ al menos un medio','err');return}
   const archivos = _archivosTemp.gc.slice();
-  // Si hay archivos: intentar Web Share API (móvil) para cada contacto, sino abrir WA y descargar
+  // Si hay archivos: intentar Web Share API (mÃ³vil) para cada contacto, sino abrir WA y descargar
   if(archivos.length > 0){
-    // En PC: descargar las imágenes y abrir wa.me para cada destinatario
-    if(!confirm('Se descargarán '+archivos.length+' archivo(s) y se abrirán '+sel.length+' ventanas de WhatsApp.\n\nAdjuntá manualmente las imágenes descargadas en cada chat.\n\n¿Continuar?'))return;
+    // En PC: descargar las imÃ¡genes y abrir wa.me para cada destinatario
+    if(!confirm('Se descargarÃ¡n '+archivos.length+' archivo(s) y se abrirÃ¡n '+sel.length+' ventanas de WhatsApp.\n\nAdjuntÃ¡ manualmente las imÃ¡genes descargadas en cada chat.\n\nÂ¿Continuar?'))return;
     archivos.forEach((a,i)=>{
       setTimeout(()=>{
         const link = document.createElement('a');
@@ -4208,7 +4221,7 @@ sendGac = async function(){
       });
     }, archivos.length*200 + 500);
   } else {
-    if(!confirm('Se abrirán '+sel.length+' ventanas de WhatsApp. ¿Continuar?'))return;
+    if(!confirm('Se abrirÃ¡n '+sel.length+' ventanas de WhatsApp. Â¿Continuar?'))return;
     sel.forEach((id,i)=>{
       const m=state.medios.find(x=>x.id===id);
       if(m && m.phone){
@@ -4221,7 +4234,7 @@ sendGac = async function(){
 };
 
 
-/* ============ INDICADOR DE GUARDADO + PUSH AUTOMÁTICO ============ */
+/* ============ INDICADOR DE GUARDADO + PUSH AUTOMÃTICO ============ */
 const _saveState_orig2 = saveState;
 saveState = function(){
   _saveState_orig2();
@@ -4232,11 +4245,11 @@ saveState = function(){
   } else {
     const ind = $('saveInd');
     if(ind){
-      ind.innerHTML = '💾 Guardando...';
+      ind.innerHTML = 'ðŸ’¾ Guardando...';
       ind.style.color = 'var(--ac)';
       clearTimeout(window._saveIndT);
       window._saveIndT = setTimeout(()=>{
-        ind.innerHTML = '💾 Guardado local';
+        ind.innerHTML = 'ðŸ’¾ Guardado local';
         ind.style.color = 'var(--gr)';
       }, 300);
     }
@@ -4256,7 +4269,7 @@ function init(){
 }
 
 function detectarDatosAntesDeLogin(){
-  // Solo si el estado nuevo está prácticamente vacío
+  // Solo si el estado nuevo estÃ¡ prÃ¡cticamente vacÃ­o
   const tienePocoContenido = state.tasks.length<3 && state.events.length<3 && state.reclamos.length<3 && state.publicaciones.length<3;
   if(!tienePocoContenido)return;
   let hayDatosViejos = false;
@@ -4274,7 +4287,7 @@ function detectarDatosAntesDeLogin(){
     const div = document.createElement('div');
     div.id = 'oldDataNotice';
     div.style.cssText = 'background:var(--ac-s);border:1px solid var(--ac);border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:var(--ac);line-height:1.4';
-    div.innerHTML = '⚠ <b>Detectamos datos del panel anterior</b> guardados en este navegador. Ingresá normalmente con tu usuario; después del login podrás importarlos en un solo clic.';
+    div.innerHTML = 'âš  <b>Detectamos datos del panel anterior</b> guardados en este navegador. IngresÃ¡ normalmente con tu usuario; despuÃ©s del login podrÃ¡s importarlos en un solo clic.';
     lf.insertBefore(div, lf.querySelector('.fld'));
   }
 }
