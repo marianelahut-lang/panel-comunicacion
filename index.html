@@ -518,6 +518,20 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
           <button class="btn btn-p" data-admin onclick="editAg(null)">+ Agregar persona</button>
         </div>
         <div class="tg" id="tg"></div>
+        <div class="card" style="margin-top:14px">
+          <div class="fb" style="margin-bottom:14px">
+            <div>
+              <div class="ct-t">Funcionarios</div>
+              <div class="ct-s">Agenda para entrevistas, reclamos y mensajes corporativos</div>
+            </div>
+            <div class="fl">
+              <input class="inp" id="fnSrch" oninput="renderFuncionarios()" placeholder="Buscar..." style="width:160px">
+              <button class="btn btn-w" onclick="openFuncMsg()">Mensaje corporativo</button>
+              <button class="btn btn-p" onclick="editFunc(null)">+ Agregar funcionario</button>
+            </div>
+          </div>
+          <div class="mg" id="fnList"></div>
+        </div>
       </div>
 
       <!-- MEDIOS -->
@@ -989,6 +1003,24 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
   <button class="btn btn-w" onclick="reclamoCompartirConFotos()">ðŸ“¤ Compartir con fotos</button>
   <button class="btn" onclick="closeModal('rcLmMod')">Cancelar</button>
   <button class="btn btn-p" onclick="saveReclamo()">Guardar</button>
+</div></div></div>
+
+<div class="mov" id="fmMod"><div class="mod mod-l"><div class="mh">
+  <div class="mt">Mensaje corporativo a funcionarios</div>
+  <button class="mx" onclick="closeModal('fmMod')">âœ•</button>
+</div><div class="mb">
+  <div class="fld"><label>Mensaje</label><textarea class="inp" id="fmMsg" placeholder="EscribÃ­ el mensaje que se enviarÃ¡ por WhatsApp a los funcionarios seleccionados"></textarea></div>
+  <div class="fb" style="margin:8px 0">
+    <div class="ct-s" id="fmCount">SeleccionÃ¡ funcionarios con WhatsApp registrado</div>
+    <div class="fl">
+      <button class="btn btn-s" onclick="funcMsgSelAll(true)">Todos</button>
+      <button class="btn btn-s" onclick="funcMsgSelAll(false)">Limpiar</button>
+    </div>
+  </div>
+  <div id="fmList"></div>
+</div><div class="mf">
+  <button class="btn" onclick="closeModal('fmMod')">Cancelar</button>
+  <button class="btn btn-w" onclick="sendFuncMsg()">Enviar por WhatsApp</button>
 </div></div></div>
 
 <div class="tcn" id="toasts"></div>
@@ -1978,15 +2010,16 @@ function renderEquipo(){
   const wrap=$('tg');
   if(state.agents.length===0){
     wrap.innerHTML='<div class="emp"><div class="emi">ðŸ‘¥</div><div class="emt">Sin integrantes</div><div class="ems">AgregÃ¡ personas al equipo</div></div>';
-    return;
+  } else {
+    wrap.innerHTML=state.agents.map(a=>{
+      const tasks=state.tasks.filter(t=>(t.assignees||[]).includes(a.id));
+      const done=tasks.filter(t=>t.status==='realizada').length;
+      const pend=tasks.filter(t=>t.status!=='realizada').length;
+      const pct=tasks.length?Math.round(done*100/tasks.length):0;
+      return '<div class="tc" onclick="editAg(\''+a.id+'\')"><div class="th">'+avHTML(a.name,a.color,46)+'<div><div class="tn">'+esc(a.name)+'</div><div class="tr">'+esc(a.role||'')+'</div></div></div><div class="ts"><div class="tst"><div class="tsv">'+tasks.length+'</div><div class="tsl">Total</div></div><div class="tst"><div class="tsv">'+pend+'</div><div class="tsl">Pend.</div></div><div class="tst"><div class="tsv">'+done+'</div><div class="tsl">Listas</div></div></div><div class="tpr"><div class="tpb" style="width:'+pct+'%"></div></div><div class="tpi"><span>'+pct+'% completadas</span><span>'+done+'/'+tasks.length+'</span></div><div class="ta">'+(a.phone?'<button class="btn btn-w" onclick="event.stopPropagation();sendAgWa(\''+a.id+'\')">ðŸ“± WA tareas</button>':'<button class="btn" disabled style="opacity:.4">Sin WA</button>')+(a.email?'<button class="btn" onclick="event.stopPropagation();sendAgMail(\''+a.id+'\')">ðŸ“§ Mail</button>':'')+'</div></div>';
+    }).join('');
   }
-  wrap.innerHTML=state.agents.map(a=>{
-    const tasks=state.tasks.filter(t=>(t.assignees||[]).includes(a.id));
-    const done=tasks.filter(t=>t.status==='realizada').length;
-    const pend=tasks.filter(t=>t.status!=='realizada').length;
-    const pct=tasks.length?Math.round(done*100/tasks.length):0;
-    return '<div class="tc" onclick="editAg(\''+a.id+'\')"><div class="th">'+avHTML(a.name,a.color,46)+'<div><div class="tn">'+esc(a.name)+'</div><div class="tr">'+esc(a.role||'')+'</div></div></div><div class="ts"><div class="tst"><div class="tsv">'+tasks.length+'</div><div class="tsl">Total</div></div><div class="tst"><div class="tsv">'+pend+'</div><div class="tsl">Pend.</div></div><div class="tst"><div class="tsv">'+done+'</div><div class="tsl">Listas</div></div></div><div class="tpr"><div class="tpb" style="width:'+pct+'%"></div></div><div class="tpi"><span>'+pct+'% completadas</span><span>'+done+'/'+tasks.length+'</span></div><div class="ta">'+(a.phone?'<button class="btn btn-w" onclick="event.stopPropagation();sendAgWa(\''+a.id+'\')">ðŸ“± WA tareas</button>':'<button class="btn" disabled style="opacity:.4">Sin WA</button>')+(a.email?'<button class="btn" onclick="event.stopPropagation();sendAgMail(\''+a.id+'\')">ðŸ“§ Mail</button>':'')+'</div></div>';
-  }).join('');
+  renderFuncionarios();
 }
 function sendAgWa(id){
   const a=getAg(id);if(!a||!a.phone){toast('Sin WhatsApp','err');return}
@@ -2006,6 +2039,65 @@ function sendAgMail(id){
   let body='Tus tareas pendientes:\n\n';
   tasks.forEach(t=>{body+='- ['+statusLabel(t.status)+'] '+(t.desc||'')+(t.due?' (vence '+fmtDate(t.due)+')':'')+'\n'});
   mailOpen(a.email,'Tareas pendientes',body);
+}
+function renderFuncionarios(){
+  const wrap=$('fnList');if(!wrap)return;
+  const q=(($('fnSrch')&&$('fnSrch').value)||'').toLowerCase().trim();
+  const list=state.funcionarios.filter(f=>{
+    if(!q)return true;
+    return ((f.name||'')+' '+(f.role||'')+' '+(f.phone||'')).toLowerCase().includes(q);
+  }).sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+  if(list.length===0){
+    wrap.innerHTML='<div class="emp"><div class="emi">ðŸ‘¤</div><div class="emt">Sin funcionarios</div><div class="ems">AgregÃ¡ funcionarios para entrevistas, reclamos y mensajes</div></div>';
+    return;
+  }
+  wrap.innerHTML=list.map(f=>{
+    return '<div class="mc" onclick="editFunc(\''+f.id+'\')"><div class="mch"><div class="mci" style="background:var(--pk-s);color:var(--pk)">ðŸ‘¤</div><div class="mi"><div class="mn-n">'+esc(f.name||'')+'</div><div class="mp">'+esc(f.role||'Funcionario')+(f.phone?' Â· '+esc(f.phone):' Â· sin WhatsApp')+'</div></div></div><div class="ma">'+(f.phone?'<button class="btn btn-w" onclick="event.stopPropagation();waOpen(\''+f.phone+'\',\'\')">ðŸ“± WA</button>':'<button class="btn" disabled style="opacity:.45">Sin WA</button>')+'<button class="btn" onclick="event.stopPropagation();editFunc(\''+f.id+'\')">Editar</button></div></div>';
+  }).join('');
+}
+function editFunc(id){
+  const f=id?state.funcionarios.find(x=>x.id===id):null;
+  const nombre=prompt('Nombre del funcionario:',f?f.name||'':'');
+  if(nombre===null)return;
+  if(!nombre.trim()){toast('El nombre es obligatorio','err');return}
+  const cargo=prompt('Cargo o Ã¡rea:',f?f.role||'':'')||'';
+  const tel=prompt('WhatsApp (con cÃ³digo paÃ­s, 549...):',f?f.phone||'':'')||'';
+  const data={name:nombre.trim(),role:cargo.trim(),phone:tel.trim(),updated:Date.now()};
+  if(f)Object.assign(f,data);
+  else state.funcionarios.push({id:uid('fn'),created:Date.now(),...data});
+  state.funcionarios=deduplicarPorNombre(state.funcionarios,state,'funcionarios');
+  saveState();
+  renderFuncionarios();
+  toast(f?'Funcionario actualizado':'Funcionario agregado','suc');
+}
+function openFuncMsg(){
+  const list=state.funcionarios.filter(f=>f.phone).sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+  const wrap=$('fmList');
+  wrap.innerHTML=list.map(f=>'<label style="display:flex;align-items:center;gap:10px;padding:8px;cursor:pointer;border-radius:8px"><input type="checkbox" data-id="'+esc(f.id)+'" style="width:16px;height:16px;cursor:pointer;accent-color:var(--ac)"><div><div style="font-weight:600;font-size:13px">'+esc(f.name||'')+'</div><div style="font-size:11px;color:var(--tx-m)">'+esc(f.role||'Funcionario')+' Â· '+esc(f.phone||'')+'</div></div></label>').join('');
+  if(!wrap.innerHTML)wrap.innerHTML='<div class="ct-s" style="padding:14px;text-align:center">No hay funcionarios con WhatsApp registrado</div>';
+  $('fmMsg').value='';
+  updateFuncMsgCount();
+  wrap.querySelectorAll('input[type=checkbox]').forEach(c=>c.onchange=updateFuncMsgCount);
+  openModal('fmMod');
+}
+function updateFuncMsgCount(){
+  const total=document.querySelectorAll('#fmList input[type=checkbox]').length;
+  const sel=document.querySelectorAll('#fmList input[type=checkbox]:checked').length;
+  $('fmCount').textContent=sel+' seleccionados de '+total;
+}
+function funcMsgSelAll(b){
+  document.querySelectorAll('#fmList input[type=checkbox]').forEach(c=>c.checked=b);
+  updateFuncMsgCount();
+}
+function sendFuncMsg(){
+  const msg=$('fmMsg').value.trim();
+  if(!msg){toast('EscribÃ­ un mensaje','err');return}
+  const ids=Array.from(document.querySelectorAll('#fmList input[type=checkbox]:checked')).map(c=>c.dataset.id);
+  if(!ids.length){toast('SeleccionÃ¡ al menos un funcionario','err');return}
+  const list=ids.map(id=>state.funcionarios.find(f=>f.id===id)).filter(f=>f&&f.phone);
+  closeModal('fmMod');
+  list.forEach((f,i)=>setTimeout(()=>waOpen(f.phone,msg),i*450));
+  toast('Abriendo WhatsApp para '+list.length+' funcionario(s)','suc');
 }
 
 /* ============ MEDIOS ============ */
