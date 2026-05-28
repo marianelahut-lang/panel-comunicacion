@@ -979,6 +979,10 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
     </select></div>
   </div>
   <datalist id="rlTpL"></datalist>
+  <div class="ir">
+    <div class="fld"><label>Fecha de carga</label><input class="inp" type="date" id="rlFechaCarga"></div>
+    <div class="fld"><label>Fecha de resolución</label><input class="inp" type="date" id="rlFechaResolucion"></div>
+  </div>
   <div class="fld"><label>Descripción</label><textarea class="inp" id="rlDesc" placeholder="Detalle del reclamo"></textarea></div>
   <div class="ir">
     <div class="fld"><label>Vecino</label><input class="inp" id="rlVec"></div>
@@ -1209,9 +1213,11 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;',
 const pad = n => String(n).padStart(2,'0');
 function todayISO(){const d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
 function dateISO(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+function dateOnly(v){return v?String(v).slice(0,10):''}
 function startOfWeek(d){const x=new Date(d);const day=x.getDay();const diff=x.getDate()-day+(day===0?-6:1);x.setDate(diff);x.setHours(0,0,0,0);return x}
 function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x}
 function fmtDate(iso){if(!iso)return '';try{const d=new Date(iso+'T00:00:00');return d.toLocaleDateString('es-AR',{day:'2-digit',month:'short'})}catch(e){return iso}}
+function fmtAnyDate(v){const d=dateOnly(v);return d?fmtDate(d):''}
 function fmtFullDate(d){return d.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
 function avHTML(name,color,size){
   const init=(name||'?').split(' ').map(w=>w[0]||'').join('').slice(0,2).toUpperCase();
@@ -2959,6 +2965,8 @@ function mapSupaToState(grupo, rows){
         funcionario: r.funcionario || '',
         funcionario_tel: r.funcionario_tel || '',
         estado: r.estado || 'pendiente',
+        fecha_carga: r.fecha_carga || r.fecha || dateOnly(r.fecha_creacion || r.created_at) || todayISO(),
+        fecha_resolucion: r.fecha_resolucion || r.resuelto_en || r.fecha_resuelto || '',
         fecha_creacion: r.fecha_creacion || r.created_at || new Date().toISOString(),
         fecha_modificacion: r.fecha_modificacion || r.updated_at,
         notes: r.notes || (r.historial?JSON.stringify(r.historial):'')
@@ -3177,6 +3185,11 @@ function reclamoIconColor(tipo){
   if(/asfalto|tierra|bache|sem/.test(t)) return {bg:'var(--pu-s)',col:'var(--pu)'};
   return {bg:'var(--pk-s)',col:'var(--pk)'};
 }
+function reclamoFechasText(r){
+  const carga=fmtAnyDate(r.fecha_carga||r.fecha_creacion||r.created_at);
+  const resuelto=fmtAnyDate(r.fecha_resolucion||r.resuelto_en||r.fecha_resuelto);
+  return (carga?'Carga: '+carga:'')+(resuelto?' · Resolución: '+resuelto:'');
+}
 function renderReclamos(){
   const f=$('rcFilt')?$('rcFilt').value:'';
   const q=$('rcSrch')?($('rcSrch').value||'').toLowerCase().trim():'';
@@ -3203,7 +3216,8 @@ function renderReclamos(){
     const iconB = r.estado==='resuelto' ? 'var(--bg-soft)' : c.bg;
     const iconC = r.estado==='resuelto' ? 'var(--tx-m)' : c.col;
     const opacity = r.estado==='resuelto' ? ';opacity:.6' : '';
-    return '<div class="li" onclick="editReclamo(\''+r.id+'\')"><div class="li-i" style="background:'+iconB+';color:'+iconC+';font-size:18px'+opacity+'">'+icon+'</div><div class="li-b"><div class="li-t">'+esc(r.tipo||'(sin tipo)')+(r.vecino?' · '+esc(r.vecino):'')+'</div><div class="li-s">'+stT+(r.funcionario?' · 👤 '+esc(r.funcionario):'')+(r.direccion?' · 📍 '+esc(r.direccion):'')+'</div>'+(r.descripcion?'<div class="li-s" style="margin-top:4px;color:var(--tx-s)">'+esc(r.descripcion).slice(0,180)+'</div>':'')+'</div>'+(r.funcionario_tel?'<div class="li-a"><button class="btn btn-w btn-xs" onclick="event.stopPropagation();reclamoNotifyWaId(\''+r.id+'\')">📱</button></div>':'')+'</div>';
+    const fechas = reclamoFechasText(r);
+    return '<div class="li" onclick="editReclamo(\''+r.id+'\')"><div class="li-i" style="background:'+iconB+';color:'+iconC+';font-size:18px'+opacity+'">'+icon+'</div><div class="li-b"><div class="li-t">'+esc(r.tipo||'(sin tipo)')+(r.vecino?' · '+esc(r.vecino):'')+'</div><div class="li-s">'+stT+(r.funcionario?' · 👤 '+esc(r.funcionario):'')+(r.direccion?' · 📍 '+esc(r.direccion):'')+(fechas?' · '+fechas:'')+'</div>'+(r.descripcion?'<div class="li-s" style="margin-top:4px;color:var(--tx-s)">'+esc(r.descripcion).slice(0,180)+'</div>':'')+'</div>'+(r.funcionario_tel?'<div class="li-a"><button class="btn btn-w btn-xs" onclick="event.stopPropagation();reclamoNotifyWaId(\''+r.id+'\')">📱</button></div>':'')+'</div>';
   }).join('');
 }
 function editReclamo(id){
@@ -3211,6 +3225,8 @@ function editReclamo(id){
   $('rlId').value=r?r.id:'';
   $('rlTipo').value=r?r.tipo||'':'';
   $('rlEst').value=r?r.estado||'pendiente':'pendiente';
+  $('rlFechaCarga').value=dateOnly(r?(r.fecha_carga||r.fecha_creacion||r.created_at):todayISO())||todayISO();
+  $('rlFechaResolucion').value=dateOnly(r?(r.fecha_resolucion||r.resuelto_en||r.fecha_resuelto):'');
   $('rlDesc').value=r?r.descripcion||'':'';
   $('rlVec').value=r?r.vecino||'':'';
   $('rlVecTel').value=r?r.vecino_tel||'':'';
@@ -3232,6 +3248,9 @@ function editReclamo(id){
       const fn = state.funcionarios.find(f=>f.name.toLowerCase()===this.value.toLowerCase());
       if(fn && fn.phone) $('rlFuncTel').value = fn.phone;
     }
+  };
+  $('rlEst').onchange = function(){
+    if(this.value==='resuelto' && !$('rlFechaResolucion').value)$('rlFechaResolucion').value=todayISO();
   };
   $('rlDel').classList.toggle('hide',!r);
   openModal('rcLmMod');
@@ -3255,13 +3274,19 @@ function saveReclamo(){
     const fn=state.funcionarios.find(f=>f.name.toLowerCase()===funcName.toLowerCase());
     if(fn && fn.phone)funcTel=fn.phone;
   }
+  const estado=$('rlEst').value;
+  const fechaCarga=$('rlFechaCarga').value||todayISO();
+  let fechaResolucion=$('rlFechaResolucion').value||'';
+  if(estado==='resuelto' && !fechaResolucion)fechaResolucion=todayISO();
   const data={
-    tipo,estado:$('rlEst').value,descripcion:$('rlDesc').value,
+    tipo,estado,descripcion:$('rlDesc').value,
     vecino:$('rlVec').value,vecino_tel:$('rlVecTel').value,
     direccion:$('rlDir').value,
     funcionario:funcName,funcionario_tel:funcTel,
     notes:$('rlNotes').value,
     fotos: _archivosTemp.rl.slice(),
+    fecha_carga: fechaCarga,
+    fecha_resolucion: fechaResolucion,
     fecha_modificacion:new Date().toISOString(),
     updated: Date.now()
   };
@@ -3391,6 +3416,8 @@ function importBackupViejo(backupObj){
           funcionario: r.funcionario || '',
           funcionario_tel: r.funcionario_tel || '',
           estado: r.estado || 'pendiente',
+          fecha_carga: r.fecha_carga || r.fecha || dateOnly(r.fecha_creacion) || todayISO(),
+          fecha_resolucion: r.fecha_resolucion || r.resuelto_en || r.fecha_resuelto || '',
           fecha_creacion: r.fecha_creacion || new Date().toISOString(),
           fecha_modificacion: r.fecha_modificacion,
           notes: r.notes || (r.historial?JSON.stringify(r.historial):'')
@@ -3731,7 +3758,8 @@ renderReclamos = function(){
       const iconC = r.estado==='resuelto' ? 'var(--tx-m)' : cc.col;
       const opacity = r.estado==='resuelto' ? ';opacity:.6' : '';
       const secundario = _rcView==='func' ? r.tipo : r.funcionario;
-      html += '<div class="li" onclick="editReclamo(\''+r.id+'\')"><div class="li-i" style="background:'+iconB+';color:'+iconC+';font-size:18px'+opacity+'">'+icon+'</div><div class="li-b"><div class="li-t">'+esc(secundario||'(sin '+( _rcView==='func'?'tipo':'funcionario')+')')+(r.vecino?' · '+esc(r.vecino):'')+'</div><div class="li-s">'+stT+(r.direccion?' · 📍 '+esc(r.direccion):'')+'</div>'+(r.descripcion?'<div class="li-s" style="margin-top:4px;color:var(--tx-s)">'+esc(r.descripcion).slice(0,180)+'</div>':'')+'</div></div>';
+      const fechas = reclamoFechasText(r);
+      html += '<div class="li" onclick="editReclamo(\''+r.id+'\')"><div class="li-i" style="background:'+iconB+';color:'+iconC+';font-size:18px'+opacity+'">'+icon+'</div><div class="li-b"><div class="li-t">'+esc(secundario||'(sin '+( _rcView==='func'?'tipo':'funcionario')+')')+(r.vecino?' · '+esc(r.vecino):'')+'</div><div class="li-s">'+stT+(r.direccion?' · 📍 '+esc(r.direccion):'')+(fechas?' · '+fechas:'')+'</div>'+(r.descripcion?'<div class="li-s" style="margin-top:4px;color:var(--tx-s)">'+esc(r.descripcion).slice(0,180)+'</div>':'')+'</div></div>';
     });
     html += '</div>';
   });
