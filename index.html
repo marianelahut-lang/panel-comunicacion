@@ -1686,9 +1686,13 @@ function pubDiffusionTag(p){
   const n=Array.isArray(p.diffusion)?p.diffusion.length:0;
   return '<span class="tag '+(n?'tag-g':'tag-x')+'">Difusión '+n+'/'+totalDifusionCanales()+'</span>';
 }
+function isTaskScheduledForPub(t){
+  const desc=(t.desc||'').trim().toLowerCase();
+  return state.publicaciones.some(p=>p.sourceTaskId===t.id || (desc && (p.desc||'').trim().toLowerCase()===desc));
+}
 function renderMat(){
   // Material disponible = tareas con status='publicar'
-  const mat=state.tasks.filter(t=>t.status==='publicar');
+  const mat=state.tasks.filter(t=>t.status==='publicar' && !isTaskScheduledForPub(t));
   $('mCnt').textContent=mat.length;
   const mW=$('matList');
   if(mat.length===0){
@@ -1724,6 +1728,7 @@ function schedulePub(taskId){
   const t=state.tasks.find(x=>x.id===taskId);
   if(!t)return;
   prepPub({});
+  window._pubSourceTaskId=taskId;
   $('pbDesc').value=t.desc||'';
   $('pbDate').value=todayISO();
   $('pbTime').value='09:00';
@@ -2287,6 +2292,7 @@ function editPub(id){
   openModal('pbMod');
 }
 function prepPub(p){
+  window._pubSourceTaskId=p.sourceTaskId||null;
   $('pbTit').textContent=p.id?'Editar publicación':'Nueva publicación';
   $('pbId').value=p.id||'';
   $('pbDate').value=p.date||todayISO();
@@ -2313,6 +2319,7 @@ function savePub(){
     date,time:$('pbTime').value,desc,
     account:$('pbAcc').value,type:$('pbType').value,
     responsable:$('pbResp').value,status:$('pbSt').value,
+    sourceTaskId:window._pubSourceTaskId||null,
     diffusion:getPubDiffusion(),
     archivos: _archivosTemp.pb.slice(),
     updated:Date.now()
