@@ -671,6 +671,10 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
     </select></div>
   </div>
   <div class="fld">
+    <label>Checklist de difusi?n <span id="pbDiffCount" class="t-m"></span></label>
+    <div id="pbDiffList" style="display:grid;gap:10px;border:1px solid var(--bd);border-radius:10px;padding:10px;background:var(--bg-soft)"></div>
+  </div>
+  <div class="fld">
     <label>📎 Archivos adjuntos (imágenes, videos, PDFs)</label>
     <input class="inp" type="file" id="pbArchivos" multiple onchange="onArchivosCambian('pb', this.files)">
     <div id="pbArchivosLista" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
@@ -1652,6 +1656,36 @@ function renderKTask(t){
 }
 
 /* ============ MATERIAL Y AGENDA ============ */
+const DIFUSION_CANALES=[
+  {g:'Municipalidad',items:[['muni_wa','Canal de WhatsApp'],['muni_comunidad','Comunidad'],['muni_fb','Facebook'],['muni_fb_canal','Canal difusión Facebook'],['muni_ig','Instagram'],['muni_ig_canal','Canal difusión Instagram'],['muni_tt','TikTok'],['muni_yt','YouTube']]},
+  {g:'Pablo',items:[['pablo_fb','Facebook'],['pablo_fb_canal','Canal difusión Facebook'],['pablo_ig','Instagram'],['pablo_ig_canal','Canal difusión Instagram'],['pablo_tt','TikTok']]},
+  {g:'Somos',items:[['somos_fb','Facebook'],['somos_ig','Instagram'],['somos_tt','TikTok']]},
+  {g:'WhatsApp',items:[['wa_ejecutivo','Grupo Ejecutivo'],['wa_somos','Grupo Somos'],['wa_candidatos','Grupo Candidatos'],['wa_estados','Estados de WhatsApp']]}
+];
+function totalDifusionCanales(){return DIFUSION_CANALES.reduce((n,g)=>n+g.items.length,0)}
+function getPubDiffusion(){
+  return Array.from(document.querySelectorAll('#pbDiffList input[type=checkbox]:checked')).map(c=>c.value);
+}
+function updatePubDiffusionCount(){
+  const el=$('pbDiffCount');if(!el)return;
+  el.textContent=' · '+getPubDiffusion().length+'/'+totalDifusionCanales();
+}
+function renderPubDiffusion(selected){
+  const box=$('pbDiffList');if(!box)return;
+  const set=new Set(selected||[]);
+  box.innerHTML=DIFUSION_CANALES.map(g=>{
+    const checks=g.items.map(([id,label])=>{
+      return '<label style="display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--tx);cursor:pointer"><input type="checkbox" value="'+esc(id)+'" '+(set.has(id)?'checked':'')+' style="width:15px;height:15px;accent-color:var(--ac)"> '+esc(label)+'</label>';
+    }).join('');
+    return '<div><div style="font-size:11px;font-weight:800;text-transform:uppercase;color:var(--tx-m);margin-bottom:6px">'+esc(g.g)+'</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:7px">'+checks+'</div></div>';
+  }).join('');
+  box.querySelectorAll('input[type=checkbox]').forEach(c=>c.onchange=updatePubDiffusionCount);
+  updatePubDiffusionCount();
+}
+function pubDiffusionTag(p){
+  const n=Array.isArray(p.diffusion)?p.diffusion.length:0;
+  return '<span class="tag '+(n?'tag-g':'tag-x')+'">Difusión '+n+'/'+totalDifusionCanales()+'</span>';
+}
 function renderMat(){
   // Material disponible = tareas con status='publicar'
   const mat=state.tasks.filter(t=>t.status==='publicar');
@@ -1682,7 +1716,7 @@ function renderMat(){
       const pmTag=pm?'<span class="tag tag-p">→ Guardia</span>':'';
       const dateTag=past?'<span class="tag tag-x">'+fmtDate(p.date)+'</span>':p.date===today?'<span class="tag tag-a">HOY '+esc(p.time||'')+'</span>':'<span class="tag tag-b">'+fmtDate(p.date)+' '+esc(p.time||'')+'</span>';
       const stT='<span class="tag tag-x">'+esc(p.status||'')+'</span>';
-      return '<div class="li" onclick="editPub(\''+p.id+'\')"><div class="li-i" style="background:var(--pu-s);color:var(--pu)">📱</div><div class="li-b"><div class="li-t">'+esc(p.desc||'(sin título)')+'</div><div class="li-s">'+dateTag+' · '+esc(p.account||'')+' · '+esc(p.type||'')+' '+stT+' '+pmTag+'</div></div></div>';
+      return '<div class="li" onclick="editPub(\''+p.id+'\')"><div class="li-i" style="background:var(--pu-s);color:var(--pu)">📱</div><div class="li-b"><div class="li-t">'+esc(p.desc||'(sin título)')+'</div><div class="li-s">'+dateTag+' · '+esc(p.account||'')+' · '+esc(p.type||'')+' '+stT+' '+pubDiffusionTag(p)+' '+pmTag+'</div></div></div>';
     }).join('');
   }
 }
@@ -2264,6 +2298,7 @@ function prepPub(p){
   $('pbResp').value=p.responsable||'';
   $('pbSt').value=p.status||'Pendiente';
   $('pbDel').classList.toggle('hide',!p.id);
+  renderPubDiffusion(p.diffusion||[]);
   // Cargar archivos
   _archivosTemp.pb = p && Array.isArray(p.archivos) ? p.archivos.slice() : [];
   renderArchivosTemp('pb');
@@ -2278,6 +2313,7 @@ function savePub(){
     date,time:$('pbTime').value,desc,
     account:$('pbAcc').value,type:$('pbType').value,
     responsable:$('pbResp').value,status:$('pbSt').value,
+    diffusion:getPubDiffusion(),
     archivos: _archivosTemp.pb.slice(),
     updated:Date.now()
   };
