@@ -1071,6 +1071,7 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
     <div id="dfSummary" class="ct-s"></div>
     <div class="fl">
       <button class="btn btn-w btn-s" onclick="sendDifusionPendientes()">📱 WA pendientes</button>
+      <button class="btn btn-s" onclick="marcarNoCorrespondeTodos()">No corresponde para todos</button>
       <button class="btn btn-p btn-s" onclick="addFuncionarioDifusion()">+ Funcionario</button>
     </div>
   </div>
@@ -1134,11 +1135,11 @@ let calDayCursor = stripTime(new Date());
 let guardiaCursor = startOfWeek(new Date());
 
 function stripTime(d){const x=new Date(d);x.setHours(0,0,0,0);return x}
+function cleanNameKey(v){return String(v||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().replace(/\s+/g,' ')}
 function mergeDefaultFuncionarios(s){
-  const clean=v=>String(v||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
   DEF_FUNCS.forEach((f,i)=>{
     const name=f[0],role=f[1]||'',phone=f[2]||'';
-    const ex=s.funcionarios.find(x=>clean(x.name)===clean(name));
+    const ex=s.funcionarios.find(x=>cleanNameKey(x.name)===cleanNameKey(name));
     if(ex){
       if(!ex.role&&role)ex.role=role;
       if(!ex.phone&&phone)ex.phone=phone;
@@ -1204,7 +1205,7 @@ function deduplicarPorNombre(lista, s, nombreColeccion){
   const remapeoIds = {}; // viejoId -> nuevoId
   lista.forEach(item => {
     if(!item || !item.name) return;
-    const key = item.name.toLowerCase().trim().replace(/\s+/g,' ');
+    const key = cleanNameKey(item.name);
     if(!key) return;
     const existente = porNombre[key];
     if(!existente){
@@ -2018,6 +2019,21 @@ function setDifusionAccion(pubId,funcId,accion,checked){
   renderDifusion();
   updateBadges();
 }
+function marcarNoCorrespondeTodos(){
+  const p=state.publicaciones.find(x=>x.id===window._diffPubId);if(!p)return;
+  if(!confirm('¿Marcar "No corresponde" para todos los funcionarios de esta publicación?'))return;
+  const map=getPubDifusionMap(p);
+  state.funcionarios.forEach(f=>{
+    map[f.id]=map[f.id]||{};
+    map[f.id].no_corresponde=true;
+    map[f.id].updated=Date.now();
+  });
+  saveState();
+  renderDifusionModal();
+  renderDifusion();
+  updateBadges();
+  toast('Marcado No corresponde para todos','suc');
+}
 function addFuncionarioDifusion(){
   editFunc(null);
   if(window._diffPubId)renderDifusionModal();
@@ -2820,7 +2836,7 @@ function delMd(){
 
 /* ============ CRUD ENTREVISTAS ============ */
 function normName(v){
-  return String(v||'').toLowerCase().trim().replace(/\s+/g,' ');
+  return cleanNameKey(v);
 }
 function getFuncionarioName(f){
   return f ? (f.name || f.nombre || f.funcionario || '') : '';
