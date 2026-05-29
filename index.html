@@ -1942,7 +1942,7 @@ function getPubDifusionMap(p){
   return p.funcionariosDifusion;
 }
 function funcionarioDifusionCompleto(rec){
-  return !!(rec&&(rec.compartio||rec.comento||rec.estado_wa||rec.no_corresponde));
+  return !!(rec&&(rec.compartio||rec.comento||rec.reacciono||rec.reposteo||rec.estado_wa||rec.no_corresponde));
 }
 function difusionStats(p){
   const total=state.funcionarios.length;
