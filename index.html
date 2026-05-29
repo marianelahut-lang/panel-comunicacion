@@ -4037,7 +4037,7 @@ async function syncPush(){
   _syncing = true;
   setSyncStatus('syncing','Subiendo cambios...');
   try {
-    const toSave = {...state};
+    const toSave = stripEmbeddedFilesForStorage(state);
     delete toSave._supaTables;
     delete toSave._datosDetectados;
     const body = JSON.stringify({
@@ -4060,6 +4060,8 @@ async function syncPush(){
       _remoteUpdatedAt = Date.now();
       setSyncStatus('synced','En la nube ✓');
     } else {
+      const txt = await r.text().catch(()=>'');
+      console.warn('Error al subir a Supabase', r.status, txt);
       setSyncStatus('error','Error al subir ('+r.status+')');
     }
   } catch(e){
@@ -4096,6 +4098,7 @@ async function syncPull(){
 }
 
 async function mergeRemoteState(remote, remoteTs){
+  remote = stripEmbeddedFilesForStorage(remote || {});
   let changed = false;
   // Combinar las listas de IDs borrados (local + remoto)
   const deletedSet = new Set([
