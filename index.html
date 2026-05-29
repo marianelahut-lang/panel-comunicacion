@@ -350,6 +350,7 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
       <button class="nav on" data-v="hoy" onclick="switchView('hoy')"><span class="ni">☀</span><span>Hoy</span><span class="nbadge" id="bgHoy"></span></button>
       <button class="nav" data-v="tablero" onclick="switchView('tablero')"><span class="ni">▦</span><span>Tablero</span><span class="nbadge" id="bgTab"></span></button>
       <button class="nav" data-v="material" onclick="switchView('material')"><span class="ni">▣</span><span>Material y Agenda</span></button>
+      <button class="nav" data-v="difusion" onclick="switchView('difusion')"><span class="ni">↗</span><span>Difusión</span><span class="nbadge" id="bgDif"></span></button>
       <button class="nav" data-v="calendario" onclick="switchView('calendario')"><span class="ni">▤</span><span>Calendario</span></button>
       <button class="nav" data-v="guardias" onclick="switchView('guardias')"><span class="ni">◷</span><span>Guardias</span></button>
       <div class="sb-sec">Personas</div>
@@ -460,6 +461,21 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
             <div id="agList"></div>
           </div>
         </div>
+      </div>
+
+      <!-- DIFUSIÓN -->
+      <div class="view" id="v-difusion">
+        <div class="fb" style="margin-bottom:14px">
+          <div>
+            <div class="ct-t">↗ Seguimiento de difusión</div>
+            <div class="ct-s">Publicaciones ya publicadas y control de funcionarios</div>
+          </div>
+          <div class="fl">
+            <input class="inp" id="dfSrch" oninput="renderDifusion()" placeholder="Buscar publicación..." style="width:190px">
+            <button class="btn btn-p" onclick="addFuncionarioDifusion()">+ Agregar funcionario</button>
+          </div>
+        </div>
+        <div id="dfPubList"></div>
       </div>
 
       <!-- CALENDARIO -->
@@ -672,7 +688,7 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
     </select></div>
   </div>
   <div class="fld">
-    <label>Checklist de difusi?n <span id="pbDiffCount" class="t-m"></span></label>
+    <label>Checklist de difusión <span id="pbDiffCount" class="t-m"></span></label>
     <div id="pbDiffList" style="display:grid;gap:10px;border:1px solid var(--bd);border-radius:10px;padding:10px;background:var(--bg-soft)"></div>
   </div>
   <div class="fld">
@@ -1044,6 +1060,25 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
   <button class="btn btn-w" onclick="sendFuncMsg()">Enviar por WhatsApp</button>
 </div></div></div>
 
+<div class="mov" id="dfMod"><div class="mod mod-l"><div class="mh">
+  <div>
+    <div class="mt" id="dfTit">Seguimiento de difusión</div>
+    <div class="ct-s" id="dfMeta" style="margin-top:4px"></div>
+  </div>
+  <button class="mx" onclick="closeModal('dfMod')">✕</button>
+</div><div class="mb">
+  <div class="fb" style="margin-bottom:12px">
+    <div id="dfSummary" class="ct-s"></div>
+    <div class="fl">
+      <button class="btn btn-w btn-s" onclick="sendDifusionPendientes()">📱 WA pendientes</button>
+      <button class="btn btn-p btn-s" onclick="addFuncionarioDifusion()">+ Funcionario</button>
+    </div>
+  </div>
+  <div id="dfFuncList" style="display:grid;gap:8px"></div>
+</div><div class="mf">
+  <button class="btn" onclick="closeModal('dfMod')">Cerrar</button>
+</div></div></div>
+
 <div class="tcn" id="toasts"></div>
 
 <script>
@@ -1055,18 +1090,18 @@ const DRIVE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyXgYWbqX71a0a
 const DRIVE_DEFAULT_FOLDER_ID = '1A8PB1xKxivZl_Jd6Q2HLI_nITsgwq54f';
 const DEF_USERS = ['Debora','Guada','Josefina Claromeco','Lina','Maiten','Marianela','Nai','Santiago','sofia','Yesi'];
 const DEF_FUNCS = [
-  ['Pablo Garate','Intendente Municipal',''],['Santiago Garate','Sub Secretario de Gabinete',''],
+  ['Pablo Garate','Intendente Municipal','5492983642913'],['Santiago Garate','Sub Secretario de Gabinete','5492983460846'],
   ['Julio Federico','Jefe de gabinete','5492983570209'],['Tomas Paniga','Director de Cultura','5492983447249'],
-  ['Facundo Liebana','Director de Deporte','5492983382366'],['Juan Moizzi','Dir. Oficina de Empleo / Parque Industrial',''],
+  ['Facundo Liebana','Director de Deporte','5492983382366'],['Juan Moizzi','Director de Oficina de Empleo y Parque Industrial','5492983507745'],
   ['Julian Tornini','Coordinador de Juventud y Deporte','5492983305218'],['Carolina Goicoechea','Directora de Turismo','5492983449098'],
-  ['Mauro Dadario','Director de Emprendedurismo','5492983446264'],['Margarita Tour','Directora de Impulsar',''],
-  ['Paola Salerno','Secretaria de Planeamiento Urbano',''],['Nicolas Franganillo','Director de Obras Publicas','5492983412126'],
-  ['Luis Juarez','Director de Paseos Publicos','2983459048'],['Ignacio Quintas','Director de Obras Sanitarias','5492983615881'],
-  ['Juan Apolonio','Secretario de Seguridad','5492983409217'],['Martin Legarreta','Director de Seguridad Operativo',''],
-  ['Maria Paz Lopez Peralta','Dir. Administrativa de Seguridad',''],['Martin Garate','Secretario de Desarrollo Social','5492983413996'],
+  ['Mauro Dadario','Director de Emprendedurismo','5492983446264'],['Margarita Tour','Directora de Impulsar','5492983414390'],
+  ['Paola Salerno','Secretaria de Planeamiento Urbano','5492983611597'],['Nicolas Franganillo','Director de Obras Publicas','5492983412126'],
+  ['Luis Juarez','Director de Planeamiento Urbano','5492983459048'],['Ignacio Quintas','Director de Obras Sanitarias','5492983615881'],
+  ['Juan Apolonio','Secretario de Seguridad','5492983409217'],['Martin Legarreta','Director de Seguridad Operativa','5492983608016'],
+  ['Maria Paz Lopez Peralta','Directora Administrativa de Seguridad','5492983419402'],['Martin Garate','Secretario de Desarrollo Social','5492983413996'],
   ['Damian Almeira','Director de Accion Social','5492983650085'],['Emiliano Capandegui','Director Tecnico del Hospital','5492983602937'],
-  ['Mercedes Moreno','Directora de Salud Integral','5492983447789'],['Juan Manuel Serna','Director de CAPS','5491154842469'],
-  ['Juan Cruz Lopez','Director Administrativo',''],['Eliana Rossi','Directora de Bromatologia y Zoonosis','5492983505668'],
+  ['Mercedes Moreno','Directora de Salud Integral','5492983447789'],['Juan Manuel Serna','Director de CAPS','5492983640486'],
+  ['Juan Cruz Lopez','Director Administrativo','5492216379206'],['Eliana Rossi','Directora de Bromatologia y Zoonosis','5492983505668'],
   ['Gabriel Francia','Sub Secretario de Gestion Ambiental','5492983385858'],
   ['Bernardina Varese','Servicios Públicos','5492983584387'],['Kevin Monrroy','Funcionario','5492983406170'],
   ['Pity Federico','Jefatura de Gabinete','5492983570209'],['Valeria Guido','Funcionaria','5491166920622'],
@@ -1099,6 +1134,19 @@ let calDayCursor = stripTime(new Date());
 let guardiaCursor = startOfWeek(new Date());
 
 function stripTime(d){const x=new Date(d);x.setHours(0,0,0,0);return x}
+function mergeDefaultFuncionarios(s){
+  const clean=v=>String(v||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+  DEF_FUNCS.forEach((f,i)=>{
+    const name=f[0],role=f[1]||'',phone=f[2]||'';
+    const ex=s.funcionarios.find(x=>clean(x.name)===clean(name));
+    if(ex){
+      if(!ex.role&&role)ex.role=role;
+      if(!ex.phone&&phone)ex.phone=phone;
+    }else{
+      s.funcionarios.push({id:'fn_def_'+i,name,role,phone});
+    }
+  });
+}
 
 function loadState(){
   try{
@@ -1134,6 +1182,7 @@ function ensureDefaults(s){
     if(s.medios.length===0) s.medios = seed().medios;
     s.__seeded = true;
   }
+  mergeDefaultFuncionarios(s);
   // === GARANTÍA: Marianela y Santiago SIEMPRE son admin ===
   s.agents.forEach(a=>{
     const n = (a.name||'').toLowerCase().trim();
@@ -1589,7 +1638,7 @@ function initFilters(){
   $('fAg').innerHTML='<option value="">Todos los agentes</option>'+state.agents.map(a=>'<option value="'+esc(a.id)+'">'+esc(a.name)+'</option>').join('');
 }
 function renderAll(){
-  renderHoy();renderTab();renderMat();renderCal();renderGuardias();renderEquipo();renderMed();renderEnt();renderReclamos();renderRec();updateBadges();
+  renderHoy();renderTab();renderMat();renderDifusion();renderCal();renderGuardias();renderEquipo();renderMed();renderEnt();renderReclamos();renderRec();updateBadges();
 }
 function updateBadges(){
   const p=state.tasks.filter(t=>t.status!=='realizada').length;
@@ -1599,6 +1648,9 @@ function updateBadges(){
   const pr=state.reclamos.filter(r=>r.estado!=='resuelto').length;
   const bR=$('bgRec');
   if(bR){if(pr>0){bR.textContent=pr;bR.style.display='inline-block'}else bR.style.display='none'}
+  const pd=getDifusionPublicaciones().filter(p=>difusionStats(p).pendientes>0).length;
+  const bD=$('bgDif');
+  if(bD){if(pd>0){bD.textContent=pd;bD.style.display='inline-block'}else bD.style.display='none'}
 }
 function switchView(name){
   currentView=name;
@@ -1606,7 +1658,7 @@ function switchView(name){
   document.querySelectorAll('.nav').forEach(n=>n.classList.remove('on'));
   const v=$('v-'+name);if(v)v.classList.add('on');
   const n=document.querySelector('.nav[data-v="'+name+'"]');if(n)n.classList.add('on');
-  const titles={hoy:'Hoy',tablero:'Tablero de tareas',material:'Material y Agenda',calendario:'Calendario',guardias:'Guardias',equipo:'Equipo',medios:'Contactos de medios',entrevistas:'Entrevistas',reclamos:'Reclamos de vecinos',recursos:'Recursos'};
+  const titles={hoy:'Hoy',tablero:'Tablero de tareas',material:'Material y Agenda',difusion:'Difusión',calendario:'Calendario',guardias:'Guardias',equipo:'Equipo',medios:'Contactos de medios',entrevistas:'Entrevistas',reclamos:'Reclamos de vecinos',recursos:'Recursos'};
   $('tbtl').textContent=titles[name]||name;
   toggleSidebar(false);
   // refresh por las dudas
@@ -1614,6 +1666,7 @@ function switchView(name){
     case 'hoy':renderHoy();break;
     case 'tablero':renderTab();break;
     case 'material':renderMat();break;
+    case 'difusion':renderDifusion();break;
     case 'calendario':renderCal();break;
     case 'guardias':renderGuardias();break;
     case 'equipo':renderEquipo();break;
@@ -1840,7 +1893,8 @@ function renderMat(){
       const pmTag=pm?'<span class="tag tag-p">→ Guardia</span>':'';
       const dateTag=past?'<span class="tag tag-x">'+fmtDate(p.date)+'</span>':p.date===today?'<span class="tag tag-a">HOY '+esc(p.time||'')+'</span>':'<span class="tag tag-b">'+fmtDate(p.date)+' '+esc(p.time||'')+'</span>';
       const stT='<span class="tag tag-x">'+esc(p.status||'')+'</span>';
-      return '<div class="li" onclick="editPub(\''+p.id+'\')"><div class="li-i" style="background:var(--pu-s);color:var(--pu)">📱</div><div class="li-b"><div class="li-t">'+esc(p.desc||'(sin título)')+'</div><div class="li-s">'+dateTag+' · '+esc(p.account||'')+' · '+esc(p.type||'')+' '+stT+' '+pubDiffusionTag(p)+' '+pmTag+'</div></div></div>';
+      const diffBtn=isPubReadyForDifusion(p)?'<button class="btn btn-p btn-xs" onclick="event.stopPropagation();openDifusion(\''+p.id+'\')">↗ Difusión</button>':'';
+      return '<div class="li" onclick="editPub(\''+p.id+'\')"><div class="li-i" style="background:var(--pu-s);color:var(--pu)">📱</div><div class="li-b"><div class="li-t">'+esc(p.desc||'(sin título)')+'</div><div class="li-s">'+dateTag+' · '+esc(p.account||'')+' · '+esc(p.type||'')+' '+stT+' '+pubDiffusionTag(p)+' '+pmTag+'</div></div>'+(diffBtn?'<div class="li-a">'+diffBtn+'</div>':'')+'</div>';
     }).join('');
   }
 }
@@ -1854,6 +1908,128 @@ function schedulePub(taskId){
   $('pbTime').value='09:00';
   if(t.assignees && t.assignees[0])$('pbResp').value=t.assignees[0];
   openModal('pbMod');
+}
+
+/* ============ DIFUSIÓN DE PUBLICACIONES ============ */
+const DIFUSION_FUNC_ACCIONES=[
+  ['compartio','Compartió redes'],
+  ['comento','Comentó'],
+  ['estado_wa','Estado WA'],
+  ['no_corresponde','No corresponde']
+];
+function pubDateTime(p){
+  if(!p.date)return null;
+  return new Date(p.date+'T'+(p.time||'00:00'));
+}
+function isPubReadyForDifusion(p){
+  const st=String(p.status||'').toLowerCase();
+  if(st==='publicado')return true;
+  const dt=pubDateTime(p);
+  return dt && dt.getTime()<=Date.now();
+}
+function getDifusionPublicaciones(){
+  return state.publicaciones.filter(isPubReadyForDifusion).sort((a,b)=>{
+    const da=(b.date||'').localeCompare(a.date||'');
+    return da!==0?da:(b.time||'').localeCompare(a.time||'');
+  });
+}
+function getPubDifusionMap(p){
+  p.funcionariosDifusion=p.funcionariosDifusion||{};
+  return p.funcionariosDifusion;
+}
+function funcionarioDifusionCompleto(rec){
+  return !!(rec&&(rec.compartio||rec.comento||rec.estado_wa||rec.no_corresponde));
+}
+function difusionStats(p){
+  const total=state.funcionarios.length;
+  const map=p.funcionariosDifusion||{};
+  const completos=state.funcionarios.filter(f=>funcionarioDifusionCompleto(map[f.id])).length;
+  return {total,completos,pendientes:Math.max(total-completos,0)};
+}
+function difusionMsg(p){
+  return 'Hola! Ya está publicada esta pieza:\n\n*'+(p.desc||'Publicación')+'*\n\n¿Podés compartirla en tus redes y/o estado de WhatsApp? Gracias.';
+}
+function renderDifusion(){
+  const wrap=$('dfPubList');if(!wrap)return;
+  const q=(($('dfSrch')&&$('dfSrch').value)||'').toLowerCase().trim();
+  let list=getDifusionPublicaciones();
+  if(q)list=list.filter(p=>((p.desc||'')+' '+(p.account||'')+' '+(p.type||'')).toLowerCase().includes(q));
+  if(list.length===0){
+    wrap.innerHTML='<div class="emp"><div class="emi">↗</div><div class="emt">Sin publicaciones para difusión</div><div class="ems">Cuando una publicación esté publicada, aparece acá para hacer seguimiento</div></div>';
+    return;
+  }
+  wrap.innerHTML=list.map(p=>{
+    const st=difusionStats(p);
+    const pct=st.total?Math.round(st.completos*100/st.total):0;
+    const pendingTag=st.pendientes?'<span class="tag tag-r">'+st.pendientes+' pendientes</span>':'<span class="tag tag-g">Completo</span>';
+    const fecha=p.date?'<span class="tag tag-b">'+fmtDate(p.date)+' '+esc(p.time||'')+'</span>':'';
+    return '<div class="li" onclick="openDifusion(\''+p.id+'\')"><div class="li-i" style="background:var(--gr-s);color:var(--gr)">↗</div><div class="li-b"><div class="li-t">'+esc(p.desc||'(sin título)')+'</div><div class="li-s">'+fecha+' <span class="tag tag-x">'+esc(p.account||'')+'</span> '+pendingTag+' <span class="tag tag-p">'+st.completos+'/'+st.total+' funcionarios</span></div><div class="tpr" style="margin-top:8px"><div class="tpb" style="width:'+pct+'%"></div></div></div><div class="li-a"><button class="btn btn-p btn-xs" onclick="event.stopPropagation();openDifusion(\''+p.id+'\')">Abrir</button></div></div>';
+  }).join('');
+}
+function openDifusion(pubId){
+  window._diffPubId=pubId;
+  renderDifusionModal();
+  openModal('dfMod');
+}
+function renderDifusionSummary(){
+  const p=state.publicaciones.find(x=>x.id===window._diffPubId);
+  if(!p||!$('dfSummary'))return;
+  const st=difusionStats(p);
+  $('dfSummary').innerHTML='<b>'+st.completos+'/'+st.total+'</b> funcionarios con seguimiento · <b>'+st.pendientes+'</b> pendientes';
+}
+function renderDifusionModal(){
+  const p=state.publicaciones.find(x=>x.id===window._diffPubId);
+  if(!p)return;
+  $('dfTit').textContent=p.desc||'Seguimiento de difusión';
+  $('dfMeta').textContent=(p.date?fmtDate(p.date)+' '+(p.time||'')+' · ':'')+(p.account||'')+(p.type?' · '+p.type:'');
+  renderDifusionSummary();
+  const wrap=$('dfFuncList');
+  const map=p.funcionariosDifusion||{};
+  const funcs=state.funcionarios.slice().sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+  if(funcs.length===0){
+    wrap.innerHTML='<div class="emp"><div class="emi">👤</div><div class="emt">Sin funcionarios</div><div class="ems">Agregá funcionarios para empezar el seguimiento</div></div>';
+    return;
+  }
+  wrap.innerHTML=funcs.map(f=>{
+    const rec=map[f.id]||{};
+    const checks=DIFUSION_FUNC_ACCIONES.map(([id,label])=>{
+      return '<label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--tx);cursor:pointer"><input type="checkbox" '+(rec[id]?'checked':'')+' onchange="setDifusionAccion(\''+p.id+'\',\''+f.id+'\',\''+id+'\',this.checked)" style="width:15px;height:15px;accent-color:var(--ac)"> '+esc(label)+'</label>';
+    }).join('');
+    const done=funcionarioDifusionCompleto(rec);
+    return '<div class="li" style="cursor:default"><div class="li-i" style="background:'+(done?'var(--gr-s);color:var(--gr)':'var(--bg-soft);color:var(--tx-m)')+'">'+(done?'✓':'•')+'</div><div class="li-b"><div class="li-t">'+esc(f.name||'')+'</div><div class="li-s">'+esc(f.role||'Funcionario')+(f.phone?' · '+esc(f.phone):' · sin WhatsApp')+'</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:7px;margin-top:8px">'+checks+'</div></div><div class="li-a">'+(f.phone?'<button class="btn btn-w btn-xs" onclick="event.stopPropagation();sendDifusionUno(\''+p.id+'\',\''+f.id+'\')">WA</button>':'')+'</div></div>';
+  }).join('');
+}
+function sendDifusionUno(pubId,funcId){
+  const p=state.publicaciones.find(x=>x.id===pubId);
+  const f=state.funcionarios.find(x=>x.id===funcId);
+  if(!p||!f||!f.phone){toast('Sin WhatsApp','err');return}
+  waOpen(f.phone,difusionMsg(p));
+}
+function setDifusionAccion(pubId,funcId,accion,checked){
+  const p=state.publicaciones.find(x=>x.id===pubId);if(!p)return;
+  const map=getPubDifusionMap(p);
+  map[funcId]=map[funcId]||{};
+  map[funcId][accion]=checked;
+  map[funcId].updated=Date.now();
+  saveState();
+  renderDifusionSummary();
+  renderDifusion();
+  updateBadges();
+}
+function addFuncionarioDifusion(){
+  editFunc(null);
+  if(window._diffPubId)renderDifusionModal();
+  renderDifusion();
+  updateBadges();
+}
+function sendDifusionPendientes(){
+  const p=state.publicaciones.find(x=>x.id===window._diffPubId);if(!p)return;
+  const map=p.funcionariosDifusion||{};
+  const list=state.funcionarios.filter(f=>f.phone&&!funcionarioDifusionCompleto(map[f.id]));
+  if(list.length===0){toast('No hay pendientes con WhatsApp','inf');return}
+  const msg=difusionMsg(p);
+  list.forEach((f,i)=>setTimeout(()=>waOpen(f.phone,msg),i*450));
+  toast('Abriendo WhatsApp para '+list.length+' pendientes','suc');
 }
 
 /* ============ CALENDARIO ============ */
