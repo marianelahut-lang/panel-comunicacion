@@ -1952,13 +1952,21 @@ function difusionStats(p){
   return {total,completos,pendientes:Math.max(total-completos,0)};
 }
 function calcPubDifusionStats(p){
-  const totals={compartio:0,comento:0,reacciono:0,reposteo:0,estado_wa:0,no_corresponde:0};
+  const totals={compartio:0,comento:0,reacciono:0,reposteo:0,estado_wa:0,no_corresponde:0,manual:0};
   const map=p.funcionariosDifusion||{};
   state.funcionarios.forEach(f=>{
     const rec=map[f.id]||{};
     Object.keys(totals).forEach(k=>{if(rec[k])totals[k]++});
   });
   return totals;
+}
+function setPubCompartidosManual(pubId,value){
+  const p=state.publicaciones.find(x=>x.id===pubId);if(!p)return;
+  const n=Math.max(0,parseInt(value||'0',10)||0);
+  p.compartidos_manual=n;
+  p.updated=Date.now();
+  saveState();
+  renderDifusionWeekStats();
 }
 function difusionActionNames(p,action){
   const map=p.funcionariosDifusion||{};
@@ -1983,7 +1991,8 @@ function renderPubDifusionStats(p){
     const title=labels[window._dfStatOpen]||'seleccionados';
     detail='<div style="margin-top:8px;background:var(--bg-soft);border:1px solid var(--bd);border-radius:10px;padding:10px"><div class="ct-s" style="font-weight:800;margin-bottom:6px">'+esc(title.charAt(0).toUpperCase()+title.slice(1))+'</div>'+(names.length?'<div class="li-s">'+names.map(n=>'<span class="tag tag-x">'+esc(n)+'</span>').join('')+'</div>':'<div class="ct-s">Todavía no hay funcionarios en esta categoría.</div>')+'</div>';
   }
-  box.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px">'+tags+'</div>'+detail;
+  const manual='<div style="margin-top:8px;background:var(--bg-soft);border:1px solid var(--bd);border-radius:10px;padding:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><label style="font-size:12px;font-weight:800;color:var(--tx-s)">Compartidos manuales</label><input class="inp" type="number" min="0" value="'+esc(p.compartidos_manual||0)+'" oninput="setPubCompartidosManual(\''+p.id+'\',this.value)" style="width:120px"><span class="ct-s">Carga manual para sumar compartidos que no estén asociados a un funcionario.</span></div>';
+  box.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px">'+tags+'</div>'+manual+detail;
 }
 function difusionMsg(p){
   return 'Hola! Ya está publicada esta pieza:\n\n*'+(p.desc||'Publicación')+'*\n\n¿Podés compartirla en tus redes y/o estado de WhatsApp? Gracias.';
@@ -2000,6 +2009,7 @@ function calcDifusionWeekStats(){
   const totals={compartio:0,comento:0,reacciono:0,reposteo:0,estado_wa:0,no_corresponde:0};
   const perFunc={};
   pubs.forEach(p=>{
+    totals.manual+=parseInt(p.compartidos_manual||0,10)||0;
     const map=p.funcionariosDifusion||{};
     state.funcionarios.forEach(f=>{
       const rec=map[f.id]||{};
@@ -2023,7 +2033,7 @@ function renderDifusionWeekStats(){
   const ranking=st.ranking.length?st.ranking.map((x,i)=>{
     return '<div class="li" style="padding:9px;cursor:default"><div class="li-i" style="width:30px;height:30px;border-radius:8px;background:var(--ac-s);color:var(--ac)">'+(i+1)+'</div><div class="li-b"><div class="li-t">'+esc(x.f.name||'')+'</div><div class="li-s"><span class="tag tag-x">'+x.total+' acciones</span><span class="tag tag-b">'+x.comento+' comentarios</span><span class="tag tag-p">'+x.reacciono+' reacciones</span><span class="tag tag-g">'+x.reposteo+' reposteos</span></div></div></div>';
   }).join(''):'<div class="emp" style="padding:14px"><div class="emt">Sin acciones registradas esta semana</div></div>';
-  box.innerHTML='<div class="card"><div class="ch"><div><div class="ct-t">📊 Estadística semanal</div><div class="ct-s">'+st.sem.label+'</div></div><span class="tag tag-p">'+st.pubs.length+' publicaciones</span></div><div class="grid g2" style="margin-top:12px"><div><div class="li" style="cursor:default"><div class="li-i" style="background:var(--gr-s);color:var(--gr)">↗</div><div class="li-b"><div class="li-t">Acciones registradas</div><div class="li-s"><span class="tag tag-g">'+t.compartio+' compartidos</span><span class="tag tag-b">'+t.comento+' comentarios</span><span class="tag tag-p">'+t.reacciono+' reacciones</span><span class="tag tag-c">'+t.reposteo+' reposteos</span><span class="tag tag-x">'+t.estado_wa+' estados WA</span></div></div></div></div><div><div class="ct-s" style="font-weight:800;margin-bottom:8px">Funcionarios con más interacción</div>'+ranking+'</div></div></div>';
+  box.innerHTML='<div class="card"><div class="ch"><div><div class="ct-t">📊 Estadística semanal</div><div class="ct-s">'+st.sem.label+'</div></div><span class="tag tag-p">'+st.pubs.length+' publicaciones</span></div><div class="grid g2" style="margin-top:12px"><div><div class="li" style="cursor:default"><div class="li-i" style="background:var(--gr-s);color:var(--gr)">↗</div><div class="li-b"><div class="li-t">Acciones registradas</div><div class="li-s"><span class="tag tag-g">'+t.compartio+' compartidos</span><span class="tag tag-a">'+t.manual+' manuales</span><span class="tag tag-b">'+t.comento+' comentarios</span><span class="tag tag-p">'+t.reacciono+' reacciones</span><span class="tag tag-c">'+t.reposteo+' reposteos</span><span class="tag tag-x">'+t.estado_wa+' estados WA</span></div></div></div></div><div><div class="ct-s" style="font-weight:800;margin-bottom:8px">Funcionarios con más interacción</div>'+ranking+'</div></div></div>';
 }
 function renderDifusion(){
   const wrap=$('dfPubList');if(!wrap)return;
