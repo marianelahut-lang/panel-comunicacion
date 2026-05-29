@@ -1076,6 +1076,7 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
       <button class="btn btn-p btn-s" onclick="addFuncionarioDifusion()">+ Funcionario</button>
     </div>
   </div>
+  <div id="dfPubStats" style="margin-bottom:12px"></div>
   <div id="dfFuncList" style="display:grid;gap:8px"></div>
 </div><div class="mf">
   <button class="btn" onclick="closeModal('dfMod')">Cerrar</button>
@@ -1950,6 +1951,20 @@ function difusionStats(p){
   const completos=state.funcionarios.filter(f=>funcionarioDifusionCompleto(map[f.id])).length;
   return {total,completos,pendientes:Math.max(total-completos,0)};
 }
+function calcPubDifusionStats(p){
+  const totals={compartio:0,comento:0,reacciono:0,reposteo:0,estado_wa:0,no_corresponde:0};
+  const map=p.funcionariosDifusion||{};
+  state.funcionarios.forEach(f=>{
+    const rec=map[f.id]||{};
+    Object.keys(totals).forEach(k=>{if(rec[k])totals[k]++});
+  });
+  return totals;
+}
+function renderPubDifusionStats(p){
+  const box=$('dfPubStats');if(!box)return;
+  const t=calcPubDifusionStats(p);
+  box.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px"><div class="tag tag-g" style="justify-content:center;padding:8px">'+t.compartio+' compartieron</div><div class="tag tag-b" style="justify-content:center;padding:8px">'+t.comento+' comentaron</div><div class="tag tag-p" style="justify-content:center;padding:8px">'+t.reacciono+' reaccionaron</div><div class="tag tag-c" style="justify-content:center;padding:8px">'+t.reposteo+' repostearon</div><div class="tag tag-x" style="justify-content:center;padding:8px">'+t.estado_wa+' estados WA</div><div class="tag tag-r" style="justify-content:center;padding:8px">'+t.no_corresponde+' no corresponde</div></div>';
+}
 function difusionMsg(p){
   return 'Hola! Ya está publicada esta pieza:\n\n*'+(p.desc||'Publicación')+'*\n\n¿Podés compartirla en tus redes y/o estado de WhatsApp? Gracias.';
 }
@@ -2025,6 +2040,7 @@ function renderDifusionModal(){
   $('dfTit').textContent=p.desc||'Seguimiento de difusión';
   $('dfMeta').textContent=(p.date?fmtDate(p.date)+' '+(p.time||'')+' · ':'')+(p.account||'')+(p.type?' · '+p.type:'');
   renderDifusionSummary();
+  renderPubDifusionStats(p);
   const wrap=$('dfFuncList');
   const map=p.funcionariosDifusion||{};
   const funcs=state.funcionarios.slice().sort((a,b)=>(a.name||'').localeCompare(b.name||''));
@@ -2055,6 +2071,7 @@ function setDifusionAccion(pubId,funcId,accion,checked){
   map[funcId].updated=Date.now();
   saveState();
   renderDifusionSummary();
+  renderPubDifusionStats(p);
   renderDifusionWeekStats();
   renderDifusion();
   updateBadges();
