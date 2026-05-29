@@ -1960,10 +1960,30 @@ function calcPubDifusionStats(p){
   });
   return totals;
 }
+function difusionActionNames(p,action){
+  const map=p.funcionariosDifusion||{};
+  return state.funcionarios.filter(f=>(map[f.id]||{})[action]).map(f=>f.name||'(sin nombre)').sort((a,b)=>a.localeCompare(b));
+}
+function toggleDifusionStat(action){
+  window._dfStatOpen = window._dfStatOpen===action ? null : action;
+  const p=state.publicaciones.find(x=>x.id===window._diffPubId);
+  if(p)renderPubDifusionStats(p);
+}
 function renderPubDifusionStats(p){
   const box=$('dfPubStats');if(!box)return;
   const t=calcPubDifusionStats(p);
-  box.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px"><div class="tag tag-g" style="justify-content:center;padding:8px">'+t.compartio+' compartieron</div><div class="tag tag-b" style="justify-content:center;padding:8px">'+t.comento+' comentaron</div><div class="tag tag-p" style="justify-content:center;padding:8px">'+t.reacciono+' reaccionaron</div><div class="tag tag-c" style="justify-content:center;padding:8px">'+t.reposteo+' repostearon</div><div class="tag tag-x" style="justify-content:center;padding:8px">'+t.estado_wa+' estados WA</div><div class="tag tag-r" style="justify-content:center;padding:8px">'+t.no_corresponde+' no corresponde</div></div>';
+  const labels={compartio:'compartieron',comento:'comentaron',reacciono:'reaccionaron',reposteo:'repostearon',estado_wa:'estados WA',no_corresponde:'no corresponde'};
+  const tags=[['compartio','tag-g'],['comento','tag-b'],['reacciono','tag-p'],['reposteo','tag-c'],['estado_wa','tag-x'],['no_corresponde','tag-r']].map(([k,cls])=>{
+    const on=window._dfStatOpen===k;
+    return '<button class="tag '+cls+'" style="justify-content:center;padding:8px;border:1px solid '+(on?'var(--tx)':'transparent')+';cursor:pointer" onclick="toggleDifusionStat(\''+k+'\')">'+t[k]+' '+labels[k]+'</button>';
+  }).join('');
+  let detail='';
+  if(window._dfStatOpen){
+    const names=difusionActionNames(p,window._dfStatOpen);
+    const title=labels[window._dfStatOpen]||'seleccionados';
+    detail='<div style="margin-top:8px;background:var(--bg-soft);border:1px solid var(--bd);border-radius:10px;padding:10px"><div class="ct-s" style="font-weight:800;margin-bottom:6px">'+esc(title.charAt(0).toUpperCase()+title.slice(1))+'</div>'+(names.length?'<div class="li-s">'+names.map(n=>'<span class="tag tag-x">'+esc(n)+'</span>').join('')+'</div>':'<div class="ct-s">Todavía no hay funcionarios en esta categoría.</div>')+'</div>';
+  }
+  box.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px">'+tags+'</div>'+detail;
 }
 function difusionMsg(p){
   return 'Hola! Ya está publicada esta pieza:\n\n*'+(p.desc||'Publicación')+'*\n\n¿Podés compartirla en tus redes y/o estado de WhatsApp? Gracias.';
