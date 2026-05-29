@@ -475,6 +475,7 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
             <button class="btn btn-p" onclick="addFuncionarioDifusion()">+ Agregar funcionario</button>
           </div>
         </div>
+        <div id="dfWeekStats" style="margin-bottom:14px"></div>
         <div id="dfPubList"></div>
       </div>
 
@@ -1952,8 +1953,46 @@ function difusionStats(p){
 function difusionMsg(p){
   return 'Hola! Ya está publicada esta pieza:\n\n*'+(p.desc||'Publicación')+'*\n\n¿Podés compartirla en tus redes y/o estado de WhatsApp? Gracias.';
 }
+function difusionSemanaActual(){
+  const start=startOfWeek(new Date());
+  const end=addDays(start,6);
+  const startIso=dateISO(start),endIso=dateISO(end);
+  return {start,end,startIso,endIso,label:fmtDate(startIso)+' al '+fmtDate(endIso)};
+}
+function calcDifusionWeekStats(){
+  const sem=difusionSemanaActual();
+  const pubs=getDifusionPublicaciones().filter(p=>p.date>=sem.startIso&&p.date<=sem.endIso);
+  const totals={compartio:0,comento:0,reacciono:0,reposteo:0,estado_wa:0,no_corresponde:0};
+  const perFunc={};
+  pubs.forEach(p=>{
+    const map=p.funcionariosDifusion||{};
+    state.funcionarios.forEach(f=>{
+      const rec=map[f.id]||{};
+      if(!perFunc[f.id])perFunc[f.id]={f,compartio:0,comento:0,reacciono:0,reposteo:0,estado_wa:0,no_corresponde:0,total:0};
+      ['compartio','comento','reacciono','reposteo','estado_wa','no_corresponde'].forEach(k=>{
+        if(rec[k]){
+          totals[k]++;
+          perFunc[f.id][k]++;
+          if(k!=='no_corresponde')perFunc[f.id].total++;
+        }
+      });
+    });
+  });
+  const ranking=Object.values(perFunc).filter(x=>x.total>0).sort((a,b)=>b.total-a.total||(b.comento+b.reacciono)-(a.comento+a.reacciono)).slice(0,5);
+  return {sem,pubs,totals,ranking};
+}
+function renderDifusionWeekStats(){
+  const box=$('dfWeekStats');if(!box)return;
+  const st=calcDifusionWeekStats();
+  const t=st.totals;
+  const ranking=st.ranking.length?st.ranking.map((x,i)=>{
+    return '<div class="li" style="padding:9px;cursor:default"><div class="li-i" style="width:30px;height:30px;border-radius:8px;background:var(--ac-s);color:var(--ac)">'+(i+1)+'</div><div class="li-b"><div class="li-t">'+esc(x.f.name||'')+'</div><div class="li-s"><span class="tag tag-x">'+x.total+' acciones</span><span class="tag tag-b">'+x.comento+' comentarios</span><span class="tag tag-p">'+x.reacciono+' reacciones</span><span class="tag tag-g">'+x.reposteo+' reposteos</span></div></div></div>';
+  }).join(''):'<div class="emp" style="padding:14px"><div class="emt">Sin acciones registradas esta semana</div></div>';
+  box.innerHTML='<div class="card"><div class="ch"><div><div class="ct-t">📊 Estadística semanal</div><div class="ct-s">'+st.sem.label+'</div></div><span class="tag tag-p">'+st.pubs.length+' publicaciones</span></div><div class="grid g2" style="margin-top:12px"><div><div class="li" style="cursor:default"><div class="li-i" style="background:var(--gr-s);color:var(--gr)">↗</div><div class="li-b"><div class="li-t">Acciones registradas</div><div class="li-s"><span class="tag tag-g">'+t.compartio+' compartidos</span><span class="tag tag-b">'+t.comento+' comentarios</span><span class="tag tag-p">'+t.reacciono+' reacciones</span><span class="tag tag-c">'+t.reposteo+' reposteos</span><span class="tag tag-x">'+t.estado_wa+' estados WA</span></div></div></div></div><div><div class="ct-s" style="font-weight:800;margin-bottom:8px">Funcionarios con más interacción</div>'+ranking+'</div></div></div>';
+}
 function renderDifusion(){
   const wrap=$('dfPubList');if(!wrap)return;
+  renderDifusionWeekStats();
   const q=(($('dfSrch')&&$('dfSrch').value)||'').toLowerCase().trim();
   let list=getDifusionPublicaciones();
   if(q)list=list.filter(p=>((p.desc||'')+' '+(p.account||'')+' '+(p.type||'')).toLowerCase().includes(q));
@@ -2016,6 +2055,7 @@ function setDifusionAccion(pubId,funcId,accion,checked){
   map[funcId].updated=Date.now();
   saveState();
   renderDifusionSummary();
+  renderDifusionWeekStats();
   renderDifusion();
   updateBadges();
 }
@@ -2030,6 +2070,7 @@ function marcarNoCorrespondeTodos(){
   });
   saveState();
   renderDifusionModal();
+  renderDifusionWeekStats();
   renderDifusion();
   updateBadges();
   toast('Marcado No corresponde para todos','suc');
