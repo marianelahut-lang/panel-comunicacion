@@ -867,6 +867,7 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
     <option>Google Drive</option><option>Contactos útiles</option><option>Otro</option>
   </select></div>
   <div class="fld"><label>URL o Link</label><input class="inp" id="rcUrl" placeholder="https://..."></div>
+  <div class="fld"><label>Archivo para Drive</label><input class="inp" type="file" id="rcFile"><small class="t-m">Si Drive esta configurado, se sube y se guarda el link automaticamente.</small></div>
   <div class="fld"><label>Descripción</label><textarea class="inp" id="rcDesc"></textarea></div>
 </div><div class="mf">
   <button class="btn btn-d hide" id="rcDel" onclick="delRc()">🗑 Eliminar</button>
@@ -944,6 +945,17 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
     <div class="fl mt8">
       <button class="btn btn-s" onclick="scanSupa()">🔍 Escanear tablas viejas</button>
     </div>
+  </div>
+  <div class="card" style="margin-bottom:14px">
+    <div class="ct-t" style="margin-bottom:10px">Google Drive - archivos</div>
+    <div class="ct-s" style="margin-bottom:12px">Sube flyers, fotos, PDFs y recursos al Drive del area, y guarda en el panel solo el enlace.</div>
+    <div class="fld"><label>URL del Apps Script</label><input class="inp" id="drvScriptUrl" placeholder="https://script.google.com/macros/s/.../exec"></div>
+    <div class="fld"><label>ID de carpeta Drive</label><input class="inp" id="drvFolderId" placeholder="1A8PB1xKxivZl_Jd6Q2HLI_nITsgwq54f"></div>
+    <div class="fl">
+      <button class="btn btn-p btn-s" onclick="saveDriveCfg()">Guardar Drive</button>
+      <button class="btn btn-s" onclick="testDriveCfg()">Probar subida</button>
+    </div>
+    <div id="drvStat" style="margin-top:10px;font-size:12px;color:var(--tx-m)">No conectado</div>
   </div>
   <div class="card" style="margin-bottom:14px">
     <div class="ct-t" style="margin-bottom:10px">🔑 Contraseña del panel</div>
@@ -1038,6 +1050,8 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
 
 /* ============ DATOS POR DEFECTO ============ */
 const LS_KEY = 'pcomTA_v6';
+const DRIVE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyXgYWbqX71a0aShc1VJGka6p6vBtcuCunopndyK0R1GC4cEjDU-fXhDeFMvbjeQWajHw/exec';
+const DRIVE_DEFAULT_FOLDER_ID = '1A8PB1xKxivZl_Jd6Q2HLI_nITsgwq54f';
 const DEF_USERS = ['Debora','Guada','Josefina Claromeco','Lina','Maiten','Marianela','Nai','Santiago','sofia','Yesi'];
 const DEF_FUNCS = [
   ['Pablo Garate','Intendente Municipal',''],['Santiago Garate','Sub Secretario de Gabinete',''],
@@ -1108,6 +1122,8 @@ function ensureDefaults(s){
   s.config = s.config || {};
   s.config.theme = s.config.theme || 'dark';
   s.config.password = s.config.password || '';
+  s.config.driveScriptUrl = s.config.driveScriptUrl || DRIVE_SCRIPT_URL;
+  s.config.driveFolderId = s.config.driveFolderId || DRIVE_DEFAULT_FOLDER_ID;
   s.tiposReclamoCustom = Array.isArray(s.tiposReclamoCustom) ? s.tiposReclamoCustom : [];
   s._deletedIds = Array.isArray(s._deletedIds) ? s._deletedIds : [];
   if(!s.__seeded){
@@ -1198,12 +1214,43 @@ function seed(){
     funcionarios: DEF_FUNCS.map((f,i)=>({id:'fn_'+i,name:f[0],role:f[1],phone:f[2]||''})),
     medios: DEF_MEDIOS.map((m,i)=>({id:'md_'+i,name:m[0],program:m[1],phone:'',email:'',type:m[2],specialty:m[3],notes:''})),
     tasks:[], publicaciones:[], events:[], entrevistas:[], guardias:{}, recursos:[], reclamos:[],
-    config:{theme:'dark',password:'',supabaseUrl:'https://kvbwurvvgfarmiqtvlsc.supabase.co',supabaseKey:'sb_publishable_XYkrltbXO7qOj4Tz48PoJg_uh8m-zmr'}
+    config:{theme:'dark',password:'',supabaseUrl:'https://kvbwurvvgfarmiqtvlsc.supabase.co',supabaseKey:'sb_publishable_XYkrltbXO7qOj4Tz48PoJg_uh8m-zmr',driveScriptUrl:DRIVE_SCRIPT_URL,driveFolderId:DRIVE_DEFAULT_FOLDER_ID}
   };
+}
+function isEmbeddedFileValue(v){
+  return typeof v === 'string' && /^data:[^;]+;base64,/.test(v);
+}
+function stripEmbeddedFilesForStorage(input){
+  const seen = new WeakSet();
+  const clone = value => {
+    if(!value || typeof value !== 'object') return value;
+    if(seen.has(value)) return null;
+    seen.add(value);
+    if(Array.isArray(value)) return value.map(clone);
+    const out = {};
+    Object.keys(value).forEach(k=>{
+      const v = value[k];
+      if((k === 'data' || k === 'url') && isEmbeddedFileValue(v)){
+        out[k] = '';
+        out.drivePendiente = true;
+        return;
+      }
+      out[k] = clone(v);
+    });
+    return out;
+  };
+  return clone(input);
 }
 function saveState(){
   try{localStorage.setItem(LS_KEY,JSON.stringify(state))}
-  catch(e){toast('Error al guardar: '+e.message,'err')}
+  catch(e){
+    try{
+      localStorage.setItem(LS_KEY,JSON.stringify(stripEmbeddedFilesForStorage(state)));
+      toast('Guardado sin archivos pesados. Subilos a Drive para conservarlos.','err');
+    }catch(e2){
+      toast('Error al guardar: '+e2.message,'err');
+    }
+  }
 }
 
 /* ============ HELPERS ============ */
@@ -1271,6 +1318,57 @@ function waOpen(phone,msg){
 function mailOpen(email,subj,body){
   const url='mailto:'+(email||'')+'?subject='+encodeURIComponent(subj||'')+'&body='+encodeURIComponent(body||'');
   window.location.href=url;
+}
+
+function driveReady(){
+  return !!(state.config && state.config.driveScriptUrl && state.config.driveFolderId);
+}
+function fileToDataUrl(file){
+  return new Promise((res,rej)=>{
+    const r = new FileReader();
+    r.onload = e => res(e.target.result);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+function dataUrlPayload(dataUrl){
+  const parts = String(dataUrl||'').split(',');
+  return {mime:((parts[0].match(/data:(.*?);base64/)||[])[1]||''), data:parts[1]||''};
+}
+async function uploadToDriveFromDataUrl(dataUrl, filename, mimeType, context){
+  if(!driveReady()) return null;
+  const p = dataUrlPayload(dataUrl);
+  const body = {
+    action:'upload',
+    folderId:state.config.driveFolderId || DRIVE_DEFAULT_FOLDER_ID,
+    filename:filename || ('archivo-'+Date.now()),
+    mimeType:mimeType || p.mime || 'application/octet-stream',
+    context:context || 'panel',
+    data:p.data
+  };
+  const r = await fetch(state.config.driveScriptUrl, {
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify(body)
+  });
+  const out = await r.json();
+  if(!out || !out.ok) throw new Error((out && out.error) || 'Drive no respondio correctamente');
+  return out.file;
+}
+async function uploadFileToDrive(file, context){
+  const dataUrl = await fileToDataUrl(file);
+  return uploadToDriveFromDataUrl(dataUrl, file.name, file.type, context);
+}
+function driveFileToAttachment(file, uploaded){
+  return {
+    name:file.name,
+    type:file.type,
+    size:file.size,
+    url:uploaded.webViewLink || uploaded.url || '',
+    downloadUrl:uploaded.downloadUrl || '',
+    driveId:uploaded.id || '',
+    drive:true
+  };
 }
 
 /* ============ TEMA Y SIDEBAR ============ */
@@ -2222,7 +2320,11 @@ function renderRec(){
 
 function openResource(id){
   const r=state.recursos.find(x=>x.id===id);
-  if(!r||!r.url)return;
+  if(!r)return;
+  if(!r.url){
+    toast(r.drivePendiente?'Este archivo todavia no esta subido a Drive':'Este recurso no tiene link','err');
+    return;
+  }
   if(r.autoFlyer && /^data:image\//.test(r.url)){
     const a=document.createElement('a');
     a.href=r.url;
@@ -2617,12 +2719,26 @@ function editRc(id){
   $('rcCat').value=r?r.cat||'Documentos':'Documentos';
   $('rcUrl').value=r?r.url||'':'';
   $('rcDesc').value=r?r.desc||'':'';
+  if($('rcFile')) $('rcFile').value='';
   $('rcDel').classList.toggle('hide',!r);
   openModal('rcMod');
 }
-function saveRc(){
+async function saveRc(){
   const name=$('rcName').value.trim();
-  const url=$('rcUrl').value.trim();
+  let url=$('rcUrl').value.trim();
+  const file=$('rcFile') && $('rcFile').files ? $('rcFile').files[0] : null;
+  if(file){
+    if(!driveReady()){toast('Configura Drive antes de subir archivos','err');return}
+    try{
+      toast('Subiendo archivo a Drive...','inf');
+      const up=await uploadFileToDrive(file,'recursos');
+      url=up.webViewLink || up.url || '';
+      $('rcUrl').value=url;
+    }catch(e){
+      toast('Error al subir a Drive: '+e.message,'err');
+      return;
+    }
+  }
   if(!name||!url){toast('Nombre y URL son obligatorios','err');return}
   const id=$('rcId').value;
   const data={
@@ -2656,6 +2772,9 @@ function prepCfg(){
   $('spKey').value=state.config.supabaseKey||'sb_publishable_XYkrltbXO7qOj4Tz48PoJg_uh8m-zmr';
   $('spStat').textContent=state.config.supabaseKey?'Configurado · presioná "Probar conexión"':'No conectado';
   $('spStat').style.color='var(--tx-m)';
+  if($('drvScriptUrl')) $('drvScriptUrl').value=state.config.driveScriptUrl||'';
+  if($('drvFolderId')) $('drvFolderId').value=state.config.driveFolderId||DRIVE_DEFAULT_FOLDER_ID;
+  if($('drvStat')) $('drvStat').textContent=driveReady()?'Configurado para subir archivos a Drive':'No conectado';
 }
 function importJSON(){
   const raw=$('impData').value.trim();
@@ -2720,6 +2839,28 @@ function saveSupa(){
   saveState();
   $('spStat').textContent=state.config.supabaseKey?'Guardado · presioná "Probar conexión"':'No conectado';
   toast('Configuración guardada','suc');
+}
+
+function saveDriveCfg(){
+  state.config.driveScriptUrl=($('drvScriptUrl').value||'').trim();
+  state.config.driveFolderId=($('drvFolderId').value||DRIVE_DEFAULT_FOLDER_ID).trim();
+  saveState();
+  $('drvStat').textContent=driveReady()?'Drive configurado':'Falta URL del Apps Script';
+  toast('Drive guardado','suc');
+}
+async function testDriveCfg(){
+  saveDriveCfg();
+  if(!driveReady()){toast('Pega la URL del Apps Script primero','err');return}
+  try{
+    $('drvStat').textContent='Subiendo archivo de prueba...';
+    const data='data:text/plain;base64,'+btoa('Prueba Panel Comunicacion '+new Date().toISOString());
+    const f=await uploadToDriveFromDataUrl(data,'prueba-panel-comunicacion.txt','text/plain','prueba');
+    $('drvStat').innerHTML='Prueba OK: <a href="'+esc(f.webViewLink||f.url||'')+'" target="_blank">abrir archivo</a>';
+    toast('Drive conectado','suc');
+  }catch(e){
+    $('drvStat').textContent='Error: '+e.message;
+    toast('No se pudo subir a Drive','err');
+  }
 }
 
 async function supaFetch(table, params){
@@ -4180,12 +4321,17 @@ function onArchivosCambian(ctx, fileList){
         toast(f.name+' es muy grande (>5MB)','err');
         continue;
       }
-      const b64 = await new Promise((res,rej)=>{
-        const r = new FileReader();
-        r.onload = e => res(e.target.result);
-        r.onerror = rej;
-        r.readAsDataURL(f);
-      });
+      if(driveReady()){
+        try{
+          toast('Subiendo '+f.name+' a Drive...','inf');
+          const up = await uploadFileToDrive(f, ctx);
+          _archivosTemp[ctx].push(driveFileToAttachment(f, up));
+          continue;
+        }catch(e){
+          toast('No se pudo subir '+f.name+'. Queda local por ahora.','err');
+        }
+      }
+      const b64 = await fileToDataUrl(f);
       _archivosTemp[ctx].push({name:f.name, type:f.type, size:f.size, data:b64});
     }
     renderArchivosTemp(ctx);
@@ -4198,6 +4344,10 @@ function renderArchivosTemp(ctx){
   if(!wrap)return;
   wrap.innerHTML = _archivosTemp[ctx].map((a,i)=>{
     const esImg = a.type && a.type.startsWith('image/');
+    if(a.drive){
+      const preview = '<div style="width:60px;height:60px;background:var(--bg-soft);border-radius:8px;display:grid;place-items:center;font-size:10px;font-weight:800;color:var(--gr)">Drive</div>';
+      return '<div style="position:relative;display:inline-block">'+preview+'<button onclick="quitarArchivo(\''+ctx+'\','+i+')" style="position:absolute;top:-6px;right:-6px;background:var(--rd);color:#fff;border:0;border-radius:50%;width:20px;height:20px;font-size:12px;line-height:1;cursor:pointer">x</button><div style="font-size:9px;text-align:center;max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--tx-m);margin-top:2px">'+esc(a.name)+'</div></div>';
+    }
     const preview = esImg ? '<img src="'+a.data+'" style="width:60px;height:60px;object-fit:cover;border-radius:8px;display:block">' : '<div style="width:60px;height:60px;background:var(--bg-soft);border-radius:8px;display:grid;place-items:center;font-size:24px">📄</div>';
     return '<div style="position:relative;display:inline-block">'+preview+'<button onclick="quitarArchivo(\''+ctx+'\','+i+')" style="position:absolute;top:-6px;right:-6px;background:var(--rd);color:#fff;border:0;border-radius:50%;width:20px;height:20px;font-size:12px;line-height:1;cursor:pointer">×</button><div style="font-size:9px;text-align:center;max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--tx-m);margin-top:2px">'+esc(a.name)+'</div></div>';
   }).join('');
@@ -4209,6 +4359,7 @@ function quitarArchivo(ctx, idx){
 
 // Convierte base64 a Blob → File para Web Share API
 function b64ToFile(item){
+  if(!item.data) throw new Error('El archivo esta guardado en Drive; abrilo desde el enlace.');
   const arr = item.data.split(',');
   const mime = (arr[0].match(/:(.*?);/)||[])[1] || item.type || 'application/octet-stream';
   const bstr = atob(arr[1]);
