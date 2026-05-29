@@ -1088,6 +1088,7 @@ const DEF_MEDIOS = [
 const COLORS = ['#3b82f6','#10b981','#f59e0b','#ef4444','#a855f7','#ec4899','#06b6d4','#f97316','#84cc16'];
 
 /* ============ ESTADO ============ */
+compactOldStorage();
 let state = loadState();
 let currentUser = null;
 let currentView = 'hoy';
@@ -1241,11 +1242,25 @@ function stripEmbeddedFilesForStorage(input){
   };
   return clone(input);
 }
+function compactOldStorage(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(!raw || raw.indexOf('data:') === -1) return;
+    const compact = JSON.stringify(stripEmbeddedFilesForStorage(JSON.parse(raw)));
+    if(compact.length >= raw.length) return;
+    localStorage.removeItem(LS_KEY);
+    localStorage.setItem(LS_KEY, compact);
+  }catch(e){
+    console.warn('No se pudo compactar el guardado local viejo', e);
+  }
+}
 function saveState(){
   try{localStorage.setItem(LS_KEY,JSON.stringify(state))}
   catch(e){
     try{
-      localStorage.setItem(LS_KEY,JSON.stringify(stripEmbeddedFilesForStorage(state)));
+      const compact = JSON.stringify(stripEmbeddedFilesForStorage(state));
+      localStorage.removeItem(LS_KEY);
+      localStorage.setItem(LS_KEY,compact);
       toast('Guardado sin archivos pesados. Subilos a Drive para conservarlos.','err');
     }catch(e2){
       toast('Error al guardar: '+e2.message,'err');
