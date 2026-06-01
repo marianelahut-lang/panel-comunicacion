@@ -1367,6 +1367,7 @@ function pasaAGuardia(iso, time){
 }
 function statusLabel(s){return{pendiente:'Pendiente',proceso:'En proceso',lista:'Lista',publicar:'Lista para publicar',realizada:'Realizada'}[s]||s||'—'}
 function statusColor(s){return{pendiente:'tag-x',proceso:'tag-b',lista:'tag-g',publicar:'tag-p',realizada:'tag-c'}[s]||'tag-x'}
+function isActiveTaskStatus(s){return s==='pendiente'||s==='proceso'}
 
 function toast(msg,type){
   const c=$('toasts');if(!c)return;
@@ -1644,7 +1645,7 @@ function renderAll(){
   renderHoy();renderTab();renderMat();renderDifusion();renderCal();renderGuardias();renderEquipo();renderMed();renderEnt();renderReclamos();renderRec();updateBadges();
 }
 function updateBadges(){
-  const p=state.tasks.filter(t=>t.status!=='realizada').length;
+  const p=state.tasks.filter(t=>isActiveTaskStatus(t.status)).length;
   const bH=$('bgHoy'),bT=$('bgTab');
   if(p>0){bH.textContent=p;bH.style.display='inline-block';bT.textContent=p;bT.style.display='inline-block'}
   else{bH.style.display='none';bT.style.display='none'}
@@ -2454,7 +2455,7 @@ function renderEquipo(){
     wrap.innerHTML=state.agents.map(a=>{
       const tasks=state.tasks.filter(t=>(t.assignees||[]).includes(a.id));
       const done=tasks.filter(t=>t.status==='realizada').length;
-      const pend=tasks.filter(t=>t.status!=='realizada').length;
+      const pend=tasks.filter(t=>isActiveTaskStatus(t.status)).length;
       const pct=tasks.length?Math.round(done*100/tasks.length):0;
       return '<div class="tc" onclick="editAg(\''+a.id+'\')"><div class="th">'+avHTML(a.name,a.color,46)+'<div><div class="tn">'+esc(a.name)+'</div><div class="tr">'+esc(a.role||'')+'</div></div></div><div class="ts"><div class="tst"><div class="tsv">'+tasks.length+'</div><div class="tsl">Total</div></div><div class="tst"><div class="tsv">'+pend+'</div><div class="tsl">Pend.</div></div><div class="tst"><div class="tsv">'+done+'</div><div class="tsl">Listas</div></div></div><div class="tpr"><div class="tpb" style="width:'+pct+'%"></div></div><div class="tpi"><span>'+pct+'% completadas</span><span>'+done+'/'+tasks.length+'</span></div><div class="ta">'+(a.phone?'<button class="btn btn-w" onclick="event.stopPropagation();sendAgWa(\''+a.id+'\')">📱 WA tareas</button>':'<button class="btn" disabled style="opacity:.4">Sin WA</button>')+(a.email?'<button class="btn" onclick="event.stopPropagation();sendAgMail(\''+a.id+'\')">📧 Mail</button>':'')+'</div></div>';
     }).join('');
@@ -2463,7 +2464,7 @@ function renderEquipo(){
 }
 function sendAgWa(id){
   const a=getAg(id);if(!a||!a.phone){toast('Sin WhatsApp','err');return}
-  const tasks=state.tasks.filter(t=>(t.assignees||[]).includes(a.id) && t.status!=='realizada');
+  const tasks=state.tasks.filter(t=>(t.assignees||[]).includes(a.id) && isActiveTaskStatus(t.status));
   if(tasks.length===0){toast('Sin tareas pendientes','inf');return}
   let msg='*Tus tareas pendientes:*\n\n';
   tasks.forEach(t=>{
@@ -2475,7 +2476,7 @@ function sendAgWa(id){
 }
 function sendAgMail(id){
   const a=getAg(id);if(!a||!a.email){toast('Sin email','err');return}
-  const tasks=state.tasks.filter(t=>(t.assignees||[]).includes(a.id) && t.status!=='realizada');
+  const tasks=state.tasks.filter(t=>(t.assignees||[]).includes(a.id) && isActiveTaskStatus(t.status));
   let body='Tus tareas pendientes:\n\n';
   tasks.forEach(t=>{body+='- ['+statusLabel(t.status)+'] '+(t.desc||'')+(t.due?' (vence '+fmtDate(t.due)+')':'')+'\n'});
   mailOpen(a.email,'Tareas pendientes',body);
