@@ -1867,6 +1867,37 @@ function isTaskScheduledForPub(t){
   const desc=(t.desc||'').trim().toLowerCase();
   return state.publicaciones.some(p=>p.sourceTaskId===t.id || (desc && (p.desc||'').trim().toLowerCase()===desc));
 }
+function isDateInLastDays(iso,days){
+  if(!iso)return false;
+  const d=new Date(iso+'T00:00:00');
+  const end=new Date(todayISO()+'T23:59:59');
+  const start=addDays(new Date(todayISO()+'T00:00:00'),-(days-1));
+  return d>=start&&d<=end;
+}
+function weekBucketInfo(iso){
+  const d=iso?new Date(iso+'T00:00:00'):new Date();
+  const start=startOfWeek(d),end=addDays(start,6);
+  return {key:dateISO(start),label:fmtDate(dateISO(start))+' al '+fmtDate(dateISO(end))};
+}
+function renderGroupedByWeek(items,itemRenderer,emptyHtml){
+  const recent=items.filter(p=>isDateInLastDays(p.date,7));
+  const older=items.filter(p=>!isDateInLastDays(p.date,7));
+  const parts=[];
+  if(recent.length){
+    parts.push('<div class="ct-s" style="font-weight:800;margin:2px 0 8px">Últimos 7 días</div>'+recent.map(itemRenderer).join(''));
+  }
+  const groups={};
+  older.forEach(p=>{
+    const w=weekBucketInfo(p.date);
+    groups[w.key]=groups[w.key]||{label:w.label,items:[]};
+    groups[w.key].items.push(p);
+  });
+  Object.keys(groups).sort((a,b)=>b.localeCompare(a)).forEach(k=>{
+    const g=groups[k];
+    parts.push('<details style="border-top:1px solid var(--bd-s);padding-top:10px;margin-top:10px"><summary style="cursor:pointer;font-weight:800;color:var(--tx);font-size:13px">Semana '+g.label+' · '+g.items.length+'</summary><div style="margin-top:8px">'+g.items.map(itemRenderer).join('')+'</div></details>');
+  });
+  return parts.length?parts.join(''):emptyHtml;
+}
 function renderMat(){
   // Material disponible = tareas con status='publicar'
   const mat=state.tasks.filter(t=>t.status==='publicar' && !isTaskScheduledForPub(t));
@@ -1888,19 +1919,15 @@ function renderMat(){
     return d!==0?d:(a.time||'').localeCompare(b.time||'');
   });
   const aW=$('agList');
-  if(ag.length===0){
-    aW.innerHTML='<div class="emp"><div class="emi">📅</div><div class="emt">Sin publicaciones programadas</div></div>';
-  } else {
-    aW.innerHTML=ag.map(p=>{
-      const past=p.date<today;
-      const pm=isPM(p.time)&&p.date===today;
-      const pmTag=pm?'<span class="tag tag-p">→ Guardia</span>':'';
-      const dateTag=past?'<span class="tag tag-x">'+fmtDate(p.date)+'</span>':p.date===today?'<span class="tag tag-a">HOY '+esc(p.time||'')+'</span>':'<span class="tag tag-b">'+fmtDate(p.date)+' '+esc(p.time||'')+'</span>';
-      const stT='<span class="tag tag-x">'+esc(p.status||'')+'</span>';
-      const diffBtn=isPubReadyForDifusion(p)?'<button class="btn btn-p btn-xs" onclick="event.stopPropagation();openDifusion(\''+p.id+'\')">↗ Difusión</button>':'';
-      return '<div class="li" onclick="editPub(\''+p.id+'\')"><div class="li-i" style="background:var(--pu-s);color:var(--pu)">📱</div><div class="li-b"><div class="li-t">'+esc(p.desc||'(sin título)')+'</div><div class="li-s">'+dateTag+' · '+esc(p.account||'')+' · '+esc(p.type||'')+' '+stT+' '+pubDiffusionTag(p)+' '+pmTag+'</div></div>'+(diffBtn?'<div class="li-a">'+diffBtn+'</div>':'')+'</div>';
-    }).join('');
-  }
+  aW.innerHTML=renderGroupedByWeek(ag,p=>{
+    const past=p.date<today;
+    const pm=isPM(p.time)&&p.date===today;
+    const pmTag=pm?'<span class="tag tag-p">→ Guardia</span>':'';
+    const dateTag=past?'<span class="tag tag-x">'+fmtDate(p.date)+'</span>':p.date===today?'<span class="tag tag-a">HOY '+esc(p.time||'')+'</span>':'<span class="tag tag-b">'+fmtDate(p.date)+' '+esc(p.time||'')+'</span>';
+    const stT='<span class="tag tag-x">'+esc(p.status||'')+'</span>';
+    const diffBtn=isPubReadyForDifusion(p)?'<button class="btn btn-p btn-xs" onclick="event.stopPropagation();openDifusion(\''+p.id+'\')">↗ Difusión</button>':'';
+    return '<div class="li" onclick="editPub(\''+p.id+'\')"><div class="li-i" style="background:var(--pu-s);color:var(--pu)">📱</div><div class="li-b"><div class="li-t">'+esc(p.desc||'(sin título)')+'</div><div class="li-s">'+dateTag+' · '+esc(p.account||'')+' · '+esc(p.type||'')+' '+stT+' '+pubDiffusionTag(p)+' '+pmTag+'</div></div>'+(diffBtn?'<div class="li-a">'+diffBtn+'</div>':'')+'</div>';
+  },'<div class="emp"><div class="emi">Agenda</div><div class="emt">Sin publicaciones programadas</div></div>');
 }
 function schedulePub(taskId){
   const t=state.tasks.find(x=>x.id===taskId);
@@ -2006,7 +2033,7 @@ function difusionSemanaActual(){
 function calcDifusionWeekStats(){
   const sem=difusionSemanaActual();
   const pubs=getDifusionPublicaciones().filter(p=>p.date>=sem.startIso&&p.date<=sem.endIso);
-  const totals={compartio:0,comento:0,reacciono:0,estado_wa:0,no_corresponde:0};
+  const totals={compartio:0,comento:0,reacciono:0,estado_wa:0,no_corresponde:0,manual:0};
   const perFunc={};
   pubs.forEach(p=>{
     totals.manual+=parseInt(p.compartidos_manual||0,10)||0;
@@ -2041,17 +2068,13 @@ function renderDifusion(){
   const q=(($('dfSrch')&&$('dfSrch').value)||'').toLowerCase().trim();
   let list=getDifusionPublicaciones();
   if(q)list=list.filter(p=>((p.desc||'')+' '+(p.account||'')+' '+(p.type||'')).toLowerCase().includes(q));
-  if(list.length===0){
-    wrap.innerHTML='<div class="emp"><div class="emi">↗</div><div class="emt">Sin publicaciones para difusión</div><div class="ems">Cuando una publicación esté publicada, aparece acá para hacer seguimiento</div></div>';
-    return;
-  }
-  wrap.innerHTML=list.map(p=>{
+  wrap.innerHTML=renderGroupedByWeek(list,p=>{
     const st=difusionStats(p);
     const pct=st.total?Math.round(st.completos*100/st.total):0;
     const pendingTag=st.pendientes?'<span class="tag tag-r">'+st.pendientes+' pendientes</span>':'<span class="tag tag-g">Completo</span>';
     const fecha=p.date?'<span class="tag tag-b">'+fmtDate(p.date)+' '+esc(p.time||'')+'</span>':'';
     return '<div class="li" onclick="openDifusion(\''+p.id+'\')"><div class="li-i" style="background:var(--gr-s);color:var(--gr)">↗</div><div class="li-b"><div class="li-t">'+esc(p.desc||'(sin título)')+'</div><div class="li-s">'+fecha+' <span class="tag tag-x">'+esc(p.account||'')+'</span> '+pendingTag+' <span class="tag tag-p">'+st.completos+'/'+st.total+' funcionarios</span></div><div class="tpr" style="margin-top:8px"><div class="tpb" style="width:'+pct+'%"></div></div></div><div class="li-a"><button class="btn btn-p btn-xs" onclick="event.stopPropagation();openDifusion(\''+p.id+'\')">Abrir</button></div></div>';
-  }).join('');
+  },'<div class="emp"><div class="emi">↗</div><div class="emt">Sin publicaciones para difusión</div><div class="ems">Cuando una publicación esté publicada, aparece acá para hacer seguimiento</div></div>');
 }
 function openDifusion(pubId){
   window._diffPubId=pubId;
