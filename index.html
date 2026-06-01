@@ -458,6 +458,18 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
               <button class="btn btn-s" onclick="newPub()">+ Nueva</button>
             </div>
             <div class="ct-s" style="margin-bottom:12px">Después de las <b>15:00</b> pasa a guardia del día.</div>
+            <div class="calt" style="margin-bottom:10px">
+              <div class="calnav">
+                <button class="calnb" onclick="agNav(-1)">‹</button>
+                <div class="calcur" id="agCur">—</div>
+                <button class="calnb" onclick="agNav(1)">›</button>
+                <button class="btn btn-s" onclick="agToday()">Hoy</button>
+              </div>
+              <div class="calvt">
+                <button id="agM" class="on" onclick="setAgView('month')">Mes</button>
+                <button id="agD" onclick="setAgView('day')">Día</button>
+              </div>
+            </div>
             <div id="agList"></div>
           </div>
         </div>
@@ -1134,6 +1146,9 @@ let currentView = 'hoy';
 let calCursor = stripTime(new Date());
 let calMode = 'month';
 let calDayCursor = stripTime(new Date());
+let agCursor = stripTime(new Date());
+let agMode = 'month';
+let agDayCursor = stripTime(new Date());
 let guardiaCursor = startOfWeek(new Date());
 
 function stripTime(d){const x=new Date(d);x.setHours(0,0,0,0);return x}
@@ -1912,22 +1927,85 @@ function renderMat(){
     }).join('');
   }
 
-  // Agenda = publicaciones
-  const today=todayISO();
-  const ag=state.publicaciones.slice().sort((a,b)=>{
-    const d=(a.date||'').localeCompare(b.date||'');
-    return d!==0?d:(a.time||'').localeCompare(b.time||'');
+  renderAgendaPub();
+}
+function setAgView(m){
+  agMode=m;
+  $('agM').classList.toggle('on',m==='month');
+  $('agD').classList.toggle('on',m==='day');
+  renderAgendaPub();
+}
+function agNav(d){
+  if(agMode==='month'){
+    agCursor=new Date(agCursor.getFullYear(),agCursor.getMonth()+d,1);
+  } else {
+    agDayCursor=addDays(agDayCursor,d);
+  }
+  renderAgendaPub();
+}
+function agToday(){
+  agCursor=stripTime(new Date());
+  agDayCursor=stripTime(new Date());
+  renderAgendaPub();
+}
+function renderAgendaPub(){
+  if(!$('agList'))return;
+  if(agMode==='month')renderAgendaPubMonth();
+  else renderAgendaPubDay();
+}
+function renderAgendaPubMonth(){
+  $('agCur').textContent=agCursor.toLocaleDateString('es-AR',{month:'long',year:'numeric'});
+  $('agM').classList.toggle('on',true);
+  $('agD').classList.toggle('on',false);
+  const y=agCursor.getFullYear(),m=agCursor.getMonth();
+  const first=new Date(y,m,1);
+  const startDow=first.getDay()||7;
+  const offset=startDow-1;
+  const totalDays=new Date(y,m+1,0).getDate();
+  const dh=['LUN','MAR','MIE','JUE','VIE','SAB','DOM'];
+  let html='<div class="calg">';
+  html+=dh.map(d=>'<div class="cdh">'+d+'</div>').join('');
+  const prevDays=new Date(y,m,0).getDate();
+  for(let i=offset-1;i>=0;i--)html+=renderAgendaPubCell(new Date(y,m-1,prevDays-i),true);
+  for(let d=1;d<=totalDays;d++)html+=renderAgendaPubCell(new Date(y,m,d),false);
+  const total=offset+totalDays;
+  const rest=(7-total%7)%7;
+  for(let i=1;i<=rest;i++)html+=renderAgendaPubCell(new Date(y,m+1,i),true);
+  html+='</div>';
+  $('agList').innerHTML=html;
+}
+function renderAgendaPubCell(d,other){
+  const iso=dateISO(d);
+  const pubs=state.publicaciones.filter(p=>p.date===iso).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+  const cls=['cc'];
+  if(other)cls.push('oth');
+  if(iso===todayISO())cls.push('tod');
+  if(pubs.length)cls.push('hev');
+  let html='<div class="'+cls.join(' ')+'" onclick="agDayCursor=new Date(\''+iso+'T00:00:00\');setAgView(\'day\')"><div class="cn">'+d.getDate()+'</div><div class="cev">';
+  pubs.slice(0,4).forEach(p=>{
+    const guard=isPM(p.time)?' →':'';
+    html+='<div class="ce cep">'+esc((p.time||'')+' '+(p.desc||''))+guard+'</div>';
   });
-  const aW=$('agList');
-  aW.innerHTML=renderGroupedByWeek(ag,p=>{
-    const past=p.date<today;
-    const pm=isPM(p.time)&&p.date===today;
-    const pmTag=pm?'<span class="tag tag-p">→ Guardia</span>':'';
-    const dateTag=past?'<span class="tag tag-x">'+fmtDate(p.date)+'</span>':p.date===today?'<span class="tag tag-a">HOY '+esc(p.time||'')+'</span>':'<span class="tag tag-b">'+fmtDate(p.date)+' '+esc(p.time||'')+'</span>';
+  if(pubs.length>4)html+='<div class="ce">+'+(pubs.length-4)+' más</div>';
+  html+='</div></div>';
+  return html;
+}
+function renderAgendaPubDay(){
+  $('agCur').textContent=agDayCursor.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
+  $('agM').classList.toggle('on',false);
+  $('agD').classList.toggle('on',true);
+  const iso=dateISO(agDayCursor);
+  const pubs=state.publicaciones.filter(p=>p.date===iso).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+  if(!pubs.length){
+    $('agList').innerHTML='<div class="emp"><div class="emi">📅</div><div class="emt">Sin publicaciones programadas</div></div>';
+    return;
+  }
+  $('agList').innerHTML=pubs.map(p=>{
+    const pmTag=isPM(p.time)?'<span class="tag tag-p">→ Guardia</span>':'';
     const stT='<span class="tag tag-x">'+esc(p.status||'')+'</span>';
     const diffBtn=isPubReadyForDifusion(p)?'<button class="btn btn-p btn-xs" onclick="event.stopPropagation();openDifusion(\''+p.id+'\')">↗ Difusión</button>':'';
-    return '<div class="li" onclick="editPub(\''+p.id+'\')"><div class="li-i" style="background:var(--pu-s);color:var(--pu)">📱</div><div class="li-b"><div class="li-t">'+esc(p.desc||'(sin título)')+'</div><div class="li-s">'+dateTag+' · '+esc(p.account||'')+' · '+esc(p.type||'')+' '+stT+' '+pubDiffusionTag(p)+' '+pmTag+'</div></div>'+(diffBtn?'<div class="li-a">'+diffBtn+'</div>':'')+'</div>';
-  },'<div class="emp"><div class="emi">Agenda</div><div class="emt">Sin publicaciones programadas</div></div>');
+    return '<div class="li" onclick="editPub(\''+p.id+'\')"><div class="li-i" style="background:var(--pu-s);color:var(--pu)">📱</div><div class="li-b"><div class="li-t">'+esc(p.desc||'(sin título)')+'</div><div class="li-s"><span class="tag tag-b">'+esc(p.time||'')+'</span> · '+esc(p.account||'')+' · '+esc(p.type||'')+' '+stT+' '+pubDiffusionTag(p)+' '+pmTag+'</div></div>'+(diffBtn?'<div class="li-a">'+diffBtn+'</div>':'')+'</div>';
+  }).join('');
 }
 function schedulePub(taskId){
   const t=state.tasks.find(x=>x.id===taskId);
