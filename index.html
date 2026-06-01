@@ -685,10 +685,7 @@ textarea.inp{resize:vertical;min-height:80px;font-family:inherit}
   </div>
   <div class="fld"><label>Descripción</label><textarea class="inp" id="pbDesc"></textarea></div>
   <div class="ir">
-    <div class="fld"><label>Cuenta</label><select class="inp" id="pbAcc">
-      <option>FB Municipalidad</option><option>IG Municipalidad</option><option>YT Municipalidad</option>
-      <option>FB Pablo Garate</option><option>IG Pablo Garate</option><option>Otro</option>
-    </select></div>
+    <div class="fld"><label>Cuentas</label><input type="hidden" id="pbAcc"><div id="pbAccList" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;border:1px solid var(--bd);border-radius:10px;padding:10px;background:var(--bg-soft)"></div></div>
     <div class="fld"><label>Tipo</label><select class="inp" id="pbType">
       <option>Reel/Video</option><option>Foto</option><option>Carrusel</option><option>Historia</option>
       <option>Gacetilla</option><option>Streaming</option><option>Pieza gráfica</option>
@@ -1771,7 +1768,7 @@ function renderHoy(){
     pubs.forEach(p=>{
       const pm=isPM(p.time);
       const pmTag=pm?'<span class="tag tag-p">→ Guardia</span>':'';
-      items.push('<div class="li" onclick="editPub(\''+p.id+'\')"><div class="li-i" style="background:var(--pu-s);color:var(--pu)">📱</div><div class="li-b"><div class="li-t">'+esc(p.desc||'(sin título)')+'</div><div class="li-s">'+esc(p.time||'—')+' · '+esc(p.account||'')+' '+pmTag+'</div></div></div>');
+      items.push('<div class="li" onclick="editPub(\''+p.id+'\')"><div class="li-i" style="background:var(--pu-s);color:var(--pu)">📱</div><div class="li-b"><div class="li-t">'+esc(p.desc||'(sin título)')+'</div><div class="li-s">'+esc(p.time||'—')+' · '+esc(pubAccountsText(p))+' '+pmTag+'</div></div></div>');
     });
     eW.innerHTML=items.join('');
   }
@@ -1848,13 +1845,44 @@ function renderKTask(t){
 }
 
 /* ============ MATERIAL Y AGENDA ============ */
+const PUBLICACION_CUENTAS=[
+  'FB Municipalidad','IG Municipalidad','YouTube Municipalidad','Short Municipalidad','TikTok Municipalidad',
+  'FB Pablo Garate','IG Pablo Garate','YouTube Pablo','Short Pablo','TikTok Pablo',
+  'Otro'
+];
 const DIFUSION_CANALES=[
-  {g:'Municipalidad',items:[['muni_wa','Canal de WhatsApp'],['muni_comunidad','Comunidad'],['muni_fb','Facebook'],['muni_fb_canal','Canal difusión Facebook'],['muni_ig','Instagram'],['muni_ig_canal','Canal difusión Instagram'],['muni_tt','TikTok'],['muni_yt','YouTube']]},
-  {g:'Pablo',items:[['pablo_fb','Facebook'],['pablo_fb_canal','Canal difusión Facebook'],['pablo_ig','Instagram'],['pablo_ig_canal','Canal difusión Instagram'],['pablo_tt','TikTok']]},
+  {g:'Municipalidad',items:[['muni_wa','Canal de WhatsApp'],['muni_comunidad','Comunidad'],['muni_fb','Facebook'],['muni_fb_canal','Canal difusión Facebook'],['muni_ig','Instagram'],['muni_ig_canal','Canal difusión Instagram'],['muni_tt','TikTok'],['muni_yt','YouTube'],['muni_short','Short']]},
+  {g:'Pablo',items:[['pablo_fb','Facebook'],['pablo_fb_canal','Canal difusión Facebook'],['pablo_ig','Instagram'],['pablo_ig_canal','Canal difusión Instagram'],['pablo_tt','TikTok'],['pablo_yt','YouTube'],['pablo_short','Short']]},
   {g:'Somos',items:[['somos_fb','Facebook'],['somos_ig','Instagram'],['somos_tt','TikTok']]},
   {g:'WhatsApp',items:[['wa_ejecutivo','Grupo Ejecutivo'],['wa_somos','Grupo Somos'],['wa_candidatos','Grupo Candidatos'],['wa_estados','Estados de WhatsApp']]}
 ];
 function totalDifusionCanales(){return DIFUSION_CANALES.reduce((n,g)=>n+g.items.length,0)}
+function normalizePubAccountName(name){
+  const map={'YT Municipalidad':'YouTube Municipalidad','YT Pablo':'YouTube Pablo','TikTok Muni':'TikTok Municipalidad','TikTok de muni':'TikTok Municipalidad','TikTok de Pablo':'TikTok Pablo'};
+  return map[name]||name;
+}
+function getPubAccountsFromData(p){
+  if(Array.isArray(p.accounts)&&p.accounts.length)return p.accounts.map(normalizePubAccountName);
+  return String(p.account||'').split(',').map(s=>normalizePubAccountName(s.trim())).filter(Boolean);
+}
+function pubAccountsText(p){
+  const accounts=getPubAccountsFromData(p);
+  return accounts.length?accounts.join(', '):(p.account||'');
+}
+function getPubAccounts(){
+  const accounts=Array.from(document.querySelectorAll('#pbAccList input[type=checkbox]:checked')).map(c=>c.value);
+  $('pbAcc').value=accounts.join(', ');
+  return accounts;
+}
+function renderPubAccounts(selected){
+  const box=$('pbAccList');if(!box)return;
+  const set=new Set((selected&&selected.length?selected:['IG Municipalidad']).map(normalizePubAccountName));
+  box.innerHTML=PUBLICACION_CUENTAS.map(name=>{
+    return '<label style="display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:var(--tx);cursor:pointer"><input type="checkbox" value="'+esc(name)+'" '+(set.has(name)?'checked':'')+' style="width:15px;height:15px;accent-color:var(--ac)"> '+esc(name)+'</label>';
+  }).join('');
+  box.querySelectorAll('input[type=checkbox]').forEach(c=>c.onchange=getPubAccounts);
+  getPubAccounts();
+}
 function getPubDiffusion(){
   return Array.from(document.querySelectorAll('#pbDiffList input[type=checkbox]:checked')).map(c=>c.value);
 }
@@ -2004,7 +2032,7 @@ function renderAgendaPubDay(){
     const pmTag=isPM(p.time)?'<span class="tag tag-p">→ Guardia</span>':'';
     const stT='<span class="tag tag-x">'+esc(p.status||'')+'</span>';
     const diffBtn=isPubReadyForDifusion(p)?'<button class="btn btn-p btn-xs" onclick="event.stopPropagation();openDifusion(\''+p.id+'\')">↗ Difusión</button>':'';
-    return '<div class="li" onclick="editPub(\''+p.id+'\')"><div class="li-i" style="background:var(--pu-s);color:var(--pu)">📱</div><div class="li-b"><div class="li-t">'+esc(p.desc||'(sin título)')+'</div><div class="li-s"><span class="tag tag-b">'+esc(p.time||'')+'</span> · '+esc(p.account||'')+' · '+esc(p.type||'')+' '+stT+' '+pubDiffusionTag(p)+' '+pmTag+'</div></div>'+(diffBtn?'<div class="li-a">'+diffBtn+'</div>':'')+'</div>';
+    return '<div class="li" onclick="editPub(\''+p.id+'\')"><div class="li-i" style="background:var(--pu-s);color:var(--pu)">📱</div><div class="li-b"><div class="li-t">'+esc(p.desc||'(sin título)')+'</div><div class="li-s"><span class="tag tag-b">'+esc(p.time||'')+'</span> · '+esc(pubAccountsText(p))+' · '+esc(p.type||'')+' '+stT+' '+pubDiffusionTag(p)+' '+pmTag+'</div></div>'+(diffBtn?'<div class="li-a">'+diffBtn+'</div>':'')+'</div>';
   }).join('');
 }
 function schedulePub(taskId){
@@ -2145,13 +2173,13 @@ function renderDifusion(){
   renderDifusionWeekStats();
   const q=(($('dfSrch')&&$('dfSrch').value)||'').toLowerCase().trim();
   let list=getDifusionPublicaciones();
-  if(q)list=list.filter(p=>((p.desc||'')+' '+(p.account||'')+' '+(p.type||'')).toLowerCase().includes(q));
+  if(q)list=list.filter(p=>((p.desc||'')+' '+pubAccountsText(p)+' '+(p.type||'')).toLowerCase().includes(q));
   wrap.innerHTML=renderGroupedByWeek(list,p=>{
     const st=difusionStats(p);
     const pct=st.total?Math.round(st.completos*100/st.total):0;
     const pendingTag=st.pendientes?'<span class="tag tag-r">'+st.pendientes+' pendientes</span>':'<span class="tag tag-g">Completo</span>';
     const fecha=p.date?'<span class="tag tag-b">'+fmtDate(p.date)+' '+esc(p.time||'')+'</span>':'';
-    return '<div class="li" onclick="openDifusion(\''+p.id+'\')"><div class="li-i" style="background:var(--gr-s);color:var(--gr)">↗</div><div class="li-b"><div class="li-t">'+esc(p.desc||'(sin título)')+'</div><div class="li-s">'+fecha+' <span class="tag tag-x">'+esc(p.account||'')+'</span> '+pendingTag+' <span class="tag tag-p">'+st.completos+'/'+st.total+' funcionarios</span></div><div class="tpr" style="margin-top:8px"><div class="tpb" style="width:'+pct+'%"></div></div></div><div class="li-a"><button class="btn btn-p btn-xs" onclick="event.stopPropagation();openDifusion(\''+p.id+'\')">Abrir</button></div></div>';
+    return '<div class="li" onclick="openDifusion(\''+p.id+'\')"><div class="li-i" style="background:var(--gr-s);color:var(--gr)">↗</div><div class="li-b"><div class="li-t">'+esc(p.desc||'(sin título)')+'</div><div class="li-s">'+fecha+' <span class="tag tag-x">'+esc(pubAccountsText(p))+'</span> '+pendingTag+' <span class="tag tag-p">'+st.completos+'/'+st.total+' funcionarios</span></div><div class="tpr" style="margin-top:8px"><div class="tpb" style="width:'+pct+'%"></div></div></div><div class="li-a"><button class="btn btn-p btn-xs" onclick="event.stopPropagation();openDifusion(\''+p.id+'\')">Abrir</button></div></div>';
   },'<div class="emp"><div class="emi">↗</div><div class="emt">Sin publicaciones para difusión</div><div class="ems">Cuando una publicación esté publicada, aparece acá para hacer seguimiento</div></div>');
 }
 function openDifusion(pubId){
@@ -2169,7 +2197,7 @@ function renderDifusionModal(){
   const p=state.publicaciones.find(x=>x.id===window._diffPubId);
   if(!p)return;
   $('dfTit').textContent=p.desc||'Seguimiento de difusión';
-  $('dfMeta').textContent=(p.date?fmtDate(p.date)+' '+(p.time||'')+' · ':'')+(p.account||'')+(p.type?' · '+p.type:'');
+  $('dfMeta').textContent=(p.date?fmtDate(p.date)+' '+(p.time||'')+' · ':'')+pubAccountsText(p)+(p.type?' · '+p.type:'');
   renderDifusionSummary();
   renderPubDifusionStats(p);
   const wrap=$('dfFuncList');
@@ -2340,7 +2368,7 @@ function renderCalDay(){
     items.push('<div class="li" onclick="editEvent(\''+e.id+'\')"><div class="li-i" style="background:var(--bl-s);color:var(--bl)">📅</div><div class="li-b"><div class="li-t">'+esc(e.desc||'')+'</div><div class="li-s">'+esc(e.time||'')+' · '+esc(e.loc||'')+' '+pmTag+'</div></div><div class="li-a">'+cBtn+'</div></div>');
   });
   pubs.forEach(p=>{
-    items.push('<div class="li" onclick="editPub(\''+p.id+'\')"><div class="li-i" style="background:var(--pu-s);color:var(--pu)">📱</div><div class="li-b"><div class="li-t">'+esc(p.desc||'')+'</div><div class="li-s">'+esc(p.time||'')+' · '+esc(p.account||'')+'</div></div></div>');
+    items.push('<div class="li" onclick="editPub(\''+p.id+'\')"><div class="li-i" style="background:var(--pu-s);color:var(--pu)">📱</div><div class="li-b"><div class="li-t">'+esc(p.desc||'')+'</div><div class="li-s">'+esc(p.time||'')+' · '+esc(pubAccountsText(p))+'</div></div></div>');
   });
   ents.forEach(e=>{
     items.push('<div class="li" onclick="editEnt(\''+e.id+'\')"><div class="li-i" style="background:var(--pk-s);color:var(--pk)">🎙</div><div class="li-b"><div class="li-t">'+esc(e.func||'')+' con '+esc(e.medio||'')+'</div><div class="li-s">'+esc(e.time||'')+' · '+esc(e.tipo||'')+'</div></div></div>');
@@ -2395,7 +2423,7 @@ function renderGuardias(){
       dayHtml+='<div class="li" onclick="editEvent(\''+e.id+'\')"><div class="li-i" style="background:var(--bl-s);color:var(--bl)">📅</div><div class="li-b"><div class="li-t">'+esc(e.desc||'')+'</div><div class="li-s">'+esc(e.time||'')+' · '+esc(e.loc||'')+'</div></div></div>';
     });
     pubs.forEach(p=>{
-      dayHtml+='<div class="li" onclick="editPub(\''+p.id+'\')"><div class="li-i" style="background:var(--pu-s);color:var(--pu)">📱</div><div class="li-b"><div class="li-t">'+esc(p.desc||'')+'</div><div class="li-s">'+esc(p.time||'')+' · '+esc(p.account||'')+'</div></div></div>';
+      dayHtml+='<div class="li" onclick="editPub(\''+p.id+'\')"><div class="li-i" style="background:var(--pu-s);color:var(--pu)">📱</div><div class="li-b"><div class="li-t">'+esc(p.desc||'')+'</div><div class="li-s">'+esc(p.time||'')+' · '+esc(pubAccountsText(p))+'</div></div></div>';
     });
     ents.forEach(e=>{
       dayHtml+='<div class="li" onclick="editEnt(\''+e.id+'\')"><div class="li-i" style="background:var(--pk-s);color:var(--pk)">🎙</div><div class="li-b"><div class="li-t">'+esc(e.func||'')+' con '+esc(e.medio||'')+'</div><div class="li-s">'+esc(e.time||'')+' · '+esc(e.tipo||'')+'</div></div></div>';
@@ -2540,7 +2568,7 @@ function sendGuardiaWa(){
   else if(isWeekend(today))msg+=(new Date(today+'T00:00:00').getDay()===6?'📅 SÁBADO':'📅 DOMINGO')+'\n';
   msg+='\n';
   if(evs.length){msg+='📅 *Eventos a cubrir:*\n';evs.forEach(e=>{msg+='• '+(e.time||'')+' - '+(e.desc||'')+(e.loc?' ('+e.loc+')':'')+'\n'});msg+='\n'}
-  if(pubs.length){msg+='📱 *Publicaciones:*\n';pubs.forEach(p=>{msg+='• '+(p.time||'')+' - '+(p.desc||'')+' ('+(p.account||'')+')\n'});msg+='\n'}
+  if(pubs.length){msg+='📱 *Publicaciones:*\n';pubs.forEach(p=>{msg+='• '+(p.time||'')+' - '+(p.desc||'')+' ('+pubAccountsText(p)+')\n'});msg+='\n'}
   if(ents.length){msg+='🎙 *Entrevistas:*\n';ents.forEach(e=>{msg+='• '+(e.time||'')+' - '+(e.func||'')+' con '+(e.medio||'')+'\n'});msg+='\n'}
   if(!evs.length && !pubs.length && !ents.length)msg+='Sin tareas tildadas para cubrir hoy.\n';
   msg+='\n_Solo se incluyen los eventos marcados como "Cubrir: SÍ"._';
@@ -2805,7 +2833,7 @@ function prepPub(p){
   $('pbDate').value=p.date||todayISO();
   $('pbTime').value=p.time||'09:00';
   $('pbDesc').value=p.desc||'';
-  $('pbAcc').value=p.account||'IG Municipalidad';
+  renderPubAccounts(getPubAccountsFromData(p));
   $('pbType').value=p.type||'Foto';
   $('pbResp').innerHTML='<option value="">Sin asignar</option>'+state.agents.map(a=>'<option value="'+esc(a.id)+'">'+esc(a.name)+'</option>').join('');
   $('pbResp').value=p.responsable||'';
@@ -2822,9 +2850,11 @@ function savePub(){
   const date=$('pbDate').value;
   if(!desc||!date){toast('Fecha y descripción son obligatorias','err');return}
   const id=$('pbId').value;
+  const accounts=getPubAccounts();
+  if(!accounts.length){toast('Seleccioná al menos una cuenta','err');return}
   const data={
     date,time:$('pbTime').value,desc,
-    account:$('pbAcc').value,type:$('pbType').value,
+    account:accounts.join(', '),accounts,type:$('pbType').value,
     responsable:$('pbResp').value,status:$('pbSt').value,
     sourceTaskId:window._pubSourceTaskId||null,
     diffusion:getPubDiffusion(),
@@ -4814,7 +4844,7 @@ async function reclamoCompartirConFotos(){
 // === COMPARTIR PUBLICACIÓN CON ARCHIVOS ===
 async function pubCompartirConArchivos(){
   const desc = $('pbDesc').value || 'Publicación';
-  const cuenta = $('pbAcc').value || '';
+  const cuenta = getPubAccounts().join(', ');
   const tipo = $('pbType').value || '';
   const fecha = $('pbDate').value || '';
   const hora = $('pbTime').value || '';
