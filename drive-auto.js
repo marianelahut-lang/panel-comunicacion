@@ -9,6 +9,59 @@
   var syncing = false;
   var pulling = false;
 
+  function fixMojibakeText(value){
+    if(typeof value !== 'string') return value;
+    var original = value;
+    var out = value;
+    if(/[ÃÂâ]/.test(out)){
+      try { out = decodeURIComponent(escape(out)); } catch(e) {}
+      out = out
+        .replace(/Â/g, '')
+        .replace(/Ã¡/g, 'a').replace(/Ã©/g, 'e').replace(/Ã­/g, 'i').replace(/Ã³/g, 'o').replace(/Ãº/g, 'u').replace(/Ã±/g, 'n')
+        .replace(/Ã/g, 'A').replace(/Ã‰/g, 'E').replace(/Ã/g, 'I').replace(/Ã“/g, 'O').replace(/Ãš/g, 'U').replace(/Ã‘/g, 'N')
+        .replace(/â€”|â€“/g, '-')
+        .replace(/â­|⭐/g, '*');
+    }
+    out = out.replace(/\s+\*/g, ' *').replace(/\s+/g, ' ').trim();
+    return out || original;
+  }
+
+  function repairSavedText(){
+    try{
+      if(typeof state !== 'object' || !state) return;
+      var keys = ['name','role','email','phone','program','type','desc','title','area','category','status','notes','responsable','vecino','direccion'];
+      ['agents','funcionarios','medios','tasks','publicaciones','events','entrevistas','recursos','reclamos'].forEach(function(listKey){
+        if(!Array.isArray(state[listKey])) return;
+        state[listKey].forEach(function(item){
+          if(!item || typeof item !== 'object') return;
+          keys.forEach(function(k){ if(typeof item[k] === 'string') item[k] = fixMojibakeText(item[k]); });
+        });
+      });
+      if(state.config && typeof state.config === 'object'){
+        Object.keys(state.config).forEach(function(k){ if(typeof state.config[k] === 'string') state.config[k] = fixMojibakeText(state.config[k]); });
+      }
+      try { localStorage.setItem('pcomTA_v6', JSON.stringify(state)); } catch(e) {}
+    }catch(e){ console.warn('[drive-auto] text repair', e); }
+  }
+
+  function repairLoginText(){
+    try{
+      repairSavedText();
+      var sel = document.getElementById('loginUser');
+      if(sel){
+        Array.from(sel.options).forEach(function(opt, index){
+          opt.textContent = index === 0 ? '-- selecciona --' : fixMojibakeText(opt.textContent);
+        });
+      }
+      var labels = document.querySelectorAll('#loginOv .lt, #loginOv label, #loginOv input, #loginOv div');
+      Array.from(labels).forEach(function(el){
+        if(el.placeholder) el.placeholder = fixMojibakeText(el.placeholder);
+        if(el.childNodes.length === 1 && el.childNodes[0].nodeType === Node.TEXT_NODE) el.textContent = fixMojibakeText(el.textContent);
+      });
+      document.title = fixMojibakeText(document.title);
+    }catch(e){ console.warn('[drive-auto] login text repair', e); }
+  }
+
   function ready(){
     try { return typeof driveReady === 'function' && driveReady(); } catch(e){ return false; }
   }
@@ -23,6 +76,7 @@
   }
 
   function cleanForCloud(){
+    repairSavedText();
     var toSave = typeof stripEmbeddedFilesForStorage === 'function' ? stripEmbeddedFilesForStorage(state) : JSON.parse(JSON.stringify(state || {}));
     delete toSave._supaTables;
     delete toSave._datosDetectados;
@@ -76,6 +130,7 @@
       if(!out.value) return;
       pulling = true;
       if(typeof mergeRemoteState === 'function') await mergeRemoteState(out.value, out.updatedAt ? new Date(out.updatedAt).getTime() : Date.now());
+      repairSavedText();
       state.config.driveLastUpdatedAt = out.updatedAt || meta.updatedAt;
       if(typeof saveState === 'function') saveState();
       if(typeof renderAll === 'function') renderAll();
@@ -97,6 +152,7 @@
   }
 
   function start(){
+    repairLoginText();
     clearInterval(timer);
     timer = null;
     if(!enabled()) return;
@@ -108,14 +164,27 @@
     if(window.__driveAutoInstalled) return;
     window.__driveAutoInstalled = true;
 
+    repairLoginText();
+
+    if(typeof initLogin === 'function'){
+      var originalInitLogin = initLogin;
+      initLogin = function(){
+        repairSavedText();
+        originalInitLogin.apply(this, arguments);
+        repairLoginText();
+      };
+    }
+
     var originalSave = saveState;
     saveState = function(){
+      repairSavedText();
       originalSave.apply(this, arguments);
       schedulePush();
     };
 
     var originalStart = startApp;
     startApp = function(){
+      repairSavedText();
       originalStart.apply(this, arguments);
       setTimeout(start, 1800);
     };
@@ -128,6 +197,8 @@
     };
 
     window.driveAutoSyncNow = function(){ start(); return pullNow(); };
+    setTimeout(repairLoginText, 300);
+    setTimeout(repairLoginText, 1500);
   }
 
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, {once:true});
