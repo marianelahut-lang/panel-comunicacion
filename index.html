@@ -1153,6 +1153,32 @@ let guardiaCursor = startOfWeek(new Date());
 
 function stripTime(d){const x=new Date(d);x.setHours(0,0,0,0);return x}
 function cleanNameKey(v){return String(v||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().replace(/\s+/g,' ')}
+function fixMojibakeText(v){
+  if(typeof v !== 'string' || !/[ÃÂâ]/.test(v)) return v;
+  try{
+    return decodeURIComponent(escape(v)).replace(/\u2b50/g,'').trim();
+  }catch(e){
+    return v
+      .replace(/Â/g,'')
+      .replace(/Ã¡/g,'á').replace(/Ã©/g,'é').replace(/Ã­/g,'í').replace(/Ã³/g,'ó').replace(/Ãº/g,'ú').replace(/Ã±/g,'ñ')
+      .replace(/Ã/g,'Á').replace(/Ã‰/g,'É').replace(/Ã/g,'Í').replace(/Ã“/g,'Ó').replace(/Ãš/g,'Ú').replace(/Ã‘/g,'Ñ')
+      .replace(/â€”/g,'-').replace(/â€“/g,'-').replace(/â­/g,'').trim();
+  }
+}
+function repairStateEncoding(s){
+  const stringKeys = ['name','role','email','phone','program','type','desc','title','area','category','status','notes','responsable','vecino','direccion'];
+  ['agents','funcionarios','medios','tasks','publicaciones','events','entrevistas','recursos','reclamos'].forEach(listKey=>{
+    if(!Array.isArray(s[listKey])) return;
+    s[listKey].forEach(item=>{
+      if(!item || typeof item !== 'object') return;
+      stringKeys.forEach(k=>{ if(typeof item[k] === 'string') item[k] = fixMojibakeText(item[k]); });
+    });
+  });
+  if(s.config && typeof s.config === 'object'){
+    Object.keys(s.config).forEach(k=>{ if(typeof s.config[k] === 'string') s.config[k] = fixMojibakeText(s.config[k]); });
+  }
+  return s;
+}
 function mergeDefaultFuncionarios(s){
   DEF_FUNCS.forEach((f,i)=>{
     const name=f[0],role=f[1]||'',phone=f[2]||'';
@@ -1202,6 +1228,7 @@ function ensureDefaults(s){
     s.__seeded = true;
   }
   if(s.agents.length===0) s.agents = seed().agents;
+  repairStateEncoding(s);
   mergeDefaultFuncionarios(s);
   // === GARANTA: Marianela y Santiago SIEMPRE son admin ===
   s.agents.forEach(a=>{
@@ -1502,8 +1529,9 @@ function initLogin(){
     saveState();
   }
   const sel=$('loginUser');
-  sel.innerHTML='<option value="">— seleccioná —</option>'+state.agents.map(a=>{
-    const adm = a.admin?' ':'';
+  sel.innerHTML='<option value="">-- selecciona --</option>'+state.agents.map(a=>{
+    a.name = fixMojibakeText(a.name);
+    const adm = a.admin?' *':'';
     const hasPass = a.passwordHash?'':' (sin clave)';
     return '<option value="'+esc(a.name)+'">'+esc(a.name)+adm+hasPass+'</option>';
   }).join('');
