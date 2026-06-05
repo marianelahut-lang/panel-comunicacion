@@ -14,6 +14,9 @@ function doPost(e) {
     if (payload.action === 'load_state') {
       return handleLoadState(payload);
     }
+    if (payload.action === 'state_meta') {
+      return handleStateMeta(payload);
+    }
 
     return jsonOutput({ ok: false, error: 'Accion no soportada' });
   } catch (err) {
@@ -102,6 +105,31 @@ function handleLoadState(payload) {
     updatedAt: doc.updatedAt || file.getLastUpdated().toISOString(),
     updatedBy: doc.updatedBy || '',
     value: doc.value || null
+  });
+}
+
+function handleStateMeta(payload) {
+  const folder = DriveApp.getFolderById(payload.folderId || DEFAULT_FOLDER_ID);
+  const filename = cleanFileName(payload.filename || STATE_FILE_NAME);
+  const existing = folder.getFilesByName(filename);
+  if (!existing.hasNext()) {
+    return jsonOutput({ ok: true, exists: false, updatedAt: null, updatedBy: '' });
+  }
+  const file = existing.next();
+  let updatedBy = '';
+  let updatedAt = file.getLastUpdated().toISOString();
+  try {
+    const doc = JSON.parse(file.getBlob().getDataAsString() || '{}');
+    updatedBy = doc.updatedBy || '';
+    updatedAt = doc.updatedAt || updatedAt;
+  } catch (err) {}
+  return jsonOutput({
+    ok: true,
+    exists: true,
+    id: file.getId(),
+    name: file.getName(),
+    updatedAt: updatedAt,
+    updatedBy: updatedBy
   });
 }
 
