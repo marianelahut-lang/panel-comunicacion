@@ -13,14 +13,14 @@
     if(typeof value !== 'string') return value;
     var original = value;
     var out = value;
-    if(/[ÃÂâ]/.test(out)){
+    if(/[ÃƒÃ‚Ã¢]/.test(out)){
       try { out = decodeURIComponent(escape(out)); } catch(e) {}
       out = out
-        .replace(/Â/g, '')
-        .replace(/Ã¡/g, 'a').replace(/Ã©/g, 'e').replace(/Ã­/g, 'i').replace(/Ã³/g, 'o').replace(/Ãº/g, 'u').replace(/Ã±/g, 'n')
-        .replace(/Ã/g, 'A').replace(/Ã‰/g, 'E').replace(/Ã/g, 'I').replace(/Ã“/g, 'O').replace(/Ãš/g, 'U').replace(/Ã‘/g, 'N')
-        .replace(/â€”|â€“/g, '-')
-        .replace(/â­|⭐/g, '*');
+        .replace(/Ã‚/g, '')
+        .replace(/ÃƒÂ¡/g, 'a').replace(/ÃƒÂ©/g, 'e').replace(/ÃƒÂ­/g, 'i').replace(/ÃƒÂ³/g, 'o').replace(/ÃƒÂº/g, 'u').replace(/ÃƒÂ±/g, 'n')
+        .replace(/ÃƒÂ/g, 'A').replace(/Ãƒâ€°/g, 'E').replace(/ÃƒÂ/g, 'I').replace(/Ãƒâ€œ/g, 'O').replace(/ÃƒÅ¡/g, 'U').replace(/Ãƒâ€˜/g, 'N')
+        .replace(/Ã¢â‚¬â€|Ã¢â‚¬â€œ/g, '-')
+        .replace(/Ã¢Â­Â|â­/g, '*');
     }
     out = out.replace(/\s+\*/g, ' *').replace(/\s+/g, ' ').trim();
     return out || original;
@@ -69,7 +69,7 @@
   function enabled(){
     try {
       if (!state.config) state.config = {};
-      if (state.config.driveAutoSync === undefined) state.config.driveAutoSync = true;
+      if (state.config.driveAutoSync === undefined) state.config.driveAutoSync = false;
       if (!state.config.driveSyncInterval) state.config.driveSyncInterval = DRIVE_AUTO_INTERVAL;
       return state.config.driveAutoSync !== false && ready();
     } catch(e){ return false; }
