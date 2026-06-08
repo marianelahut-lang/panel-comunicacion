@@ -69,7 +69,7 @@
   function enabled(){
     try {
       if (!state.config) state.config = {};
-      if (state.config.driveAutoSync === undefined) state.config.driveAutoSync = false;
+      if (state.config.driveAutoSync === undefined || state.config.driveAutoSync === true) state.config.driveAutoSync = false;
       if (!state.config.driveSyncInterval) state.config.driveSyncInterval = DRIVE_AUTO_INTERVAL;
       return state.config.driveAutoSync !== false && ready();
     } catch(e){ return false; }
