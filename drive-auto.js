@@ -238,6 +238,41 @@
     setTimeout(filterDifusionFuncionarios, 0);
   }
 
+  function manualShareCount(pub){
+    var legacy = parseInt((pub && pub.compartidos_manual) || 0, 10) || 0;
+    var instagram = parseInt((pub && pub.compartidos_manual_ig) || 0, 10) || 0;
+    var facebook = parseInt((pub && pub.compartidos_manual_fb) || 0, 10) || 0;
+    return instagram + facebook || legacy;
+  }
+
+  function setPubCompartidosManualCanal(pubId, canal, value){
+    var pub = state.publicaciones.find(function(x){ return x.id === pubId; });
+    if(!pub) return;
+    var n = Math.max(0, parseInt(value || '0', 10) || 0);
+    if(canal === 'ig') pub.compartidos_manual_ig = n;
+    if(canal === 'fb') pub.compartidos_manual_fb = n;
+    pub.compartidos_manual = (parseInt(pub.compartidos_manual_ig || 0, 10) || 0) + (parseInt(pub.compartidos_manual_fb || 0, 10) || 0);
+    pub.updated = Date.now();
+    if(typeof saveState === 'function') saveState();
+    if(typeof renderDifusionWeekStats === 'function') renderDifusionWeekStats();
+  }
+
+  function renderManualShareInputs(pub){
+    var ig = parseInt(pub.compartidos_manual_ig || 0, 10) || 0;
+    var fb = parseInt(pub.compartidos_manual_fb || 0, 10) || 0;
+    var legacy = parseInt(pub.compartidos_manual || 0, 10) || 0;
+    if(!ig && !fb && legacy){
+      fb = legacy;
+      pub.compartidos_manual_fb = fb;
+      pub.compartidos_manual = fb;
+    }
+    return '<div style="margin-top:8px;background:var(--bg-soft);border:1px solid var(--bd);border-radius:10px;padding:10px;display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;align-items:end">'
+      + '<div><label style="font-size:12px;font-weight:800;color:var(--tx-s);display:block;margin-bottom:6px">Compartidos Instagram</label><input class="inp" type="number" min="0" value="'+ig+'" oninput="setPubCompartidosManualCanal(&quot;'+pub.id+'&quot;,&quot;ig&quot;,this.value)"></div>'
+      + '<div><label style="font-size:12px;font-weight:800;color:var(--tx-s);display:block;margin-bottom:6px">Compartidos Facebook</label><input class="inp" type="number" min="0" value="'+fb+'" oninput="setPubCompartidosManualCanal(&quot;'+pub.id+'&quot;,&quot;fb&quot;,this.value)"></div>'
+      + '<div class="ct-s">Carga manual para sumar compartidos que no esten asociados a un funcionario.</div>'
+      + '</div>';
+  }
+
   function install(){
     if(window.__driveAutoInstalled) return;
     window.__driveAutoInstalled = true;
@@ -300,6 +335,40 @@
         var result = originalRenderDifusionModal.apply(this, arguments);
         installDifusionFuncionarioSearch();
         return result;
+      };
+    }
+
+    window.setPubCompartidosManualCanal = setPubCompartidosManualCanal;
+
+    if(typeof renderPubDifusionStats === 'function'){
+      renderPubDifusionStats = function(pub){
+        var box = document.getElementById('dfPubStats');
+        if(!box) return;
+        var totals = typeof calcPubDifusionStats === 'function' ? calcPubDifusionStats(pub) : {compartio:0,comento:0,reacciono:0,estado_wa:0,no_corresponde:0};
+        var labels = {compartio:'compartieron',comento:'comentaron',reacciono:'reaccionaron',estado_wa:'estados WA',no_corresponde:'no corresponde'};
+        var tags = [['compartio','tag-g'],['comento','tag-b'],['reacciono','tag-p'],['estado_wa','tag-x'],['no_corresponde','tag-r']].map(function(pair){
+          var key = pair[0], cls = pair[1];
+          var on = window._dfStatOpen === key;
+          return '<button class="tag '+cls+'" style="justify-content:center;padding:8px;border:1px solid '+(on?'var(--tx)':'transparent')+';cursor:pointer" onclick="toggleDifusionStat(&quot;'+key+'&quot;)">'+(totals[key] || 0)+' '+labels[key]+'</button>';
+        }).join('');
+        var detail = '';
+        if(window._dfStatOpen && typeof difusionActionNames === 'function'){
+          var names = difusionActionNames(pub, window._dfStatOpen);
+          var title = labels[window._dfStatOpen] || 'seleccionados';
+          detail = '<div style="margin-top:8px;background:var(--bg-soft);border:1px solid var(--bd);border-radius:10px;padding:10px"><div class="ct-s" style="font-weight:800;margin-bottom:6px">'+esc(title.charAt(0).toUpperCase()+title.slice(1))+'</div>'+(names.length?'<div class="li-s">'+names.map(function(n){ return '<span class="tag tag-x">'+esc(n)+'</span>'; }).join('')+'</div>':'<div class="ct-s">Todavia no hay funcionarios en esta categoria.</div>')+'</div>';
+        }
+        box.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px">'+tags+'</div>'+renderManualShareInputs(pub)+detail;
+      };
+    }
+
+    if(typeof calcDifusionWeekStats === 'function'){
+      var originalCalcDifusionWeekStats = calcDifusionWeekStats;
+      calcDifusionWeekStats = function(){
+        var stats = originalCalcDifusionWeekStats.apply(this, arguments);
+        if(stats && stats.totals && Array.isArray(stats.pubs)){
+          stats.totals.manual = stats.pubs.reduce(function(total, pub){ return total + manualShareCount(pub); }, 0);
+        }
+        return stats;
       };
     }
 
