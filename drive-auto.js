@@ -359,9 +359,9 @@
 
   function descargarInformeFuncionarios(){
     var data = calcFuncionariosInforme();
-    var lines = [['Funcionario','Cargo','Telefono','Compartio redes','Comento','Reacciono','Estado WA','No corresponde','Total acciones'].map(csvCell).join(',')];
+    var lines = [['Funcionario','Compartio redes','Comento','Reacciono','Estado WA','No corresponde','Total acciones'].map(csvCell).join(',')];
     data.rows.forEach(function(row){
-      lines.push([row.name,row.role,row.phone,row.compartio,row.comento,row.reacciono,row.estado_wa,row.no_corresponde,row.total].map(csvCell).join(','));
+      lines.push([row.name,row.compartio,row.comento,row.reacciono,row.estado_wa,row.no_corresponde,row.total].map(csvCell).join(','));
     });
     var blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8'});
     var url = URL.createObjectURL(blob);
@@ -384,13 +384,13 @@
       return acc;
     }, {compartio:0,comento:0,reacciono:0,estado_wa:0,no_corresponde:0,total:0});
     var rows = data.rows.map(function(row){
-      return '<tr><td>'+esc(row.name)+'</td><td>'+esc(row.role)+'</td><td>'+esc(row.phone)+'</td><td>'+row.compartio+'</td><td>'+row.comento+'</td><td>'+row.reacciono+'</td><td>'+row.estado_wa+'</td><td>'+row.no_corresponde+'</td><td>'+row.total+'</td></tr>';
+      return '<tr><td>'+esc(row.name)+'</td><td>'+row.compartio+'</td><td>'+row.comento+'</td><td>'+row.reacciono+'</td><td>'+row.estado_wa+'</td><td>'+row.no_corresponde+'</td><td>'+row.total+'</td></tr>';
     }).join('');
     var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Informe de funcionarios</title>'
       + '<style>body{font-family:Arial,sans-serif;color:#111}h1{font-size:22px;margin-bottom:4px}.meta{color:#555;margin-bottom:18px}.summary{margin:12px 0 18px}.summary span{display:inline-block;margin:0 10px 6px 0;font-weight:bold}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:7px;text-align:left;font-size:12px}th{background:#eee;text-transform:uppercase;font-size:11px}</style>'
       + '</head><body><h1>Informe de funcionarios</h1><div class="meta">Generado: '+data.generatedAt.toLocaleString('es-AR')+' · '+data.pubs.length+' publicaciones consideradas</div>'
       + '<div class="summary"><span>'+totals.compartio+' compartidos</span><span>'+totals.comento+' comentarios</span><span>'+totals.reacciono+' reacciones</span><span>'+totals.estado_wa+' estados WA</span><span>'+totals.no_corresponde+' no corresponde</span></div>'
-      + '<table><thead><tr><th>Funcionario</th><th>Cargo</th><th>Telefono</th><th>Compartio</th><th>Comento</th><th>Reacciono</th><th>Estado WA</th><th>No corresponde</th><th>Total</th></tr></thead><tbody>'+rows+'</tbody></table></body></html>';
+      + '<table><thead><tr><th>Funcionario</th><th>Compartio</th><th>Comento</th><th>Reacciono</th><th>Estado WA</th><th>No corresponde</th><th>Total</th></tr></thead><tbody>'+rows+'</tbody></table></body></html>';
     var blob = new Blob([html], {type:'application/msword;charset=utf-8'});
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
@@ -429,12 +429,11 @@
       + '<span class="tag tag-x" style="justify-content:center;padding:8px">'+totals.estado_wa+' estados WA</span>'
       + '<span class="tag tag-r" style="justify-content:center;padding:8px">'+totals.no_corresponde+' no corresponde</span>'
       + '</div>';
-    var table = '<div style="overflow:auto;border:1px solid var(--bd);border-radius:10px"><table style="width:100%;border-collapse:collapse;min-width:760px"><thead><tr>'
-      + ['Funcionario','Cargo','Compartio','Comento','Reacciono','Estado WA','No corresponde','Total'].map(function(h){ return '<th style="text-align:left;padding:10px;border-bottom:1px solid var(--bd);font-size:11px;text-transform:uppercase;color:var(--tx-m)">'+h+'</th>'; }).join('')
+    var table = '<div style="overflow:auto;border:1px solid var(--bd);border-radius:10px"><table style="width:100%;border-collapse:collapse;min-width:640px"><thead><tr>'
+      + ['Funcionario','Compartio','Comento','Reacciono','Estado WA','No corresponde','Total'].map(function(h){ return '<th style="text-align:left;padding:10px;border-bottom:1px solid var(--bd);font-size:11px;text-transform:uppercase;color:var(--tx-m)">'+h+'</th>'; }).join('')
       + '</tr></thead><tbody>'
       + data.rows.map(function(row){
         return '<tr><td style="padding:10px;border-bottom:1px solid var(--bd-s);font-weight:800">'+esc(row.name)+'</td>'
-          + '<td style="padding:10px;border-bottom:1px solid var(--bd-s);color:var(--tx-m)">'+esc(row.role)+'</td>'
           + '<td style="padding:10px;border-bottom:1px solid var(--bd-s)">'+row.compartio+'</td>'
           + '<td style="padding:10px;border-bottom:1px solid var(--bd-s)">'+row.comento+'</td>'
           + '<td style="padding:10px;border-bottom:1px solid var(--bd-s)">'+row.reacciono+'</td>'
