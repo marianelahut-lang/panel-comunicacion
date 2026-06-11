@@ -317,6 +317,122 @@
     return state.publicaciones.slice().sort(function(a,b){ return (b.created || b.updated || 0) - (a.created || a.updated || 0); })[0];
   }
 
+  function calcFuncionariosInforme(){
+    var pubs = typeof getDifusionPublicaciones === 'function' ? getDifusionPublicaciones() : [];
+    var rows = (state.funcionarios || []).map(function(func){
+      return {
+        id: func.id,
+        name: func.name || '(sin nombre)',
+        role: func.role || 'Funcionario',
+        phone: func.phone || '',
+        compartio: 0,
+        comento: 0,
+        reacciono: 0,
+        estado_wa: 0,
+        no_corresponde: 0,
+        total: 0
+      };
+    });
+    var byId = {};
+    rows.forEach(function(row){ byId[row.id] = row; });
+    pubs.forEach(function(pub){
+      var map = pub.funcionariosDifusion || {};
+      Object.keys(map).forEach(function(funcId){
+        var row = byId[funcId];
+        if(!row) return;
+        var rec = map[funcId] || {};
+        ['compartio','comento','reacciono','estado_wa','no_corresponde'].forEach(function(key){
+          if(rec[key]) row[key]++;
+        });
+      });
+    });
+    rows.forEach(function(row){
+      row.total = row.compartio + row.comento + row.reacciono + row.estado_wa;
+    });
+    rows.sort(function(a,b){ return b.total - a.total || b.comento - a.comento || b.reacciono - a.reacciono || a.name.localeCompare(b.name); });
+    return {pubs: pubs, rows: rows, generatedAt: new Date()};
+  }
+
+  function csvCell(value){
+    return '"' + String(value == null ? '' : value).replace(/"/g, '""') + '"';
+  }
+
+  function descargarInformeFuncionarios(){
+    var data = calcFuncionariosInforme();
+    var lines = [['Funcionario','Cargo','Telefono','Compartio redes','Comento','Reacciono','Estado WA','No corresponde','Total acciones'].map(csvCell).join(',')];
+    data.rows.forEach(function(row){
+      lines.push([row.name,row.role,row.phone,row.compartio,row.comento,row.reacciono,row.estado_wa,row.no_corresponde,row.total].map(csvCell).join(','));
+    });
+    var blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'informe-funcionarios-difusion.csv';
+    a.click();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 500);
+  }
+
+  function abrirInformeFuncionarios(){
+    var data = calcFuncionariosInforme();
+    var modal = document.getElementById('dfFuncReportMod');
+    if(!modal){
+      modal = document.createElement('div');
+      modal.className = 'mov';
+      modal.id = 'dfFuncReportMod';
+      modal.innerHTML = '<div class="mod mod-l"><div class="mh"><div><div class="mt">Informe de funcionarios</div><div class="ct-s" id="dfFuncReportMeta"></div></div><button class="mx" onclick="closeModal(&quot;dfFuncReportMod&quot;)">x</button></div><div class="mb" id="dfFuncReportBody"></div><div class="mf"><button class="btn" onclick="descargarInformeFuncionarios()">Descargar CSV</button><button class="btn btn-p" onclick="window.print()">Imprimir</button><button class="btn" onclick="closeModal(&quot;dfFuncReportMod&quot;)">Cerrar</button></div></div>';
+      document.body.appendChild(modal);
+    }
+    var meta = document.getElementById('dfFuncReportMeta');
+    var body = document.getElementById('dfFuncReportBody');
+    if(meta) meta.textContent = 'Generado: ' + data.generatedAt.toLocaleString('es-AR') + ' · ' + data.pubs.length + ' publicaciones consideradas';
+    var totals = data.rows.reduce(function(acc,row){
+      acc.compartio += row.compartio;
+      acc.comento += row.comento;
+      acc.reacciono += row.reacciono;
+      acc.estado_wa += row.estado_wa;
+      acc.no_corresponde += row.no_corresponde;
+      acc.total += row.total;
+      return acc;
+    }, {compartio:0,comento:0,reacciono:0,estado_wa:0,no_corresponde:0,total:0});
+    var summary = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:12px">'
+      + '<span class="tag tag-g" style="justify-content:center;padding:8px">'+totals.compartio+' compartidos</span>'
+      + '<span class="tag tag-b" style="justify-content:center;padding:8px">'+totals.comento+' comentarios</span>'
+      + '<span class="tag tag-p" style="justify-content:center;padding:8px">'+totals.reacciono+' reacciones</span>'
+      + '<span class="tag tag-x" style="justify-content:center;padding:8px">'+totals.estado_wa+' estados WA</span>'
+      + '<span class="tag tag-r" style="justify-content:center;padding:8px">'+totals.no_corresponde+' no corresponde</span>'
+      + '</div>';
+    var table = '<div style="overflow:auto;border:1px solid var(--bd);border-radius:10px"><table style="width:100%;border-collapse:collapse;min-width:760px"><thead><tr>'
+      + ['Funcionario','Cargo','Compartio','Comento','Reacciono','Estado WA','No corresponde','Total'].map(function(h){ return '<th style="text-align:left;padding:10px;border-bottom:1px solid var(--bd);font-size:11px;text-transform:uppercase;color:var(--tx-m)">'+h+'</th>'; }).join('')
+      + '</tr></thead><tbody>'
+      + data.rows.map(function(row){
+        return '<tr><td style="padding:10px;border-bottom:1px solid var(--bd-s);font-weight:800">'+esc(row.name)+'</td>'
+          + '<td style="padding:10px;border-bottom:1px solid var(--bd-s);color:var(--tx-m)">'+esc(row.role)+'</td>'
+          + '<td style="padding:10px;border-bottom:1px solid var(--bd-s)">'+row.compartio+'</td>'
+          + '<td style="padding:10px;border-bottom:1px solid var(--bd-s)">'+row.comento+'</td>'
+          + '<td style="padding:10px;border-bottom:1px solid var(--bd-s)">'+row.reacciono+'</td>'
+          + '<td style="padding:10px;border-bottom:1px solid var(--bd-s)">'+row.estado_wa+'</td>'
+          + '<td style="padding:10px;border-bottom:1px solid var(--bd-s)">'+row.no_corresponde+'</td>'
+          + '<td style="padding:10px;border-bottom:1px solid var(--bd-s);font-weight:800">'+row.total+'</td></tr>';
+      }).join('')
+      + '</tbody></table></div>';
+    if(body) body.innerHTML = summary + table;
+    if(typeof openModal === 'function') openModal('dfFuncReportMod');
+    else modal.classList.add('on');
+  }
+
+  function installFuncionariosInformeButton(){
+    var box = document.getElementById('dfWeekStats');
+    if(!box || document.getElementById('dfFuncReportBtn')) return;
+    var header = box.querySelector('.ch');
+    if(!header) return;
+    var btn = document.createElement('button');
+    btn.id = 'dfFuncReportBtn';
+    btn.className = 'btn btn-p btn-s';
+    btn.textContent = 'Informe funcionarios';
+    btn.onclick = abrirInformeFuncionarios;
+    header.appendChild(btn);
+  }
+
   function install(){
     if(window.__driveAutoInstalled) return;
     window.__driveAutoInstalled = true;
@@ -432,6 +548,18 @@
           stats.totals.manual = stats.pubs.reduce(function(total, pub){ return total + manualShareCount(pub); }, 0);
         }
         return stats;
+      };
+    }
+
+    window.descargarInformeFuncionarios = descargarInformeFuncionarios;
+    window.abrirInformeFuncionarios = abrirInformeFuncionarios;
+
+    if(typeof renderDifusionWeekStats === 'function'){
+      var originalRenderDifusionWeekStats = renderDifusionWeekStats;
+      renderDifusionWeekStats = function(){
+        var result = originalRenderDifusionWeekStats.apply(this, arguments);
+        installFuncionariosInformeButton();
+        return result;
       };
     }
 
