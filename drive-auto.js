@@ -273,6 +273,50 @@
       + '</div>';
   }
 
+  function installPublicationCollabFields(pub){
+    var desc = document.getElementById('pbDesc');
+    if(!desc || !desc.parentNode) return;
+    var wrap = document.getElementById('pbCollabWrap');
+    if(!wrap){
+      wrap = document.createElement('div');
+      wrap.id = 'pbCollabWrap';
+      wrap.className = 'fld';
+      wrap.innerHTML = '<label>Colaborativo</label>'
+        + '<label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--tx);cursor:pointer;margin-bottom:8px">'
+        + '<input type="checkbox" id="pbCollab" style="width:16px;height:16px;accent-color:var(--ac)"> Es colaborativo</label>'
+        + '<input class="inp" id="pbCollabCon" placeholder="Colaborativo con..." autocomplete="off">';
+      desc.parentNode.insertAdjacentElement('afterend', wrap);
+    }
+    var isCollab = !!(pub && (pub.colaborativo || pub.collab || pub.colaborativoCon || pub.collabWith));
+    var collabWith = (pub && (pub.colaborativoCon || pub.collabWith)) || '';
+    var chk = document.getElementById('pbCollab');
+    var inp = document.getElementById('pbCollabCon');
+    if(chk) chk.checked = isCollab;
+    if(inp) inp.value = collabWith;
+  }
+
+  function applyPublicationCollabFields(pub){
+    if(!pub) return false;
+    var chk = document.getElementById('pbCollab');
+    var inp = document.getElementById('pbCollabCon');
+    if(!chk && !inp) return false;
+    var withText = inp ? inp.value.trim() : '';
+    pub.colaborativo = !!((chk && chk.checked) || withText);
+    pub.colaborativoCon = withText;
+    pub.updated = Date.now();
+    return true;
+  }
+
+  function findPublicationAfterSave(before){
+    var id = before.id;
+    if(id) return state.publicaciones.find(function(pub){ return pub.id === id; });
+    var matches = state.publicaciones.filter(function(pub){
+      return pub.desc === before.desc && pub.date === before.date && pub.time === before.time;
+    });
+    if(matches.length) return matches.sort(function(a,b){ return (b.created || b.updated || 0) - (a.created || a.updated || 0); })[0];
+    return state.publicaciones.slice().sort(function(a,b){ return (b.created || b.updated || 0) - (a.created || a.updated || 0); })[0];
+  }
+
   function install(){
     if(window.__driveAutoInstalled) return;
     window.__driveAutoInstalled = true;
@@ -302,10 +346,29 @@
       setTimeout(start, 1800);
     };
 
+    if(typeof prepPub === 'function'){
+      var originalPrepPub = prepPub;
+      prepPub = function(pub){
+        var result = originalPrepPub.apply(this, arguments);
+        installPublicationCollabFields(pub || {});
+        return result;
+      };
+    }
+
     if(typeof savePub === 'function'){
       var originalSavePub = savePub;
       savePub = function(){
+        var before = {
+          id: (document.getElementById('pbId') && document.getElementById('pbId').value) || '',
+          desc: (document.getElementById('pbDesc') && document.getElementById('pbDesc').value.trim()) || '',
+          date: (document.getElementById('pbDate') && document.getElementById('pbDate').value) || '',
+          time: (document.getElementById('pbTime') && document.getElementById('pbTime').value) || ''
+        };
         originalSavePub.apply(this, arguments);
+        var savedPub = findPublicationAfterSave(before);
+        if(applyPublicationCollabFields(savedPub)){
+          if(typeof saveState === 'function') saveState();
+        }
         if(completePublishedTasks()){
           if(typeof saveState === 'function') saveState();
           if(typeof renderAll === 'function') renderAll();
