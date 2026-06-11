@@ -13,14 +13,14 @@
     if(typeof value !== 'string') return value;
     var original = value;
     var out = value;
-    if(/[ÃƒÃ‚Ã¢]/.test(out)){
+    if(/[ÃƒÆ’Ãƒâ€šÃƒÂ¢]/.test(out)){
       try { out = decodeURIComponent(escape(out)); } catch(e) {}
       out = out
-        .replace(/Ã‚/g, '')
-        .replace(/ÃƒÂ¡/g, 'a').replace(/ÃƒÂ©/g, 'e').replace(/ÃƒÂ­/g, 'i').replace(/ÃƒÂ³/g, 'o').replace(/ÃƒÂº/g, 'u').replace(/ÃƒÂ±/g, 'n')
-        .replace(/ÃƒÂ/g, 'A').replace(/Ãƒâ€°/g, 'E').replace(/ÃƒÂ/g, 'I').replace(/Ãƒâ€œ/g, 'O').replace(/ÃƒÅ¡/g, 'U').replace(/Ãƒâ€˜/g, 'N')
-        .replace(/Ã¢â‚¬â€|Ã¢â‚¬â€œ/g, '-')
-        .replace(/Ã¢Â­Â|â­/g, '*');
+        .replace(/Ãƒâ€š/g, '')
+        .replace(/ÃƒÆ’Ã‚Â¡/g, 'a').replace(/ÃƒÆ’Ã‚Â©/g, 'e').replace(/ÃƒÆ’Ã‚Â­/g, 'i').replace(/ÃƒÆ’Ã‚Â³/g, 'o').replace(/ÃƒÆ’Ã‚Âº/g, 'u').replace(/ÃƒÆ’Ã‚Â±/g, 'n')
+        .replace(/ÃƒÆ’Ã‚Â/g, 'A').replace(/ÃƒÆ’Ã¢â‚¬Â°/g, 'E').replace(/ÃƒÆ’Ã‚Â/g, 'I').replace(/ÃƒÆ’Ã¢â‚¬Å“/g, 'O').replace(/ÃƒÆ’Ã…Â¡/g, 'U').replace(/ÃƒÆ’Ã¢â‚¬Ëœ/g, 'N')
+        .replace(/ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â|ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“/g, '-')
+        .replace(/ÃƒÂ¢Ã‚Â­Ã‚Â|Ã¢Â­Â/g, '*');
     }
     out = out.replace(/\s+\*/g, ' *').replace(/\s+/g, ' ').trim();
     return out || original;
@@ -160,6 +160,37 @@
     setTimeout(pullNow, 2500);
   }
 
+  function isPublishedPublication(pub){
+    return String((pub && pub.status) || '').trim().toLowerCase() === 'publicado';
+  }
+
+  function completePublishedTasks(){
+    try{
+      if(typeof state !== 'object' || !state || !Array.isArray(state.tasks) || !Array.isArray(state.publicaciones)) return false;
+      var changed = false;
+      state.publicaciones.filter(isPublishedPublication).forEach(function(pub){
+        var task = pub.sourceTaskId ? state.tasks.find(function(t){ return t.id === pub.sourceTaskId; }) : null;
+        if(!task){
+          var desc = String(pub.desc || '').trim().toLowerCase();
+          if(desc){
+            task = state.tasks.find(function(t){
+              return String(t.desc || '').trim().toLowerCase() === desc && t.status === 'publicar';
+            });
+          }
+        }
+        if(task && task.status !== 'realizada'){
+          task.status = 'realizada';
+          task.updated = Date.now();
+          changed = true;
+        }
+      });
+      return changed;
+    }catch(e){
+      console.warn('[drive-auto] complete published tasks', e);
+      return false;
+    }
+  }
+
   function install(){
     if(window.__driveAutoInstalled) return;
     window.__driveAutoInstalled = true;
@@ -188,6 +219,33 @@
       originalStart.apply(this, arguments);
       setTimeout(start, 1800);
     };
+
+    if(typeof savePub === 'function'){
+      var originalSavePub = savePub;
+      savePub = function(){
+        originalSavePub.apply(this, arguments);
+        if(completePublishedTasks()){
+          if(typeof saveState === 'function') saveState();
+          if(typeof renderAll === 'function') renderAll();
+        }
+      };
+    }
+
+    if(typeof renderTab === 'function'){
+      var originalRenderTab = renderTab;
+      renderTab = function(){
+        if(completePublishedTasks() && typeof saveState === 'function') saveState();
+        return originalRenderTab.apply(this, arguments);
+      };
+    }
+
+    if(typeof renderMat === 'function'){
+      var originalRenderMat = renderMat;
+      renderMat = function(){
+        if(completePublishedTasks() && typeof saveState === 'function') saveState();
+        return originalRenderMat.apply(this, arguments);
+      };
+    }
 
     var originalSaveDrive = saveDriveCfg;
     saveDriveCfg = function(){
