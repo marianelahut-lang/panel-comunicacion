@@ -191,6 +191,53 @@
     }
   }
 
+  function normalizeSearchText(value){
+    return String(value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+  }
+
+  function filterDifusionFuncionarios(){
+    var list = document.getElementById('dfFuncList');
+    if(!list) return;
+    var query = normalizeSearchText(window.__dfFuncionarioSearch || '');
+    var cards = Array.from(list.querySelectorAll('.li'));
+    var visible = 0;
+    cards.forEach(function(card){
+      var match = !query || normalizeSearchText(card.textContent).indexOf(query) !== -1;
+      card.style.display = match ? '' : 'none';
+      if(match) visible++;
+    });
+    var empty = document.getElementById('dfFuncSearchEmpty');
+    if(empty) empty.style.display = visible || !query ? 'none' : '';
+  }
+
+  function installDifusionFuncionarioSearch(){
+    var list = document.getElementById('dfFuncList');
+    if(!list || !list.parentNode) return;
+    var search = document.getElementById('dfFuncSearch');
+    if(!search){
+      var wrap = document.createElement('div');
+      wrap.id = 'dfFuncSearchWrap';
+      wrap.style.cssText = 'margin:0 0 12px 0';
+      wrap.innerHTML = '<input class="inp" id="dfFuncSearch" type="search" placeholder="Buscar funcionario..." autocomplete="off" style="width:100%">';
+      list.parentNode.insertBefore(wrap, list);
+      search = document.getElementById('dfFuncSearch');
+    }
+    search.value = window.__dfFuncionarioSearch || '';
+    search.oninput = function(){
+      window.__dfFuncionarioSearch = this.value;
+      filterDifusionFuncionarios();
+    };
+    if(!document.getElementById('dfFuncSearchEmpty')){
+      var empty = document.createElement('div');
+      empty.id = 'dfFuncSearchEmpty';
+      empty.className = 'emp';
+      empty.style.display = 'none';
+      empty.innerHTML = '<div class="emt">Sin resultados</div><div class="ems">Proba buscar por nombre, cargo o telefono.</div>';
+      list.parentNode.insertBefore(empty, list.nextSibling);
+    }
+    setTimeout(filterDifusionFuncionarios, 0);
+  }
+
   function install(){
     if(window.__driveAutoInstalled) return;
     window.__driveAutoInstalled = true;
@@ -244,6 +291,15 @@
       renderMat = function(){
         if(completePublishedTasks() && typeof saveState === 'function') saveState();
         return originalRenderMat.apply(this, arguments);
+      };
+    }
+
+    if(typeof renderDifusionModal === 'function'){
+      var originalRenderDifusionModal = renderDifusionModal;
+      renderDifusionModal = function(){
+        var result = originalRenderDifusionModal.apply(this, arguments);
+        installDifusionFuncionarioSearch();
+        return result;
       };
     }
 
