@@ -372,6 +372,34 @@
     setTimeout(function(){ URL.revokeObjectURL(url); }, 500);
   }
 
+  function descargarInformeFuncionariosDoc(){
+    var data = calcFuncionariosInforme();
+    var totals = data.rows.reduce(function(acc,row){
+      acc.compartio += row.compartio;
+      acc.comento += row.comento;
+      acc.reacciono += row.reacciono;
+      acc.estado_wa += row.estado_wa;
+      acc.no_corresponde += row.no_corresponde;
+      acc.total += row.total;
+      return acc;
+    }, {compartio:0,comento:0,reacciono:0,estado_wa:0,no_corresponde:0,total:0});
+    var rows = data.rows.map(function(row){
+      return '<tr><td>'+esc(row.name)+'</td><td>'+esc(row.role)+'</td><td>'+esc(row.phone)+'</td><td>'+row.compartio+'</td><td>'+row.comento+'</td><td>'+row.reacciono+'</td><td>'+row.estado_wa+'</td><td>'+row.no_corresponde+'</td><td>'+row.total+'</td></tr>';
+    }).join('');
+    var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Informe de funcionarios</title>'
+      + '<style>body{font-family:Arial,sans-serif;color:#111}h1{font-size:22px;margin-bottom:4px}.meta{color:#555;margin-bottom:18px}.summary{margin:12px 0 18px}.summary span{display:inline-block;margin:0 10px 6px 0;font-weight:bold}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:7px;text-align:left;font-size:12px}th{background:#eee;text-transform:uppercase;font-size:11px}</style>'
+      + '</head><body><h1>Informe de funcionarios</h1><div class="meta">Generado: '+data.generatedAt.toLocaleString('es-AR')+' · '+data.pubs.length+' publicaciones consideradas</div>'
+      + '<div class="summary"><span>'+totals.compartio+' compartidos</span><span>'+totals.comento+' comentarios</span><span>'+totals.reacciono+' reacciones</span><span>'+totals.estado_wa+' estados WA</span><span>'+totals.no_corresponde+' no corresponde</span></div>'
+      + '<table><thead><tr><th>Funcionario</th><th>Cargo</th><th>Telefono</th><th>Compartio</th><th>Comento</th><th>Reacciono</th><th>Estado WA</th><th>No corresponde</th><th>Total</th></tr></thead><tbody>'+rows+'</tbody></table></body></html>';
+    var blob = new Blob([html], {type:'application/msword;charset=utf-8'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'informe-funcionarios-difusion.doc';
+    a.click();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 500);
+  }
+
   function abrirInformeFuncionarios(){
     var data = calcFuncionariosInforme();
     var modal = document.getElementById('dfFuncReportMod');
@@ -379,7 +407,7 @@
       modal = document.createElement('div');
       modal.className = 'mov';
       modal.id = 'dfFuncReportMod';
-      modal.innerHTML = '<div class="mod mod-l"><div class="mh"><div><div class="mt">Informe de funcionarios</div><div class="ct-s" id="dfFuncReportMeta"></div></div><button class="mx" onclick="closeModal(&quot;dfFuncReportMod&quot;)">x</button></div><div class="mb" id="dfFuncReportBody"></div><div class="mf"><button class="btn" onclick="descargarInformeFuncionarios()">Descargar CSV</button><button class="btn btn-p" onclick="window.print()">Imprimir</button><button class="btn" onclick="closeModal(&quot;dfFuncReportMod&quot;)">Cerrar</button></div></div>';
+      modal.innerHTML = '<div class="mod mod-l"><div class="mh"><div><div class="mt">Informe de funcionarios</div><div class="ct-s" id="dfFuncReportMeta"></div></div><button class="mx" onclick="closeModal(&quot;dfFuncReportMod&quot;)">x</button></div><div class="mb" id="dfFuncReportBody"></div><div class="mf"><button class="btn" onclick="descargarInformeFuncionarios()">Descargar CSV</button><button class="btn" onclick="descargarInformeFuncionariosDoc()">Descargar documento</button><button class="btn btn-p" onclick="window.print()">Imprimir</button><button class="btn" onclick="closeModal(&quot;dfFuncReportMod&quot;)">Cerrar</button></div></div>';
       document.body.appendChild(modal);
     }
     var meta = document.getElementById('dfFuncReportMeta');
@@ -552,6 +580,7 @@
     }
 
     window.descargarInformeFuncionarios = descargarInformeFuncionarios;
+    window.descargarInformeFuncionariosDoc = descargarInformeFuncionariosDoc;
     window.abrirInformeFuncionarios = abrirInformeFuncionarios;
 
     if(typeof renderDifusionWeekStats === 'function'){
