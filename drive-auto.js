@@ -47,11 +47,13 @@
     if(!task || typeof task !== 'object') return 0;
     var candidates = [
       task.updatedAt, task.updated_at, task.modifiedAt, task.modified_at,
-      task.createdAt, task.created_at, task.date, task.fecha, task.due
+      task.updated, task.createdAt, task.created_at, task.created,
+      task.date, task.fecha, task.due
     ];
     for(var i = 0; i < candidates.length; i++){
       var value = candidates[i];
       if(!value) continue;
+      if(typeof value === 'number') return value;
       var parsed = value instanceof Date ? value.getTime() : Date.parse(String(value));
       if(Number.isFinite(parsed)) return parsed;
     }
