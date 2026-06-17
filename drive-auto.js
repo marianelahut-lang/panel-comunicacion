@@ -24,9 +24,9 @@
     for(var i=0;i<vals.length;i++){var v=vals[i];if(!v)continue;if(typeof v==='number')return v;var d=Date.parse(String(v));if(isFinite(d))return d}
     var m=String(t&&t.id||'').match(/(\d{12,})/);return m?Number(m[1]):0;
   }
-  function refreshTasks(){
+  function refreshTasks(skipRender){
     try{if(state&&Array.isArray(state.tasks))state.tasks.sort(function(a,b){return taskTime(b)-taskTime(a)})}catch(e){}
-    try{if(hasFn('renderTab'))renderTab()}catch(e){}
+    try{if(!skipRender&&hasFn('renderTab'))renderTab()}catch(e){}
     try{if(hasFn('updateBadges'))updateBadges()}catch(e){}
   }
   function schedulePush(delay){
@@ -49,7 +49,7 @@
   function wrapTab(){
     if(tabWrapped||!hasFn('renderTab'))return;
     var original=renderTab;
-    window.renderTab=function(){refreshTasks();return original.apply(this,arguments)};
+    window.renderTab=function(){refreshTasks(true);return original.apply(this,arguments)};
     tabWrapped=true;
   }
   function hasLocalData(){
