@@ -179,6 +179,11 @@
     var p=q("#p-equipo"); if(!p) return;
     qa(".tmcard",p).forEach(function(card){ var b=q("button[onclick*='abrirPanelAgente']",card); if(b) b.title="Abrir panel del agente con pendientes y en proceso"; });
   }
+  function ocultarReposteoDifusion(){
+    qa("#dfPubStats button,#dfPubStats .tag,#dfFuncList label,#dfMod label,#dfMod button,#dfWeekStats .tag,#dfWeekStats span,#dfWeekStats .li-s span").forEach(function(el){
+      if(/repost/i.test(el.textContent || "")) el.style.setProperty("display","none","important");
+    });
+  }
 
   function renderFor(id){
     try{
@@ -194,6 +199,7 @@
       if(id==="recursos" && typeof loadRecursos==="function") loadRecursos();
     }catch(e){ console.warn("[ui-fixes] render",id,e); }
     hideMetrics();
+    ocultarReposteoDifusion();
   }
 
   function installNav(){
@@ -231,11 +237,12 @@
     document.head.appendChild(st);
   }
   function clickNav(e){ var agent=e.target.closest('[onclick*=\"abrirPanelAgente\"]'); if(agent) return; var b=e.target.closest(".ntab,.sbi,.mbn-btn,[data-mid],[data-nav]"); if(!b) return; var id=buttonId(b); if(!id) return; e.preventDefault(); e.stopPropagation(); if(e.stopImmediatePropagation) e.stopImmediatePropagation(); window.nav(id,null,b); }
-  function run(){ css(); installNav(); installHoyOverride(); installAgent(); ensure(); closeClosedOverlays(); var active=norm(document.body.getAttribute("data-active-panel") || "hoy"); show(active,null,false); }
+  function run(){ css(); installNav(); installHoyOverride(); installAgent(); ensure(); closeClosedOverlays(); var active=norm(document.body.getAttribute("data-active-panel") || "hoy"); show(active,null,false); ocultarReposteoDifusion(); }
 
   document.addEventListener("click",clickNav,true);
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",run,{once:true}); else run();
-  setTimeout(run,250); setTimeout(run,900); setTimeout(function(){ installAgent(); renderFor(norm(document.body.getAttribute("data-active-panel")||"hoy")); },1800);
+  setTimeout(run,250); setTimeout(run,900); setTimeout(function(){ installAgent(); renderFor(norm(document.body.getAttribute("data-active-panel")||"hoy")); ocultarReposteoDifusion(); },1800);
+  setInterval(ocultarReposteoDifusion, 700);
   window.uiFixesRun=run;
   console.log("[ui-fixes] final limpio 2026-05-21h");
 })();
