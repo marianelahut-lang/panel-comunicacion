@@ -209,9 +209,87 @@
     if(hasFn('renderGuardias')&&!renderGuardias.__waGeneral){var rg=renderGuardias;window.renderGuardias=function(){var r=rg.apply(this,arguments);setTimeout(paint,0);return r};renderGuardias.__waGeneral=true}
     paint();setTimeout(paint,600);
   }
+  function installGoogleCalendarSync(){
+    if(!hasFn('syncGoogleCal')||syncGoogleCal.__driveAutoDeletePatch)return;
+    var original=syncGoogleCal;
+    window.syncGoogleCal=async function(){
+      var input=byId('gcUrl')?(byId('gcUrl').value||'').trim():'';
+      if(!input)return original.apply(this,arguments);
+      if(!hasFn('extractCalendarId')||!hasFn('buildICSUrl')||!hasFn('parseICS')||!hasFn('parseICSDate'))return original.apply(this,arguments);
+      var calId=extractCalendarId(input);
+      if(!calId)return original.apply(this,arguments);
+      var icsUrl=buildICSUrl(calId);
+      if(window.state&&state.config)state.config.googleCalendarId=calId;
+      try{if(hasFn('saveState'))saveState()}catch(e){}
+      if(byId('gcStat')){byId('gcStat').innerHTML='Descargando eventos...';byId('gcStat').style.color='var(--ac)'}
+      var proxies=[
+        function(u){return 'https://corsproxy.io/?'+encodeURIComponent(u)},
+        function(u){return 'https://api.allorigins.win/raw?url='+encodeURIComponent(u)},
+        function(u){return 'https://api.codetabs.com/v1/proxy/?quest='+u}
+      ];
+      var icsText=null,proxyUsed='';
+      for(var p=0;p<proxies.length;p++){
+        try{
+          var proxyUrl=proxies[p](icsUrl);
+          if(byId('gcStat'))byId('gcStat').textContent='Probando '+proxyUrl.split('/')[2]+'...';
+          var r=await fetch(proxyUrl);
+          if(r.ok){
+            var txt=await r.text();
+            if(txt.indexOf('BEGIN:VCALENDAR')>=0){icsText=txt;proxyUsed=proxyUrl.split('/')[2];break}
+          }
+        }catch(e){log('[drive-auto] gcal proxy',e)}
+      }
+      if(!icsText){
+        if(byId('gcStat'))byId('gcStat').innerHTML='<span style="color:var(--rd)">No se pudo descargar el calendario</span><br><span class="t-m">Verifica que este marcado como publico en Google Calendar.</span>';
+        if(hasFn('toast'))toast('Error al descargar','err');
+        return;
+      }
+      var icsEvents=parseICS(icsText),imported=0,updated=0,skipped=0,deleted=0,seen={};
+      icsEvents.forEach(function(ev){
+        var dt=parseICSDate(ev.DTSTART);
+        if(!dt||!dt.date){skipped++;return}
+        var rawId=ev.UID||(dt.date+'_'+dt.time+'_'+(ev.SUMMARY||'').slice(0,20));
+        var id='gcal_'+rawId;
+        seen[id]=true;
+        var data={
+          id:id,
+          date:dt.date,
+          time:dt.time,
+          desc:ev.SUMMARY||'(sin titulo)',
+          loc:ev.LOCATION||'',
+          type:'Agenda Intendente',
+          cover:false,
+          gcalSource:true,
+          gcalUID:ev.UID||rawId,
+          gcalCalendarId:calId,
+          gcalUpdated:ev.LAST_MODIFIED||ev.DTSTAMP||'',
+          notes:ev.DESCRIPTION||'',
+          updated:Date.now()
+        };
+        var exists=(state.events||[]).find(function(x){return x.id===id||(data.gcalUID&&x.gcalUID===data.gcalUID)});
+        if(exists){Object.assign(exists,data);updated++}
+        else {state.events.push(data);imported++}
+      });
+      var before=(state.events||[]).length;
+      state.events=(state.events||[]).filter(function(e){
+        var fromThisCalendar=!!(e&&e.gcalSource&&(e.gcalCalendarId===calId||!e.gcalCalendarId));
+        if(fromThisCalendar&&!seen[e.id])return false;
+        return true;
+      });
+      deleted=before-state.events.length;
+      try{if(Array.isArray(state._deletedIds)&&deleted){Object.keys(seen).forEach(function(id){var ix=state._deletedIds.indexOf(id);if(ix>=0)state._deletedIds.splice(ix,1)})}}catch(e){}
+      if(hasFn('saveState'))saveState();
+      try{if(hasFn('renderCal'))renderCal();if(hasFn('renderHoy'))renderHoy()}catch(e){}
+      if(byId('gcStat'))byId('gcStat').innerHTML='<span style="color:var(--gr)">Sincronizado via '+proxyUsed+'</span><br><span class="t-m">'+imported+' nuevos - '+updated+' actualizados - '+deleted+' borrados - '+skipped+' omitidos</span>';
+      if(byId('gcDel'))byId('gcDel').classList.remove('hide');
+      if(hasFn('toast'))toast('Calendario sincronizado','suc');
+      if(state.config&&state.config.googleAutoSync&&hasFn('scheduleAutoSync'))scheduleAutoSync();
+    };
+    syncGoogleCal.__driveAutoDeletePatch=true;
+  }
   function install(){
-    if(installed)return;installed=true;wrapSave();wrapStart();wrapTab();installDifusion();installSearch();installTask();installPub();installWhatsAppGeneral();
-    setTimeout(function(){installed=false;wrapSave();wrapStart();wrapTab();installDifusion();installSearch();installTask();installPub();installWhatsAppGeneral();refreshTasks();try{if(typeof currentUser==='string'&&currentUser)ensureCloud()}catch(e){}},1200);
+    if(installed)return;installed=true;wrapSave();wrapStart();wrapTab();installDifusion();installSearch();installTask();installPub();installWhatsAppGeneral();installGoogleCalendarSync();
+    setTimeout(function(){installed=false;wrapSave();wrapStart();wrapTab();installDifusion();installSearch();installTask();installPub();installWhatsAppGeneral();installGoogleCalendarSync();refreshTasks();try{if(typeof currentUser==='string'&&currentUser)ensureCloud()}catch(e){}},1200);
     log('[drive-auto] activo');
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
