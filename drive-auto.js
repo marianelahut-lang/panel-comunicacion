@@ -152,6 +152,7 @@
   }
   function installWhatsAppGeneral(){
     function today(){return hasFn('todayISO')?todayISO():new Date().toISOString().slice(0,10)}
+    function isoOffset(days){var d=new Date(today()+'T00:00:00');d.setDate(d.getDate()+(days||0));return d.toISOString().slice(0,10)}
     function labelDate(iso){try{return new Date(iso+'T00:00:00').toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})}catch(e){return iso}}
     function ag(id){try{return hasFn('getAg')?getAg(id):(state.agents||[]).find(function(a){return a.id===id})}catch(e){return null}}
     function activeTask(t){return t&&['pendiente','proceso','lista'].indexOf(String(t.status||'pendiente').toLowerCase())>=0}
@@ -161,13 +162,14 @@
     function lineTime(v){return v?String(v).slice(0,5)+' - ':''}
     function cleanItem(v){return String(v||'').replace(/\s+/g,' ').replace(/^\d{1,2}[:.]\d{2}\s*(hs\.?)?\s*/i,'').trim()}
     function names(ids){return (ids||[]).map(function(id){var a=ag(id);return a&&a.name}).filter(Boolean).join(', ')}
-    window.armarWhatsappGeneralHoy=function(){
-      var iso=today(),g=(state.guardias||{})[iso]||{},tit=g.titular?ag(g.titular):null,sop=g.soporte?ag(g.soporte):null;
+    window.armarWhatsappGeneralDia=function(offset){
+      var iso=isoOffset(offset||0),g=(state.guardias||{})[iso]||{},tit=g.titular?ag(g.titular):null,sop=g.soporte?ag(g.soporte):null;
       var evs=(state.events||[]).filter(function(e){return e.date===iso&&e.cover===true}).sort(function(a,b){return String(a.time||'99:99').localeCompare(String(b.time||'99:99'))});
       var pubs=(state.publicaciones||[]).filter(function(p){return p.date===iso&&goesGuard(iso,p.time)}).sort(function(a,b){return String(a.time||'99:99').localeCompare(String(b.time||'99:99'))});
       var ents=(state.entrevistas||[]).filter(function(e){return e.date===iso&&goesGuard(iso,e.time)}).sort(function(a,b){return String(a.time||'99:99').localeCompare(String(b.time||'99:99'))});
-      var urg=(state.tasks||[]).filter(urgentTask).sort(function(a,b){return String(a.due||'9999-12-31').localeCompare(String(b.due||'9999-12-31'))}).slice(0,8);
-      var msg='Buen dia equipo. Les comparto el resumen operativo de hoy, '+labelDate(iso)+'.\n\n';
+      var urg=(state.tasks||[]).filter(urgentTask).sort(function(a,b){return String(a.due||'9999-12-31').localeCompare(String(b.due||'9999-12-31'))}).slice(0,4);
+      var when=(offset||0)===0?'de hoy':((offset||0)===1?'de manana':'de pasado manana');
+      var msg='Buen dia equipo. Les comparto el resumen operativo '+when+', '+labelDate(iso)+'.\n\n';
       msg+='*Guardia de hoy*\n';
       msg+='- Titular: '+(tit?tit.name:'sin asignar')+'\n';
       msg+='- Soporte: '+(sop?sop.name:'sin asignar')+'\n\n';
@@ -185,16 +187,22 @@
       msg+='\nCualquier cambio durante el dia, actualizamos por este grupo.';
       return msg;
     };
-    window.enviarWhatsappGeneralHoy=function(){
-      var msg=armarWhatsappGeneralHoy();
+    window.armarWhatsappGeneralHoy=function(){return armarWhatsappGeneralDia(0)};
+    window.enviarWhatsappGeneralDia=function(offset){
+      var msg=armarWhatsappGeneralDia(offset||0);
       try{navigator.clipboard&&navigator.clipboard.writeText(msg).then(function(){if(hasFn('toast'))toast('Resumen copiado al portapapeles','suc')})}catch(e){}
       if(navigator.share){navigator.share({title:'Resumen de hoy',text:msg}).catch(function(e){if(!e||e.name!=='AbortError')window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank')});return}
       window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
     };
+    window.enviarWhatsappGeneralHoy=function(){return enviarWhatsappGeneralDia(0)};
     function addButton(host){
       if(!host||host.querySelector('[data-wa-general]'))return;
-      var b=document.createElement('button');b.type='button';b.className='btn btn-w btn-s ui-btn';b.setAttribute('data-wa-general','1');b.textContent='WhatsApp general';b.onclick=function(e){e.preventDefault();e.stopPropagation();enviarWhatsappGeneralHoy()};
-      host.appendChild(b);
+      var wrap=document.createElement('span');wrap.setAttribute('data-wa-general','1');wrap.style.cssText='display:inline-flex;gap:6px;flex-wrap:wrap';
+      [['Hoy',0],['Manana',1],['Pasado',2]].forEach(function(item){
+        var b=document.createElement('button');b.type='button';b.className='btn btn-w btn-s ui-btn';b.textContent='WA '+item[0];b.onclick=function(e){e.preventDefault();e.stopPropagation();enviarWhatsappGeneralDia(item[1])};
+        wrap.appendChild(b);
+      });
+      host.appendChild(wrap);
     }
     function paint(){addButton(document.querySelector('#p-hoy .ui-hoy-head'));addButton(document.querySelector('#v-hoy .ch'));addButton(document.querySelector('#v-hoy .hero'));addButton(document.querySelector('#v-guardias .ch'))}
     if(hasFn('renderHoy')&&!renderHoy.__waGeneral){var rh=renderHoy;window.renderHoy=function(){var r=rh.apply(this,arguments);setTimeout(paint,0);return r};renderHoy.__waGeneral=true}
