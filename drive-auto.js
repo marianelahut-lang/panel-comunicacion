@@ -159,27 +159,30 @@
     function accText(p){return hasFn('pubAccountsText')?pubAccountsText(p):String(p.account||((p.accounts||[]).join(', '))||'')}
     function goesGuard(iso,time){return hasFn('pasaAGuardia')?pasaAGuardia(iso,time):(hasFn('isPM')?isPM(time):parseInt(String(time||'').split(':')[0],10)>=15)}
     function lineTime(v){return v?String(v).slice(0,5)+' - ':''}
+    function cleanItem(v){return String(v||'').replace(/\s+/g,' ').replace(/^\d{1,2}[:.]\d{2}\s*(hs\.?)?\s*/i,'').trim()}
+    function names(ids){return (ids||[]).map(function(id){var a=ag(id);return a&&a.name}).filter(Boolean).join(', ')}
     window.armarWhatsappGeneralHoy=function(){
       var iso=today(),g=(state.guardias||{})[iso]||{},tit=g.titular?ag(g.titular):null,sop=g.soporte?ag(g.soporte):null;
       var evs=(state.events||[]).filter(function(e){return e.date===iso&&e.cover===true}).sort(function(a,b){return String(a.time||'99:99').localeCompare(String(b.time||'99:99'))});
       var pubs=(state.publicaciones||[]).filter(function(p){return p.date===iso&&goesGuard(iso,p.time)}).sort(function(a,b){return String(a.time||'99:99').localeCompare(String(b.time||'99:99'))});
       var ents=(state.entrevistas||[]).filter(function(e){return e.date===iso&&goesGuard(iso,e.time)}).sort(function(a,b){return String(a.time||'99:99').localeCompare(String(b.time||'99:99'))});
-      var urg=(state.tasks||[]).filter(urgentTask).sort(function(a,b){return String(a.due||'9999-12-31').localeCompare(String(b.due||'9999-12-31'))}).slice(0,12);
-      var msg='*Comunicacion - resumen de hoy*\\n'+labelDate(iso)+'\\n\\n';
-      msg+='*Guardia*\\n';
-      msg+='Titular: '+(tit?tit.name:'sin asignar')+'\\n';
-      msg+='Soporte: '+(sop?sop.name:'sin asignar')+'\\n\\n';
-      msg+='*Se cubre hoy*\\n';
-      if(evs.length)evs.forEach(function(e){msg+='- '+lineTime(e.time)+(e.desc||'Actividad')+(e.loc?' ('+e.loc+')':'')+'\\n'});
-      else msg+='- Sin actividades tildadas con Cubrir.\\n';
+      var urg=(state.tasks||[]).filter(urgentTask).sort(function(a,b){return String(a.due||'9999-12-31').localeCompare(String(b.due||'9999-12-31'))}).slice(0,8);
+      var msg='Buen dia equipo. Les comparto el resumen operativo de hoy, '+labelDate(iso)+'.\n\n';
+      msg+='*Guardia de hoy*\n';
+      msg+='- Titular: '+(tit?tit.name:'sin asignar')+'\n';
+      msg+='- Soporte: '+(sop?sop.name:'sin asignar')+'\n\n';
+      msg+='*Coberturas confirmadas*\n';
+      if(evs.length)evs.forEach(function(e){msg+='- '+lineTime(e.time)+cleanItem(e.desc||'Actividad')+(e.loc?' | '+e.loc:'')+'\n'});
+      else msg+='- Por ahora no hay actividades marcadas con Cubrir.\n';
       if(pubs.length||ents.length){
-        msg+='\\n*Tambien pasa a guardia*\\n';
-        pubs.forEach(function(p){msg+='- '+lineTime(p.time)+(p.desc||'Publicacion')+(accText(p)?' ['+accText(p)+']':'')+'\\n'});
-        ents.forEach(function(e){msg+='- '+lineTime(e.time)+(e.func||'Entrevista')+(e.medio?' con '+e.medio:'')+'\\n'});
+        msg+='\n*Agenda que pasa a guardia*\n';
+        pubs.forEach(function(p){msg+='- '+lineTime(p.time)+cleanItem(p.desc||'Publicacion')+(accText(p)?' | '+accText(p):'')+'\n'});
+        ents.forEach(function(e){msg+='- '+lineTime(e.time)+cleanItem(e.func||'Entrevista')+(e.medio?' con '+e.medio:'')+'\n'});
       }
-      msg+='\\n*Urgentes*\\n';
-      if(urg.length)urg.forEach(function(t){var names=(t.assignees||[]).map(function(id){var a=ag(id);return a&&a.name}).filter(Boolean).join(', ');msg+='- '+(t.desc||'Tarea')+(names?' - '+names:'')+(t.due?' (vence '+(hasFn('fmtDate')?fmtDate(t.due):t.due)+')':'')+'\\n'});
-      else msg+='- Sin tareas urgentes activas.\\n';
+      msg+='\n*Prioridades urgentes*\n';
+      if(urg.length)urg.forEach(function(t,i){var resp=names(t.assignees);msg+=(i+1)+'. '+cleanItem(t.desc||'Tarea')+(resp?' | Responsable: '+resp:'')+(t.due?' | Vence: '+(hasFn('fmtDate')?fmtDate(t.due):t.due):'')+'\n'});
+      else msg+='- No hay tareas urgentes activas.\n';
+      msg+='\nCualquier cambio durante el dia, actualizamos por este grupo.';
       return msg;
     };
     window.enviarWhatsappGeneralHoy=function(){
