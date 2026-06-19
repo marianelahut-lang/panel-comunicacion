@@ -151,6 +151,7 @@
     if(hasFn('savePub')&&!savePub.__collabPatch){var save=savePub;window.savePub=function(){var id=byId('pbId')?byId('pbId').value:'',collab=!!(byId('pbCollab')&&byId('pbCollab').checked),r=save.apply(this,arguments);setTimeout(function(){var p=id?(state.publicaciones||[]).find(function(x){return x.id===id}):(state.publicaciones||[])[(state.publicaciones||[]).length-1];if(p&&p.collaborative!==collab){p.collaborative=collab;p.updated=Date.now();saveState();if(hasFn('renderAll'))renderAll()}},0);return r};savePub.__collabPatch=true}
   }
   function installWhatsAppGeneral(){
+    var waGeneralPhone='5492983569618';
     function today(){return hasFn('todayISO')?todayISO():new Date().toISOString().slice(0,10)}
     function isoOffset(days){var d=new Date(today()+'T00:00:00');d.setDate(d.getDate()+(days||0));return d.toISOString().slice(0,10)}
     function labelDate(iso){try{return new Date(iso+'T00:00:00').toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})}catch(e){return iso}}
@@ -191,8 +192,7 @@
     window.enviarWhatsappGeneralDia=function(offset){
       var msg=armarWhatsappGeneralDia(offset||0);
       try{navigator.clipboard&&navigator.clipboard.writeText(msg).then(function(){if(hasFn('toast'))toast('Resumen copiado al portapapeles','suc')})}catch(e){}
-      if(navigator.share){navigator.share({title:'Resumen de hoy',text:msg}).catch(function(e){if(!e||e.name!=='AbortError')window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank')});return}
-      window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+      window.open('https://wa.me/'+waGeneralPhone+'?text='+encodeURIComponent(msg),'_blank');
     };
     window.enviarWhatsappGeneralHoy=function(){return enviarWhatsappGeneralDia(0)};
     function addButton(host){
