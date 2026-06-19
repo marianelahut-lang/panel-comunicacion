@@ -150,9 +150,57 @@
     if(hasFn('prepPub')&&!prepPub.__collabPatch){var prep=prepPub;window.prepPub=function(p){var r=prep.apply(this,arguments);setTimeout(function(){if(!byId('pbCollab')&&byId('pbResp')){var label=document.createElement('label');label.style.cssText='display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--bd);border-radius:10px;background:var(--bg-soft);font-size:13px;font-weight:700;color:var(--tx);cursor:pointer;margin-bottom:14px';label.innerHTML='<input type="checkbox" id="pbCollab" style="width:16px;height:16px;accent-color:var(--ac)"> Publicacion colaborativa';var fld=byId('pbResp').closest?byId('pbResp').closest('.fld'):byId('pbResp').parentNode;if(fld&&fld.parentNode)fld.parentNode.insertBefore(label,fld.nextSibling)}if(byId('pbCollab'))byId('pbCollab').checked=!!(p&&p.collaborative)},0);return r};prepPub.__collabPatch=true}
     if(hasFn('savePub')&&!savePub.__collabPatch){var save=savePub;window.savePub=function(){var id=byId('pbId')?byId('pbId').value:'',collab=!!(byId('pbCollab')&&byId('pbCollab').checked),r=save.apply(this,arguments);setTimeout(function(){var p=id?(state.publicaciones||[]).find(function(x){return x.id===id}):(state.publicaciones||[])[(state.publicaciones||[]).length-1];if(p&&p.collaborative!==collab){p.collaborative=collab;p.updated=Date.now();saveState();if(hasFn('renderAll'))renderAll()}},0);return r};savePub.__collabPatch=true}
   }
+  function installWhatsAppGeneral(){
+    function today(){return hasFn('todayISO')?todayISO():new Date().toISOString().slice(0,10)}
+    function labelDate(iso){try{return new Date(iso+'T00:00:00').toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})}catch(e){return iso}}
+    function ag(id){try{return hasFn('getAg')?getAg(id):(state.agents||[]).find(function(a){return a.id===id})}catch(e){return null}}
+    function activeTask(t){return t&&['pendiente','proceso','lista'].indexOf(String(t.status||'pendiente').toLowerCase())>=0}
+    function urgentTask(t){var tags=(t.tags||[]).join(' ').toLowerCase();return activeTask(t)&&(String(t.priority||'').toLowerCase()==='alta'||tags.indexOf('urgente')>=0||tags.indexOf('urgencia')>=0)}
+    function accText(p){return hasFn('pubAccountsText')?pubAccountsText(p):String(p.account||((p.accounts||[]).join(', '))||'')}
+    function goesGuard(iso,time){return hasFn('pasaAGuardia')?pasaAGuardia(iso,time):(hasFn('isPM')?isPM(time):parseInt(String(time||'').split(':')[0],10)>=15)}
+    function lineTime(v){return v?String(v).slice(0,5)+' - ':''}
+    window.armarWhatsappGeneralHoy=function(){
+      var iso=today(),g=(state.guardias||{})[iso]||{},tit=g.titular?ag(g.titular):null,sop=g.soporte?ag(g.soporte):null;
+      var evs=(state.events||[]).filter(function(e){return e.date===iso&&e.cover===true}).sort(function(a,b){return String(a.time||'99:99').localeCompare(String(b.time||'99:99'))});
+      var pubs=(state.publicaciones||[]).filter(function(p){return p.date===iso&&goesGuard(iso,p.time)}).sort(function(a,b){return String(a.time||'99:99').localeCompare(String(b.time||'99:99'))});
+      var ents=(state.entrevistas||[]).filter(function(e){return e.date===iso&&goesGuard(iso,e.time)}).sort(function(a,b){return String(a.time||'99:99').localeCompare(String(b.time||'99:99'))});
+      var urg=(state.tasks||[]).filter(urgentTask).sort(function(a,b){return String(a.due||'9999-12-31').localeCompare(String(b.due||'9999-12-31'))}).slice(0,12);
+      var msg='*Comunicacion - resumen de hoy*\\n'+labelDate(iso)+'\\n\\n';
+      msg+='*Guardia*\\n';
+      msg+='Titular: '+(tit?tit.name:'sin asignar')+'\\n';
+      msg+='Soporte: '+(sop?sop.name:'sin asignar')+'\\n\\n';
+      msg+='*Se cubre hoy*\\n';
+      if(evs.length)evs.forEach(function(e){msg+='- '+lineTime(e.time)+(e.desc||'Actividad')+(e.loc?' ('+e.loc+')':'')+'\\n'});
+      else msg+='- Sin actividades tildadas con Cubrir.\\n';
+      if(pubs.length||ents.length){
+        msg+='\\n*Tambien pasa a guardia*\\n';
+        pubs.forEach(function(p){msg+='- '+lineTime(p.time)+(p.desc||'Publicacion')+(accText(p)?' ['+accText(p)+']':'')+'\\n'});
+        ents.forEach(function(e){msg+='- '+lineTime(e.time)+(e.func||'Entrevista')+(e.medio?' con '+e.medio:'')+'\\n'});
+      }
+      msg+='\\n*Urgentes*\\n';
+      if(urg.length)urg.forEach(function(t){var names=(t.assignees||[]).map(function(id){var a=ag(id);return a&&a.name}).filter(Boolean).join(', ');msg+='- '+(t.desc||'Tarea')+(names?' - '+names:'')+(t.due?' (vence '+(hasFn('fmtDate')?fmtDate(t.due):t.due)+')':'')+'\\n'});
+      else msg+='- Sin tareas urgentes activas.\\n';
+      return msg;
+    };
+    window.enviarWhatsappGeneralHoy=function(){
+      var msg=armarWhatsappGeneralHoy();
+      try{navigator.clipboard&&navigator.clipboard.writeText(msg).then(function(){if(hasFn('toast'))toast('Resumen copiado al portapapeles','suc')})}catch(e){}
+      if(navigator.share){navigator.share({title:'Resumen de hoy',text:msg}).catch(function(e){if(!e||e.name!=='AbortError')window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank')});return}
+      window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+    };
+    function addButton(host){
+      if(!host||host.querySelector('[data-wa-general]'))return;
+      var b=document.createElement('button');b.type='button';b.className='btn btn-w btn-s ui-btn';b.setAttribute('data-wa-general','1');b.textContent='WhatsApp general';b.onclick=function(e){e.preventDefault();e.stopPropagation();enviarWhatsappGeneralHoy()};
+      host.appendChild(b);
+    }
+    function paint(){addButton(document.querySelector('#p-hoy .ui-hoy-head'));addButton(document.querySelector('#v-hoy .ch'));addButton(document.querySelector('#v-hoy .hero'));addButton(document.querySelector('#v-guardias .ch'))}
+    if(hasFn('renderHoy')&&!renderHoy.__waGeneral){var rh=renderHoy;window.renderHoy=function(){var r=rh.apply(this,arguments);setTimeout(paint,0);return r};renderHoy.__waGeneral=true}
+    if(hasFn('renderGuardias')&&!renderGuardias.__waGeneral){var rg=renderGuardias;window.renderGuardias=function(){var r=rg.apply(this,arguments);setTimeout(paint,0);return r};renderGuardias.__waGeneral=true}
+    paint();setTimeout(paint,600);
+  }
   function install(){
-    if(installed)return;installed=true;wrapSave();wrapStart();wrapTab();installDifusion();installSearch();installTask();installPub();
-    setTimeout(function(){installed=false;wrapSave();wrapStart();wrapTab();installDifusion();installSearch();installTask();installPub();refreshTasks();try{if(typeof currentUser==='string'&&currentUser)ensureCloud()}catch(e){}},1200);
+    if(installed)return;installed=true;wrapSave();wrapStart();wrapTab();installDifusion();installSearch();installTask();installPub();installWhatsAppGeneral();
+    setTimeout(function(){installed=false;wrapSave();wrapStart();wrapTab();installDifusion();installSearch();installTask();installPub();installWhatsAppGeneral();refreshTasks();try{if(typeof currentUser==='string'&&currentUser)ensureCloud()}catch(e){}},1200);
     log('[drive-auto] activo');
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
