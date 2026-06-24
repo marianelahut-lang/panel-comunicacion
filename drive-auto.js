@@ -22,6 +22,60 @@
     }
     function getSavedPhone(label){var map=readStore();return map[norm(label)]||''}
     function savePhone(label, phone){var map=readStore();map[norm(label)]=String(phone||'').replace(/\D/g,'');writeStore(map)}
+    function taskTime(t){
+      var vals=[t&&t.created,t&&t.createdAt,t&&t.created_at,t&&t.date,t&&t.fecha,t&&t.updated,t&&t.updatedAt,t&&t.updated_at,t&&t.due];
+      for(var i=0;i<vals.length;i++){
+        var v=vals[i];
+        if(!v)continue;
+        if(typeof v==='number')return v;
+        var d=Date.parse(String(v));
+        if(isFinite(d))return d;
+      }
+      var m=String(t&&t.id||'').match(/(\d{12,})/);
+      return m?Number(m[1]):0;
+    }
+    function statusText(status){
+      var s=String(status||'pendiente').toLowerCase();
+      if(s==='proceso')return 'En proceso';
+      if(s==='pendiente')return 'Pendiente';
+      return status||'Pendiente';
+    }
+    function dueText(t){
+      if(!t||!t.due)return '';
+      try{return hasFn('fmtDate')?' | vence '+fmtDate(t.due):' | vence '+t.due}catch(e){return ' | vence '+t.due}
+    }
+    function agentTaskIds(sel,a,label){
+      var ids=[];
+      if(sel&&sel.value)ids.push(sel.value);
+      if(a&&a.id)ids.push(a.id);
+      if(a&&a.name)ids.push(a.name);
+      if(label)ids.push(label);
+      return ids.map(String).filter(function(v,i,arr){return v&&arr.indexOf(v)===i});
+    }
+    function taskBelongsToAgent(t,ids,label){
+      var ass=t&&Array.isArray(t.assignees)?t.assignees:[];
+      if(ass.some(function(x){return ids.indexOf(String(x))>=0 || norm(x)===norm(label)}))return true;
+      if(t&&t.assignee&&(ids.indexOf(String(t.assignee))>=0 || norm(t.assignee)===norm(label)))return true;
+      if(t&&t.responsable&&(ids.indexOf(String(t.responsable))>=0 || norm(t.responsable)===norm(label)))return true;
+      return false;
+    }
+    function getTasksForAgent(sel,a,label){
+      var ids=agentTaskIds(sel,a,label);
+      return ((window.state&&state.tasks)||[]).filter(function(t){
+        var st=String(t&&t.status||'pendiente').toLowerCase();
+        if(st!=='pendiente'&&st!=='proceso')return false;
+        return taskBelongsToAgent(t,ids,label);
+      }).sort(function(x,y){return taskTime(x)-taskTime(y)});
+    }
+    function buildTasksMessage(name,tasks){
+      var msg='Hola '+(name||'')+'! Te paso tus tareas pendientes y en proceso, ordenadas de mas viejas a mas nuevas:\n\n';
+      tasks.forEach(function(t,i){
+        var desc=String(t&&t.desc||t&&t.title||'(sin descripcion)').replace(/\s+/g,' ').trim();
+        msg+=(i+1)+'. ['+statusText(t.status)+'] '+desc+dueText(t)+'\n';
+      });
+      msg+='\nGracias!';
+      return msg;
+    }
     function update(){
       var sel=byId('fAg'),btn=byId('fAgWa');
       if(!sel||!btn)return;
@@ -29,7 +83,7 @@
       btn.disabled=false;
       btn.removeAttribute('disabled');
       btn.style.opacity='';
-      btn.title=!sel.value?'Elegi un agente':phone?'Enviar WhatsApp a '+(a&&a.name||label):'Cargar WhatsApp de '+(a&&a.name||label);
+      btn.title=!sel.value?'Elegi un agente':phone?'Enviar tareas por WhatsApp a '+(a&&a.name||label):'Cargar WhatsApp de '+(a&&a.name||label);
       btn.textContent=sel.value?'WA '+(a&&a.name||label||'Agente'):'WA';
     }
     function saveAgentPhone(a, label, phone){
@@ -44,18 +98,21 @@
       update();
     }
     function send(){
-      var sel=byId('fAg'),label=selectedLabel(sel),a=getAgentFromSelect(sel);
+      var sel=byId('fAg'),label=selectedLabel(sel),a=getAgentFromSelect(sel),name=a&&a.name||label;
       if(!sel||!sel.value){if(hasFn('toast'))toast('Elegi un agente','inf');return}
       var phone=a&&a.phone?a.phone:getSavedPhone(label);
       if(!phone){
-        phone=prompt('WhatsApp de '+(a&&a.name||label||'la agente')+' con codigo pais, por ejemplo 5492983...',phone||'');
+        phone=prompt('WhatsApp de '+(name||'la agente')+' con codigo pais, por ejemplo 5492983...',phone||'');
         if(!phone)return;
         phone=String(phone).replace(/\D/g,'');
         if(!phone){if(hasFn('toast'))toast('Numero invalido','err');return}
         saveAgentPhone(a,label,phone);
       }
-      if(hasFn('waOpen'))waOpen(phone,'');
-      else window.open('https://wa.me/'+String(phone||'').replace(/\D/g,''),'_blank');
+      var tasks=getTasksForAgent(sel,a,label);
+      if(!tasks.length){if(hasFn('toast'))toast('No hay tareas pendientes o en proceso para '+(name||'esta agente'),'inf');return}
+      var msg=buildTasksMessage(name,tasks);
+      if(hasFn('waOpen'))waOpen(phone,msg);
+      else window.open('https://wa.me/'+String(phone||'').replace(/\D/g,'')+'?text='+encodeURIComponent(msg),'_blank');
     }
     function paint(){
       var sel=byId('fAg');
