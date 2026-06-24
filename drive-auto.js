@@ -2,50 +2,60 @@
 (function(){
   'use strict';
   var originalUrl='https://cdn.jsdelivr.net/gh/marianelahut-lang/panel-comunicacion@3b0f64417298eb60c3dfc8fe49f521538f49a588/drive-auto.js';
+  var WA_STORE='pcomTA_wa_filtro_agentes';
   function byId(id){return document.getElementById(id)}
   function hasFn(name){return typeof window[name]==='function'}
   function norm(v){return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim()}
+  function readStore(){try{return JSON.parse(localStorage.getItem(WA_STORE)||'{}')}catch(e){return {}}}
+  function writeStore(map){try{localStorage.setItem(WA_STORE,JSON.stringify(map||{}))}catch(e){}}
   function installAgentWhatsappFilter(){
+    function selectedLabel(sel){return sel&&sel.selectedOptions&&sel.selectedOptions[0]?sel.selectedOptions[0].textContent.trim():''}
     function getAgentFromSelect(sel){
       try{
         var list=(window.state&&state.agents)||[];
         var id=sel&&sel.value;
         var a=id&&hasFn('getAg')?getAg(id):list.find(function(x){return x.id===id});
         if(a)return a;
-        var label=sel&&sel.selectedOptions&&sel.selectedOptions[0]?sel.selectedOptions[0].textContent:'';
+        var label=selectedLabel(sel);
         return list.find(function(x){return norm(x.name)===norm(label)})||null;
       }catch(e){return null}
     }
+    function getSavedPhone(label){var map=readStore();return map[norm(label)]||''}
+    function savePhone(label, phone){var map=readStore();map[norm(label)]=String(phone||'').replace(/\D/g,'');writeStore(map)}
     function update(){
       var sel=byId('fAg'),btn=byId('fAgWa');
       if(!sel||!btn)return;
-      var a=getAgentFromSelect(sel);
+      var label=selectedLabel(sel),a=getAgentFromSelect(sel),phone=a&&a.phone?a.phone:getSavedPhone(label);
       btn.disabled=false;
       btn.removeAttribute('disabled');
       btn.style.opacity='';
-      btn.title=!sel.value?'Elegi un agente':a&&a.phone?'Enviar WhatsApp a '+a.name:a?'Cargar WhatsApp de '+a.name:'Buscar agente seleccionado';
-      btn.textContent=a?'WA '+(a.name||'WhatsApp'):'WA';
+      btn.title=!sel.value?'Elegi un agente':phone?'Enviar WhatsApp a '+(a&&a.name||label):'Cargar WhatsApp de '+(a&&a.name||label);
+      btn.textContent=sel.value?'WA '+(a&&a.name||label||'Agente'):'WA';
     }
-    function saveAgentPhone(a, phone){
-      a.phone=String(phone||'').replace(/\D/g,'');
-      a.updated=Date.now();
-      try{if(hasFn('saveState'))saveState();else localStorage.setItem('pcomTA_v6',JSON.stringify(state))}catch(e){}
-      try{if(hasFn('renderEquipo'))renderEquipo()}catch(e){}
+    function saveAgentPhone(a, label, phone){
+      phone=String(phone||'').replace(/\D/g,'');
+      if(a){
+        a.phone=phone;
+        a.updated=Date.now();
+        try{if(hasFn('saveState'))saveState();else localStorage.setItem('pcomTA_v6',JSON.stringify(state))}catch(e){}
+        try{if(hasFn('renderEquipo'))renderEquipo()}catch(e){}
+      }
+      savePhone(label,phone);
       update();
     }
     function send(){
-      var sel=byId('fAg'),a=getAgentFromSelect(sel);
+      var sel=byId('fAg'),label=selectedLabel(sel),a=getAgentFromSelect(sel);
       if(!sel||!sel.value){if(hasFn('toast'))toast('Elegi un agente','inf');return}
-      if(!a){if(hasFn('toast'))toast('No encontre esa agente en Equipo','err');return}
-      if(!a.phone){
-        var phone=prompt('WhatsApp de '+(a.name||'la agente')+' con codigo pais, por ejemplo 5492983...',a.phone||'');
+      var phone=a&&a.phone?a.phone:getSavedPhone(label);
+      if(!phone){
+        phone=prompt('WhatsApp de '+(a&&a.name||label||'la agente')+' con codigo pais, por ejemplo 5492983...',phone||'');
         if(!phone)return;
         phone=String(phone).replace(/\D/g,'');
         if(!phone){if(hasFn('toast'))toast('Numero invalido','err');return}
-        saveAgentPhone(a,phone);
+        saveAgentPhone(a,label,phone);
       }
-      if(hasFn('waOpen'))waOpen(a.phone,'');
-      else window.open('https://wa.me/'+String(a.phone||'').replace(/\D/g,''),'_blank');
+      if(hasFn('waOpen'))waOpen(phone,'');
+      else window.open('https://wa.me/'+String(phone||'').replace(/\D/g,''),'_blank');
     }
     function paint(){
       var sel=byId('fAg');
