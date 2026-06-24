@@ -12,15 +12,28 @@
       var sel=byId('fAg'),btn=byId('fAgWa');
       if(!sel||!btn)return;
       var a=sel.value?getAgent(sel.value):null;
-      btn.disabled=!a||!a.phone;
+      btn.disabled=!a;
       btn.style.opacity=btn.disabled?'.45':'';
-      btn.title=!a?'Elegi un agente':!a.phone?'Sin WhatsApp cargado':'Enviar WhatsApp a '+a.name;
+      btn.title=!a?'Elegi un agente':a.phone?'Enviar WhatsApp a '+a.name:'Cargar WhatsApp de '+a.name;
       btn.textContent=a?'WA '+(a.name||'WhatsApp'):'WA';
+    }
+    function saveAgentPhone(a, phone){
+      a.phone=String(phone||'').replace(/\D/g,'');
+      a.updated=Date.now();
+      try{if(hasFn('saveState'))saveState();else localStorage.setItem('pcomTA_v6',JSON.stringify(state))}catch(e){}
+      try{if(hasFn('renderEquipo'))renderEquipo()}catch(e){}
+      update();
     }
     function send(){
       var sel=byId('fAg'),a=sel&&sel.value?getAgent(sel.value):null;
       if(!a){if(hasFn('toast'))toast('Elegi un agente','inf');return}
-      if(!a.phone){if(hasFn('toast'))toast('Sin WhatsApp','err');return}
+      if(!a.phone){
+        var phone=prompt('WhatsApp de '+(a.name||'la agente')+' con codigo pais, por ejemplo 5492983...',a.phone||'');
+        if(!phone)return;
+        phone=String(phone).replace(/\D/g,'');
+        if(!phone){if(hasFn('toast'))toast('Numero invalido','err');return}
+        saveAgentPhone(a,phone);
+      }
       if(hasFn('waOpen'))waOpen(a.phone,'');
       else window.open('https://wa.me/'+String(a.phone||'').replace(/\D/g,''),'_blank');
     }
