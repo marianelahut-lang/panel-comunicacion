@@ -4,17 +4,26 @@
   var originalUrl='https://cdn.jsdelivr.net/gh/marianelahut-lang/panel-comunicacion@3b0f64417298eb60c3dfc8fe49f521538f49a588/drive-auto.js';
   function byId(id){return document.getElementById(id)}
   function hasFn(name){return typeof window[name]==='function'}
+  function norm(v){return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim()}
   function installAgentWhatsappFilter(){
-    function getAgent(id){
-      try{return hasFn('getAg')?getAg(id):(window.state&&state.agents||[]).find(function(a){return a.id===id})}catch(e){return null}
+    function getAgentFromSelect(sel){
+      try{
+        var list=(window.state&&state.agents)||[];
+        var id=sel&&sel.value;
+        var a=id&&hasFn('getAg')?getAg(id):list.find(function(x){return x.id===id});
+        if(a)return a;
+        var label=sel&&sel.selectedOptions&&sel.selectedOptions[0]?sel.selectedOptions[0].textContent:'';
+        return list.find(function(x){return norm(x.name)===norm(label)})||null;
+      }catch(e){return null}
     }
     function update(){
       var sel=byId('fAg'),btn=byId('fAgWa');
       if(!sel||!btn)return;
-      var a=sel.value?getAgent(sel.value):null;
-      btn.disabled=!a;
-      btn.style.opacity=btn.disabled?'.45':'';
-      btn.title=!a?'Elegi un agente':a.phone?'Enviar WhatsApp a '+a.name:'Cargar WhatsApp de '+a.name;
+      var a=getAgentFromSelect(sel);
+      btn.disabled=false;
+      btn.removeAttribute('disabled');
+      btn.style.opacity='';
+      btn.title=!sel.value?'Elegi un agente':a&&a.phone?'Enviar WhatsApp a '+a.name:a?'Cargar WhatsApp de '+a.name:'Buscar agente seleccionado';
       btn.textContent=a?'WA '+(a.name||'WhatsApp'):'WA';
     }
     function saveAgentPhone(a, phone){
@@ -25,8 +34,9 @@
       update();
     }
     function send(){
-      var sel=byId('fAg'),a=sel&&sel.value?getAgent(sel.value):null;
-      if(!a){if(hasFn('toast'))toast('Elegi un agente','inf');return}
+      var sel=byId('fAg'),a=getAgentFromSelect(sel);
+      if(!sel||!sel.value){if(hasFn('toast'))toast('Elegi un agente','inf');return}
+      if(!a){if(hasFn('toast'))toast('No encontre esa agente en Equipo','err');return}
       if(!a.phone){
         var phone=prompt('WhatsApp de '+(a.name||'la agente')+' con codigo pais, por ejemplo 5492983...',a.phone||'');
         if(!phone)return;
@@ -58,6 +68,7 @@
     paint();
     setTimeout(paint,600);
     setTimeout(paint,1600);
+    setInterval(update,2000);
   }
   function loadOriginal(){
     var s=document.createElement('script');
