@@ -105,12 +105,95 @@
     setTimeout(paint,1600);
     setInterval(update,2000);
   }
+  function installTaskModalWhatsapp(){
+    function selectedAgents(){
+      var sel=byId('tkAsg');
+      var list=(window.state&&state.agents)||[];
+      if(!sel)return [];
+      return Array.prototype.slice.call(sel.selectedOptions).map(function(o){
+        var a=hasFn('getAg')?getAg(o.value):list.find(function(x){return x.id===o.value});
+        if(a)return a;
+        return list.find(function(x){return norm(x.name)===norm(o.textContent)})||{id:o.value,name:o.textContent||''};
+      }).filter(Boolean);
+    }
+    function savePhoneToAgent(agent, phone){
+      phone=String(phone||'').replace(/\D/g,'');
+      if(!agent||!phone)return phone;
+      agent.phone=phone;
+      agent.updated=Date.now();
+      try{if(hasFn('saveState'))saveState();else localStorage.setItem('pcomTA_v6',JSON.stringify(state))}catch(e){}
+      return phone;
+    }
+    function taskMessage(){
+      var desc=(byId('tkDesc')&&byId('tkDesc').value||'').trim();
+      var pr=byId('tkPr')?byId('tkPr').value:'Media';
+      var st=byId('tkSt')&&hasFn('statusLabel')?statusLabel(byId('tkSt').value):(byId('tkSt')?byId('tkSt').value:'Pendiente');
+      var due=byId('tkDue')&&byId('tkDue').value;
+      var tags=(byId('tkTags')&&byId('tkTags').value||'').trim();
+      var notes=(byId('tkNotes')&&byId('tkNotes').value||'').trim();
+      var id=(byId('tkId')&&byId('tkId').value||'').trim();
+      var dueText=due&&hasFn('fmtDate')?fmtDate(due):due;
+      var msg='Hola! Te paso esta tarea:\n\n*'+desc+'*\n\n';
+      msg+='Prioridad: '+(pr||'Media')+'\n';
+      msg+='Estado: '+(st||'Pendiente')+'\n';
+      if(dueText)msg+='Vencimiento: '+dueText+'\n';
+      if(tags)msg+='Etiquetas: '+tags+'\n';
+      if(notes)msg+='\nObservaciones / link:\n'+notes+'\n';
+      if(id)msg+='\nID tarea: '+id;
+      return msg;
+    }
+    function sendTask(){
+      var desc=(byId('tkDesc')&&byId('tkDesc').value||'').trim();
+      if(!desc){if(hasFn('toast'))toast('Completa la descripcion antes de enviar','err');return}
+      var agents=selectedAgents();
+      if(!agents.length){if(hasFn('toast'))toast('Selecciona al menos un responsable','err');return}
+      var ready=[];
+      agents.forEach(function(a){
+        var phone=a&&a.phone?String(a.phone).replace(/\D/g,''):'';
+        if(!phone&&agents.length===1){
+          phone=prompt('WhatsApp de '+(a.name||'la agente')+' con codigo pais, por ejemplo 5492983...','')||'';
+          phone=String(phone).replace(/\D/g,'');
+          if(phone)savePhoneToAgent(a,phone);
+        }
+        if(phone)ready.push({name:a.name||'',phone:phone});
+      });
+      if(!ready.length){if(hasFn('toast'))toast('El responsable seleccionado no tiene WhatsApp cargado','err');return}
+      if(ready.length>1&&!confirm('Se abriran '+ready.length+' chats de WhatsApp. ¿Continuar?'))return;
+      var msg=taskMessage();
+      ready.forEach(function(a){
+        if(hasFn('waOpen'))waOpen(a.phone,msg);
+        else window.open('https://wa.me/'+a.phone+'?text='+encodeURIComponent(msg),'_blank');
+      });
+      if(hasFn('toast'))toast('WhatsApp abierto','suc');
+    }
+    function paintTaskButton(){
+      var footer=document.querySelector('#tkMod .mf');
+      if(!footer||byId('tkWaTask'))return;
+      var btn=document.createElement('button');
+      btn.type='button';
+      btn.id='tkWaTask';
+      btn.className='btn btn-w';
+      btn.textContent='WA tarea';
+      btn.onclick=function(e){e.preventDefault();e.stopPropagation();sendTask()};
+      var cancel=footer.querySelector('button[onclick*="closeModal"]');
+      footer.insertBefore(btn,cancel||footer.firstChild);
+    }
+    if(hasFn('editTask')&&!editTask.__waTaskModal){
+      var originalEditTask=editTask;
+      window.editTask=function(){var r=originalEditTask.apply(this,arguments);setTimeout(paintTaskButton,0);return r};
+      editTask.__waTaskModal=true;
+    }
+    paintTaskButton();
+    setTimeout(paintTaskButton,600);
+    setTimeout(paintTaskButton,1600);
+  }
+  function installAll(){installAgentWhatsappFilter();installTaskModalWhatsapp()}
   function loadOriginal(){
     var s=document.createElement('script');
     s.src=originalUrl;
     s.async=false;
-    s.onload=function(){setTimeout(installAgentWhatsappFilter,0)};
-    s.onerror=function(){installAgentWhatsappFilter()};
+    s.onload=function(){setTimeout(installAll,0)};
+    s.onerror=function(){installAll()};
     document.head.appendChild(s);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadOriginal,{once:true});else loadOriginal();
