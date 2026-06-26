@@ -142,23 +142,42 @@
       if(id)msg+='\nID tarea: '+id;
       return msg;
     }
+    function askAndSaveMissingPhones(agents){
+      var changed=false;
+      agents.forEach(function(a){
+        var phone=a&&a.phone?String(a.phone).replace(/\D/g,''):'';
+        if(phone)return;
+        phone=prompt('WhatsApp de '+(a.name||'la agente')+' con codigo pais, por ejemplo 5492983...','')||'';
+        phone=String(phone).replace(/\D/g,'');
+        if(phone){
+          savePhoneToAgent(a,phone);
+          changed=true;
+        }
+      });
+      if(changed){
+        try{if(hasFn('renderEquipo'))renderEquipo()}catch(e){}
+        try{if(hasFn('renderAll'))renderAll()}catch(e){}
+      }
+      return agents.filter(function(a){return a&&a.phone&&String(a.phone).replace(/\D/g,'')});
+    }
+    function loadTaskPhones(){
+      var agents=selectedAgents();
+      if(!agents.length){if(hasFn('toast'))toast('Selecciona al menos un responsable','err');return}
+      var missing=agents.filter(function(a){return !(a&&a.phone&&String(a.phone).replace(/\D/g,''))});
+      if(!missing.length){if(hasFn('toast'))toast('Los responsables seleccionados ya tienen WhatsApp','suc');return}
+      askAndSaveMissingPhones(missing);
+      var stillMissing=missing.filter(function(a){return !(a&&a.phone&&String(a.phone).replace(/\D/g,''))});
+      if(hasFn('toast'))toast(stillMissing.length?'Quedaron telefonos sin cargar':'Telefonos guardados','suc');
+    }
     function sendTask(){
       var desc=(byId('tkDesc')&&byId('tkDesc').value||'').trim();
       if(!desc){if(hasFn('toast'))toast('Completa la descripcion antes de enviar','err');return}
       var agents=selectedAgents();
       if(!agents.length){if(hasFn('toast'))toast('Selecciona al menos un responsable','err');return}
-      var ready=[];
-      agents.forEach(function(a){
-        var phone=a&&a.phone?String(a.phone).replace(/\D/g,''):'';
-        if(!phone&&agents.length===1){
-          phone=prompt('WhatsApp de '+(a.name||'la agente')+' con codigo pais, por ejemplo 5492983...','')||'';
-          phone=String(phone).replace(/\D/g,'');
-          if(phone)savePhoneToAgent(a,phone);
-        }
-        if(phone)ready.push({name:a.name||'',phone:phone});
-      });
-      if(!ready.length){if(hasFn('toast'))toast('El responsable seleccionado no tiene WhatsApp cargado','err');return}
-      if(ready.length>1&&!confirm('Se abriran '+ready.length+' chats de WhatsApp. ¿Continuar?'))return;
+      askAndSaveMissingPhones(agents);
+      var ready=agents.filter(function(a){return a&&a.phone&&String(a.phone).replace(/\D/g,'')}).map(function(a){return {name:a.name||'',phone:String(a.phone).replace(/\D/g,'')}});
+      if(!ready.length){if(hasFn('toast'))toast('Carga el WhatsApp del responsable para enviar','err');return}
+      if(ready.length>1&&!confirm('Se abriran '+ready.length+' chats de WhatsApp. Continuar?'))return;
       var msg=taskMessage();
       ready.forEach(function(a){
         if(hasFn('waOpen'))waOpen(a.phone,msg);
@@ -169,6 +188,12 @@
     function paintTaskButton(){
       var footer=document.querySelector('#tkMod .mf');
       if(!footer||byId('tkWaTask'))return;
+      var loadBtn=document.createElement('button');
+      loadBtn.type='button';
+      loadBtn.id='tkLoadPhones';
+      loadBtn.className='btn';
+      loadBtn.textContent='Cargar telefonos';
+      loadBtn.onclick=function(e){e.preventDefault();e.stopPropagation();loadTaskPhones()};
       var btn=document.createElement('button');
       btn.type='button';
       btn.id='tkWaTask';
@@ -176,6 +201,7 @@
       btn.textContent='WA tarea';
       btn.onclick=function(e){e.preventDefault();e.stopPropagation();sendTask()};
       var cancel=footer.querySelector('button[onclick*="closeModal"]');
+      footer.insertBefore(loadBtn,cancel||footer.firstChild);
       footer.insertBefore(btn,cancel||footer.firstChild);
     }
     if(hasFn('editTask')&&!editTask.__waTaskModal){
