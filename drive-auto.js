@@ -224,3 +224,161 @@
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadOriginal,{once:true});else loadOriginal();
 })();
+
+/* Calendario oficial: carga y refresco automatico para todos los agentes. */
+(function(){
+  'use strict';
+  var CAL_ID='642f04e4333c91e3c67f35a779bd775a7c4cc6d05700da68376b0ff313ea9f0b@group.calendar.google.com';
+  var CAL_URL='https://calendar.google.com/calendar/ical/642f04e4333c91e3c67f35a779bd775a7c4cc6d05700da68376b0ff313ea9f0b%40group.calendar.google.com/public/basic.ics';
+  var SYNC_MS=5*60*1000;
+  var timer=null;
+  var syncing=false;
+
+  function byId(id){return document.getElementById(id)}
+  function hasFn(name){return typeof window[name]==='function'}
+  function ready(){
+    try{return typeof state==='object'&&state&&state.config&&Array.isArray(state.events)&&hasFn('saveState')}
+    catch(e){return false}
+  }
+  function toastSafe(msg,type){try{if(hasFn('toast'))toast(msg,type||'inf')}catch(e){}}
+  function setStatus(html,color){
+    var el=byId('gcStat');
+    if(!el)return;
+    el.innerHTML=html;
+    if(color)el.style.color=color;
+  }
+  function refreshControls(){
+    if(!ready())return;
+    var gc=byId('gcUrl');
+    if(gc)gc.value=state.config.googleCalendarUrl||CAL_URL;
+    var btn=byId('autoSyncBtn');
+    if(btn)btn.textContent=state.config.googleAutoSync?' Auto-sync: ON (cada 5 min)':' Auto-sync: OFF';
+    var del=byId('gcDel');
+    if(del)del.classList.toggle('hide',!state.config.googleCalendarId);
+  }
+  function ensureConfig(){
+    if(!ready())return false;
+    state.config.googleCalendarId=CAL_ID;
+    state.config.googleCalendarUrl=CAL_URL;
+    state.config.googleAutoSync=true;
+    state.config.syncMode='auto';
+    state.config.__calendarRealtimeConfigured=true;
+    try{saveState()}catch(e){}
+    refreshControls();
+    return true;
+  }
+  function parseDate(s){
+    if(!s)return null;
+    var m=String(s).match(/(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(?:\d{2})?Z?)?/);
+    if(!m)return null;
+    if(m[4]&&m[5]){
+      var d=new Date(m[1]+'-'+m[2]+'-'+m[3]+'T'+m[4]+':'+m[5]+':00Z');
+      return {date:m[1]+'-'+m[2]+'-'+m[3],time:String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')};
+    }
+    return {date:m[1]+'-'+m[2]+'-'+m[3],time:''};
+  }
+  function parseICS(text){
+    if(hasFn('parseICS'))return parseICS(text);
+    if(!text||text.indexOf('BEGIN:VCALENDAR')<0)return [];
+    var lines=text.replace(/\r\n[ \t]/g,'').replace(/\n[ \t]/g,'').split(/\r?\n/);
+    var events=[],cur=null;
+    lines.forEach(function(line){
+      if(line==='BEGIN:VEVENT'){cur={};return}
+      if(line==='END:VEVENT'){if(cur)events.push(cur);cur=null;return}
+      if(!cur)return;
+      var idx=line.indexOf(':');
+      if(idx<0)return;
+      var key=line.slice(0,idx).split(';')[0];
+      var val=line.slice(idx+1).replace(/\\n/g,'\n').replace(/\\,/g,',').replace(/\\;/g,';').replace(/\\\\/g,'\\');
+      cur[key]=val;
+    });
+    return events;
+  }
+  function eventId(ev,dt){
+    return 'gcal_'+(ev.UID||(dt.date+'_'+dt.time+'_'+(ev.SUMMARY||'').slice(0,20)));
+  }
+  async function fetchICS(){
+    var proxies=[
+      function(u){return 'https://corsproxy.io/?'+encodeURIComponent(u)},
+      function(u){return 'https://api.allorigins.win/raw?url='+encodeURIComponent(u)},
+      function(u){return 'https://api.codetabs.com/v1/proxy/?quest='+u}
+    ];
+    for(var i=0;i<proxies.length;i++){
+      var url=proxies[i](CAL_URL);
+      try{
+        setStatus('Actualizando calendario via '+url.split('/')[2]+'...','var(--ac)');
+        var r=await fetch(url,{cache:'no-store'});
+        if(!r.ok)continue;
+        var txt=await r.text();
+        if(txt.indexOf('BEGIN:VCALENDAR')>=0)return {text:txt,via:url.split('/')[2]};
+      }catch(e){}
+    }
+    return null;
+  }
+  async function syncOfficialCalendar(opts){
+    opts=opts||{};
+    if(syncing||!ensureConfig())return;
+    syncing=true;
+    try{
+      var got=await fetchICS();
+      if(!got){
+        setStatus('<span style="color:var(--rd)">No se pudo descargar el calendario</span><br><span class="t-m">Verifica que siga publico en Google Calendar.</span>');
+        if(!opts.silent)toastSafe('No se pudo actualizar el calendario','err');
+        return;
+      }
+      var imported=0,updated=0,skipped=0,seen={};
+      parseICS(got.text).forEach(function(ev){
+        var dt=parseDate(ev.DTSTART);
+        if(!dt||!dt.date){skipped++;return}
+        var id=eventId(ev,dt);
+        seen[id]=true;
+        var data={
+          id:id,date:dt.date,time:dt.time,desc:ev.SUMMARY||'(sin titulo)',loc:ev.LOCATION||'',
+          type:'Agenda Intendente',cover:false,gcalSource:true,gcalCalendarId:CAL_ID,
+          gcalUID:ev.UID||'',notes:ev.DESCRIPTION||'',updated:Date.now()
+        };
+        var exists=state.events.find(function(x){return x.id===id||(x.gcalUID&&data.gcalUID&&x.gcalUID===data.gcalUID)});
+        if(exists){Object.assign(exists,data);updated++}
+        else{state.events.push(data);imported++}
+      });
+      var before=state.events.length;
+      state.events=state.events.filter(function(e){return !(e.gcalSource&&(e.gcalCalendarId===CAL_ID||!e.gcalCalendarId)&&!seen[e.id])});
+      var removed=before-state.events.length;
+      saveState();
+      try{if(hasFn('renderCal'))renderCal();if(hasFn('renderHoy'))renderHoy();if(hasFn('updateBadges'))updateBadges()}catch(e){}
+      setStatus('<span style="color:var(--gr)">Calendario actualizado via '+got.via+'</span><br><span class="t-m">'+imported+' nuevos · '+updated+' actualizados · '+removed+' quitados · '+skipped+' omitidos</span>');
+      refreshControls();
+      if(!opts.silent)toastSafe('Calendario sincronizado','suc');
+    }finally{
+      syncing=false;
+    }
+  }
+  function schedule(){
+    if(timer)clearInterval(timer);
+    if(!ensureConfig())return;
+    timer=setInterval(function(){syncOfficialCalendar({silent:true})},SYNC_MS);
+  }
+  function installOverrides(){
+    if(!ready())return false;
+    window.syncGoogleCal=function(){return syncOfficialCalendar({silent:false})};
+    window.scheduleAutoSync=schedule;
+    window.autoSyncToggle=function(){
+      ensureConfig();
+      schedule();
+      syncOfficialCalendar({silent:true});
+      toastSafe('Auto-sync activado','suc');
+    };
+    schedule();
+    setTimeout(function(){syncOfficialCalendar({silent:true})},1200);
+    refreshControls();
+    return true;
+  }
+  function boot(){
+    var tries=0;
+    var iv=setInterval(function(){
+      tries++;
+      if(installOverrides()||tries>30)clearInterval(iv);
+    },500);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
