@@ -225,6 +225,196 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadOriginal,{once:true});else loadOriginal();
 })();
 
+/* Productividad y cuidado de espacio: resumen diario + limpieza segura. */
+(function(){
+  'use strict';
+  var LS_KEY='pcomTA_v6';
+  var OPT_META_KEY='pcomTA_last_optimize_meta';
+  var warnedLarge=false;
+
+  function byId(id){return document.getElementById(id)}
+  function hasFn(name){return typeof window[name]==='function'}
+  function ready(){try{return typeof state==='object'&&state&&state.config&&hasFn('saveState')}catch(e){return false}}
+  function toastSafe(msg,type){try{if(hasFn('toast'))toast(msg,type||'inf')}catch(e){}}
+  function isDataUrl(v){return typeof v==='string'&&/^data:[^;]+;base64,/.test(v)}
+  function storageBytes(){try{return (localStorage.getItem(LS_KEY)||'').length*2}catch(e){return 0}}
+  function fmtBytes(n){
+    if(!n)return '0 KB';
+    if(n<1024*1024)return Math.round(n/1024)+' KB';
+    return (n/1024/1024).toFixed(1)+' MB';
+  }
+  function today(){
+    if(hasFn('todayISO'))return todayISO();
+    var d=new Date();
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
+  function dateLabel(iso){try{return hasFn('fmtDate')?fmtDate(iso):iso}catch(e){return iso}}
+  function personName(id){
+    try{
+      if(!id)return '';
+      var a=hasFn('getAg')?getAg(id):(state.agents||[]).find(function(x){return x.id===id});
+      return a&&a.name||id;
+    }catch(e){return id||''}
+  }
+  function compactAttachment(a, stats){
+    if(!a||typeof a!=='object')return a;
+    if(isDataUrl(a.data)&&(a.drive||a.driveId||a.webViewLink||a.url)){
+      delete a.data;
+      a.optimized=true;
+      stats.driveCopies++;
+    }
+    return a;
+  }
+  function optimizeSpace(silent){
+    if(!ready())return {changed:false};
+    var stats={flyers:0,driveCopies:0,changed:false};
+    (state.recursos||[]).forEach(function(r){
+      if(!r||typeof r!=='object')return;
+      var isFlyer=r.autoFlyer||r.cat==='Flyers generados';
+      if(isFlyer&&isDataUrl(r.url)){
+        r.url='';
+        r.drivePendiente=false;
+        r.optimized=true;
+        r.updated=Date.now();
+        if(String(r.desc||'').indexOf('PNG no guardado')<0){
+          r.desc=(r.desc?r.desc+' · ':'')+'PNG no guardado para ahorrar espacio';
+        }
+        stats.flyers++;
+      }
+    });
+    (state.publicaciones||[]).forEach(function(p){
+      if(Array.isArray(p.archivos))p.archivos=p.archivos.map(function(a){return compactAttachment(a,stats)});
+    });
+    (state.reclamos||[]).forEach(function(r){
+      if(Array.isArray(r.fotos))r.fotos=r.fotos.map(function(a){return compactAttachment(a,stats)});
+    });
+    stats.changed=stats.flyers>0||stats.driveCopies>0;
+    if(stats.changed){
+      try{localStorage.setItem(OPT_META_KEY,JSON.stringify({at:Date.now(),flyers:stats.flyers,driveCopies:stats.driveCopies}))}catch(e){}
+      try{window.__pcomOptimizing=true;saveState()}finally{window.__pcomOptimizing=false}
+      try{if(hasFn('renderRec'))renderRec();if(hasFn('renderAll'))renderAll()}catch(e){}
+    }
+    if(!silent){
+      toastSafe(stats.changed?'Espacio optimizado: '+stats.flyers+' flyers y '+stats.driveCopies+' copias de Drive compactadas':'No habia archivos seguros para compactar','suc');
+    }
+    updateStorageBox();
+    return stats;
+  }
+  function buildDaySummary(){
+    if(!ready())return '';
+    var d=today();
+    var lines=['Resumen de hoy - '+dateLabel(d),''];
+    var guardia=(state.guardias&&state.guardias[d])||{};
+    var g=[];
+    if(guardia.titular)g.push('Titular: '+personName(guardia.titular));
+    if(guardia.soporte)g.push('Soporte: '+personName(guardia.soporte));
+    lines.push('Guardia: '+(g.length?g.join(' | '):'Sin asignar'));
+    var ev=(state.events||[]).filter(function(x){return x.date===d}).sort(function(a,b){return String(a.time||'').localeCompare(String(b.time||''))});
+    lines.push('', 'Eventos ('+ev.length+')');
+    lines=lines.concat(ev.length?ev.map(function(e){return '- '+(e.time?e.time+' ':'')+(e.desc||'Evento')+(e.loc?' - '+e.loc:'')}):['- Sin eventos']);
+    var pub=(state.publicaciones||[]).filter(function(x){return x.date===d}).sort(function(a,b){return String(a.time||'').localeCompare(String(b.time||''))});
+    lines.push('', 'Publicaciones ('+pub.length+')');
+    lines=lines.concat(pub.length?pub.map(function(p){return '- '+(p.time?p.time+' ':'')+(p.desc||'Publicacion')+' ['+(p.status||'Pendiente')+']'}):['- Sin publicaciones']);
+    var ent=(state.entrevistas||[]).filter(function(x){return x.date===d}).sort(function(a,b){return String(a.time||'').localeCompare(String(b.time||''))});
+    lines.push('', 'Entrevistas ('+ent.length+')');
+    lines=lines.concat(ent.length?ent.map(function(e){return '- '+(e.time?e.time+' ':'')+(e.medio||'Medio')+' / '+(e.funcionario||'Funcionario')+(e.tema?' - '+e.tema:'')}):['- Sin entrevistas']);
+    var tasks=(state.tasks||[]).filter(function(t){return t.status!=='done'&&t.status!=='realizada'&&(t.due===d||(!t.due&&t.status!=='done'))}).slice(0,12);
+    lines.push('', 'Tareas a mirar ('+tasks.length+')');
+    lines=lines.concat(tasks.length?tasks.map(function(t){return '- '+(t.desc||'Tarea')+(t.due?' (vence '+dateLabel(t.due)+')':'')}):['- Sin tareas destacadas']);
+    return lines.join('\n');
+  }
+  async function copyDaySummary(){
+    var text=buildDaySummary();
+    try{await navigator.clipboard.writeText(text)}
+    catch(e){var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove()}
+    toastSafe('Resumen de hoy copiado','suc');
+  }
+  function paintDaySummaryButton(){
+    var view=byId('v-hoy');
+    if(!view||byId('copyDaySummary'))return;
+    var host=view.querySelector('.hero')||view;
+    var btn=document.createElement('button');
+    btn.type='button';
+    btn.id='copyDaySummary';
+    btn.className='btn btn-p btn-s';
+    btn.style.marginTop='12px';
+    btn.textContent='Copiar resumen de hoy';
+    btn.onclick=function(e){e.preventDefault();e.stopPropagation();copyDaySummary()};
+    host.appendChild(btn);
+  }
+  function updateStorageBox(){
+    var box=byId('storageCareBox');
+    if(!box)return;
+    var bytes=storageBytes();
+    var last='';
+    try{
+      var meta=JSON.parse(localStorage.getItem(OPT_META_KEY)||'null');
+      if(meta)last='Ultima limpieza: '+new Date(meta.at).toLocaleString('es-AR')+' · '+(meta.flyers||0)+' flyers · '+(meta.driveCopies||0)+' copias Drive';
+    }catch(e){}
+    box.querySelector('[data-size]').textContent='Datos del panel: '+fmtBytes(bytes);
+    box.querySelector('[data-last]').textContent=last||'No borra adjuntos que no tengan copia en Drive.';
+  }
+  function paintStorageBox(){
+    var mod=byId('cfgMod');
+    var body=mod&&mod.querySelector('.mb');
+    if(!body||byId('storageCareBox')){updateStorageBox();return}
+    var box=document.createElement('div');
+    box.id='storageCareBox';
+    box.className='card';
+    box.style.margin='0 0 14px';
+    box.innerHTML='<div class="fb"><div><div class="ct-t">Espacio y datos</div><div class="ct-s" data-size>Datos del panel: --</div><div class="ct-s" data-last>No borra adjuntos que no tengan copia en Drive.</div></div><button class="btn btn-p btn-s" type="button" data-opt>Optimizar espacio</button></div>';
+    body.insertBefore(box,body.firstChild);
+    box.querySelector('[data-opt]').onclick=function(e){e.preventDefault();optimizeSpace(false)};
+    updateStorageBox();
+  }
+  function installSaveGuard(){
+    if(!ready()||saveState.__storageCare)return false;
+    var original=saveState;
+    window.saveState=function(){
+      if(!window.__pcomOptimizing){
+        try{
+          var before=storageBytes();
+          if(before>3.5*1024*1024)optimizeSpace(true);
+          if(before>4.5*1024*1024&&!warnedLarge){
+            warnedLarge=true;
+            toastSafe('El panel tiene muchos datos guardados. Conviene subir archivos a Drive y optimizar espacio.','inf');
+          }
+        }catch(e){}
+      }
+      return original.apply(this,arguments);
+    };
+    saveState.__storageCare=true;
+    return true;
+  }
+  function install(){
+    if(!ready())return false;
+    installSaveGuard();
+    optimizeSpace(true);
+    paintDaySummaryButton();
+    paintStorageBox();
+    if(hasFn('renderHoy')&&!renderHoy.__summaryButton){
+      var originalHoy=renderHoy;
+      window.renderHoy=function(){var r=originalHoy.apply(this,arguments);setTimeout(paintDaySummaryButton,0);return r};
+      renderHoy.__summaryButton=true;
+    }
+    if(hasFn('openModal')&&!openModal.__storageBox){
+      var originalOpen=openModal;
+      window.openModal=function(id){var r=originalOpen.apply(this,arguments);if(id==='cfgMod')setTimeout(paintStorageBox,0);return r};
+      openModal.__storageBox=true;
+    }
+    setInterval(updateStorageBox,5000);
+    return true;
+  }
+  function boot(){
+    var tries=0;
+    var iv=setInterval(function(){
+      tries++;
+      if(install()||tries>30)clearInterval(iv);
+    },500);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
+
 /* Calendario oficial: carga y refresco automatico para todos los agentes. */
 (function(){
   'use strict';
