@@ -278,7 +278,7 @@
     return {date:m[1]+'-'+m[2]+'-'+m[3],time:''};
   }
   function parseICS(text){
-    if(hasFn('parseICS'))return parseICS(text);
+    if(window.parseICS&&window.parseICS!==parseICS)return window.parseICS(text);
     if(!text||text.indexOf('BEGIN:VCALENDAR')<0)return [];
     var lines=text.replace(/\r\n[ \t]/g,'').replace(/\n[ \t]/g,'').split(/\r?\n/);
     var events=[],cur=null;
