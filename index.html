@@ -28,6 +28,10 @@
         'function newEvent(date){\n  prepEvent({date:date||todayISO()});\n  openModal(\'evMod\');\n}',
         'function newEvent(date){\n  const defaultDate = date || (calMode===\'day\' ? dateISO(calDayCursor) : todayISO());\n  prepEvent({date:defaultDate});\n  openModal(\'evMod\');\n}'
       );
+      html = html.replace(
+        "const mat=state.tasks.filter(t=>t.status==='publicar' && !isTaskScheduledForPub(t));",
+        "const mat=state.tasks.filter(t=>t.status==='publicar');"
+      );
       document.open();
       document.write(html);
       document.close();
