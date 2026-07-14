@@ -32,6 +32,36 @@
         "const mat=state.tasks.filter(t=>t.status==='publicar' && !isTaskScheduledForPub(t));",
         "const mat=state.tasks.filter(t=>t.status==='publicar');"
       );
+      html = html.replace(
+        '<button class="btn btn-p" onclick="addFuncionarioDifusion()">+ Agregar funcionario</button>',
+        '<button class="btn btn-p" onclick="addFuncionarioDifusion()">+ Agregar funcionario</button><button class="btn btn-d" data-admin onclick="reiniciarAccionesDifusion()">↺ Reiniciar acciones</button>'
+      );
+      html = html.replace(
+        'function addFuncionarioDifusion(){',
+        `function reiniciarAccionesDifusion(){
+  if(!requireAdmin())return;
+  const conAcciones=state.publicaciones.filter(p=>
+    (p.funcionariosDifusion && Object.keys(p.funcionariosDifusion).length) ||
+    (parseInt(p.compartidos_manual||0,10)>0)
+  );
+  if(!conAcciones.length){
+    toast('No hay acciones registradas para borrar','inf');
+    return;
+  }
+  if(!confirm('¿Borrar todas las acciones registradas de difusión?\\n\\nSe limpiarán las marcas de todos los funcionarios y los compartidos manuales. Las publicaciones y la agenda no se borrarán.'))return;
+  conAcciones.forEach(p=>{
+    p.funcionariosDifusion={};
+    p.compartidos_manual=0;
+    p.updated=Date.now();
+  });
+  window._dfStatOpen=null;
+  saveState();
+  renderDifusion();
+  updateBadges();
+  toast('Acciones de difusión reiniciadas','suc');
+}
+function addFuncionarioDifusion(){`
+      );
       document.open();
       document.write(html);
       document.close();
