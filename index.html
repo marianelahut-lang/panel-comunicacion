@@ -29,10 +29,6 @@
         'function newEvent(date){\n  const defaultDate = date || (calMode===\'day\' ? dateISO(calDayCursor) : todayISO());\n  prepEvent({date:defaultDate});\n  openModal(\'evMod\');\n}'
       );
       html = html.replace(
-        "const mat=state.tasks.filter(t=>t.status==='publicar' && !isTaskScheduledForPub(t));",
-        "const mat=state.tasks.filter(t=>t.status==='publicar');"
-      );
-      html = html.replace(
         '<button class="btn btn-p" onclick="addFuncionarioDifusion()">+ Agregar funcionario</button>',
         '<button class="btn btn-p" onclick="addFuncionarioDifusion()">+ Agregar funcionario</button><button class="btn btn-d" data-admin onclick="reiniciarAccionesDifusion()">↺ Reiniciar acciones</button>'
       );
