@@ -62,6 +62,31 @@
 }
 function addFuncionarioDifusion(){`
       );
+      html = html.replace(
+        '<button class="btn btn-p btn-s" onclick="newEvent(',
+        '<button class="btn btn-w btn-s" onclick="event.stopPropagation();sendCalCoverageWa()">📱 WhatsApp seleccionadas</button><button class="btn btn-p btn-s" onclick="newEvent('
+      );
+      html = html.replace(
+        'function renderCalDay(){',
+        `function sendCalCoverageWa(){
+  const iso=dateISO(calDayCursor);
+  const g=state.guardias[iso];
+  if(!g||!g.titular){toast('No hay titular de guardia para este día','err');return}
+  const tit=getAg(g.titular);
+  if(!tit||!tit.phone){toast('El titular no tiene WhatsApp','err');return}
+  const evs=state.events
+    .filter(e=>e.date===iso && e.cover===true)
+    .sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+  if(!evs.length){toast('No hay eventos seleccionados para cubrir','inf');return}
+  let msg='*Eventos seleccionados para cubrir · '+new Date(iso+'T00:00:00').toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})+'*\\n\\n';
+  evs.forEach(e=>{
+    msg+='• '+(e.time||'Sin horario')+' - '+(e.desc||'Evento')+(e.loc?' ('+e.loc+')':'')+'\\n';
+  });
+  msg+='\\n_Incluye todos los eventos marcados para cubrir, sin importar el horario ni si pasan a guardia._';
+  waOpen(tit.phone,msg);
+}
+function renderCalDay(){`
+      );
       document.open();
       document.write(html);
       document.close();
