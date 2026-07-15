@@ -638,8 +638,9 @@
       function(u){return 'https://api.allorigins.win/raw?url='+encodeURIComponent(u)},
       function(u){return 'https://api.codetabs.com/v1/proxy/?quest='+u}
     ];
+    var source=PRESS_URL+(PRESS_URL.indexOf('?')>=0?'&':'?')+'_='+Date.now();
     for(var i=0;i<proxies.length;i++){
-      var url=proxies[i](PRESS_URL);
+      var url=proxies[i](source);
       try{
         var r=await fetch(url,{cache:'no-store'});
         if(!r.ok)continue;
