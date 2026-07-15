@@ -572,3 +572,152 @@
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
+
+
+/* Calendario PRENSA: sincronizacion adicional sin reemplazar Intendente. */
+(function(){
+  'use strict';
+  var PRESS_ID='5544ba9213caabc95391100bdbbf45c01574bd0112e1ad7198123c4a36a8de61@group.calendar.google.com';
+  var PRESS_URL='https://calendar.google.com/calendar/ical/5544ba9213caabc95391100bdbbf45c01574bd0112e1ad7198123c4a36a8de61%40group.calendar.google.com/public/basic.ics';
+  var SYNC_MS=5*60*1000;
+  var timer=null;
+  var syncing=false;
+  var previousManualSync=null;
+
+  function byId(id){return document.getElementById(id)}
+  function hasFn(name){return typeof window[name]==='function'}
+  function ready(){
+    try{
+      return typeof state==='object'&&state&&state.config&&state.config.__calendarRealtimeConfigured&&
+        Array.isArray(state.events)&&hasFn('saveState')&&hasFn('syncGoogleCal');
+    }catch(e){return false}
+  }
+  function toastSafe(msg,type){try{if(hasFn('toast'))toast(msg,type||'inf')}catch(e){}}
+  function setStatus(html,color){
+    var el=byId('gcStat');
+    if(!el)return;
+    el.innerHTML=html;
+    if(color)el.style.color=color;
+  }
+  function parseDate(s){
+    if(!s)return null;
+    var m=String(s).match(/(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(?:\d{2})?(Z)?)?/);
+    if(!m)return null;
+    if(!m[4]||!m[5])return {date:m[1]+'-'+m[2]+'-'+m[3],time:''};
+    if(m[6]){
+      var d=new Date(Date.UTC(Number(m[1]),Number(m[2])-1,Number(m[3]),Number(m[4]),Number(m[5])));
+      return {
+        date:d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'),
+        time:String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')
+      };
+    }
+    return {date:m[1]+'-'+m[2]+'-'+m[3],time:m[4]+':'+m[5]};
+  }
+  function parseICS(text){
+    if(!text||text.indexOf('BEGIN:VCALENDAR')<0)return [];
+    var lines=text.replace(/\r\n[ \t]/g,'').replace(/\n[ \t]/g,'').split(/\r?\n/);
+    var events=[],cur=null;
+    lines.forEach(function(line){
+      if(line==='BEGIN:VEVENT'){cur={};return}
+      if(line==='END:VEVENT'){if(cur)events.push(cur);cur=null;return}
+      if(!cur)return;
+      var idx=line.indexOf(':');
+      if(idx<0)return;
+      var key=line.slice(0,idx).split(';')[0];
+      var val=line.slice(idx+1).replace(/\\n/g,'\n').replace(/\\,/g,',').replace(/\\;/g,';').replace(/\\\\/g,'\\');
+      cur[key]=val;
+    });
+    return events;
+  }
+  function eventId(ev,dt){
+    return 'gcal_prensa_'+(ev.UID||(dt.date+'_'+dt.time+'_'+(ev.SUMMARY||'').slice(0,20)));
+  }
+  async function fetchICS(){
+    var proxies=[
+      function(u){return 'https://corsproxy.io/?'+encodeURIComponent(u)},
+      function(u){return 'https://api.allorigins.win/raw?url='+encodeURIComponent(u)},
+      function(u){return 'https://api.codetabs.com/v1/proxy/?quest='+u}
+    ];
+    for(var i=0;i<proxies.length;i++){
+      var url=proxies[i](PRESS_URL);
+      try{
+        var r=await fetch(url,{cache:'no-store'});
+        if(!r.ok)continue;
+        var txt=await r.text();
+        if(txt.indexOf('BEGIN:VCALENDAR')>=0)return {text:txt,via:url.split('/')[2]};
+      }catch(e){}
+    }
+    return null;
+  }
+  async function syncPressCalendar(opts){
+    opts=opts||{};
+    if(syncing||!ready())return;
+    syncing=true;
+    try{
+      var got=await fetchICS();
+      if(!got){
+        setStatus('<span style="color:var(--rd)">Intendente conectado; PRENSA no pudo descargarse</span><br><span class="t-m">Reintentaremos automaticamente.</span>');
+        if(!opts.silent)toastSafe('No se pudo actualizar PRENSA','err');
+        return;
+      }
+      var imported=0,updated=0,skipped=0,seen={};
+      parseICS(got.text).forEach(function(ev){
+        var dt=parseDate(ev.DTSTART);
+        if(!dt||!dt.date){skipped++;return}
+        var id=eventId(ev,dt);
+        seen[id]=true;
+        var data={
+          id:id,date:dt.date,time:dt.time,desc:ev.SUMMARY||'(sin titulo)',loc:ev.LOCATION||'',
+          type:'Prensa / Medio',cover:false,gcalSource:true,gcalCalendarId:PRESS_ID,
+          gcalUID:ev.UID||'',notes:ev.DESCRIPTION||'',updated:Date.now()
+        };
+        var exists=state.events.find(function(x){return x.id===id});
+        if(exists){
+          var currentCover=exists.cover;
+          Object.assign(exists,data);
+          if(typeof currentCover==='boolean')exists.cover=currentCover;
+          updated++;
+        }else{
+          state.events.push(data);
+          imported++;
+        }
+      });
+      var before=state.events.length;
+      state.events=state.events.filter(function(e){
+        return !(e.gcalSource&&e.gcalCalendarId===PRESS_ID&&!seen[e.id]);
+      });
+      var removed=before-state.events.length;
+      saveState();
+      try{
+        if(hasFn('renderCal'))renderCal();
+        if(hasFn('renderHoy'))renderHoy();
+        if(hasFn('updateBadges'))updateBadges();
+      }catch(e){}
+      setStatus('<span style="color:var(--gr)">Intendente + PRENSA actualizados</span><br><span class="t-m">PRENSA: '+imported+' nuevos · '+updated+' actualizados · '+removed+' quitados · '+skipped+' omitidos</span>');
+      if(!opts.silent)toastSafe('Calendario PRENSA sincronizado','suc');
+    }finally{
+      syncing=false;
+    }
+  }
+  function install(){
+    if(!ready()||window.__pcomPressCalendarInstalled)return false;
+    previousManualSync=window.syncGoogleCal;
+    window.syncGoogleCal=async function(){
+      if(previousManualSync)await previousManualSync();
+      return syncPressCalendar({silent:false});
+    };
+    window.syncPressCalendar=syncPressCalendar;
+    window.__pcomPressCalendarInstalled=true;
+    timer=setInterval(function(){syncPressCalendar({silent:true})},SYNC_MS);
+    setTimeout(function(){syncPressCalendar({silent:true})},1200);
+    return true;
+  }
+  function boot(){
+    var tries=0;
+    var iv=setInterval(function(){
+      tries++;
+      if(install()||tries>40)clearInterval(iv);
+    },500);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
