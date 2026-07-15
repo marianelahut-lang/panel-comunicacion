@@ -508,6 +508,22 @@
   function eventId(cal,ev,dt){
     return cal.prefix+(ev.UID||(dt.date+'_'+dt.time+'_'+(ev.SUMMARY||'').slice(0,20)));
   }
+  function dedupeCalendarEvents(){
+    var out=[],seen={};
+    (state.events||[]).forEach(function(e){
+      var managed=e&&(e.gcalSource||/^gcal_/.test(String(e.id||'')));
+      if(!managed){out.push(e);return}
+      var uid=String(e.gcalUID||'').trim();
+      var sig=[String(e.date||''),String(e.time||''),String(e.desc||'').toLowerCase().replace(/\s+/g,' ').trim()].join('|');
+      var key=uid?'uid:'+uid:'sig:'+sig;
+      var prev=seen[key];
+      if(!prev){seen[key]=e;out.push(e);return}
+      var cover=!!(prev.cover||e.cover);
+      if(Number(e.updated||0)>=Number(prev.updated||0))Object.assign(prev,e);
+      prev.cover=cover;
+    });
+    state.events=out;
+  }
   async function fetchICS(cal){
     var proxies=[
       function(u){return 'https://corsproxy.io/?'+encodeURIComponent(u)},
@@ -572,6 +588,7 @@
         setStatus('Actualizando '+CALENDARS[i].label+'...','var(--ac)');
         results.push(await syncOne(CALENDARS[i]));
       }
+      dedupeCalendarEvents();
       saveState();
       try{
         if(hasFn('renderCal'))renderCal();
