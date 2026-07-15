@@ -24,7 +24,7 @@
       const res = await fetch(source, {cache:'no-store'});
       if(!res.ok) throw new Error('HTTP '+res.status);
       let html = await res.text();
-      html = html.replace('src="drive-auto.js"', 'src="drive-auto.js?v=5d570a83"');
+      html = html.replace('src="drive-auto.js"', 'src="drive-auto.js?v=cc6ae43d"');
       html = html.replace(
         'function newEvent(date){\n  prepEvent({date:date||todayISO()});\n  openModal(\'evMod\');\n}',
         'function newEvent(date){\n  const defaultDate = date || (calMode===\'day\' ? dateISO(calDayCursor) : todayISO());\n  prepEvent({date:defaultDate});\n  openModal(\'evMod\');\n}'
