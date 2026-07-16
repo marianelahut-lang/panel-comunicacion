@@ -218,7 +218,10 @@
     var s=document.createElement('script');
     s.src=originalUrl;
     s.async=false;
-    s.onload=function(){setTimeout(installAll,0)};
+    s.onload=function(){
+      setTimeout(installAll,0);
+      try{window.dispatchEvent(new Event('pcom-original-ready'))}catch(e){}
+    };
     s.onerror=function(){installAll()};
     document.head.appendChild(s);
   }
@@ -619,6 +622,15 @@
   }
   function installOverrides(){
     if(!ready())return false;
+    if(hasFn('openGCal')&&!window.openGCal.__threeCalendars){
+      var originalOpenGCal=window.openGCal;
+      window.openGCal=function(){
+        var result=originalOpenGCal.apply(this,arguments);
+        setTimeout(refreshControls,0);
+        return result;
+      };
+      window.openGCal.__threeCalendars=true;
+    }
     window.syncGoogleCal=function(){return syncAllCalendars({silent:false})};
     window.syncThreeCalendars=syncAllCalendars;
     window.scheduleAutoSync=schedule;
@@ -640,5 +652,8 @@
       if(installOverrides()||tries>30)clearInterval(iv);
     },500);
   }
+  window.addEventListener('pcom-original-ready',function(){
+    setTimeout(installOverrides,0);
+  },{once:true});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
