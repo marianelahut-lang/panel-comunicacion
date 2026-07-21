@@ -25,6 +25,12 @@
       if(!res.ok) throw new Error('HTTP '+res.status);
       let html = await res.text();
       html = html.replace('src="drive-auto.js"', 'src="drive-auto.js?v=e8b651ae"');
+      // Corrige el botón agrupado de reclamos: el mensaje JSON debe escapar
+      // sus comillas para no cortar el atributo onclick en el HTML generado.
+      html = html.replace(
+        "JSON.stringify(m).replace(/'/g,'&#39;')",
+        "esc(JSON.stringify(m))"
+      );
       html = html.replace(
         'function newEvent(date){\n  prepEvent({date:date||todayISO()});\n  openModal(\'evMod\');\n}',
         'function newEvent(date){\n  const defaultDate = date || (calMode===\'day\' ? dateISO(calDayCursor) : todayISO());\n  prepEvent({date:defaultDate});\n  openModal(\'evMod\');\n}'
