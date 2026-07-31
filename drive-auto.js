@@ -303,6 +303,26 @@
     updateStorageBox();
     return stats;
   }
+  function currentPendingBoardTasks(){
+    var board=byId('kb');
+    if(!board)return [];
+    var out=[],seen={};
+    Array.prototype.slice.call(board.querySelectorAll('.kc')).forEach(function(col){
+      var head=String((col.querySelector('.kct')||{}).textContent||'').toLowerCase();
+      var status=head.indexOf('proceso')>=0?'En proceso':head.indexOf('pendiente')>=0?'Pendiente':'';
+      if(!status)return;
+      Array.prototype.slice.call(col.querySelectorAll('.kk')).forEach(function(card){
+        var title=card.querySelector('.kkt');
+        var desc=String(title?title.textContent:card.textContent||'').replace(/\s+/g,' ').trim();
+        if(!desc)return;
+        var key=status+'|'+desc;
+        if(seen[key])return;
+        seen[key]=true;
+        out.push({status:status,desc:desc});
+      });
+    });
+    return out;
+  }
   function buildDaySummary(){
     if(!ready())return '';
     var d=today();
@@ -321,9 +341,9 @@
     var ent=(state.entrevistas||[]).filter(function(x){return x.date===d}).sort(function(a,b){return String(a.time||'').localeCompare(String(b.time||''))});
     lines.push('', 'Entrevistas ('+ent.length+')');
     lines=lines.concat(ent.length?ent.map(function(e){return '- '+(e.time?e.time+' ':'')+(e.medio||'Medio')+' / '+(e.funcionario||'Funcionario')+(e.tema?' - '+e.tema:'')}):['- Sin entrevistas']);
-    var tasks=(state.tasks||[]).filter(function(t){return t.status!=='done'&&t.status!=='realizada'&&(t.due===d||(!t.due&&t.status!=='done'))}).slice(0,12);
-    lines.push('', 'Tareas a mirar ('+tasks.length+')');
-    lines=lines.concat(tasks.length?tasks.map(function(t){return '- '+(t.desc||'Tarea')+(t.due?' (vence '+dateLabel(t.due)+')':'')}):['- Sin tareas destacadas']);
+    var tasks=currentPendingBoardTasks().slice(0,12);
+    lines.push('', 'Tareas pendientes del tablero ('+tasks.length+')');
+    lines=lines.concat(tasks.length?tasks.map(function(t){return '- ['+t.status+'] '+(t.desc||'Tarea')}):['- Sin tareas pendientes']);
     return lines.join('\n');
   }
   async function copyDaySummary(){
