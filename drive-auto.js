@@ -445,22 +445,23 @@
     {
       id:'642f04e4333c91e3c67f35a779bd775a7c4cc6d05700da68376b0ff313ea9f0b@group.calendar.google.com',
       url:'https://calendar.google.com/calendar/ical/642f04e4333c91e3c67f35a779bd775a7c4cc6d05700da68376b0ff313ea9f0b%40group.calendar.google.com/public/basic.ics',
-      label:'Intendente',type:'Agenda Intendente',prefix:'gcal_'
+      label:'Intendente',type:'Agenda Intendente',prefix:'gcal_',file:'intendente.ics'
     },
     {
       id:'5544ba9213caabc95391100bdbbf45c01574bd0112e1ad7198123c4a36a8de61@group.calendar.google.com',
       url:'https://calendar.google.com/calendar/ical/5544ba9213caabc95391100bdbbf45c01574bd0112e1ad7198123c4a36a8de61%40group.calendar.google.com/public/basic.ics',
-      label:'PRENSA',type:'Prensa / Medio',prefix:'gcal_prensa_'
+      label:'PRENSA',type:'Prensa / Medio',prefix:'gcal_prensa_',file:'prensa.ics'
     },
     {
       id:'tresarroyosprensa@gmail.com',
       url:'https://calendar.google.com/calendar/ical/tresarroyosprensa%40gmail.com/public/basic.ics',
-      label:'Prensa Municipal',type:'Municipal',prefix:'gcal_municipal_'
+      label:'Prensa Municipal',type:'Municipal',prefix:'gcal_municipal_',file:'municipal.ics'
     }
   ];
   var SYNC_MS=5*60*1000;
   var timer=null;
   var syncing=false;
+  var calendarFeeds=null;
 
   function byId(id){return document.getElementById(id)}
   function hasFn(name){return typeof window[name]==='function'}
@@ -548,21 +549,26 @@
     state.events=out;
   }
   async function fetchICS(cal){
-    var proxies=[
-      function(u){return 'https://corsproxy.io/?'+encodeURIComponent(u)},
-      function(u){return 'https://api.allorigins.win/raw?url='+encodeURIComponent(u)},
-      function(u){return 'https://api.codetabs.com/v1/proxy/?quest='+u}
-    ];
-    var source=cal.url+(cal.url.indexOf('?')>=0?'&':'?')+'_='+Date.now();
-    for(var i=0;i<proxies.length;i++){
-      var url=proxies[i](source);
-      try{
-        var r=await fetch(url,{cache:'no-store'});
-        if(!r.ok)continue;
-        var txt=await r.text();
-        if(txt.indexOf('BEGIN:VCALENDAR')>=0)return {text:txt,via:url.split('/')[2]};
-      }catch(e){}
-    }
+    if(!calendarFeeds)return null;
+    var feed=calendarFeeds.calendars.find(function(item){return 'calendar-'+cal.file===item.file});
+    if(!feed||typeof feed.text!=='string')return null;
+    if(feed.text.indexOf('BEGIN:VCALENDAR')>=0&&feed.text.indexOf('END:VCALENDAR')>=0)return {text:feed.text,via:'Google Calendar'};
+    return null;
+  }
+  async function loadCalendarFeeds(){
+    var controller=new AbortController();
+    var timeout=setTimeout(function(){controller.abort()},12000);
+    try{
+      var base=state.config.supabaseUrl+'/rest/v1/panel_data?key=eq.panel_calendar_feeds&select=value&limit=1';
+      var metaResponse=await fetch(base,{cache:'no-store',signal:controller.signal,headers:{apikey:state.config.supabaseKey,Authorization:'Bearer '+state.config.supabaseKey}});
+      if(!metaResponse.ok)return null;
+      var rows=await metaResponse.json();
+      var meta=rows[0]&&rows[0].value;
+      if(!meta||!Array.isArray(meta.calendars))return null;
+      var age=Date.now()-Date.parse(meta.updatedAt);
+      if(!Number.isFinite(age)||age>2*60*60*1000||age< -5*60*1000)return null;
+      return meta;
+    }catch(e){}finally{clearTimeout(timeout)}
     return null;
   }
   async function syncOne(cal){
@@ -606,6 +612,7 @@
     if(syncing||!ensureConfig())return;
     syncing=true;
     try{
+      calendarFeeds=await loadCalendarFeeds();
       var results=[];
       for(var i=0;i<CALENDARS.length;i++){
         setStatus('Actualizando '+CALENDARS[i].label+'...','var(--ac)');
@@ -626,7 +633,7 @@
         setStatus('<span style="color:var(--rd)">Sincronizacion parcial</span><br><span class="t-m">No se pudo descargar: '+failed.map(function(r){return r.label}).join(', ')+'</span>');
         if(!opts.silent)toastSafe('Algunos calendarios no se pudieron actualizar','err');
       }else{
-        setStatus('<span style="color:var(--gr)">3 calendarios actualizados</span><br><span class="t-m">'+imported+' nuevos · '+updated+' actualizados · '+removed+' quitados</span>');
+        setStatus('<span style="color:var(--gr)">3 calendarios actualizados</span><br><span class="t-m">'+imported+' nuevos · '+updated+' actualizados · '+removed+' quitados<br>Última lectura de Google: '+new Date(calendarFeeds.updatedAt).toLocaleString('es-AR')+'</span>');
         if(!opts.silent)toastSafe('3 calendarios sincronizados','suc');
       }
       refreshControls();
@@ -652,6 +659,7 @@
       window.openGCal.__threeCalendars=true;
     }
     window.syncGoogleCal=function(){return syncAllCalendars({silent:false})};
+    window.syncGoogleCal.__driveAutoDeletePatch=true;
     window.syncThreeCalendars=syncAllCalendars;
     window.scheduleAutoSync=schedule;
     window.autoSyncToggle=function(){
