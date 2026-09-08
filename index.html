@@ -24,7 +24,7 @@
       const res = await fetch(source, {cache:'no-store'});
       if(!res.ok) throw new Error('HTTP '+res.status);
       let html = await res.text();
-      html = html.replace('src="drive-auto.js"', 'src="drive-auto.js?v=e8b651ae"');
+      html = html.replace('src="drive-auto.js"', 'src="drive-auto.js?v=calendar-fix-20260908"');
       // Corrige el botón agrupado de reclamos: el mensaje JSON debe escapar
       // sus comillas para no cortar el atributo onclick en el HTML generado.
       html = html.replace(
