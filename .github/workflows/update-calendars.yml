@@ -1,0 +1,30 @@
+name: Update Google calendars
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/update-calendars.yml
+      - update-calendars.mjs
+
+permissions:
+  contents: read
+
+concurrency:
+  group: update-google-calendars
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Refresh calendar feeds in the existing panel database
+        run: node update-calendars.mjs
