@@ -26,5 +26,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Install calendar recurrence parser
+        run: npm install --no-save ical.js@2.2.1
       - name: Refresh calendar feeds in the existing panel database
         run: node update-calendars.mjs
