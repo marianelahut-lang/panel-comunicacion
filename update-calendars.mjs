@@ -6,10 +6,10 @@ const calendars = [
 const snapshots = await Promise.all(calendars.map(async ([name, id]) => {
   const url = 'https://calendar.google.com/calendar/ical/'+encodeURIComponent(id)+'/public/basic.ics';
   const response = await fetch(url, { signal: AbortSignal.timeout(30000) });
-  if (!response.ok) throw new Error(name+': HTTP '+response.status);
+  if (!response.ok) { console.warn(name+': HTTP '+response.status); return {name, error:'HTTP '+response.status}; }
   const text = await response.text();
   if (!text.includes('BEGIN:VCALENDAR') || !text.includes('END:VCALENDAR')) {
-    throw new Error(name+': respuesta no válida; se conserva la copia anterior');
+    console.warn(name+': respuesta no válida'); return {name,error:'respuesta no válida'};
   }
   return { name, text, events: (text.match(/BEGIN:VEVENT/g) || []).length };
 }));
@@ -21,9 +21,21 @@ const configText=await configResponse.text();
 const supabaseUrl=configText.match(/supabaseUrl:'([^']+)'/)?.[1];
 const supabaseKey=configText.match(/supabaseKey:'([^']+)'/)?.[1];
 if(!supabaseUrl||!supabaseKey)throw new Error('Configuración incompleta');
+const valid = snapshots.filter(x => typeof x.text === 'string');
+if (!valid.length) throw new Error('Ningún calendario respondió correctamente; se conserva la copia anterior');
+const previousResponse = await fetch(supabaseUrl+'/rest/v1/panel_data?key=eq.panel_calendar_feeds&select=value&limit=1', {
+  headers:{apikey:supabaseKey,Authorization:'Bearer '+supabaseKey}
+});
+const previousRows = previousResponse.ok ? await previousResponse.json() : [];
+const previous = previousRows[0]?.value || {};
 const value={
   updatedAt: new Date().toISOString(),
-  calendars: snapshots.map(({ name, events, text }) => ({ name, events, text, file:'calendar-'+name+'.ics' })),
+  calendars: calendars.map(([name]) => {
+    const fresh = valid.find(x => x.name === name);
+    if(fresh) return {name,events:fresh.events,text:fresh.text,file:'calendar-'+name+'.ics',updatedAt:new Date().toISOString()};
+    const old = (previous.calendars||[]).find(x=>x.name===name);
+    return old ? {...old,stale:true} : {name,error:'No disponible',file:'calendar-'+name+'.ics'};
+  }),
 };
 const response=await fetch(supabaseUrl+'/rest/v1/panel_data',{
   method:'POST',signal:AbortSignal.timeout(30000),
