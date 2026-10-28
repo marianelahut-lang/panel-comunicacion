@@ -539,7 +539,7 @@
       if(!managed){out.push(e);return}
       var uid=String(e.gcalUID||'').trim();
       var sig=[String(e.date||''),String(e.time||''),String(e.desc||'').toLowerCase().replace(/\s+/g,' ').trim()].join('|');
-      var key=uid?'uid:'+uid:'sig:'+sig;
+      var key=(e.gcalCalendarId||e.gcalLabel||'unknown')+'|'+(uid?'uid:'+uid:'sig:'+sig);
       var prev=seen[key];
       if(!prev){seen[key]=e;out.push(e);return}
       var cover=!!(prev.cover||e.cover);
@@ -566,7 +566,7 @@
       var meta=rows[0]&&rows[0].value;
       if(!meta||!Array.isArray(meta.calendars))return null;
       var age=Date.now()-Date.parse(meta.updatedAt);
-      if(!Number.isFinite(age)||age>2*60*60*1000||age< -5*60*1000)return null;
+      if(!Number.isFinite(age)||age>15*60*1000||age< -5*60*1000)return null;
       return meta;
     }catch(e){}finally{clearTimeout(timeout)}
     return null;
@@ -582,13 +582,14 @@
       seen[id]=true;
       var data={
         id:id,date:dt.date,time:dt.time,desc:ev.SUMMARY||'(sin titulo)',loc:ev.LOCATION||'',
-        type:cal.type,cover:false,gcalSource:true,gcalCalendarId:cal.id,gcalLabel:cal.label,gcalColor:cal.file==='intendente.ics'?'#8b5cf6':cal.file==='prensa.ics'?'#f59e0b':'#10b981',
+        type:cal.type,cover:false,gcalSource:true,gcalCalendarId:cal.id,gcalLabel:cal.label,gcalColor:cal.file==='intendente.ics'?'#4285f4':cal.file==='prensa.ics'?'#d50000':'#f4a6b8',
         gcalUID:ev.UID||'',notes:ev.DESCRIPTION||'',updated:Date.now()
       };
       var exists=state.events.find(function(x){
-        return x.id===id||(x.gcalUID&&data.gcalUID&&x.gcalUID===data.gcalUID);
+        return x.id===id||(x.gcalCalendarId===cal.id&&x.gcalUID&&data.gcalUID&&x.gcalUID===data.gcalUID);
       });
       if(exists){
+        seen[exists.id]=true;
         var currentCover=exists.cover;
         Object.assign(exists,data);
         if(typeof currentCover==='boolean')exists.cover=currentCover;
@@ -598,10 +599,8 @@
         imported++;
       }
     });
+    // Nunca borrar eventos por ausencia en una lectura parcial del feed.
     var before=state.events.length;
-    state.events=state.events.filter(function(e){
-      return !(e.gcalSource&&e.gcalCalendarId===cal.id&&!seen[e.id]);
-    });
     return {
       label:cal.label,ok:true,imported:imported,updated:updated,
       removed:before-state.events.length,skipped:skipped,via:got.via
@@ -613,6 +612,11 @@
     syncing=true;
     try{
       calendarFeeds=await loadCalendarFeeds();
+      if(!calendarFeeds){
+        setStatus('<span style="color:var(--rd)">Sincronización detenida: no hay datos recientes de Google (menos de 15 minutos). No se modificaron los eventos.</span>');
+        if(!opts.silent)toastSafe('No hay datos recientes de Google Calendar','err');
+        return [];
+      }
       var results=[];
       for(var i=0;i<CALENDARS.length;i++){
         setStatus('Actualizando '+CALENDARS[i].label+'...','var(--ac)');
@@ -690,9 +694,9 @@
 /* Etiquetas visibles por calendario, sin modificar los eventos originales. */
 (function(){
   var palette={
-    'Agenda Intendente':['Intendente','#8b5cf6'],
-    'Prensa / Medio':['PRENSA','#f59e0b'],
-    'Municipal':['Prensa Municipal','#10b981']
+    'Agenda Intendente':['INTENDENTE · PRIORIDAD MÁXIMA','#4285f4'],
+    'Prensa / Medio':['PRENSA','#d50000'],
+    'Municipal':['Prensa Municipal','#f4a6b8']
   };
   function paint(){
     if(!window.state||!Array.isArray(state.events))return;
