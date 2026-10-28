@@ -551,7 +551,7 @@
   async function fetchICS(cal){
     if(!calendarFeeds)return null;
     var feed=calendarFeeds.calendars.find(function(item){return 'calendar-'+cal.file===item.file});
-    if(!feed||typeof feed.text!=='string')return null;
+    if(!feed||feed.stale||typeof feed.text!=='string')return null;
     if(feed.text.indexOf('BEGIN:VCALENDAR')>=0&&feed.text.indexOf('END:VCALENDAR')>=0)return {text:feed.text,via:'Google Calendar'};
     return null;
   }
