@@ -582,7 +582,7 @@
       seen[id]=true;
       var data={
         id:id,date:dt.date,time:dt.time,desc:ev.SUMMARY||'(sin titulo)',loc:ev.LOCATION||'',
-        type:cal.type,cover:false,gcalSource:true,gcalCalendarId:cal.id,gcalLabel:cal.label,gcalColor:cal.file==='intendente.ics'?'#4285f4':cal.file==='prensa.ics'?'#d50000':'#f4a6b8',
+        type:cal.type,cover:false,gcalSource:true,gcalCalendarId:cal.id,gcalLabel:cal.label,gcalColor:cal.file==='intendente.ics'?'#4285f4':cal.file==='prensa.ics'?'#f691b2':'#f83a22',
         gcalUID:ev.UID||'',notes:ev.DESCRIPTION||'',updated:Date.now()
       };
       var exists=state.events.find(function(x){
@@ -695,8 +695,8 @@
 (function(){
   var palette={
     'Agenda Intendente':['INTENDENTE · PRIORIDAD MÁXIMA','#4285f4'],
-    'Prensa / Medio':['PRENSA','#d50000'],
-    'Municipal':['Prensa Municipal','#f4a6b8']
+    'Prensa / Medio':['PRENSA','#f691b2'],
+    'Municipal':['DEPENDENCIAS MUNICIPALES','#f83a22']
   };
   function paint(){
     if(!window.state||!Array.isArray(state.events))return;
