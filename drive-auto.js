@@ -582,7 +582,7 @@
       seen[id]=true;
       var data={
         id:id,date:dt.date,time:dt.time,desc:ev.SUMMARY||'(sin titulo)',loc:ev.LOCATION||'',
-        type:cal.type,cover:false,gcalSource:true,gcalCalendarId:cal.id,
+        type:cal.type,cover:false,gcalSource:true,gcalCalendarId:cal.id,gcalLabel:cal.label,gcalColor:cal.file==='intendente.ics'?'#8b5cf6':cal.file==='prensa.ics'?'#f59e0b':'#10b981',
         gcalUID:ev.UID||'',notes:ev.DESCRIPTION||'',updated:Date.now()
       };
       var exists=state.events.find(function(x){
@@ -622,6 +622,7 @@
       saveState();
       try{
         if(hasFn('renderCal'))renderCal();
+        if(hasFn('renderCalDay'))renderCalDay();
         if(hasFn('renderHoy'))renderHoy();
         if(hasFn('updateBadges'))updateBadges();
       }catch(e){}
@@ -684,4 +685,43 @@
     setTimeout(installOverrides,0);
   },{once:true});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
+
+/* Etiquetas visibles por calendario, sin modificar los eventos originales. */
+(function(){
+  var palette={
+    'Agenda Intendente':['Intendente','#8b5cf6'],
+    'Prensa / Medio':['PRENSA','#f59e0b'],
+    'Municipal':['Prensa Municipal','#10b981']
+  };
+  function paint(){
+    if(!window.state||!Array.isArray(state.events))return;
+    var roots=['#calDay','#calBody','#calGrid','#hoyEventos','#calendario'];
+    roots.forEach(function(selector){
+      var root=document.querySelector(selector);
+      if(!root)return;
+      var nodes=root.querySelectorAll('div,li,article');
+      Array.prototype.forEach.call(nodes,function(el){
+        if(el.dataset&&el.dataset.gcalTagged)return;
+        if(el.children.length>8||el.textContent.length>450)return;
+        var t=(el.textContent||'').trim();
+        if(!t)return;
+        var match=state.events.find(function(e){
+          return e.gcalSource&&e.desc&&t.indexOf(e.desc)>=0&&e.desc.length>5;
+        });
+        if(!match)return;
+        if(Array.prototype.some.call(el.children,function(ch){return ch.dataset&&ch.dataset.gcalTagged}))return;
+        var p=palette[match.type];
+        if(!p)return;
+        var badge=document.createElement('span');
+        badge.dataset.gcalTagged='1';
+        badge.textContent=p[0];
+        badge.style.cssText='display:inline-block;margin:3px 5px;padding:2px 8px;border-radius:99px;background:'+p[1]+';color:#fff;font-size:11px;font-weight:700;vertical-align:middle';
+        el.insertBefore(badge,el.firstChild);
+        el.dataset.gcalTagged='1';
+      });
+    });
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setInterval(paint,1800)});
+  else setInterval(paint,1800);
 })();
