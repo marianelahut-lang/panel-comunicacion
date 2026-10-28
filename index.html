@@ -90,6 +90,27 @@ function addFuncionarioDifusion(){`
 }
 function renderCalDay(){`
       );
+      // Etiquetas y prioridad visibles directamente en el HTML del calendario.
+      html = html.replace(
+        "const evs=state.events.filter(e=>e.date===iso);",
+        "const evs=state.events.filter(e=>e.date===iso).sort((a,b)=>(b.gcalLabel==='Intendente')-(a.gcalLabel==='Intendente')||(a.time||'').localeCompare(b.time||''));"
+      );
+      html = html.replace(
+        "const evs=state.events.filter(e=>e.date===iso).sort((a,b)=>(a.time||'').localeCompare(b.time||''));",
+        "const evs=state.events.filter(e=>e.date===iso).sort((a,b)=>(b.gcalLabel==='Intendente')-(a.gcalLabel==='Intendente')||(a.time||'').localeCompare(b.time||''));"
+      );
+      html = html.replace(
+        "evs.slice(0,3).forEach(e=>{html+='<div class=\"ce\">'+esc((e.time||'')+' '+(e.desc||''))+'</div>'});",
+        "evs.slice(0,3).forEach(e=>{const mayor=e.gcalLabel==='Intendente'||e.type==='Agenda Intendente';const col=mayor?'#4285f4':e.gcalColor||'#64748b';html+='<div class=\"ce\" style=\"border-left:4px solid '+col+';padding-left:5px\">'+(mayor?'<strong style=\"color:#4285f4\">★ INTENDENTE · </strong>':'')+esc((e.time||'')+' '+(e.desc||''))+'</div>'});"
+      );
+      html = html.replace(
+        "items.push('<div class=\"li\" onclick=\"editEvent(\\''+e.id+'\\')\"><div class=\"li-i\"",
+        "items.push('<div class=\"li\" style=\"border-left:5px solid '+(e.gcalLabel==='Intendente'||e.type==='Agenda Intendente'?'#4285f4':e.gcalColor||'#64748b')+';padding-left:8px\" onclick=\"editEvent(\\''+e.id+'\\')\"><div class=\"li-i\""
+      );
+      html = html.replace(
+        "esc(e.desc||'')+'</div><div class=\"li-s\">'+esc(e.time||'')",
+        "(e.gcalLabel==='Intendente'||e.type==='Agenda Intendente'?'<span style=\"display:inline-block;background:#4285f4;color:white;border-radius:5px;padding:3px 7px;font-size:11px;font-weight:800;margin-right:6px\">★ INTENDENTE · PRIORIDAD MÁXIMA</span>':'')+esc(e.desc||'')+'</div><div class=\"li-s\">'+esc(e.time||'')"
+      );
       document.open();
       document.write(html);
       document.close();
